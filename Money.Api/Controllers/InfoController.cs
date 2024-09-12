@@ -16,15 +16,13 @@ public class InfoController(UserManager<ApplicationUser> userManager) : Controll
     [HttpGet]
     public IActionResult Get()
     {
-
-        return Ok("I am Authorize "d);
+        return Ok("I am Authorize");
     }
 
     [HttpGet("message")]
     public async Task<IActionResult> GetMessage()
     {
         ApplicationUser? user = await userManager.FindByIdAsync(User.GetClaim(OpenIddictConstants.Claims.Subject) ?? string.Empty);
-
 
         if (user is null)
         {
