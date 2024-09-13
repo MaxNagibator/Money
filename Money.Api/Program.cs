@@ -3,44 +3,67 @@ using Microsoft.EntityFrameworkCore;
 using Money.Api.Data;
 using Money.Api.Definitions;
 using Money.Api.Services;
+using NLog;
+using NLog.Web;
 
-WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+Logger? logger = LogManager.Setup()
+    .LoadConfigurationFromAppSettings()
+    .GetCurrentClassLogger();
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
+logger.Debug("init main");
+
+try
 {
-    options.UseNpgsql(builder.Configuration.GetConnectionString("SecurityDb"));
-    options.UseSnakeCaseNamingConvention();
-    options.UseOpenIddict();
-});
+    WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders();
+    builder.Logging.ClearProviders();
+    builder.Host.UseNLog();
 
-builder.Services.AddControllers();
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    {
+        options.UseNpgsql(builder.Configuration.GetConnectionString("SecurityDb"));
+        options.UseSnakeCaseNamingConvention();
+        options.UseOpenIddict();
+    });
 
-builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
+        .AddEntityFrameworkStores<ApplicationDbContext>()
+        .AddDefaultTokenProviders();
 
-builder.Services.AddSwaggerDefinition();
-builder.Services.AddOpenIddictDefinition();
-builder.Services.AddScoped<AccountService>();
-builder.Services.AddScoped<AuthorizationService>();
+    builder.Services.AddControllers();
 
-builder.Services.AddCors();
+    builder.Services.AddEndpointsApiExplorer();
 
-WebApplication app = builder.Build();
+    builder.Services.AddSwaggerDefinition();
+    builder.Services.AddOpenIddictDefinition();
+    builder.Services.AddScoped<AccountService>();
+    builder.Services.AddScoped<AuthorizationService>();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwaggerDefinition();
+    builder.Services.AddCors();
+
+    WebApplication app = builder.Build();
+
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwaggerDefinition();
+    }
+
+    app.UseHttpsRedirection();
+
+    app.UseAuthentication();
+    app.UseAuthorization();
+
+    app.MapControllers();
+    app.MapDefaultControllerRoute();
+
+    app.Run();
 }
-
-app.UseHttpsRedirection();
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapControllers();
-app.MapDefaultControllerRoute();
-
-app.Run();
+catch (Exception exception)
+{
+    logger.Error(exception, "Stopped program because of exception");
+    throw;
+}
+finally
+{
+    LogManager.Shutdown();
+}
