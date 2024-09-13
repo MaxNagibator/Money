@@ -36,4 +36,6 @@ public class Category
 
     [Column]
     public int? Order { get; set; }
+
+    public required DomainUser User { get; set; }
 }

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Money.Api.Data;
 
-public class User
+public class DomainUser
 {
     [Key]
     [Column]
@@ -11,4 +11,6 @@ public class User
 
     [Column]
     public Guid AuthUserId { get; set; }
+
+    public required List<Category> Categories { get; set; }
 }

@@ -7,23 +7,40 @@ namespace Money.Api.Controllers;
 [ApiController]
 [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
 [Route("api/[controller]")]
-public class WeatherForecastController(ILogger<WeatherForecastController> logger) : ControllerBase
+public class CategoriesController(ILogger<CategoriesController> logger) : ControllerBase
 {
-    private static readonly string[] Summaries =
-    [
-        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    ];
-
-    [HttpGet(Name = "GetWeatherForecast")]
-    public IEnumerable<WeatherForecast> Get()
+    [HttpGet()]
+    [Route("")]
+    public string Get()
     {
-        return Enumerable.Range(1, 5)
-            .Select(index => new WeatherForecast
-            {
-                Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            })
-            .ToArray();
+        return "list";
+    }
+
+    [HttpGet()]
+    [Route("{id}")]
+    public string GetById(Guid id)
+    {
+        return "byid" + id;
+    }
+
+    [HttpPost]
+    [Route("{id}")]
+    public string Create(Guid id)
+    {
+        return "create" + id;
+    }
+
+    [HttpPut]
+    [Route("{id}")]
+    public string Update([FromQuery] Guid id)
+    {
+        return "update";
+    }
+
+    [HttpDelete]
+    [Route("{id}")]
+    public string Delete([FromQuery] Guid id)
+    {
+        return "delete";
     }
 }
