@@ -1,16 +1,14 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Money.Api.Data;
 
-[Table("users")]
-public partial class User
+public class User
 {
     [Key]
-    [Column("id")]
+    [Column]
     public int Id { get; set; }
 
-    [Column("auth_user_id")]
+    [Column]
     public Guid AuthUserId { get; set; }
 }

@@ -2,13 +2,14 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Money.Api.Data;
 using Money.Api.Definitions;
-using Money.Api.Models;
+using Money.Api.Services;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString("SecurityDb"));
+    options.UseSnakeCaseNamingConvention();
     options.UseOpenIddict();
 });
 
@@ -19,8 +20,11 @@ builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
 builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerDefinition();
 builder.Services.AddOpenIddictDefinition();
+builder.Services.AddScoped<AccountService>();
+builder.Services.AddScoped<AuthorizationService>();
 
 builder.Services.AddCors();
 

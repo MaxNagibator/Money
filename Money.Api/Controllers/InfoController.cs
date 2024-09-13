@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Money.Api.Models;
+using Money.Api.Data;
 using OpenIddict.Abstractions;
 using OpenIddict.Validation.AspNetCore;
 
@@ -16,15 +16,13 @@ public class InfoController(UserManager<ApplicationUser> userManager) : Controll
     [HttpGet]
     public IActionResult Get()
     {
-
-        return Ok("I am Authorize "d);
+        return Ok("I am Authorize");
     }
 
     [HttpGet("message")]
     public async Task<IActionResult> GetMessage()
     {
         ApplicationUser? user = await userManager.FindByIdAsync(User.GetClaim(OpenIddictConstants.Claims.Subject) ?? string.Empty);
-
 
         if (user is null)
         {

@@ -1,40 +1,39 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Money.Api.Data;
 
-[Table("categories")]
 [PrimaryKey(nameof(UserId), nameof(Id))]
-public partial class Category
+public class Category
 {
     [Key]
-    [Column("user_id", Order = 1)]
+    [Column(Order = 1)]
     public int UserId { get; set; }
 
     [Key]
-    [Column("id", Order = 2)]
+    [Column(Order = 2)]
     public int Id { get; set; }
 
-    [Column("name")]
+    [Column]
     [Required]
     [StringLength(500)]
-    public string Name { get; set; }
+    public required string Name { get; set; }
 
-    [Column("description")]
+    [Column]
     [StringLength(4000)]
-    public string Description { get; set; }
+    public string? Description { get; set; }
 
-    [Column("parent_id")]
+    [Column]
     public int? ParentId { get; set; }
 
-    [Column("color")]
+    [Column]
     [StringLength(100)]
-    public string Color { get; set; }
+    public string? Color { get; set; }
 
-    [Column("type_id")]
+    [Column]
     public int TypeId { get; set; }
 
-    [Column("order")]
-    public int? Order { get; set; } 
+    [Column]
+    public int? Order { get; set; }
 }
