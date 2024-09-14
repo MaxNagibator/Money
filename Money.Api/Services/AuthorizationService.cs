@@ -1,7 +1,7 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
-using Money.Api.Common;
+using Money.Api.Common.Results;
 using Money.Api.Data;
 using OpenIddict.Abstractions;
 

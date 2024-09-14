@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Money.Api.Common;
+using Money.Api.Common.Results;
 using Money.Api.Services;
 using Money.Api.ViewModels.Account;
 

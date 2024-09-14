@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Money.Api.Common;
-using Money.Api.Common.Extensions;
+using Money.Api.Common.Results;
 using Money.Api.Data;
 using Money.Api.ViewModels.Account;
 

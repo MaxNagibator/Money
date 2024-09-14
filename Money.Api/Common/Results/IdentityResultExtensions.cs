@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 
-namespace Money.Api.Common.Extensions;
+namespace Money.Api.Common.Results;
 
 public static class IdentityResultExtensions
 {
