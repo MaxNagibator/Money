@@ -1,36 +1,32 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Money.Api.Common;
-using Money.Api.Services;
-using Money.Api.ViewModels.Account;
+using Money.Api.BusinessLogic.Models;
+using Money.BusinessLogic.Interfaces;
 
-namespace Money.Api.Controllers;
-
-[Authorize]
-[Route("api/[controller]/[action]")]
-public class AccountController(AccountService accountService) : Controller
+namespace Money.Api.Controllers
 {
-    [HttpPost]
-    [AllowAnonymous]
-    public async Task<IActionResult> Register([FromBody] RegisterViewModel model)
+    [Authorize]
+    [Route("[controller]")]
+    public class AccountController : ControllerBase
     {
-        if (ModelState.IsValid == false)
+        private readonly IAccountService _accountService;
+
+        public AccountController(IAccountService accountService)
         {
-            return BadRequest(ModelState);
+            _accountService = accountService;
         }
 
-        Result result = await accountService.RegisterAsync(model);
-
-        if (result.IsSuccess)
+        [HttpPost("register")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Register(RegisterViewModel model)
         {
+            if (ModelState.IsValid == false)
+            {
+                return BadRequest(ModelState);
+            }
+
+            await _accountService.RegisterAsync(model);
             return Ok();
         }
-
-        foreach (string error in result.Errors)
-        {
-            ModelState.AddModelError(string.Empty, error);
-        }
-
-        return BadRequest(ModelState);
     }
 }

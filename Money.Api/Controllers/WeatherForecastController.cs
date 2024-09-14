@@ -2,45 +2,53 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OpenIddict.Validation.AspNetCore;
 
-namespace Money.Api.Controllers;
-
-[ApiController]
-[Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
-[Route("api/[controller]")]
-public class CategoriesController(ILogger<CategoriesController> logger) : ControllerBase
+namespace Money.Api.Controllers
 {
-    [HttpGet()]
-    [Route("")]
-    public string Get()
+    [ApiController]
+    [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
+    [Route("[controller]")]
+    public class CategoriesController : ControllerBase
     {
-        return "list";
-    }
+        private readonly ILogger<CategoriesController> _logger;
 
-    [HttpGet()]
-    [Route("{id}")]
-    public string GetById(Guid id)
-    {
-        return "byid" + id;
-    }
+        public CategoriesController(ILogger<CategoriesController> logger)
+        {
+            _logger = logger;
+        }
 
-    [HttpPost]
-    [Route("{id}")]
-    public string Create(Guid id)
-    {
-        return "create" + id;
-    }
+        [HttpGet()]
+        [Route("")]
+        public string Get()
+        {
+            return "list";
+        }
 
-    [HttpPut]
-    [Route("{id}")]
-    public string Update([FromQuery] Guid id)
-    {
-        return "update";
-    }
+        [HttpGet()]
+        [Route("{id}")]
+        public string GetById(Guid id)
+        {
+            return "byid" + id;
+        }
 
-    [HttpDelete]
-    [Route("{id}")]
-    public string Delete([FromQuery] Guid id)
-    {
-        return "delete";
+        [HttpPost]
+        [Route("{id}")]
+        public string Create(Guid id)
+        {
+            return "create" + id;
+        }
+
+        [HttpPut]
+        [Route("{id}")]
+        public string Update([FromQuery] Guid id)
+        {
+            return "update";
+        }
+
+        [HttpDelete]
+        [Route("{id}")]
+        public string Delete([FromQuery] Guid id)
+        {
+            return "delete";
+        }
     }
 }

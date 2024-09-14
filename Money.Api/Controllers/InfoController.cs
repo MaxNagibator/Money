@@ -6,35 +6,43 @@ using Money.Api.Data;
 using OpenIddict.Abstractions;
 using OpenIddict.Validation.AspNetCore;
 
-namespace Money.Api.Controllers;
-
-[ApiController]
-[Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
-[Route("api/[controller]")]
-public class InfoController(UserManager<ApplicationUser> userManager) : ControllerBase
+namespace Money.Api.Controllers
 {
-    [HttpGet]
-    public IActionResult Get()
+    [ApiController]
+    [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
+    [Route("[controller]")]
+    public class InfoController : ControllerBase
     {
-        return Ok("I am Authorize");
-    }
+        private readonly UserManager<ApplicationUser> _userManager;
 
-    [HttpGet("message")]
-    public async Task<IActionResult> GetMessage()
-    {
-        ApplicationUser? user = await userManager.FindByIdAsync(User.GetClaim(OpenIddictConstants.Claims.Subject) ?? string.Empty);
-
-        if (user is null)
+        public InfoController(UserManager<ApplicationUser> userManager)
         {
-            return Challenge(authenticationSchemes: OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme,
-                properties: new AuthenticationProperties(new Dictionary<string, string?>
-                {
-                    [OpenIddictValidationAspNetCoreConstants.Properties.Error] = OpenIddictConstants.Errors.InvalidToken,
-                    [OpenIddictValidationAspNetCoreConstants.Properties.ErrorDescription] =
-                        "The specified access token is bound to an account that no longer exists."
-                }));
+            _userManager = userManager;
         }
 
-        return Content($"{user.UserName} has been successfully authenticated.");
+        [HttpGet]
+        public IActionResult Get()
+        {
+            return Ok("I am Authorize");
+        }
+
+        [HttpGet("message")]
+        public async Task<IActionResult> GetMessage()
+        {
+            ApplicationUser user = await _userManager.FindByIdAsync(User.GetClaim(OpenIddictConstants.Claims.Subject) ?? string.Empty);
+
+            if (user == null)
+            {
+                return Challenge(authenticationSchemes: OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme,
+                    properties: new AuthenticationProperties(new Dictionary<string, string?>
+                    {
+                        [OpenIddictValidationAspNetCoreConstants.Properties.Error] = OpenIddictConstants.Errors.InvalidToken,
+                        [OpenIddictValidationAspNetCoreConstants.Properties.ErrorDescription] =
+                            "The specified access token is bound to an account that no longer exists."
+                    }));
+            }
+
+            return Content($"{user.UserName} has been successfully authenticated.");
+        }
     }
 }

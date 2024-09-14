@@ -1,32 +1,13 @@
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Money.Api.Data;
 using Money.Api.Definitions;
-using Money.Api.Services;
+using Money.Api.Extensions;
+using Money.Api.Middlewares;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-{
-    options.UseNpgsql(builder.Configuration.GetConnectionString("SecurityDb"));
-    options.UseSnakeCaseNamingConvention();
-    options.UseOpenIddict();
-});
-
-builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders();
-
 builder.Services.AddControllers();
-
 builder.Services.AddEndpointsApiExplorer();
-
-builder.Services.AddSwaggerDefinition();
-builder.Services.AddOpenIddictDefinition();
-builder.Services.AddScoped<AccountService>();
-builder.Services.AddScoped<AuthorizationService>();
-
 builder.Services.AddCors();
+builder.Services.ConfigureServices(builder.Configuration);
 
 WebApplication app = builder.Build();
 
@@ -42,5 +23,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapDefaultControllerRoute();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.Run();
