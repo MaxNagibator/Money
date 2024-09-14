@@ -1,8 +1,4 @@
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Money.Api.Data;
-using Money.Api.Definitions;
-using Money.Api.Services;
+using Money.Api.Definitions.Base;
 using NLog;
 using NLog.Web;
 
@@ -19,42 +15,11 @@ try
     builder.Logging.ClearProviders();
     builder.Host.UseNLog();
 
-    builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    {
-        options.UseNpgsql(builder.Configuration.GetConnectionString("SecurityDb"));
-        options.UseSnakeCaseNamingConvention();
-        options.UseOpenIddict();
-    });
-
-    builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
-        .AddEntityFrameworkStores<ApplicationDbContext>()
-        .AddDefaultTokenProviders();
-
-    builder.Services.AddControllers();
-
-    builder.Services.AddEndpointsApiExplorer();
-
-    builder.Services.AddSwaggerDefinition();
-    builder.Services.AddOpenIddictDefinition();
-    builder.Services.AddScoped<AccountService>();
-    builder.Services.AddScoped<AuthorizationService>();
-
-    builder.Services.AddCors();
+    builder.AddDefinitions(typeof(Program));
 
     WebApplication app = builder.Build();
 
-    if (app.Environment.IsDevelopment())
-    {
-        app.UseSwaggerDefinition();
-    }
-
-    app.UseHttpsRedirection();
-
-    app.UseAuthentication();
-    app.UseAuthorization();
-
-    app.MapControllers();
-    app.MapDefaultControllerRoute();
+    app.UseDefinitions();
 
     app.Run();
 }

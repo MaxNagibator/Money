@@ -1,13 +1,16 @@
 ﻿using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
+using Money.Api.Definitions.Base;
 
 namespace Money.Api.Definitions;
 
-public static class SwaggerDefinition
+public class SwaggerDefinition : AppDefinition
 {
-    public static void AddSwaggerDefinition(this IServiceCollection services)
+    public override void ConfigureServices(WebApplicationBuilder builder)
     {
-        services.AddSwaggerGen(options =>
+        builder.Services.AddEndpointsApiExplorer();
+
+        builder.Services.AddSwaggerGen(options =>
         {
             options.ResolveConflictingActions(descriptions => descriptions.First());
 
@@ -45,8 +48,13 @@ public static class SwaggerDefinition
         });
     }
 
-    public static void UseSwaggerDefinition(this IApplicationBuilder app)
+    public override void ConfigureApplication(WebApplication app)
     {
+        if (app.Environment.IsDevelopment() == false)
+        {
+            return;
+        }
+
         app.UseSwagger();
         app.UseSwaggerUI();
     }
