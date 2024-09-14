@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Money.Api.Data;
 using Money.Data.Interfaces;
 using System.Linq.Expressions;
 
@@ -31,7 +30,7 @@ namespace Money.Data.Repositories
                 query = query.Include(include);
             }
 
-            var entity = await query.FirstOrDefaultAsync(e => EF.Property<Guid>(e, "Id") == id);
+            var entity = await query.FirstOrDefaultAsync(e => EF.Property<Guid>(e, "id") == id);
             return entity;
         }
 
@@ -50,7 +49,7 @@ namespace Money.Data.Repositories
                 query = query.Include(include);
             }
 
-            var entities = await query.OrderBy(x => EF.Property<Guid>(x, "Id")).Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
+            var entities = await query.OrderBy(x => EF.Property<Guid>(x, "id")).Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
             return entities;
         }
 
@@ -63,7 +62,7 @@ namespace Money.Data.Repositories
         public async Task<List<T>> GetAsync(Expression<Func<T, bool>> predicate, int pageIndex, int pageSize)
         {
             IQueryable<T> query = _dbSet.Where(predicate);
-            var entities = await query.OrderBy(x => EF.Property<Guid>(x, "Id")).Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
+            var entities = await query.OrderBy(x => EF.Property<Guid>(x, "id")).Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
             return entities;
         }
 

@@ -1,10 +1,10 @@
-﻿using Money.Api.Data;
-using Money.BusinessLogic;
+﻿using Money.BusinessLogic;
 using Money.Data;
 using Microsoft.AspNetCore.Identity;
 using Money.Api.Definitions;
 using Serilog;
 using Money.Common.Logging;
+using Money.Data.Entities;
 
 namespace Money.Api.Extensions
 {

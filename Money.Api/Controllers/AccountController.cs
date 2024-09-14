@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Money.Api.BusinessLogic.Models;
 using Money.BusinessLogic.Interfaces;
+using Money.BusinessLogic.Models;
 
 namespace Money.Api.Controllers
 {

@@ -1,4 +1,4 @@
-﻿using Money.Api.Data;
+﻿using Money.Data;
 
 namespace Money.Api.Definitions;
 

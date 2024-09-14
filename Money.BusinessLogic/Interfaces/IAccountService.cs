@@ -1,4 +1,4 @@
-﻿using Money.Api.BusinessLogic.Models;
+﻿using Money.BusinessLogic.Models;
 
 namespace Money.BusinessLogic.Interfaces
 {

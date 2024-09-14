@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Money.Api.Data;
+using Money.Data.Entities;
 using OpenIddict.Abstractions;
 using OpenIddict.Validation.AspNetCore;
 

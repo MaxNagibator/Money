@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Money.Api.Services;
 using Money.BusinessLogic.Interfaces;
+using Money.BusinessLogic.Services;
 
 namespace Money.BusinessLogic
 {

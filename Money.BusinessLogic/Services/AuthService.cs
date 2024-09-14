@@ -3,11 +3,11 @@ using System.Security.Claims;
 using Money.Common.Exceptions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
-using Money.Api.Data;
 using Money.BusinessLogic.Interfaces;
 using OpenIddict.Abstractions;
+using Money.Data.Entities;
 
-namespace Money.Api.Services
+namespace Money.BusinessLogic.Services
 {
     public class AuthService : IAuthService
     {
@@ -22,7 +22,7 @@ namespace Money.Api.Services
 
         public async Task<ClaimsPrincipal> ExchangeAsync(OpenIddictRequest request)
         {
-            if (!request.IsPasswordGrantType())
+            if (request.IsPasswordGrantType() == false)
             {
                 throw new IncorrectDataException("Указанный тип гранта не реализован");
             }
@@ -34,7 +34,7 @@ namespace Money.Api.Services
             }
 
             var signInResult = await _signInManager.CheckPasswordSignInAsync(user, request.Password, true);
-            if (!signInResult.Succeeded)
+            if (signInResult.Succeeded == false)
             {
                 throw new IncorrectDataException("Пара логин/пароль недействительна");
             }

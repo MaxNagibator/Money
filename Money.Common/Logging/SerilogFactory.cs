@@ -12,11 +12,11 @@ namespace Money.Common.Logging
             var executingDir = Path.GetDirectoryName(Assembly.GetEntryAssembly()!.Location);
             var logPath = Path.Combine(executingDir!, "logs", "verbose.log");
             var logger = new LoggerConfiguration()
-                .MinimumLevel.Verbose()
+                .MinimumLevel.Warning()
                 .WriteTo.File(logPath,
                     rollingInterval: RollingInterval.Hour,
                     outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] {Message}{NewLine}{Exception}")
-                .WriteTo.Console(LogEventLevel.Debug,
+                .WriteTo.Console(LogEventLevel.Information,
                     outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message}{NewLine}{Exception}")
                 .CreateLogger();
             Log.Logger = logger;

@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Money.Api.Data
+namespace Money.Data.Entities
 {
     public class DomainUser
     {

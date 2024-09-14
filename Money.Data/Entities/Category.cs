@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
-namespace Money.Api.Data
+namespace Money.Data.Entities
 {
     [PrimaryKey(nameof(UserId), nameof(Id))]
     public class Category
@@ -22,14 +22,14 @@ namespace Money.Api.Data
 
         [Column]
         [StringLength(4000)]
-        public string? Description { get; set; }
+        public string Description { get; set; }
 
         [Column]
         public int? ParentId { get; set; }
 
         [Column]
         [StringLength(100)]
-        public string? Color { get; set; }
+        public string Color { get; set; }
 
         [Column]
         public int TypeId { get; set; }

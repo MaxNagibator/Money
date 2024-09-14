@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Money.Api.BusinessLogic.Models
+namespace Money.BusinessLogic.Models
 {
     public class RegisterViewModel
     {

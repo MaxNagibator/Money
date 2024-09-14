@@ -1,10 +1,10 @@
 ﻿using Money.Common.Exceptions;
 using Microsoft.AspNetCore.Identity;
-using Money.Api.BusinessLogic.Models;
-using Money.Api.Data;
 using Money.BusinessLogic.Interfaces;
+using Money.Data.Entities;
+using Money.BusinessLogic.Models;
 
-namespace Money.Api.Services
+namespace Money.BusinessLogic.Services
 {
     public class AccountService : IAccountService
     {

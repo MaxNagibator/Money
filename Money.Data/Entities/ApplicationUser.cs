@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 
-namespace Money.Api.Data
+namespace Money.Data.Entities
 {
     public class ApplicationUser : IdentityUser<Guid>;
 }
