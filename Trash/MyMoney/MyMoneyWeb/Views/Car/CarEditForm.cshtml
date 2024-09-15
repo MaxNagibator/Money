@@ -1,0 +1,17 @@
+﻿@using Common.Enums
+@model MyMoneyWeb.Models.CarDetailsModel
+
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">&times;</button>
+    <h4 class="modal-title">Редактирование @Model.Car.Name</h4>
+</div>
+<div class="modal-body">
+    <div class="form-group">
+        <label for="carName">Наименование</label>
+        <input type="text" class="form-control" id="carName" placeholder="Моя машинка" value="@Model.Car.Name">
+    </div>
+    <input type="hidden" id="carId" value="@Model.Car.Id"/>
+</div>
+<div class="modal-footer">
+    <button type="button" id="createCarBtn" class="btn btn-default" onclick="updateCar()" @*data-dismiss="modal"*@><i class="fa fa-save"></i>Сохранить</button>
+</div>

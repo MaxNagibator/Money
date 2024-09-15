@@ -1,0 +1,161 @@
+﻿@model MyMoneyWeb.Models.UmsPicker.DropDownPickerModel
+@{
+    var pickerId = Model.Id;
+    var pickerName = Model.Name;
+    var pickerType = Model.Type;
+    var pickerSearchTemplate = Model.SearchTemplate;
+    var pickerOrderTemplate = Model.OrderTemplate;
+    var pickerIdColumnName = Model.IdColumnName;
+    var showColumnNames = Model.ShowColumns;
+    var showSelectMax = Model.ShowSelectMax ?? 1;
+    if(showSelectMax < 1)
+    {
+        showSelectMax = 1;
+    }
+    var disableLoadNextButton = Model.DisableLoadNextButton;
+    var additionalValues = Model.AdditionalValues;
+    var typeId = Model.TypeId;
+    var offset = Model.Offset;
+    var defaultText = Model.DefaultText;
+    var width = Model.Width ?? "100%";
+    var pageCount = Model.PageCount ?? 10;
+    var selected = (Model.SelectedValues ?? "").Replace('\r', ' ').Replace('\n', ' ');
+    var selectedRemoveIfFoundNotExists = Model.SelectedValuesRemoveIfFoundNotExists ? "1" : "0";
+    var singleAttr = Model.IsSingle ? "1" : "0";
+    var singleNotNullableAttr = Model.IsSingleNotNullable ? "1" : "0";
+    var afterSelectFunction = Model.AfterSelectFunction;
+    var afterSelectFunctionParam = Model.AfterSelectFunctionParam;
+    var beforeSelectFunction = Model.BeforeSelectFunction;
+    var beforeSelectFunctionParam = Model.BeforeSelectFunctionParam;
+    var afterInitFunction = Model.AfterInitFunction;
+    var singleSelectClass = Model.IsSingle ? "single-select" : "";
+    var singleNotNullableClass = Model.IsSingleNotNullable ? "single-not-nullable" : "";
+    var preventLoading = Model.PreventLoading ? "1" : "0";
+    var closeAfterSelect = Model.CloseAfterSelect ? "1" : "0";
+    string selectAllText = "";
+    var selectedValue = Model.SelectedValue;
+    var containerClass = Model.ContainerClass;
+    var containerClassIfHasSelected = Model.ContainerClassIfHasSelected;
+    var buttonClass = Model.ButtonClass;
+    var buttonDefaultClass = String.IsNullOrEmpty(Model.ButtonDefaultClass) ? "btn-default" : Model.ButtonDefaultClass;
+    var buttonIconClass = Model.ButtonIconClass;
+    var buttonWithIconClass = String.IsNullOrEmpty(Model.ButtonIconClass) ? "" : "btn-with-icon";
+    var disableClass = Model.IsDisabled ? "disabled" : ""; //ne trogat' bez soglasovaniya s GricinaMA
+    var disableShowSelectedText = Model.DisableShowSelectedText ? "1" : "0";
+    var showSelectedTitle = Model.ShowSelectedTitle ? "1" : "0";
+    var selectedTitlePrefix = Model.SelectedTitlePrefix ?? "";
+    if (!Model.IsSingle && Model.SelectAllIsEnabled)
+    {
+        selectAllText = String.IsNullOrEmpty(Model.SelectAllText) ? "Выбрать всё" : Model.SelectAllText;
+    }
+    var isHideSearch = Model.IsHideSearch;
+    }
+<div class="ums-picker btn-group @containerClass @disableClass">
+    <select autocomplete="off" class="multiselect form-control dropdown-menu"
+            id="@("dropDownPickerSelect" + pickerId)"
+            data-single-select="@singleAttr"
+            data-single-not-nullable="@singleNotNullableAttr"
+            data-after-select-function="@afterSelectFunction"
+            data-after-select-function-param="@afterSelectFunctionParam"
+            data-before-select-function="@beforeSelectFunction"
+            data-before-select-function-param="@beforeSelectFunctionParam"
+            data-after-init-function="@afterInitFunction"
+            data-container-class-if-has-selected="@containerClassIfHasSelected"
+            data-type-id="@typeId"
+            data-offset="@offset"
+            data-disable-load-next-button="@disableLoadNextButton"
+            multiple="multiple"
+            name="@pickerName" style="display: none;">
+        @if (Model.Values != null)
+        {
+        foreach (var referenceValue in Model.Values.Where(x=>x.IsChecked))
+        {
+        <option value="@referenceValue.Value" selected="">@referenceValue.Text</option>
+        }
+        }
+    </select>
+    <button type="button" id="@pickerId"
+            class="multiselect dropdown-toggle btn @buttonDefaultClass ums-picker-btn @buttonClass @buttonWithIconClass"
+            data-picker-type="@pickerType"
+            data-picker-search-template="@pickerSearchTemplate"
+            data-picker-additional-search-template=""
+            data-picker-order-template="@pickerOrderTemplate"
+            data-picker-show-column-names="@showColumnNames"
+            data-picker-id-column-name="@pickerIdColumnName"
+            data-default-text="@defaultText"
+            data-default-selected="@selected"
+            data-single-default-selected="@selectedValue"
+            data-default-selected-remove-if-found-not-exists="@selectedRemoveIfFoundNotExists"
+            data-default-additional="@additionalValues"
+            data-prevent-loading="@preventLoading"
+            data-close-after-select="@closeAfterSelect"
+            data-selectall-text="@selectAllText"
+            data-disable-show-selected-text="@disableShowSelectedText"
+            data-show-selected-title="@showSelectedTitle"
+            data-selected-title-prefix="@selectedTitlePrefix"
+            data-show-select-max="@showSelectMax"
+            data-type-id="@typeId"
+            data-offset="@offset"
+            data-disable-load-next-button="@disableLoadNextButton"
+            data-is-hide-search="@isHideSearch"
+            onclick="OpenDropDown(this,event)"
+            title="@defaultText"
+            style="margin-bottom: 0; width: @width;">
+        @if (!String.IsNullOrEmpty(buttonIconClass))
+        {
+        <i class="@buttonIconClass" style="left: 15px; top: -2px;"></i>
+        }
+        <i class="fa fa-angle-down btn-angle"></i>
+        <span>@defaultText</span>
+        @Html.Raw(@Model.ButtonAdditionalContent)
+    </button>
+    <ul class="multiselect-container dropdown-menu @singleSelectClass @singleNotNullableClass riskFactor"
+        id="dropdownValues_@pickerId"
+        data-search-value=""
+        onclick="DropDownPickerMainDivClick(event)"
+        style="padding: 0px; z-index: 1000001; max-width: 400px; min-width: 400px; width: 400px; max-height: 400px;">
+        @if (Model.Values != null)
+        {
+            var valueModel = new MyMoneyWeb.Models.UmsPicker.DropDownPickerValuesModel();
+            valueModel.Values = new List<MyMoneyWeb.Models.UmsPicker.ReferenceValue>();
+            valueModel.ShowColumns = "{Value}";
+            valueModel.Id = pickerId;
+            valueModel.Values = new List<MyMoneyWeb.Models.UmsPicker.ReferenceValue>();
+            foreach (var referenceValue in Model.Values)
+            {
+                var refValue = new MyMoneyWeb.Models.UmsPicker.ReferenceValue();
+                refValue.Id = referenceValue.Value;
+                refValue.IsChecked = referenceValue.IsChecked;
+                refValue.Values = new List<MyMoneyWeb.Models.UmsPicker.KeyValue> { new MyMoneyWeb.Models.UmsPicker.KeyValue { Key = "Value", Value = referenceValue.Text } };
+                valueModel.Values.Add(refValue);
+            }
+            @Html.Partial("UmsPicker/DropDownPickerValues", valueModel)
+        }
+        else
+        {
+            <li id="dropdownValuesBaseItem_@pickerId" style="height: 100px;">
+            </li>
+        }
+    </ul>
+</div>
+
+@if (!String.IsNullOrEmpty(pickerType))
+{
+<script>
+    $(document).ready(function () {
+        console.log('InitPicker');
+        var pickerId = '@pickerId';
+        InitPicker(pickerId);
+    });
+</script>
+}
+else
+{
+<script>
+    $(document).ready(function () {
+        console.log('DropDownPickerUpdateSelectedText');
+        var pickerId = '@pickerId';
+        DropDownPickerUpdateSelectedText(pickerId);
+    });
+</script>
+}

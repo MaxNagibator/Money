@@ -1,0 +1,68 @@
+﻿@using Cookie = MyMoneyWeb.Structure.Cookie
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>@ViewBag.Title</title>
+        @*<link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />*@
+        <link rel="icon" type="image/png" href="/Images/gold_32.png" />
+        <meta name="viewport" content="width=device-width" />
+        @Styles.Render("~/Content/css")
+        @Styles.Render("~/Content/bootstrap")
+        @Styles.Render("~/Content/common")
+        @Scripts.Render("~/bundles/modernizr")
+        @Scripts.Render("~/bundles/jquery")
+        @Scripts.Render("~/bundles/bootstrap")
+        @Scripts.Render("~/bundles/chart")
+        @Scripts.Render("~/bundles/jscolor")
+        @Scripts.Render("~/bundles/common")
+    </head>
+    <body>
+        <input id="timeZoneCookieName" type="hidden" value="@Cookie.TimeZoneCookieName" />
+
+        <header>
+            <div class="content-wrapper">
+                <div class="float-left">
+                    @*<p class="site-title">*@
+                    <p>@Html.ActionLink("your logo here", "Index", "Home", null, new { @class = "main-logo" })</p>
+                </div>
+                <div class="float-right">
+                    <section id="login">
+                        @Html.Partial("_LoginPartial")
+                    </section>
+                    <nav>
+                        <ul id="menu">
+                            @if (Request.IsAuthenticated)
+                            {
+                                <li id="mainLink">@Html.ActionLink("Главная", "Index", "Home")</li>
+                                <li id="operationLink">@Html.ActionLink("Операции", "Operation", "Home")</li>
+                                <li id="categoryLink">@Html.ActionLink("Категории", "Category", "Home")</li>
+                                <li id="debtLink">@Html.ActionLink("Долги", "Debt", "Home")</li>
+                                <li id="carLink">@Html.ActionLink("Авто", "Car", "Home")</li>
+                                <li id="documentTemplateGroupLink">@Html.ActionLink("Шаблоны документов", "DocumentTemplateGroup", "Home")</li>
+                            }
+                            @*    <li id="aboutLink">@Html.ActionLink("Информация", "About", "Home")</li>*@
+                            @*<li id="contactLink">@Html.ActionLink("Отзывы", "Comment", "Home")</li>
+        <li id="contactLink">@Html.ActionLink("Контакты", "Contact", "Home")</li>*@
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </header>
+        <div id="body">
+            @RenderSection("featured", required: false)
+            <section class="content-wrapper main-content clear-fix">
+                @RenderBody()
+            </section>
+        </div>
+        <footer>
+            <div class="content-wrapper">
+                <div class="float-left">
+                    <p>&copy; @DateTime.Now.Year - копейка</p>
+                </div>
+            </div>
+        </footer>
+        @RenderSection("scripts", required: false)
+    </body>
+</html>

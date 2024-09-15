@@ -1,0 +1,39 @@
+﻿@using Extentions
+@model MyMoneyWeb.Models.DebtFormModel
+@using (Html.BeginForm("SaveDebt", "Finance", FormMethod.Post, new { id = "debtForm" }))
+{
+    for (int i = 0; i < Model.Types.Count; i++)
+    {
+        @Html.HiddenFor(x => x.Types[i])
+    }
+    <div class="form-group">
+        @Html.LabelFor(model => model.Debt.Sum)
+        @Html.TextBoxFor(model => model.Debt.Sum, new { @class = "form-control" })
+        @Html.ValidationMessageFor(model => model.Debt.Sum)
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(model => model.Debt.Date)
+        @Html.TextBoxFor(model => model.Debt.Date, "{0:dd/MM/yyyy}", new { @class = "form-control need-init-picker", @id="debtFormDate", @onfocus= "InitDatePicker(this)" })
+        @Html.ValidationMessageFor(model => model.Debt.Date)
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(model => model.Debt.Name)
+        @Html.TextBoxFor(model => model.Debt.Name, new { @class = "form-control" })
+        @Html.ValidationMessageFor(model => model.Debt.Name)
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(model => model.Debt.Comment)
+        @Html.TextBoxFor(model => model.Debt.Comment, new { @class = "form-control" })
+        @Html.ValidationMessageFor(model => model.Debt.Comment)
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(model => model.Debt.Type)
+        @{
+            var catList = Model.Types.Select(x => new SelectListItem { Text = x.DescriptionAttr(), Value = x.ToString() }).ToList();
+        }
+        @Html.DropDownListFor(model => model.Debt.Type, catList, new { @class = "form-control" })
+        @Html.ValidationMessageFor(model => model.Debt.Type)
+    </div>
+    <button type="button" id="debtFormSaveButton" class="btn btn-success" onclick="SaveDebt()"><i class="glyphicon glyphicon-ok-sign"></i>Подтвердить</button>
+    <button type="button" id="debtFormCancelButton" class="btn btn-danger" onclick="CancelDebt()"><i class="glyphicon glyphicon-remove-circle"></i>Отменить</button>
+}

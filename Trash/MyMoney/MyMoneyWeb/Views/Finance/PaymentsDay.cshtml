@@ -1,0 +1,45 @@
+﻿@using System.Security.AccessControl
+@using Common
+@using Common.Enums
+@using Extentions
+@using MyMoneyWeb.Models
+@model PaymentsDayModel
+@{
+	var payments = Model.Payments;
+	var zero = payments.Count == 0 ? "zero-day": "";
+	var dayId = "day-" + Model.Date.ToString("yyyy-MM-dd");
+    var date = Model.Date.ToShortDateString();
+}
+<div class="panel panel-default payment-day @zero" id="@dayId" data-date="@date">
+    <div class="panel-heading payment-day-title">
+        <span style="width: 100px; display: inline-block;">
+            <i class="fa fa-calendar"></i>
+            <span class="payment-day-title-date">@Model.Date.ToShortDateString()</span>
+        </span>
+        <span style="min-width: 100px; display: inline-block;">
+            <i class="fa fa-arrow-circle-o-down payment-costs"></i>
+            <span class="payment-day-title-sum-@((int)PaymentTypes.Costs)">@payments.Where(x=>x.PaymentType == PaymentTypes.Costs).Sum(x => x.Sum.ToDecimal())</span>
+        </span>
+        <span style="min-width: 100px; display: inline-block;">
+            <i class="fa fa-arrow-circle-o-up payment-income"></i>
+            <span class="payment-day-title-sum-@((int)PaymentTypes.Income)">@payments.Where(x => x.PaymentType == PaymentTypes.Income).Sum(x => x.Sum.ToDecimal())</span>
+        </span>
+        <i id="addPaymentBtn" class="fa fa-plus-circle payment-costs" onclick="AddPaymentByDayHeader('@((int)PaymentTypes.Costs)', '@date', '@dayId')" title="Добавить расходы"></i>
+        <i id="addPaymentBtn" class="fa fa-plus-circle payment-income" onclick="AddPaymentByDayHeader('@((int)PaymentTypes.Income)', '@date', '@dayId')" title="Добавить доходы"></i>
+        <i id="addPaymentBtn" class="fa fa-plus-circle payment-fast" onclick="GetFromFastOperation(this, '@dayId')" title="Быстрое добавление"></i>
+    </div>
+    <div class="panel-body payment-day-body">
+        <div id="paymentFormDiv"></div>
+        @foreach (var payment in payments)
+        {
+            var pmModel = new PaymentRowModel();
+            pmModel.Payment = payment;
+            if (payment.CategoryId != null)
+            {
+                var catergory = Model.Categories.Single(x => x.Id == payment.CategoryId);
+                pmModel.CategoryName = catergory.Name;
+            }
+            @Html.Partial("Payment", pmModel)
+        }
+    </div>
+</div>

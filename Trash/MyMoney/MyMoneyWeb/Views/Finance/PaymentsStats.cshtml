@@ -1,0 +1,259 @@
+﻿@using Common.Enums
+@using MyMoneyWeb.Models
+@using Extentions
+@model PaymentsStatsModel
+@functions {
+    private List<PaymentsModelCategorySum> GetValue(PaymentTypes type, IEnumerable<IGrouping<int?, PaymentModel>> catPayments,
+        int? parentId)
+    {
+        List<PaymentsModelCategorySum> cats = new List<PaymentsModelCategorySum>();
+        foreach (var paymentCategory in Model.Categories.Where(x =>x.PaymentTypeId == (int)type &&  x.ParentId == parentId))
+        {
+            var cx = new PaymentsModelCategorySum();
+            cx.Name = paymentCategory.Name;
+            cx.Color = paymentCategory.Color;
+            cx.ParentId = parentId;
+            var cxp = catPayments.SingleOrDefault(x => x.Key == paymentCategory.Id);
+            var mainSum = cxp == null ? 0 : cxp.Sum(x => x.Sum.ToDecimal());
+            cx.TotalSum = mainSum;
+            var chields = GetValue(type, catPayments, paymentCategory.Id);
+            cx.TotalSum += chields.Sum(x => x.TotalSum);
+            cx.Chields = chields;
+            if (chields.Count > 0)
+            {
+                cx.Chields.Add(new PaymentsModelCategorySum { TotalSum = mainSum, Name = paymentCategory.Name });
+            }
+            cats.Add(cx);
+        }
+        return cats;
+    }
+}
+@helper GetValue2(List<PaymentsModelCategorySum> cats)
+{
+    if (cats != null)
+    {
+        foreach (var catergory in cats.Where(x => x.TotalSum > 0).OrderByDescending(x => x.TotalSum))
+        {
+            <div style="margin-left: 30px;">
+                <span style="width: 200px; display: inline-block;">@catergory.Name</span>
+                <span style="width: 100px; display: inline-block;">@catergory.TotalSum</span>
+                @GetValue2(catergory.Chields)
+            </div>
+        }
+    }
+}
+
+@{
+    //var payments = Model.Payments.Where(x => x.PaymentType == PaymentTypes.Costs);
+    //var payments2 = Model.Payments.Where(x => x.PaymentType == PaymentTypes.Income);
+    var pg = Model.Payments.GroupBy(x => x.PaymentType).OrderBy(x => x.Key == PaymentTypes.Income);
+}
+@foreach (var payments in pg)
+{
+    var typeId = (int)payments.Key;
+    var totalSum = payments.Sum(x => x.Sum.ToDecimal());
+    <script>
+        var myData@(typeId) = [];
+        var labels@(typeId) = [];
+        var backgroundColor@(typeId) = [];
+        var hoverBackgroundColor@(typeId) = [];
+
+        var myData2@(typeId) = [];
+        var labels2@(typeId) = [];
+    </script>
+    <label>@payments.Key.DescriptionAttr()</label>
+                                          
+    <div>
+        <canvas id="myChart@(typeId)" width="800" height="350"></canvas>
+        <canvas id="myChart2@(typeId)" width="800" height="350"></canvas>
+    </div>
+        <div>
+            <span style="width: 200px;display: inline-block;">всего</span>
+            <span style="width: 100px;display: inline-block;" id="TotalSumValue-@(typeId)" data-total-sum="@totalSum">@totalSum</span>
+            <span style="width: 200px;display: inline-block;"> </span>
+        </div>
+        var catPayments = payments.GroupBy(x => x.CategoryId);
+        var cats = GetValue(payments.Key, catPayments, null);
+
+        foreach (var cat in cats.Where(x => x.ParentId == null && x.TotalSum != 0))
+        {
+            <script>
+                var num = @(Math.Max(cat.TotalSum, 0).ToString().Replace(',', '.'));
+                myData@(typeId).push(num.toFixed(2));
+                labels@(typeId).push('@(cat.Name)');
+                var color = '@(cat.Color)';
+                if(color == '')
+                {
+                    color = GetRandomColor();
+                }
+                backgroundColor@(typeId).push(color);
+                hoverBackgroundColor@(typeId).push(color);
+            </script>
+        }
+        @GetValue2(cats)
+
+    var date1 = Convert.ToDateTime(Model.MinDate);
+    var date2 = Convert.ToDateTime(Model.MaxDate);
+    if ((date2 - date1).TotalDays > 10)
+    {
+        date1 = payments.Select(x => x.Date).DefaultIfEmpty(DateTime.Now).Min();
+        date2 = payments.Select(x => x.Date).DefaultIfEmpty(DateTime.Now).Max();
+    }
+    var mode = "day";
+    var totalDays = (date2 - date1).TotalDays;
+    if (totalDays > 31)
+    {
+        if (totalDays > 140)
+        {
+            date1 = new DateTime(date1.Year, date1.Month, 1);
+            date2 = new DateTime(date2.Year, date2.Month, 1).AddMonths(1);
+            mode = "month";
+        }
+        else
+        {
+            int diff = (7 + (date1.DayOfWeek - DayOfWeek.Monday)) % 7;
+            date1 = date1.AddDays(-1 * diff).Date;
+            int diff2 = (7 + (date2.DayOfWeek - DayOfWeek.Monday)) % 7;
+            date2 = date2.AddDays(-1 * diff2).Date.AddDays(7);
+
+            mode = "week";
+        }
+    }
+    var groupIds = payments.GroupBy(x => x.CategoryId).Select(x=>x.Key);
+    var groups = Model.Categories.Where(x => groupIds.Contains(x.Id)).ToList();
+
+    <script>
+        var datasetBar@(typeId) = [];
+    </script>
+    foreach (var operGroup in groups)
+    {
+
+        <script>
+            var color = '@(operGroup.Color)';
+            if(color == '')
+            {
+                color = GetRandomColor();
+            }
+
+            datasetBar@(typeId).push( {
+                label: '@(operGroup.Name)',
+                backgroundColor: color,
+                data: []
+            });
+        </script>
+    }
+    while (true)
+    {
+        // todo криво но пойдёт, подрефачить
+       
+            string label22;
+        IEnumerable<PaymentModel> sum22;
+        if (mode == "day")
+            {
+                sum22 = payments.Where(x => x.Date == date1.Date);
+                label22 = date1.ToShortDateString();
+            }
+            else if (mode == "week")
+            {
+                sum22 = payments.Where(x => x.Date >= date1.Date && x.Date < date1.AddDays(7).Date);
+                label22 = date1.ToString("dd MMMM");
+            }
+            else
+            {
+                sum22 = payments.Where(x => x.Date >= date1.Date && x.Date < date1.AddMonths(1).Date);
+                label22 = date1.ToString("MMMM yyyy");
+            }
+            <script>
+                labels2@(typeId).push('@label22');
+            </script>
+
+        var operGroupNumber = 0;
+        foreach (var operGroup in groups)
+        {
+            var paymentsByGroup = sum22.Where(x => x.CategoryId == operGroup.Id).Sum(x => x.Sum.ToDecimal());
+            <script>
+                var num = @(paymentsByGroup == 0 ? "null" : paymentsByGroup.ToString().Replace(',', '.'));
+                datasetBar@(typeId)[@(operGroupNumber)].data.push(num == null ? null : num.toFixed(2));
+            </script>
+            operGroupNumber++;
+        }
+        if (mode == "day")
+        {
+            date1 = date1.AddDays(1);
+        }
+        else if (mode == "week")
+        {
+            date1 = date1.AddDays(7);
+        }
+        else
+        {
+            date1 = date1.AddMonths(1);
+        }
+        if (date1 > date2)
+        {
+            break;
+        }
+    }
+
+    <script>
+        var data = {
+            labels: labels@(typeId),
+            datasets: [
+                {
+                    data: myData@(typeId),
+                    backgroundColor: backgroundColor@(typeId),
+                    hoverBackgroundColor: hoverBackgroundColor@(typeId)
+                }]
+        };
+        var ctx = document.getElementById("myChart@(typeId)");
+        var myPieChart = new Chart(ctx, {
+            type: 'pie',
+            data: data,
+            options: {
+                hover: {
+                    mode: 'index'
+                },
+                responsive: false,
+
+                legend: {
+                    position: 'right',
+                    display: true,
+                    labels: {
+                        boxWidth: 50,
+                    },
+                }
+            }
+        });
+
+        var data2@(typeId) = {
+            labels: labels2@(typeId),
+            datasets: datasetBar@(typeId)
+        };
+        //http://www.chartjs.org/docs/latest/charts/line.html
+        var ctx2 = document.getElementById("myChart2@(typeId)");
+        var myLineChart = new Chart(ctx2, {
+            type: 'bar',
+            data: data2@(typeId),
+            options: {
+                //maintainAspectRatio: false,
+                scales: {
+                    xAxes: [{
+                        stacked: true, 
+                        ticks: { beginAtZero: true }
+                    }],
+                    yAxes: [{ stacked: true }]
+                }
+            }
+        });
+
+        
+        @*var ctx3 = document.getElementById("myChart3@(typeId)");
+        var myLineChart = new Chart(ctx3, {
+            type: 'bar',
+            data: data,
+            options: {
+
+            }
+        });*@
+    </script>
+        }

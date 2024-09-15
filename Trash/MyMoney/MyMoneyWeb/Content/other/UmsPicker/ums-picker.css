@@ -1,0 +1,157 @@
+﻿
+/*-----------multiselect buttons-------------*/
+.ums-picker.btn-group .btn.multiselect {
+    display: block;
+    background: #fafafa;
+    box-shadow: none;
+    height: 34px;
+    color: #919eaa;
+    line-height: 33px;
+    width: 100%;
+    padding-left: 10px;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-radius: 5px;
+    position: relative;
+    padding-right: 30px;
+    top: 0 !important;
+    border: 1px solid #919eaa;
+}
+
+    .ums-picker.btn-group .btn.multiselect.btn-with-icon {
+        padding-left: 40px;
+    }
+
+.ums-picker .btn.multiselect i {
+    line-height: 35px;
+    position: absolute;
+    top: 0;
+    right: 15px;
+    margin: 0;
+    /*color: #919eaa;*/
+    vertical-align: middle;
+}
+
+.ums-picker .btn.multiselect:hover,
+.ums-picker.btn-group.open .btn.multiselect {
+    color: #fff !important;
+    background: #919eaa !important;
+}
+
+.ums-picker .blue-btn.multiselect:hover,
+.ums-picker.btn-group.open .blue-btn.multiselect {
+    color: #fff !important;
+    background: #3872a5 !important;
+}
+
+.ums-picker .disabled .btn.multiselect:hover {
+    color: #919eaa !important;
+    background: #fafafa !important;
+}
+
+.ums-picker.btn-group.open .btn.multiselect .fa.btn-angle:before {
+    content: '\f106';
+}
+
+.ums-picker.btn-group .btn.multiselect .fa {
+    color: #919eaa;
+}
+
+.ums-picker .btn.multiselect:hover .fa,
+.ums-picker.btn-group.open .btn.multiselect .fa {
+    color: #fff;
+}
+
+.ums-picker .multiselect-container.dropdown-menu {
+    overflow-y: auto !important;
+    overflow-x: hidden;
+}
+
+.ums-picker .multiselect-container.dropdown-menu {
+    overflow-y: auto !important;
+    overflow-x: hidden;
+    width: 100%;
+    border: 1px solid #ccc;
+}
+
+
+.ums-picker .dropdown-menu li > a {
+    outline: none;
+}
+
+    .ums-picker .dropdown-menu li > a:hover,
+    .ums-picker .dropdown-menu li.active > a {
+        color: #fff;
+        background: #334657 !important;
+    }
+
+
+/*.ums-picker .dropdown-menu .btn {
+    margin-left: 10px;
+    margin-bottom: 10px;
+}*/
+
+.ums-picker .multiselect-container > li > a .checkbox:before,
+.ums-picker .multiselect-container > li > a .radio:before {
+    content: '\f10c';
+    display: inline-block;
+    font-size: 16px;
+    font-family: FontAwesome;
+    margin-right: 10px;
+}
+
+.ums-picker .multiselect-container > li > a .checkbox:before {
+    content: '\f096';
+}
+
+.ums-picker .multiselect-container > li.active > a .radio:before {
+    content: '\f192';
+}
+
+.ums-picker .multiselect-container > li.active > a .checkbox:before {
+    content: '\f046';
+}
+
+.ums-picker .multiselect-container > li > a .checkbox input,
+.ums-picker .multiselect-container > li > a .radio input {
+    position: absolute;
+    left: -999em;
+}
+
+.ums-picker .multiselect-container li.active > a,
+.ums-picker .multiselect-container li.active > a:hover,
+.ums-picker .multiselect-container li.active > a:focus,
+.ums-picker .multiselect-container li.active > a {
+    color: #fff;
+    background: #334657 !important;
+}
+
+.ums-picker .multiselect-container li:not(.active) > a:hover > label,
+.ums-picker .multiselect-container li:not(.active) > a:hover {
+    color: #333 !important;
+    background: #dee1e6 !important;
+}
+
+.ums-picker .multiselect-container > li > a > label {
+    font-size: 13px;
+    margin: 0;
+    height: 100%;
+    cursor: pointer;
+    font-weight: 400;
+    /*padding: 6px 0px 6px 10px;*/
+    padding: 0;
+}
+
+.ums-picker .search-block{
+    padding: 10px;
+}
+
+.ums-picker .ums-picker-btn {
+    border-radius: 5px !important;
+    padding: 0px 25px 0px 10px;
+}
+
+.ums-picker .dd-select-item label{
+    display:block;
+}

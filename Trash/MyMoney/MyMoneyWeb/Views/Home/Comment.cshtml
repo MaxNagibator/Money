@@ -1,0 +1,84 @@
+﻿@{
+    ViewBag.Title = "Отзывы";
+    return;
+}
+<button id="addCommentBtn" class="btn btn-info" onclick="AddComment();"><i class="glyphicon glyphicon-plus-sign"></i>Добавить</button>
+<div id="commentFormDiv"></div>
+<div id="comments"></div>
+<script>
+    //var currentMonth = 0;
+    $(document).ready(function () {
+        GetComments();
+        $("#dateFrom,#dateTo").datetimepicker({
+            format: 'DD.MM.YYYY',
+            language: 'ru',
+        });
+    });
+
+    function GetComments() {
+        $.ajax({
+            url: '/Account/GetComments',
+            type: "POST",
+            data: {
+            },
+            traditional: true
+        }).done(function (result) {
+            $('#comments').html(result);
+        }).fail(function (xhr, textStatus, errorThrown) {
+           // currentMonth -= month;
+            ShowAlert('Внимание!', commonErrorMessage, window.AlertType.Error, 2000);
+        }).always(function () {
+        });
+    }
+
+    function AddComment(defaultDate) {
+        $.ajax({
+            url: '/Account/GetCommentForm',
+            type: "POST",
+            data: { defaultDate: defaultDate },
+            traditional: true
+        }).done(function (result) {
+            if (result.success == false) {
+                ShowAlert('Внимание!', result.message, window.AlertType.Warning, 2000);
+            } else {
+                $('#addCommentBtn').hide();
+                $('#commentFormDiv').html(result);
+            }
+        }).fail(function (xhr, textStatus, errorThrown) {
+            ShowAlert('Внимание!', commonErrorMessage, window.AlertType.Error, 2000);
+        }).always(function () {
+        });
+    }
+
+    function SaveComment() {
+        var data = $('#commentForm').serialize();
+        $.ajax({
+            url: '/Account/SaveComment',
+            type: "POST",
+            data: data,
+            traditional: true
+        }).done(function (result) {
+            if (result.success == true) {
+                $('#commentFormDiv').empty();
+                $('#addCommentBtn').show();
+                ShowAlert('Успех!', 'Спасибо за отзыв', window.AlertType.Success, 3000);
+                setTimeout(function () {
+                    GetComments();
+                }, 2000);
+            } else if (result.success == false) {
+                ShowAlert('Внимание!', result.message, window.AlertType.Warning, 2000);
+            }
+            else {
+                $('#commentFormDiv').html(result);
+            }
+        }).fail(function (xhr, textStatus, errorThrown) {
+            ShowAlert('Внимание!', commonErrorMessage, window.AlertType.Error, 2000);
+        }).always(function () {
+        });
+    }
+
+    function CancelComment() {
+        $('#commentFormDiv').empty();
+        $('#addCommentBtn').show();
+    }
+</script>

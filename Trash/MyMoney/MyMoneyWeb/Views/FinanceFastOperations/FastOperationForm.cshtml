@@ -1,0 +1,58 @@
+﻿@using Common.Enums
+@using Extentions
+@model MyMoneyWeb.Models.FastOperationFormModel
+@using (Html.BeginForm("SaveFastOperation", "FinanceFastOperations", FormMethod.Post, new { id = "fastOperationForm" }))
+{
+    @Html.HiddenFor(x => x.FastOperation.Id)
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.FastOperation.Name)
+        @Html.TextBoxFor(model => model.FastOperation.Name, new { @class = "form-control" })
+        @Html.ValidationMessageFor(model => model.FastOperation.Name)
+    </div>
+    <div class="panel panel-primary">
+        <div class="panel-heading">Детали операции</div>
+        <div class="panel-body">
+            <div class="form-group">
+                @if (Model.PaymentCategories != null)
+                {
+                    for (int i = 0; i < Model.PaymentCategories.Count; i++)
+                    {
+                        @Html.HiddenFor(x => x.PaymentCategories[i].Id)
+                        @Html.HiddenFor(x => x.PaymentCategories[i].Name)
+                    }
+                }
+                <div class="form-group">
+                    @Html.LabelFor(model => model.FastOperation.Sum)
+                    @Html.TextBoxFor(model => model.FastOperation.Sum, new { @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.FastOperation.Sum)
+                </div>
+                <div class="form-group">
+                    @Html.LabelFor(model => model.FastOperation.CategoryId)
+                    @{
+                        var catList3 = Model.PaymentCategories == null ?
+                            new List<SelectListItem>() :
+                            Model.PaymentCategories.Select(x => new SelectListItem { Text = x.Name, Value = x.Id.ToString() }).ToList();
+                    }
+                    @Html.DropDownListFor(model => model.FastOperation.CategoryId, catList3, new { @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.FastOperation.CategoryId)
+                </div>
+                <div class="form-group">
+                    @Html.LabelFor(model => model.FastOperation.Place)
+                    @Html.TextBoxFor(model => model.FastOperation.Place, new { @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.FastOperation.Place)
+                </div>
+                <div class="form-group">
+                    @Html.LabelFor(model => model.FastOperation.Comment)
+                    @Html.TextBoxFor(model => model.FastOperation.Comment, new { @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.FastOperation.Comment)
+                </div>
+                <div class="form-group">
+                    @Html.LabelFor(model => model.FastOperation.Order)
+                    @Html.TextBoxFor(model => model.FastOperation.Order, new { @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.FastOperation.Order)
+                </div>
+            </div>
+        </div>
+    </div>
+}

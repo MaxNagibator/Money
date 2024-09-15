@@ -1,0 +1,213 @@
+﻿@using Common.Enums
+@using Extentions
+@{
+    ViewBag.Title = "Филочки";
+}
+@*<h3>Категории</h3>*@
+@{
+    var types = Enum.GetValues(typeof(PaymentTypes)).Cast<PaymentTypes>().ToList();
+}
+<style>
+</style>
+
+<ul class="nav nav-tabs">
+    @foreach (var t in types)
+    {
+        var tId = (int)t;
+        <li><a data-toggle="tab" class="type-tab" href="#tab_@tId" data-type-id="@tId" onclick="ClickTab(this)">@t.DescriptionAttr()</a></li>
+    }
+</ul>
+<div class="tab-content">
+    @foreach (var t in types)
+    {
+        var tId = (int)t;
+        <div id="tab_@tId" class="tab-pane fade">
+            <div id="categoryFormDiv_@tId"></div>
+            <button id="addCategoryBtn_@tId" class="btn btn-info" onclick="AddCategory('@tId');"><i class="fa fa-plus-circle"></i>Добавить</button>
+            <div id="categories_@tId"></div>
+        </div>
+    }
+</div>
+<style>
+    .tab-content {
+        padding: 10px;
+    }
+    #categoryLink a {
+        border-bottom: 1px solid gray;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+        $('.type-tab')[0].click();
+    });
+
+    function ClickTab(elem) {
+        var typeId = $(elem).data('type-id');
+        GetCategories(typeId);
+    }
+
+    function GetCategories(typeId) {
+        $.ajax({
+            url: '/Finance/GetCategories',
+            type: "POST",
+            data: { paymentTypeId: typeId },
+            traditional: true
+        }).done(function (result) {
+            $('#categories_'+typeId).html(result);
+        }).fail(function (xhr, textStatus, errorThrown) {
+            ShowAlert('Внимание!', commonErrorMessage, window.AlertType.Error, 2000);
+        }).always(function () {
+        });
+    }
+
+    function AddCategory(typeId) {
+        $.ajax({
+            url: '/Finance/GetCategoryForm',
+            type: "POST",
+            data: { paymentTypeId: typeId },
+            traditional: true
+        }).done(function (result) {
+            if (result.success == false) {
+                ShowAlert('Внимание!', result.message, window.AlertType.Warning, 2000);
+            } else {
+                $('#addCategoryBtn_'+typeId).hide();
+                $('#categoryFormDiv_' + typeId).html(result);
+            }
+        }).fail(function (xhr, textStatus, errorThrown) {
+            ShowAlert('Внимание!', commonErrorMessage, window.AlertType.Error, 2000);
+        }).always(function () {
+        });
+    }
+
+    function SaveCategory(typeId) {
+        $.ajax({
+            url: '/Finance/SaveCategory',
+            type: "POST",
+            data: $('#categoryForm').serialize(),
+            traditional: true
+        }).done(function (result) {
+            if (result.success == false) {
+                ShowAlert('Внимание!', result.message, window.AlertType.Warning, 2000);
+            } else {
+                $('#categoryFormDiv_' + typeId).empty();
+                $('#addCategoryBtn_' + typeId).show();
+                GetCategories(typeId);
+            }
+        }).fail(function (xhr, textStatus, errorThrown) {
+            ShowAlert('Внимание!', commonErrorMessage, window.AlertType.Error, 2000);
+        }).always(function () {
+        });
+    }
+
+    function CancelCategory(typeId) {
+        $('#categoryFormDiv_' + typeId).empty();
+        $('#addCategoryBtn_' + typeId).show();
+    }
+
+    //function EditCategory(categoryId) {
+    //    $.ajax({
+    //        url: '/Finance/GetCategoryForm',
+    //        type: "POST",
+    //        data: { categoryId: categoryId },
+    //        traditional: true
+    //    }).done(function (result) {
+    //        if (result.success == false) {
+    //            ShowAlert('Внимание!', result.message, window.AlertType.Warning, 2000);
+    //        } else {
+    //            $('#addCategoryBtn').hide();
+    //            $('#categoryFormDiv').html(result);
+    //        }
+    //    }).fail(function (xhr, textStatus, errorThrown) {
+    //        ShowAlert('Внимание!', commonErrorMessage, window.AlertType.Error, 2000);
+    //    }).always(function () {
+    //    });
+    //}
+
+    function DeleteCategory(categoryId) {
+        $('#category_' + categoryId + ' .confirm-delete').removeClass('hidden');
+        $('#category_' + categoryId + ' .cancel-delete').removeClass('hidden');
+        $('#category_' + categoryId + ' .start-delete').addClass('hidden');
+    }
+
+    function CancelDeleteCategory(categoryId) {
+        $('#category_' + categoryId + ' .confirm-delete').addClass('hidden');
+        $('#category_' + categoryId + ' .cancel-delete').addClass('hidden');
+        $('#category_' + categoryId + ' .start-delete').removeClass('hidden');
+    }
+
+    function ConfirmDeleteCategory(categoryId) {
+        $.ajax({
+            url: '/Finance/DeleteCategory',
+            type: "POST",
+            data: { categoryId: categoryId },
+            traditional: true
+        }).done(function (result) {
+            if (result.success == false) {
+                ShowAlert('Внимание!', result.message, window.AlertType.Warning, 2000);
+            } else {
+                $('#category_' + categoryId).remove();
+            }
+        }).fail(function (xhr, textStatus, errorThrown) {
+            ShowAlert('Внимание!', commonErrorMessage, window.AlertType.Error, 2000);
+        }).always(function () {
+        });
+    }
+
+
+    function EditCategory(categoryId) {
+        $('#category_' + categoryId + ' .confirm-edit').removeClass('hidden');
+        $('#category_' + categoryId + ' .cancel-edit').removeClass('hidden');
+        $('#category_' + categoryId + ' .start-edit').addClass('hidden');
+
+        $('#category_' + categoryId + ' .edit-name').removeClass('hidden');
+        $('#category_' + categoryId + ' .show-name').addClass('hidden');
+        $('#category_' + categoryId + ' .edit-order').removeClass('hidden');
+        $('#category_' + categoryId + ' .show-order').addClass('hidden');
+        $('#category_' + categoryId + ' .edit-color').removeClass('hidden');
+        $('#category_' + categoryId + ' .show-color').addClass('hidden');
+        $('#category_' + categoryId + ' .edit-parent').removeClass('hidden');
+        $('#category_' + categoryId + ' .show-parent').addClass('hidden');
+    }
+
+    function CancelEditCategory(categoryId) {
+        $('#category_' + categoryId + ' .confirm-edit').addClass('hidden');
+        $('#category_' + categoryId + ' .cancel-edit').addClass('hidden');
+        $('#category_' + categoryId + ' .start-edit').removeClass('hidden');
+
+        $('#category_' + categoryId + ' .edit-name').addClass('hidden');
+        $('#category_' + categoryId + ' .show-name').removeClass('hidden');
+        $('#category_' + categoryId + ' .edit-order').addClass('hidden');
+        $('#category_' + categoryId + ' .show-order').removeClass('hidden');
+        $('#category_' + categoryId + ' .edit-color').addClass('hidden');
+        $('#category_' + categoryId + ' .show-color').removeClass('hidden');
+        $('#category_' + categoryId + ' .edit-parent').addClass('hidden');
+        $('#category_' + categoryId + ' .show-parent').removeClass('hidden');
+    }
+
+    function ConfirmEditCategory(categoryId, typeId) {
+        var color = $('#category_' + categoryId + ' .edit-color input').val();
+        var name = $('#category_' + categoryId + ' .edit-name input').val();
+        var order = $('#category_' + categoryId + ' .edit-order input').val();
+        var parent = $('#category_' + categoryId + ' .edit-parent select').val();
+        console.log(parent);
+        var parentId = parent == -1 ? null : parent;
+        $.ajax({
+            url: '/Finance/UpdateCategory',
+            type: "POST",
+            data: { categoryId: categoryId, color: color, name: name, parentId: parentId, order: order },
+            traditional: true
+        }).done(function (result) {
+            if (result.success == false) {
+                ShowAlert('Внимание!', result.message, window.AlertType.Warning, 2000);
+            } else if (result.success == true) {
+                ShowAlert('Успех!', "Обновлено", window.AlertType.Success, 2000);
+                GetCategories(typeId);
+            } else {
+                ShowAlert('Внимание!', commonErrorMessage, window.AlertType.Error, 2000);
+            }
+        }).fail(function (xhr, textStatus, errorThrown) {
+            ShowAlert('Внимание!', commonErrorMessage, window.AlertType.Error, 2000);
+        }).always(function () {
+        });
+    }
+</script>

@@ -1,0 +1,36 @@
+﻿@using System.Globalization
+@using Common.Enums
+@using Extentions
+@model MyMoneyWeb.Models.FastOperationsModel
+
+@foreach (var fastOperation in Model.FastOperations.OrderBy(x => x.Order == null).ThenBy(x => x.Order).ThenBy(x => x.Name))
+{
+    <div id="fastOperation_@fastOperation.Id" class="panel panel-primary fast-operation-item" data-fast-operation-id="@fastOperation.Id">
+        <div class="panel-heading">
+            <span>@fastOperation.Name</span>
+        </div>
+        <div class="panel-body">
+            <span><i class="fa fa-sort-amount-asc" style="margin-right:5px;"></i>
+                @if (fastOperation.Order != null)
+                {
+                    @(fastOperation.Order)
+                }
+                else
+                {
+                    @("-")
+                }
+            </span>
+
+            <span style="padding-left: 30px;">@fastOperation.PaymentType.DescriptionAttr()</span>
+            <span style="padding-left: 30px;">@(Model.PaymentCategories.First(x=> x.Id == fastOperation.CategoryId).Name)</span>
+            <span style="padding-left: 30px;">@(fastOperation.Sum )</span>
+            <span style="padding-left: 30px;">@(fastOperation.Place )</span>
+            <span style="padding-left: 30px;">@(fastOperation.Comment )</span>
+
+            <span class="pull-right">
+                <i class="fa-2x fa fa-edit" onclick="EditFastOperation(this)" title="Редактировать"></i>
+                <i class="fa-2x fa fa-trash" onclick="DeleteFastOperation(this)" title="Удалить"></i>
+            </span>
+        </div>
+    </div>
+}

@@ -1,0 +1,51 @@
+﻿@using System.Security.AccessControl
+@using Common
+@using MyMoneyWeb.Models
+@model CategoriesModel
+
+@{
+    var categories = Model.SortedCategories;
+}
+@foreach (var category in categories)
+{
+    <div id="category_@category.Id">
+        <i class="start-edit fa-2x fa fa-edit" onclick="EditCategory('@category.Id')" title="Редактировать"></i>
+        <i class="confirm-edit hidden fa-2x fa fa-check" onclick="ConfirmEditCategory('@category.Id','@category.PaymentTypeId')" title="Подтвердить редактирование"></i>
+        <i class="cancel-edit hidden fa-2x fa fa-remove" onclick="CancelEditCategory('@category.Id')" title="Отменить редактирование"></i>
+        <span class="show-order" style="width: 50px;display: inline-block;">@category.Order</span>
+        <span class="edit-order hidden" style="width: 50px;display: inline-block;"><input type="text" value="@category.Order"></span>
+        <span class="show-name" style="width: 250px;display: inline-block;">@category.Name</span>
+        <span class="edit-name hidden" style="width: 250px;display: inline-block;"><input type="text" value="@category.Name"></span>
+        <span class="show-color" style="width: 100px;display: inline-block;"><span style="background: @category.Color ;padding: 0 40px;"></span></span>
+        <div class="input-group colorpicker-component edit-color hidden" style="width: 100px;display: inline-block;height: 20px; cursor: pointer;">
+            <span class="input-group-addon" style="border: 1px solid #ccc;border-radius: 4px;"><i style="width: 100%;"></i></span>
+            <input type="text" class="hidden" value="@category.Color">
+        </div>
+        <span class="show-parent" style="width: 300px;display: inline-block;">
+            @if (category.ParentId != null)
+            {
+                @(categories.Single(x => x.Id == category.ParentId).Name)
+            }
+        </span>
+        <span class="edit-parent hidden" style="width: 300px;display: inline-block;">
+            <select class="form-control" data-val="true">
+                <option value="-1">-</option>
+                @foreach (var cat in categories)
+                {
+                    <option value="@cat.Id" @(cat.Id == category.ParentId?"selected":"")>@cat.Name</option>
+                }
+            </select>
+        </span>
+        <i class="start-delete fa-2x fa fa-trash" onclick="DeleteCategory('@category.Id')" title="Удалить"></i>
+        <i class="confirm-delete hidden fa-2x fa fa-check" onclick="ConfirmDeleteCategory('@category.Id')" title="Подтвердить удаление"></i>
+        <i class="cancel-delete hidden fa-2x fa fa-remove" onclick="CancelDeleteCategory('@category.Id')" title="Отменить удаление"></i>
+    </div>
+}
+<div style="margin-bottom: 20px;"></div>
+<link href="~/Content/bootstrap-colorpicker/css/bootstrap-colorpicker.css" rel="stylesheet">
+<script src="~/Scripts/bootstrap-colorpicker.js"></script>
+<script>
+    $(document).ready(function () {
+        $('.edit-color').colorpicker();
+    });
+</script>

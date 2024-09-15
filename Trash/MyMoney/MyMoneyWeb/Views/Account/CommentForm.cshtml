@@ -1,0 +1,22 @@
+﻿@using Extentions
+@model MyMoneyWeb.Models.CommentFormModel
+@using (Html.BeginForm("SaveComment", "Account", FormMethod.Post, new { id = "commentForm" }))
+{
+    <div class="form-group">
+        @Html.LabelFor(model => model.Comment.Title)
+        @Html.TextBoxFor(model => model.Comment.Title, new { @class = "form-control" })
+        @Html.ValidationMessageFor(model => model.Comment.Title)
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(model => model.Comment.Text)
+        @Html.TextAreaFor(model => model.Comment.Text, new { @class = "form-control" })
+        @Html.ValidationMessageFor(model => model.Comment.Text)
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(model => model.Comment.Author)
+        @Html.TextBoxFor(model => model.Comment.Author, new { @class = "form-control" })
+        @Html.ValidationMessageFor(model => model.Comment.Author)
+    </div>
+    <button type="button" id="debtFormSaveButton" class="btn btn-success" onclick="SaveComment()"><i class="glyphicon glyphicon-ok-sign"></i>Подтвердить</button>
+    <button type="button" id="debtFormCancelButton" class="btn btn-danger" onclick="CancelComment()"><i class="glyphicon glyphicon-remove-circle"></i>Отменить</button>
+}

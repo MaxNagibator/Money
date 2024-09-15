@@ -1,0 +1,425 @@
+﻿@{
+    ViewBag.Title = "Долги";
+}
+@*<h3>Долги</h3>*@
+<div id="debtFormDiv"></div>
+<div id="debtPaymentFormDiv"></div>
+<button id="addDebtBtn" class="btn btn-info" onclick="AddDebt();"><i class="fa fa-plus-circle"></i>Добавить</button>
+<div class="pull-right">
+    <button id="debtToOperationsShowBtn" class="btn btn-default" onclick="DebtToOperations('show');" title="Включить режим прощения долгов"><i class="fa fa-gavel"></i></button>
+    <button id="debtToOperationsHideBtn" class="btn btn-info hidden" onclick="DebtToOperations('hide');" title="Отключить режим прощения долгов"><i class="fa fa-gavel"></i></button>
+</div>
+<div class="pull-right">
+    <button id="showMergeDebtUserBtn" class="btn btn-default" onclick="ChangeMergeDebtUser('show');" title="Включить слияние держателей долга"><i class="fa fa-exchange"></i></button>
+    <button id="hideMergeDebtUserBtn" class="btn btn-info hidden" onclick="ChangeMergeDebtUser('hide');" title="Отключить слияние держателей долга"><i class="fa fa-exchange"></i></button>
+</div>
+<div class="pull-right">
+    <button id="showPaidDebtsBtn" class="btn btn-default" onclick="ChangePaidDebt('show');" title="Показывать оплаченные"><i class="fa fa-eye"></i></button>
+    <button id="hidePaidDebtsBtn" class="btn btn-info hidden" onclick="ChangePaidDebt('hide');" title="Спрятать оплаченные"><i class="fa fa-eye"></i></button>
+</div>
+<div id="debtTransferContainer" class="hidden" style="border: 1px solid black; border-radius: 5px; padding: 10px; margin:10px;">
+    <label>Перенос долгов в расходы</label>
+    <div class="clear-fix"></div>
+    отметьте галочками нужные долги, выберите
+    <div>
+        @{
+            var categoryFilterModel = new MyMoneyWeb.Models.UmsPicker.DropDownPickerModel
+            {
+                Id = "debtCategoryListbox",
+                Type = "MyOperationCategoryMinusList",
+                ShowColumns = "{name}",
+                DefaultText = "Категория",
+                ContainerClass = "filter-category-select",
+                ShowSelectedTitle = true,
+                ShowSelectMax = 1,
+                PreventLoading = true,
+                IsSingle = true,
+                IsSingleNotNullable = true,
+            };
+        }
+        @Html.Partial("UmsPicker/DropDownPicker", categoryFilterModel)
+    </div>
+    <div class="clear-fix"></div>
+    добавьте приписку <input type="text" id="debtPrefix" value="Перенос из долгов:" />
+    <div class="clear-fix"></div>
+    и нажмите <button class="btn btn-info" onclick="MoveDebtsToOpertaions()">перенос</button>
+</div>
+<div id="mergeDebtUsers" class="hidden" style="border: 1px solid black; border-radius: 5px; padding: 10px; margin:10px;">
+    <label>Слияние держателей долга</label>
+    <div class="clear-fix"></div>
+    @{
+        var debtUserModel = new MyMoneyWeb.Models.UmsPicker.DropDownPickerModel
+        {
+            Id = "debtUserFromListbox",
+            Type = "MyDebtUserList",
+            ShowColumns = "{name}",
+            DefaultText = "объеденить долги",
+            ContainerClass = "filter-category-select",
+            ShowSelectedTitle = true,
+            ShowSelectMax = 1,
+            PreventLoading = true,
+            IsSingle = true,
+            IsSingleNotNullable = true,
+        };
+    }
+    @Html.Partial("UmsPicker/DropDownPicker", debtUserModel)
+    <div class="clear-fix"></div>
+    @{
+        debtUserModel.Id = "debtUserToListbox";
+        debtUserModel.DefaultText = "с долгами";
+    }
+    <div class="clear-fix"></div>
+    @Html.Partial("UmsPicker/DropDownPicker", debtUserModel)
+    <div class="clear-fix"></div>
+    <button class="btn btn-info" onclick="MergeDebtUsers()">запуск слияния</button>
+</div>
+<div id="debts"></div>
+<style>
+    #debtLink a {
+        border-bottom: 1px solid gray;
+    }
+
+    #debts input {
+        width: 100%;
+    }
+
+    #debts .status-block {
+        position: relative;
+    }
+
+        #debts .status-block i {
+            position: absolute;
+            left: -20px;
+            top: -4px;
+        }
+
+    .debt-transfer-control {
+        display: none;
+    }
+
+        .debt-transfer-control input {
+            height: 30px;
+            margin: 0;
+            width: 25px;
+            vertical-align: bottom;
+        }
+
+    .transfer-debt-mode .debt-transfer-control {
+        display: inline-block;
+        width: 25px;
+        height: 25px;
+    }
+</style>
+<script>
+    var debtShowWithPaid = false;
+    $(document).ready(function () {
+        GetDebts();
+    });
+
+    function ChangeMergeDebtUser(state) {
+        if (state == 'show') {
+            $('#showMergeDebtUserBtn').addClass('hidden');
+            $('#hideMergeDebtUserBtn').removeClass('hidden');
+            $('#mergeDebtUsers').removeClass('hidden');
+        } else {
+            $('#hideMergeDebtUserBtn').addClass('hidden');
+            $('#showMergeDebtUserBtn').removeClass('hidden');
+            $('#mergeDebtUsers').addClass('hidden');
+        }
+    }
+
+    function DebtToOperations(state) {
+        if (state == 'show') {
+            $('#debtToOperationsShowBtn').addClass('hidden');
+            $('#debtToOperationsHideBtn').removeClass('hidden');
+            $('#debtTransferContainer').removeClass('hidden');
+            $('#debts').addClass('transfer-debt-mode');
+        } else {
+            $('#debtToOperationsHideBtn').addClass('hidden');
+            $('#debtToOperationsShowBtn').removeClass('hidden');
+            $('#debtTransferContainer').addClass('hidden');
+            $('#debts').removeClass('transfer-debt-mode');
+        }
+    }
+
+    function ChangePaidDebt(state) {
+        if (state == 'show') {
+            $('#showPaidDebtsBtn').addClass('hidden');
+            $('#hidePaidDebtsBtn').removeClass('hidden');
+            debtShowWithPaid = true;
+        } else {
+            $('#hidePaidDebtsBtn').addClass('hidden');
+            $('#showPaidDebtsBtn').removeClass('hidden');
+            debtShowWithPaid = false;
+        }
+        GetDebts();
+    }
+
+    function MergeDebtUsers() {
+        var userFrom = DropDownPickerGetValue('debtUserFromListbox');
+        if (userFrom == null) {
+            ShowAlert('Внимание!', 'Выберите сливаемого', window.AlertType.Warning, 2000);
+            return;
+        }
+        var userTo = DropDownPickerGetValue('debtUserToListbox');
+        if (userTo == null) {
+            ShowAlert('Внимание!', 'Выберите поглащающего', window.AlertType.Warning, 2000);
+            return;
+        }
+        $.ajax({
+            url: '/Finance/MergeDebtUsers',
+            type: "POST",
+            data: {
+                userFrom: userFrom,
+                userTo: userTo
+            },
+            traditional: true
+        }).done(function (result) {
+            if (result.success == false) {
+                ShowAlert('Внимание!', result.message, window.AlertType.Warning, 2000);
+            } else {
+                ShowAlert('Успех!', 'Держатели долга успешно объеденены', window.AlertType.Success, 2000);
+                GetDebts();
+            }
+        }).fail(function (xhr, textStatus, errorThrown) {
+            ShowAlert('Внимание!', commonErrorMessage, window.AlertType.Error, 2000);
+        }).always(function () {
+        });
+    }
+
+    function MoveDebtsToOpertaions() {
+        var debtIds = [];
+        $('input[type=checkbox].row-checker').each(function () {
+            if (this.checked) {
+                debtIds.push($(this).data('debt-id'));
+            }
+        });
+        if (debtIds.length == 0) {
+            ShowAlert('Внимание!', 'Выберите хотя бы один долг', window.AlertType.Warning, 2000);
+            return;
+        }
+        var categoryId = DropDownPickerGetValue('debtCategoryListbox');
+        if (categoryId == null) {
+            ShowAlert('Внимание!', 'Выберите категорию', window.AlertType.Warning, 2000);
+            return;
+        }
+        $.ajax({
+            url: '/Finance/ModeDebtToOperations',
+            type: "POST",
+            data: {
+                debtIds: debtIds,
+                categoryId: categoryId,
+                comment: $('#debtPrefix').val()
+            },
+            traditional: true
+        }).done(function (result) {
+            if (result.success == false) {
+                ShowAlert('Внимание!', result.message, window.AlertType.Warning, 2000);
+            } else {
+                ShowAlert('Успех!', 'Долги успешно перенесены в расходы', window.AlertType.Success, 2000);
+                GetDebts();
+            }
+        }).fail(function (xhr, textStatus, errorThrown) {
+            ShowAlert('Внимание!', commonErrorMessage, window.AlertType.Error, 2000);
+        }).always(function () {
+        });
+    }
+
+    function GetDebts() {
+        var withPaid = window.debtShowWithPaid;
+        $.ajax({
+            url: '/Finance/GetDebts',
+            type: "POST",
+            data: { withPaid: withPaid },
+            traditional: true
+        }).done(function (result) {
+            $('#debts').html(result);
+        }).fail(function (xhr, textStatus, errorThrown) {
+            ShowAlert('Внимание!', commonErrorMessage, window.AlertType.Error, 2000);
+        }).always(function () {
+        });
+    }
+
+    function AddDebt() {
+        $.ajax({
+            url: '/Finance/GetDebtForm',
+            type: "POST",
+            data: { main: 'good' },
+            traditional: true
+        }).done(function (result) {
+            if (result.success == false) {
+                ShowAlert('Внимание!', result.message, window.AlertType.Warning, 2000);
+            } else {
+                $('#addDebtBtn').hide();
+                $('#debtFormDiv').html(result);
+            }
+        }).fail(function (xhr, textStatus, errorThrown) {
+            ShowAlert('Внимание!', commonErrorMessage, window.AlertType.Error, 2000);
+        }).always(function () {
+        });
+    }
+
+    function SaveDebt() {
+        $.ajax({
+            url: '/Finance/SaveDebt',
+            type: "POST",
+            data: $('#debtForm').serialize(),
+            traditional: true
+        }).done(function (result) {
+            if (result.success == true) {
+                $('#debtFormDiv').empty();
+                $('#addDebtBtn').show();
+                ShowAlert('Успех!', "Долг сохранён", window.AlertType.Success, 2000);
+                GetDebts();
+            } else if (result.success == false) {
+                ShowAlert('Внимание!', result.message, window.AlertType.Warning, 2000);
+            }
+            else {
+                $('#debtFormDiv').html(result);
+            }
+        }).fail(function (xhr, textStatus, errorThrown) {
+            ShowAlert('Внимание!', commonErrorMessage, window.AlertType.Error, 2000);
+        }).always(function () {
+        });
+    }
+
+    function CancelDebt() {
+        $('#debtFormDiv').empty();
+        $('#addDebtBtn').show();
+    }
+
+    function PayDebt(debtId) {
+        $.ajax({
+            url: '/Finance/GetPayDebtForm',
+            type: "POST",
+            data: { debtId: debtId },
+        }).done(function (result) {
+            if (result.success == false) {
+                ShowAlert('Внимание!', result.message, window.AlertType.Warning, 2000);
+            } else {
+                $('#addDebtBtn').hide();
+                $('#debtPaymentFormDiv').html(result);
+            }
+        }).fail(function (xhr, textStatus, errorThrown) {
+            ShowAlert('Внимание!', commonErrorMessage, window.AlertType.Error, 2000);
+        }).always(function () {
+        });
+    }
+
+    function SavePaymentDebt() {
+        $.ajax({
+            url: '/Finance/SavePaymentDebt',
+            type: "POST",
+            data: $('#debtForm').serialize(),
+            traditional: true
+        }).done(function (result) {
+            if (result.success == true) {
+                $('#debtPaymentFormDiv').empty();
+                $('#addDebtBtn').show();
+                GetDebts();
+                ShowAlert('Успех!', "Оплата сохранена", window.AlertType.Success, 2000);
+            } else if (result.success == false) {
+                ShowAlert('Внимание!', result.message, window.AlertType.Warning, 2000);
+            }
+            else {
+                $('#debtPaymentFormDiv').html(result);
+            }
+        }).fail(function (xhr, textStatus, errorThrown) {
+            ShowAlert('Внимание!', commonErrorMessage, window.AlertType.Error, 20020);
+        }).always(function () {
+        });
+    }
+
+    function CancelPaymentDebt() {
+        $('#debtPaymentFormDiv').empty();
+        $('#addDebtBtn').show();
+    }
+
+
+    function DeleteDebt(debtId) {
+        $('#debt_' + debtId + ' .confirm-delete').removeClass('hidden');
+        $('#debt_' + debtId + ' .cancel-delete').removeClass('hidden');
+        $('#debt_' + debtId + ' .start-delete').addClass('hidden');
+    }
+
+    function CancelDeleteDebt(debtId) {
+        $('#debt_' + debtId + ' .confirm-delete').addClass('hidden');
+        $('#debt_' + debtId + ' .cancel-delete').addClass('hidden');
+        $('#debt_' + debtId + ' .start-delete').removeClass('hidden');
+    }
+
+    function ConfirmDeleteDebt(debtId) {
+        $.ajax({
+            url: '/Finance/DeleteDebt',
+            type: "POST",
+            data: { debtId: debtId },
+            traditional: true
+        }).done(function (result) {
+            if (result.success == false) {
+                ShowAlert('Внимание!', result.message, window.AlertType.Warning, 2000);
+            } else {
+                $('#debt_' + debtId).remove();
+                ShowAlert('Успех!', "Удалено", window.AlertType.Success, 2000);
+                GetDebts();
+            }
+        }).fail(function (xhr, textStatus, errorThrown) {
+            ShowAlert('Внимание!', commonErrorMessage, window.AlertType.Error, 2000);
+        }).always(function () {
+        });
+    }
+
+    function EditDebt(debtId) {
+        $('#debt_' + debtId + ' .confirm-edit').removeClass('hidden');
+        $('#debt_' + debtId + ' .cancel-edit').removeClass('hidden');
+        $('#debt_' + debtId + ' .start-edit').addClass('hidden');
+
+        $('#debt_' + debtId + ' .edit-sum').removeClass('hidden');
+        $('#debt_' + debtId + ' .show-sum').addClass('hidden');
+        $('#debt_' + debtId + ' .edit-comment').removeClass('hidden');
+        $('#debt_' + debtId + ' .show-comment').addClass('hidden');
+        $('#debt_' + debtId + ' .edit-name').removeClass('hidden');
+        $('#debt_' + debtId + ' .show-name').addClass('hidden');
+        $('#debt_' + debtId + ' .edit-date').removeClass('hidden');
+        $('#debt_' + debtId + ' .show-date').addClass('hidden');
+    }
+
+    function CancelEditDebt(debtId) {
+        $('#debt_' + debtId + ' .confirm-edit').addClass('hidden');
+        $('#debt_' + debtId + ' .cancel-edit').addClass('hidden');
+        $('#debt_' + debtId + ' .start-edit').removeClass('hidden');
+
+        $('#debt_' + debtId + ' .edit-sum').addClass('hidden');
+        $('#debt_' + debtId + ' .show-sum').removeClass('hidden');
+        $('#debt_' + debtId + ' .edit-comment').addClass('hidden');
+        $('#debt_' + debtId + ' .show-comment').removeClass('hidden');
+        $('#debt_' + debtId + ' .edit-name').addClass('hidden');
+        $('#debt_' + debtId + ' .show-name').removeClass('hidden');
+        $('#debt_' + debtId + ' .edit-date').addClass('hidden');
+        $('#debt_' + debtId + ' .show-date').removeClass('hidden');
+    }
+
+    function ConfirmEditDebt(debtId) {
+        var sum = $('#debt_' + debtId + ' .edit-sum input').val();
+        var comment = $('#debt_' + debtId + ' .edit-comment input').val();
+        var name = $('#debt_' + debtId + ' .edit-name input').val();
+        var date = $('#debt_' + debtId + ' .edit-date input').val();
+        $.ajax({
+            url: '/Finance/UpdateDebt',
+            type: "POST",
+            data: { debtId: debtId, sum: sum, name: name, date: date, comment: comment },
+            traditional: true
+        }).done(function (result) {
+            if (result.success == false) {
+                ShowAlert('Внимание!', result.message, window.AlertType.Warning, 2000);
+            } else if (result.success == true) {
+                ShowAlert('Успех!', "Обновлено", window.AlertType.Success, 2000);
+                GetDebts();
+            } else {
+                ShowAlert('Внимание!', commonErrorMessage, window.AlertType.Error, 2000);
+            }
+        }).fail(function (xhr, textStatus, errorThrown) {
+            ShowAlert('Внимание!', commonErrorMessage, window.AlertType.Error, 2000);
+        }).always(function () {
+        });
+    }
+</script>

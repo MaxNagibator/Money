@@ -1,0 +1,173 @@
+﻿@{
+    ViewBag.Title = "Филочки";
+}
+@model MyMoneyWeb.Models.OperationModel
+@{
+    DateTime dateFrom = DateTime.Now;
+    DateTime dateTo = DateTime.Now;
+}
+
+<ul class="nav nav-tabs">
+    <li><a data-toggle="tab" id="operation-tab-1" class="type-tab" href="#tab_1" data-type-id="1">Список операций</a></li>
+    <li><a data-toggle="tab" id="operation-tab-2" class="type-tab" href="#tab_2" data-type-id="2" onclick="GetRegularTasksIfEmpty()">Регулярные операции</a></li>
+    <li><a data-toggle="tab" id="operation-tab-3" class="type-tab" href="#tab_3" data-type-id="3" onclick="GetFastOperationsIfEmpty()">Быстрые операции</a></li>
+</ul>
+<div id="paymentsMain" class="tab-content hide-zero">
+    <div id="tab_1" class="tab-pane fade">
+        <div class="date-mode-control" style="margin-bottom: 5px;">
+            <button class="btn btn-default" type="button" onclick="SetPeriod(-1);" title="Предыдущий период" style="border-top-left-radius: 4px; border-bottom-left-radius: 4px;">
+                <i class="fa fa-arrow-circle-left"></i>
+            </button>
+            <button class="btn btn-default mode-btn mode-day" type="button" onclick="SetMode('day');" title="День">Д</button>
+            <button class="btn btn-default mode-btn mode-week" type="button" onclick="SetMode('week');" title="Неделя">Н</button>
+            <button class="btn btn-default mode-btn mode-month" type="button" onclick="SetMode('month');" title="Месяц">М</button>
+            <button class="btn btn-default mode-btn mode-year" type="button" onclick="SetMode('year');" title="Год">Г</button>
+            <button class="btn btn-default" type="button" onclick="SetPeriod(1);" title="Следующий период" style="border-top-right-radius: 4px; border-bottom-right-radius: 4px;">
+                <i class="fa fa-arrow-circle-right"></i>
+            </button>
+        </div>
+        <div style="display: inline-block;max-width: 350px; ">
+            <div class="input-group" style="">
+                <input id="dateFrom" type="text" class="form-control" value="@dateFrom.ToShortDateString()" />
+                <span class="input-group-addon">-</span>
+                <input id="dateTo" type="text" class="form-control" value="@dateTo.ToShortDateString()" />
+                <span class="input-group-btn">
+                    <button class="btn btn-info" type="button" onclick="GetPayments();"><i class="glyphicon glyphicon-search"></i>Найти</button>
+                </span>
+            </div>
+        </div>
+        <button class="btn btn-info" style="display: inline-block;float: right;" onclick="Excel();"><i class="fa fa-file-excel-o"></i></button>
+        <button class="btn btn-info" id="changeCategoryBtn" style="display: inline-block;float: right;margin-right:10px;" onclick="ChangeCategory();" title="Сменить категорию у всех отображённых операций">
+            <i class="fa fa-magic"></i>
+        </button>
+        <button id="showZeroChangeBtn" class="btn btn-info" style="display: inline-block; float: right; margin-right: 10px;" onclick="ShowZero();" data-show-zero="0"><i class="fa fa-star"></i></button>
+        <div style="display: none; float: right; margin-right:10px;" id="changeCategoryConfirmBtn">
+            @{
+                var categoryFilter2Model = new MyMoneyWeb.Models.UmsPicker.DropDownPickerModel
+                {
+                    Id = "changeCategoryListbox",
+                    Type = "MyOperationCategoryList",
+                    ShowColumns = "{name}",
+                    DefaultText = "Категория",
+                    ContainerClass = "filter-category-select",
+                    ShowSelectedTitle = true,
+                    ShowSelectMax = 1,
+                    IsSingle = true,
+                    IsSingleNotNullable = true,
+                };
+            }
+            @Html.Partial("UmsPicker/DropDownPicker", categoryFilter2Model)
+            <button class="btn btn-info" style="display: inline-block;float: right;" onclick="ChangeCategoryConfirm();" title="Сменить категорию у всех отображённых операций">
+                <i class="fa fa-check"></i>
+            </button>
+        </div>
+        <div style="margin-bottom: 10px;">
+            @{
+                var categoryFilterModel = new MyMoneyWeb.Models.UmsPicker.DropDownPickerModel
+                {
+                    Id = "filterCategoryListbox",
+                    Type = "MyOperationCategoryList",
+                    ShowColumns = "{name}",
+                    DefaultText = "Категория",
+                    ContainerClass = "filter-category-select",
+                    ShowSelectedTitle = true,
+                    ShowSelectMax = 1,
+                };
+            }
+            @Html.Partial("UmsPicker/DropDownPicker", categoryFilterModel)
+            <div style="display: inline-block;max-width: 180px;">
+                <input id="searchComment" type="text" placeholder="Комментарий" class="form-control" value="" />
+            </div>
+            <div style="display: inline-block;max-width: 180px;">
+                <input id="searchPlace" type="text" placeholder="Место" class="form-control" value="" list="searchPlaceList" oninput="SearchPlaceKeyPress();" onfocus="SearchPlaceKeyPress(1);" autocomplete="off" />
+                <datalist id="searchPlaceList"></datalist>
+                <datalist id="searchPlaceListTemp"></datalist>
+            </div>
+        </div>
+        @if (Model.FastOperations.Count > 0)
+        {
+            <div class="hidden">
+                <div id="paymentFastOperationTemplate" class="btn-group" style="vertical-align: top">
+                      <i id="addPaymentBtn" class="fa fa-plus-circle payment-fast dropdown-toggle" data-toggle="dropdown" aria-haspopup="true"
+                         style="box-shadow: none;">
+                      </i>
+                      <div class="dropdown-menu">
+                          @* обобщить эту конструкцию .OrderBy(x => x.Order == null).ThenBy(x => x.Order).ThenBy(x => x.Name)*@
+                          @foreach (var operation in Model.FastOperations.OrderBy(x => x.Order == null).ThenBy(x => x.Order).ThenBy(x => x.Name))
+                          {
+                              <span class="dropdown-item fast-operation"
+                                    data-sum="@operation.Sum"
+                                    data-payment-type="@((int)operation.PaymentType)"
+                                    data-category-id="@operation.CategoryId"
+                                    data-comment="@operation.Comment"
+                                    data-place="@operation.Place"
+                                    style="width: 100%; display: block;"
+                                    href="#">@operation.Name</span>
+                              }
+                      </div>
+                </div>
+            </div>
+        }
+
+        <div id="payments"></div>
+        <div class="hidden">
+            @{
+                var catList = Model.SortedCategories.Select(x => new SelectListItem { Text = x.Name, Value = x.Id.ToString() }).ToList();
+            }
+            @Html.DropDownList("categoryforedit", catList, new { @class = "form-control", onchange = "editCategoryChange(this)" })
+        </div>
+    </div>
+    <div id="tab_2" class="tab-pane fade">
+        <button class="btn btn-info" onclick="AddRegularTask()" title="Добавить регулярную задачу"><i class="fa fa-plus-circle"></i>Добавить</button>
+        <div id="regularTasks"></div>
+        <div id="regularTaskModal" class="modal fade" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title"></h4>
+                    </div>
+                    <div class="modal-body">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="saveRegularTaskBtn" class="btn btn-info btn-confirm" onclick="SaveRegularTask()"><i class="fa fa-save"></i>Подтвердить</button>
+                        <button type="button" class="btn btn-default btn-cancel" data-dismiss="modal"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="tab_3" class="tab-pane fade">
+        <button class="btn btn-info" onclick="AddFastOperation()" title="Добавить быструю операцию"><i class="fa fa-plus-circle"></i>Добавить</button>
+        <div id="fastOperations"></div>
+        <div id="fastOperationModal" class="modal fade" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title"></h4>
+                    </div>
+                    <div class="modal-body">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="saveFastOperationBtn" class="btn btn-info btn-confirm" onclick="SaveFastOperation()"><i class="fa fa-save"></i>Подтвердить</button>
+                        <button type="button" class="btn btn-default btn-cancel" data-dismiss="modal"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link href="~/Content/My/v_operation.css?time=2207070217" rel="stylesheet" />
+<script src="~/Scripts/My/v_operations.js?time=2207070217"></script>
+<script>
+    $(document).ready(function () {
+        $("#dateFrom,#dateTo").datetimepicker({
+            format: 'DD.MM.YYYY',
+            language: 'ru'
+        });
+        SetMode('week', 0);
+        $('.type-tab')[0].click();
+    });
+</script>

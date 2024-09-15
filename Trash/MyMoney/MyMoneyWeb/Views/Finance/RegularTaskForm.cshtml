@@ -1,0 +1,127 @@
+﻿@using Common.Enums
+@using Extentions
+@model MyMoneyWeb.Models.RegularTaskFormModel
+@using (Html.BeginForm("SaveRegularTask", "Finance", FormMethod.Post, new { id = "regularTaskForm" }))
+{
+    @Html.HiddenFor(x => x.RegularTask.Id)
+    for (int i = 0; i < Model.Types.Count; i++)
+    {
+        @Html.HiddenFor(x => x.Types[i])
+    }
+    for (int i = 0; i < Model.TimeTypes.Count; i++)
+    {
+        @Html.HiddenFor(x => x.TimeTypes[i])
+    }
+    <div class="form-group">
+        @Html.LabelFor(model => model.RegularTask.Name)
+        @Html.TextBoxFor(model => model.RegularTask.Name, new { @class = "form-control" })
+        @Html.ValidationMessageFor(model => model.RegularTask.Name)
+    </div>
+    <div class="row">
+        <div class="form-group col-md-6">
+            @Html.LabelFor(model => model.RegularTask.DateFrom)
+            @Html.TextBoxFor(model => model.RegularTask.DateFrom, "{0:dd/MM/yyyy}", new { @class = "form-control date-picker-field" })
+            @Html.ValidationMessageFor(model => model.RegularTask.DateFrom)
+        </div>
+        <div class="form-group col-md-6">
+            @Html.LabelFor(model => model.RegularTask.DateTo)
+            @Html.TextBoxFor(model => model.RegularTask.DateTo, "{0:dd/MM/yyyy}", new { @class = "form-control date-picker-field", placeholder = "безлимит" })
+            @Html.ValidationMessageFor(model => model.RegularTask.DateTo)
+        </div>
+    </div>
+    <div class="panel panel-primary">
+        <div class="panel-heading">Интервал</div>
+        <div class="panel-body">
+            <div class="row">
+                <div class="form-group col-md-6">
+                    @Html.LabelFor(model => model.RegularTask.TimeType)
+                    @{
+                        var catList2 = Model.TimeTypes.Select(x => new SelectListItem { Text = x.DescriptionAttr(), Value = x.ToString() }).ToList();
+                    }
+                    @Html.DropDownListFor(model => model.RegularTask.TimeType, catList2, new { @class = "form-control", id = "regularTaskTimeTypeField", @onchange = "ChangeRegularTimeType()" })
+                    @Html.ValidationMessageFor(model => model.RegularTask.TimeType)
+                </div>
+                <div class="form-group col-md-6 regular-task-time-block" id="regularTaskTimeType@(RegularTaskTimeTypes.EveryWeek)">
+                    @Html.LabelFor(model => model.RegularTask.TimeValue2)
+                    @Html.TextBoxFor(model => model.RegularTask.TimeValue2, new { @class = "form-control", @id = "regularTaskTimeValue" })
+                    @Html.ValidationMessageFor(model => model.RegularTask.TimeValue2)
+                </div>
+                <div class="form-group col-md-6 regular-task-time-block" id="regularTaskTimeType@(RegularTaskTimeTypes.EveryMonth)">
+                    @Html.LabelFor(model => model.RegularTask.TimeValue3, new {title="если число больше, чем дней в месяце, берётся последний день месяца"})
+                    @Html.TextBoxFor(model => model.RegularTask.TimeValue3, new { @class = "form-control", @id = "regularTaskTimeValue" })
+                    @Html.ValidationMessageFor(model => model.RegularTask.TimeValue3)
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            @Html.LabelFor(model => model.RegularTask.Type)
+            @{
+                var catList = Model.Types.Select(x => new SelectListItem { Text = x.DescriptionAttr(), Value = x.ToString() }).ToList();
+            }
+            @Html.DropDownListFor(model => model.RegularTask.Type, catList, new { @class = "form-control operation-type-selector", @id = "regularTaskTypeField", @onchange = "ChangeRegularType()" })
+            @Html.ValidationMessageFor(model => model.RegularTask.Type)
+        </div>
+        <div class="panel-body">
+            <div class="form-group regular-task-block" id="regularTaskType@(RegularTaskTypes.Operation)">
+                @if (Model.PaymentCategories != null)
+                {
+                    for (int i = 0; i < Model.PaymentCategories.Count; i++)
+                    {
+                        @Html.HiddenFor(x => x.PaymentCategories[i].Id)
+                        @Html.HiddenFor(x => x.PaymentCategories[i].Name)
+                    }
+                }
+                <div class="form-group">
+                    @Html.LabelFor(model => model.RegularTask.Payment.Sum)
+                    @Html.TextBoxFor(model => model.RegularTask.Payment.Sum, new { @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.RegularTask.Payment.Sum)
+                </div>
+                <div class="form-group">
+                    @Html.LabelFor(model => model.RegularTask.Payment.Place)
+                    @Html.TextBoxFor(model => model.RegularTask.Payment.Place, new { @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.RegularTask.Payment.Place)
+                </div>
+                <div class="form-group">
+                    @Html.LabelFor(model => model.RegularTask.Payment.Comment)
+                    @Html.TextBoxFor(model => model.RegularTask.Payment.Comment, new { @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.RegularTask.Payment.Comment)
+                </div>
+                <div class="form-group">
+                    @Html.LabelFor(model => model.RegularTask.Payment.CategoryId)
+                    @{
+                        var catList3 = Model.PaymentCategories == null ?
+                            new List<SelectListItem>() :
+                            Model.PaymentCategories.Select(x => new SelectListItem { Text = x.Name, Value = x.Id.ToString() }).ToList();
+                    }
+                    @Html.DropDownListFor(model => model.RegularTask.Payment.CategoryId, catList3, new { @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.RegularTask.Payment.CategoryId)
+                </div>
+            </div>
+        </div>
+    </div>
+}
+<script src="~/Scripts/bootstrap-datetimepicker.js"></script>
+<script>
+    $(document).ready(function () {
+        $(".date-picker-field").datetimepicker({
+            format: 'DD.MM.YYYY',
+            language: 'ru'
+        });
+        ChangeRegularType();
+        ChangeRegularTimeType();
+    });
+
+    function ChangeRegularType() {
+        $('.regular-task-block').hide();
+        var regularTaskTypeId = $('#regularTaskTypeField').val();
+        $('#regularTaskType' + regularTaskTypeId).show();
+    }
+
+    function ChangeRegularTimeType() {
+        $('.regular-task-time-block').hide();
+        var regularTaskTypeId = $('#regularTaskTimeTypeField').val();
+        $('#regularTaskTimeType' + regularTaskTypeId).show();
+    }
+</script>

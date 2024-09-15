@@ -1,0 +1,14 @@
+﻿@using Extentions
+@model MyMoneyWeb.Models.ReplaceWordModel
+
+<div class="replace-word row" style="margin-bottom:5px;">
+    <div class="col-md-3">
+        <input type="text" class="form-control" id="key" placeholder="Шаблон" value="@Model.Key" onchange="SaveSelectGroup()">
+    </div>
+    <div class="col-md-7">
+        <input type="text" class="form-control" id="value" placeholder="Заменить на" value="@Model.Value" onchange="SaveSelectGroup()">
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-info" style="width:100%;" onclick="removeReplaceWord(this)"><i class="fa fa-trash"></i>Удалить</button>
+    </div>
+</div>

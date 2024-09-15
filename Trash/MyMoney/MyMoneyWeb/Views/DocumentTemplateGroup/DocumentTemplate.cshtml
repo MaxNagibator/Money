@@ -1,0 +1,38 @@
+﻿@using Extentions
+@model MyMoneyWeb.Models.DocumentTemplateModel
+
+<div class="document-template">
+    <i id="deleteFileBtn" class="fa fa-trash" style=" position: absolute; right: 10px;" onclick="deleteDocTemplate(this)"></i>
+    <input type="hidden" id="templateType" value="@Model.Type">
+    <div class="form-group">
+        <label for="templateName">Наименование.</label>
+        <input type="text" class="form-control" id="templateName" placeholder="Название" value="@Model.Name" onchange="SaveSelectGroup()">
+    </div>
+    <input type="hidden" id="templateFileName" placeholder="Название" value="@Model.FileName">
+    <div class="form-group">
+        <label for="templateName">Наименование скачиваемого файла.</label>
+        <input type="text" class="form-control" id="templateDownloadFileName" placeholder="Название" value="@Model.DownloadFileName" onchange="SaveSelectGroup()">
+    </div>
+    <div class="form-group">
+        <button class="btn btn-info btn-download" onclick="downloadDocument(this, true)" title="Скачать исходный">
+            @if (Model.Type == Common.Enums.FileTypes.Word)
+            {
+                <i class="fa fa-file-word-o"></i>
+            }
+            else if (Model.Type == Common.Enums.FileTypes.Excel)
+            {
+                <i class="fa fa-file-excel-o"></i>
+            }
+            else
+            {
+                <i class="fa fa-file-o"></i>
+            }
+        </button>
+        <button class="btn btn-info btn-download" onclick="downloadDocument(this, false)" title="Скачать обработанный">
+            <i class="fa fa-wrench"></i>
+        </button>
+        <button class="btn btn-info btn-download" onclick="downloadDocument(this, false, true)" title="Скачать обработанный в PDF">
+            <i class="fa fa-file-pdf-o"></i>
+        </button>
+    </div>
+</div>

@@ -1,0 +1,31 @@
+﻿@{
+    ViewBag.Title = "Машинки";
+}
+<div id="cars"></div>
+<style>
+    #debtLink a {
+        border-bottom: 1px solid gray;
+    }
+    #debts input{
+        width: 100%;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+        GetCars();
+    });
+
+    function GetCars() {
+        $.ajax({
+            url: '/Car/GetCars',
+            type: "POST",
+            data: { main: 'good' },
+            traditional: true
+        }).done(function (result) {
+            $('#cars').html(result);
+        }).fail(function (xhr, textStatus, errorThrown) {
+            ShowAlert('Внимание!', commonErrorMessage, window.AlertType.Error, 2000);
+        }).always(function () {
+        });
+    }
+</script>

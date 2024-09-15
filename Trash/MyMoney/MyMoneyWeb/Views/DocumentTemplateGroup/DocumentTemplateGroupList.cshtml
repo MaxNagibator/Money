@@ -1,0 +1,47 @@
+﻿@using Extentions
+@using MyMoneyWeb.Models
+@model DocumentTemplateGroupsModel
+
+<span style=" position: absolute; top: -24px; right: 9px;" onclick="alert('Механизм автоматизации однотипных документов. Загружаем болванку документа. Добавляем ключ замены. Например date. При скачивании обработанного, произойдёт замена <date> из документа на значение ключа. Приемлимая поддержка только docx/xlsx');"> <i class="fa fa-question-circle"></i></span>
+<div id="documentTemplateGroupsWorkspace">
+    <div class="fake-tab">
+        @foreach (var documentTemplateGroup in Model.DocumentTemplateGroups)
+        {
+            // дублирование с js кодом
+            <button type="button" class="btn-tab" data-group-id="@documentTemplateGroup.Id" onclick="SelectGroup(this);">
+                <span>@documentTemplateGroup.Name</span>
+            </button>
+        }
+        <button type="button" class="btn-tab" id="startCreateGroupBtn" onclick="CreateDocumentTemplateGroup()">
+            <span>+</span>
+        </button>
+    </div>
+    <div class="ums-tab">
+        <div class="tab-header"></div>
+        <div id="panelBody" class="tab-body">
+            <div id="groupTab" class="items-page">
+            </div>
+        </div>
+    </div>
+    <div id="TabContents" class="hidden">
+        @foreach (var documentTemplateGroup in Model.DocumentTemplateGroups)
+        {
+            <div data-group-id="@documentTemplateGroup.Id">
+                @Html.Partial("DocumentTemplateGroup", documentTemplateGroup)
+            </div>
+        }
+        <div data-group-id="new">
+            @Html.Partial("DocumentTemplateGroup", new DocumentTemplateGroupModel())
+        </div>
+    </div>
+</div>
+
+<div class="hidden" id="documentTemplateNew">
+    @Html.Partial("DocumentTemplate", new DocumentTemplateModel())
+</div>
+
+<div style="position: absolute;right: 0;">
+    <i class="start-delete fa fa fa-trash" onclick="remove()" title="Удалить"></i>
+    <i class="confirm-delete hidden fa fa fa-check" onclick="confirmRemove()" title="Подтвердить удаление"></i>
+    <i class="cancel-delete hidden fa fa fa-remove" onclick="cancelRemove()" title="Отменить удаление"></i>
+</div>

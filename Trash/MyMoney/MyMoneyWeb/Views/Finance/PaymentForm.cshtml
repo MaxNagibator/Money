@@ -1,0 +1,59 @@
+﻿@model MyMoneyWeb.Models.PaymentFormModel
+@using (Html.BeginForm("SavePayment", "Finance", FormMethod.Post, new { id = "paymentForm" }))
+{
+    @Html.HiddenFor(x => x.Payment.Id)
+    @Html.HiddenFor(x => x.Payment.PaymentType)
+    if (Model.Categories != null)
+    {
+        for (int i = 0; i < Model.Categories.Count; i++)
+        {
+            @Html.HiddenFor(x => x.Categories[i].Id)
+            @Html.HiddenFor(x => x.Categories[i].Name)
+        }
+    }
+    <div class="row">
+        <div class="form-group col-md-6">
+            @Html.LabelFor(model => model.Payment.Sum)
+            @Html.TextBoxFor(model => model.Payment.Sum, new { @class = "form-control payment-input-sum" })
+            @Html.ValidationMessageFor(model => model.Payment.Sum)
+        </div>
+        <div class="form-group col-md-6">
+            @Html.LabelFor(model => model.Payment.Date)
+            @Html.TextBoxFor(model => model.Payment.Date, "{0:dd/MM/yyyy}", new { @class = "form-control payment-input-date", @id = "paymentFormDate" })
+            @Html.ValidationMessageFor(model => model.Payment.Date)
+        </div>
+        <div class="form-group col-md-6">
+            @Html.LabelFor(model => model.Payment.CategoryId)
+            @{
+                var catList = Model.Categories == null ?
+                    new List<SelectListItem>() :
+                    Model.SortedCategories.Select(x => new SelectListItem { Text = x.Name, Value = x.Id.ToString() }).ToList();
+            }
+            @Html.DropDownListFor(model => model.Payment.CategoryId, catList, new { @class = "form-control payment-input-category-id" })
+            @Html.ValidationMessageFor(model => model.Payment.CategoryId)
+        </div>
+        <div class="form-group col-md-6">
+            @Html.LabelFor(model => model.Payment.Place)
+            @Html.TextBoxFor(model => model.Payment.Place, new { @class = "form-control payment-input-place", @id = "paymentFormPlace", list = "paymentFormPlaceList", oninput = "PaymentFormPlaceKeyPress();", @onfocus = "PaymentFormPlaceKeyPress(1);" })
+            @Html.ValidationMessageFor(model => model.Payment.Place)
+            <datalist id="paymentFormPlaceList"></datalist>
+            <datalist id="paymentFormPlaceListTemp"></datalist>
+        </div>
+        <div class="form-group col-md-12">
+            @Html.LabelFor(model => model.Payment.Comment)
+            @Html.TextBoxFor(model => model.Payment.Comment, new { @class = "form-control payment-input-comment" })
+            @Html.ValidationMessageFor(model => model.Payment.Comment)
+        </div>
+    </div>
+    <button type="button" id="paymentFormSaveButton" class="btn btn-success" onclick="SavePayment('@Model.DayId')"><i class="glyphicon glyphicon-ok-sign"></i>Подтвердить</button>
+    <button type="button" id="paymentFormCancelButton" class="btn btn-danger" onclick="CancelPayment('@Model.DayId')"><i class="glyphicon glyphicon-remove-circle"></i>Отменить</button>
+}
+<script src="~/Scripts/bootstrap-datetimepicker.js"></script>
+<script>
+    $(document).ready(function () {
+        $("#paymentFormDate").datetimepicker({
+            format: 'DD.MM.YYYY',
+            language: 'ru',
+        });
+    });
+</script>

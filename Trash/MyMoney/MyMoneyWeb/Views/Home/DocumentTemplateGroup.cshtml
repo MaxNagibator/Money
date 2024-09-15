@@ -1,0 +1,270 @@
+﻿@using Common.Enums
+@{
+    ViewBag.Title = "Шаблоны документов";
+}
+<div id="documentTemplateGroups" style="position:relative;"></div>
+
+<style>
+    #documentTemplateGroupLink a {
+        border-bottom: 1px solid gray;
+    }
+
+    .document-template {
+        border: 1px solid;
+        width: 400px;
+        padding: 10px;
+        border-radius: 5px;
+        display: inline-block;
+        margin-right: 5px;
+        margin-top: 5px;
+        position: relative;
+    }
+        .document-template .btn-download {
+            width: 60px;
+            height: 60px;
+            font-size: 34px;
+        }
+
+        .replace-word .requered {
+            border-color: red;
+        }
+</style>
+<script>
+    $(document).ready(function () {
+        GetGroups();
+    });
+
+    function GetGroups() {
+        $.ajax({
+            url: '/DocumentTemplateGroup/GetDocumentTemplateGroups',
+            type: "POST",
+            data: { main: 'good' },
+            traditional: true
+        }).done(function (result) {
+            $('#documentTemplateGroups').html(result);
+            if ($('.btn-tab').length > 0) {
+                $('.btn-tab:first').click();
+            }
+        }).fail(function (xhr, textStatus, errorThrown) {
+            ShowAlert('Внимание!', window.commonErrorMessage, window.AlertType.Error, 2000);
+        }).always(function () {
+        });
+    }
+
+    function CreateDocumentTemplateGroup() {
+        var name = 'Новая группа';// $('#createDocumentTemplateModal #name').val();
+        var maxGroupId = 0;
+        $('#documentTemplateGroups .btn-tab').each(function (i, elem) {
+            var groupId = $(elem).data('group-id') * 1;
+            if (groupId > maxGroupId) {
+                maxGroupId = groupId;
+            }
+        });
+
+        var btnGroupId = maxGroupId + 1;
+        // дублирование со вьюшкой
+        var btn = '<button type="button" class="btn-tab" data-is-new="1" data-group-id="' + btnGroupId + '" onclick="SelectGroup(this);">'
+            + '<span>' + name + '</span>'
+            + '</button>';
+        $('#startCreateGroupBtn').before(btn);
+        SelectGroup($('.btn-tab[data-group-id="' + btnGroupId + '"]')[0]);
+    }
+
+    function SelectGroup(elem) {
+        var currentGroupId = $('.btn-tab.active').data('group-id');
+        if (currentGroupId != undefined) {
+            if ($('#TabContents div[data-group-id="' + currentGroupId + '"]').length == 0) {
+                var newContainer = $('#TabContents div[data-group-id="new"]').clone();
+                newContainer.attr('data-group-id', currentGroupId);
+                $('#TabContents').append(newContainer);
+            }
+            $('#TabContents div[data-group-id="' + currentGroupId + '"]').html($('#groupTab > div'));
+        }
+
+        var btnGroupId = $(elem).data('group-id');
+        var $tabConent = $('#TabContents div[data-group-id="' + btnGroupId + '"] > div');
+        if ($tabConent.length == 0) {
+            $('#groupTab').html($('#TabContents div[data-group-id="new"] > div').clone());
+        } else {
+            $('#groupTab').html($tabConent);
+        }
+        if ($('#groupTab #name').data('init-change') != '1') {
+            $('#groupTab #name').change(function () {
+                var name = $(this).val();
+                if (name == '') {
+                    name = '-';
+                }
+                $('.btn-tab.active span').text(name);
+                SaveSelectGroup();
+            });
+            $('#groupTab #uploadFileInput').change(function (e) {
+                var files = e.target.files;
+                var file = files[0];
+                var formData = new FormData();
+                formData.append('file', file);
+
+                $.ajax({
+                    url: '/File/Upload',
+                    type: "POST",
+                    data: formData,
+                    contentType: false,
+                    processData: false
+                }).done(function (result) {
+                    if (result.success == true) {
+                        var fileName = file.name;
+                        var storageFileName = result.filename;
+                        var elem = $('#documentTemplateNew > div').clone();
+                        $(elem).find('#templateName').val(fileName);
+                        $(elem).find('#templateFileName').val(storageFileName);
+                        $(elem).find('#templateDownloadFileName').val(fileName);
+                        $(elem).find('#templateType').val(result.fileType);
+                        $('#groupTab #documentTemplates').append(elem);
+                        SaveSelectGroup();
+                    } else {
+                        ShowAlert('Внимание!', result.message, window.AlertType.Warning, 3000);
+                    }
+                }).fail(function (xhr, textStatus, errorThrown) {
+                    ShowAlert('Ошибка!', window.commonErrorMessage, window.AlertType.Error, 3000);
+                }).always(function () {
+                    $('#groupTab #uploadFileInput').val(null);
+                });
+            })
+            $('#groupTab #uploadFileBtn').click(function () {
+                $('#groupTab #uploadFileInput').click();
+            });
+
+            $('#groupTab #name').data('init-change', '1');
+        }
+
+        $('.btn-tab').removeClass('active');
+        $(elem).addClass('active');
+    }
+
+    function deleteDocTemplate(elem) {
+        $(elem).closest('.document-template').remove();
+        SaveSelectGroup();
+    }
+
+    function SaveSelectGroup() {
+        var request = {
+            Id: $('#groupTab #id').val(),
+            Name: $('#groupTab #name').val(),
+            DocumentTemplates: [],
+            ReplaceWords: [],
+        }
+        if (request.Name == undefined || request.Name == '') {
+            request.Name = 'Группа документов ' + $('.btn-tab.active').data('group-id');
+            $('.btn-tab.active span').text(request.Name);
+            $('#groupTab #name').val(request.Name);
+        }
+        $('#groupTab .document-template').each(function (i, elem) {
+            var docTemplate = {
+                Name: $(elem).find('#templateName').val(),
+                FileName: $(elem).find('#templateFileName').val(),
+                DownloadFileName: $(elem).find('#templateDownloadFileName').val(),
+                Type: $(elem).find('#templateType').val(),
+            }
+            request.DocumentTemplates.push(docTemplate);
+        });
+
+        var allKeyOk = true;
+        var uniqueKeys = [];
+        $('#groupTab #replaceWords .replace-word').each(function (i, elem) {
+            $(elem).find('#key').removeClass('requered');
+            var replaceWord = {
+                Key: $(elem).find('#key').val(),
+                Value: $(elem).find('#value').val(),
+            }
+            if (replaceWord.Key == '' || uniqueKeys.indexOf(replaceWord.Key) != -1) {
+                $(elem).find('#key').addClass('requered');
+                allKeyOk = false;
+            }
+            uniqueKeys.push(replaceWord.Key);
+            request.ReplaceWords.push(replaceWord);
+        });
+        if (!allKeyOk) {
+            ShowAlert('Внимание!', 'Шаблон замены должен быть не пустым и уникальным', window.AlertType.Warning, 3000);
+            return;
+        }
+
+        $.ajax({
+            url: '/DocumentTemplateGroup/SaveDocumentTemplateGroup',
+            type: "POST",
+            data: JSON.stringify(request),
+            contentType: "application/json; charset=utf-8",
+            traditional: true,
+        }).done(function (result) {
+            if (result.success == true) {
+                $('#groupTab #id').val(result.id);
+            } else {
+                ShowAlert('Внимание!', result.message, window.AlertType.Warning, 3000);
+            }
+        }).fail(function (xhr, textStatus, errorThrown) {
+            ShowAlert('Ошибка!', window.commonErrorMessage, window.AlertType.Error, 3000);
+        });
+    }
+
+
+    function remove() {
+        $('.confirm-delete').removeClass('hidden');
+        $('.cancel-delete').removeClass('hidden');
+        $('.start-delete').addClass('hidden');
+    }
+
+    function cancelRemove() {
+        $('.confirm-delete').addClass('hidden');
+        $('.cancel-delete').addClass('hidden');
+        $('.start-delete').removeClass('hidden');
+    }
+
+    function confirmRemove() {
+        function removeTab() {
+            $('.btn-tab.active').remove();
+            if ($('.btn-tab').length > 0) {
+                $('.btn-tab:first').click();
+            }
+            cancelRemove();
+        }
+        var groupId = $('#groupTab #id').val();
+        if (groupId == undefined || groupId == '') {
+            removeTab();
+            return;
+        }
+        $.ajax({
+            url: '/DocumentTemplateGroup/DeleteDocumentTemplateGroup',
+            type: "POST",
+            data: { documentTemplateGroupId: groupId },
+            traditional: true
+        }).done(function (result) {
+            if (result.success == false) {
+                ShowAlert('Внимание!', result.message, window.AlertType.Warning, 2000);
+            } else {
+                removeTab();
+                ShowAlert('Успех!', "Удалено", window.AlertType.Success, 2000);
+            }
+        }).fail(function (xhr, textStatus, errorThrown) {
+            ShowAlert('Внимание!', commonErrorMessage, window.AlertType.Error, 2000);
+        }).always(function () {
+        });
+    }
+
+    function addReplaceWord() {
+        var newWord = $('#groupTab #newReplaceWord > div').clone();
+        $('#groupTab #replaceWords').append(newWord);
+    }
+
+    function removeReplaceWord(elem) {
+        $(elem).closest('.replace-word').remove();
+        SaveSelectGroup();
+    }
+
+    function downloadDocument(elem, isOriginal, isPdf) {
+        var templateName = $(elem).closest('.document-template').find('#templateName').val();
+        var templateFileName = $(elem).closest('.document-template').find('#templateFileName').val();
+        if (isOriginal) {
+            window.open("/DocumentTemplateGroup/DownloadOriginal?fileName=" + templateFileName + "&downloadFileName=" + templateName);
+        } else {
+            window.open("/DocumentTemplateGroup/DownloadPrepared?fileName=" + templateFileName + "&groupId=" + $('#groupTab #id').val()+"&pdf="+isPdf);
+        }
+    }
+</script>

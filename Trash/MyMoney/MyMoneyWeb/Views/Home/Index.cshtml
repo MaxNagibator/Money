@@ -1,0 +1,50 @@
+﻿@{
+    ViewBag.Title = "Филочки";
+}
+<h2>
+    Филочки.
+</h2>
+<h3>
+    Тут можно записывать свои расходы и доходы
+</h3>
+
+<h1>
+
+    <a href="/Account/LoginDemo?ReturnUrl=/Home/Operation" id="loginDemoLink">Нажимать сюда, авторизуется по демо</a>
+</h1>
+
+<h3>
+    за новостями лучше следить тут -> <a href="https://vk.com/bob217money">Группа в вк Филочки</a>
+</h3>
+
+<div>developed by BobGroup</div>
+<div>mail: bob217@mail.ru</div>
+
+@*<h2> за новостями лучше следить <a href="https://vk.com/bob217money">тут</a></h2>*@
+
+<!--  FOREXPF.RU - Курсы ЦБ РФ start -->
+<!--<div class="clearfix" style="margin-top: 50px;"></div>
+<div id="eurusd" style="width:186px;height:47px;border:1x solid #808080;color:#84057A;text-decoration:none;text-align:left;overflow:hidden;font-style:normal;font-variant:normal;padding:1px 0 0 0">
+    <a href="http://www.forexpf.ru/" title="Курсы валют" target="_blank" style="display:block;height:14px;line-height:14px;color:#000;text-decoration:none;padding-left:5px;font:9px Verdana, sans-serif normal">Валюта</a>
+    <a href="http://www.forexpf.ru/currency_usd.asp" title="Курс доллара" target="_blank" style="display:block;height:14px;line-height:14px;color:#000;text-decoration:none;padding-left:5px;font:9px Verdana, sans-serif normal">Доллар</a>
+    <a href="http://www.forexpf.ru/currency_eur.asp" title="Курс евро" target="_blank" style="display:block;height:14px;line-height:14px;color:#000;text-decoration:none;padding-left:5px;font:9px Verdana, sans-serif normal">Евро</a>
+</div>
+<script src="https://informers.forexpf.ru/js/eurusd.js"></script>-->
+<!--  FOREXPF.RU - Курсы ЦБ РФ end -->
+<!--  FOREXPF.RU - Цены на нефть start -->
+<!--<div id="brent" style="background:; width:186px; height:61px; border: 1x solid #808080; color:#84057A; text-decoration:none; text-align:left; top; overflow: hidden; font-style:normal; font-variant:normal; font-weight:normal; font-size:9px; font-family:Verdana, sans-serif;"><a href="http://www.forexpf.ru/" title="Цены на нефть" target="_blank" style="line-height:14px;color:#000000;text-decoration:none;padding-left: 50px;">Цены на нефть</a><br><a href="http://www.forexpf.ru/chart/brent/" title="Brent" target="_blank" style="line-height:15px;color:#000000;text-decoration:none;padding-left: 33px;">Brent</a><a href="http://www.forexpf.ru/chart/lightsweet/" title="Light Sweet" target="_blank" style="line-height:15px;color:#000000;text-decoration:none;padding-left: 63px;">Light</a></div>
+<script src="https://informers.forexpf.ru/js/brent-light.js"></script>-->
+<!--  FOREXPF.RU - Цены на нефть end -->
+<!--<style>
+    #mainLink a {
+        border-bottom: 1px solid gray;
+    }
+
+    #brent a:hover,
+    #eurusd a:hover {
+        background-color: transparent;
+    }
+</style>-->
+<div class="clearfix" style="margin-top: 50px;"></div>
+Изменения:
+@Html.Partial("About")

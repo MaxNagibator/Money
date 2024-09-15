@@ -1,0 +1,53 @@
+﻿@using Extentions
+@model MyMoneyWeb.Models.DebtsModel
+@{
+    var names = String.Join(";", Model.Debts.Select(x => x.Name).Distinct().ToList());
+}
+@foreach (var debts in Model.Debts.OrderByDescending(x=>x.Date).GroupBy(x => x.Type).OrderByDescending(x=>x.Key))
+{
+    <h2>@debts.Key.DescriptionAttr()</h2>
+    var uDebts = debts.GroupBy(x => x.Name);
+    foreach (var uDebt in uDebts)
+    {
+        <label style="margin-top: 30px;">@uDebt.Key</label>
+        foreach (var debt in uDebt)
+        {
+            <div id="debt_@debt.Id">
+                @if (debt.Status == Common.Enums.DebtStatus.Paid)
+                {
+                    <span class="status-block" title="Оплачен"><i class="fa fa-check-square-o"></i></span>
+                }
+                else
+                {
+                    <span class="debt-transfer-control"><input type="checkbox" class="row-checker" data-debt-id="@debt.Id"/></span>
+                }
+                <i class="fa-2x fa fa-money" onclick="PayDebt('@debt.Id')" title="Отметить оплату"></i>
+                <i class="start-edit fa-2x fa fa-edit" onclick="EditDebt('@debt.Id')" title="Редактировать"></i>
+                <i class="confirm-edit hidden fa-2x fa fa-check" onclick="ConfirmEditDebt('@debt.Id')" title="Подтвердить редактирование"></i>
+                <i class="cancel-edit hidden fa-2x fa fa-remove" onclick="CancelEditDebt('@debt.Id')" title="Отменить редактирование"></i>
+
+                <span class="show-date" style="width: 100px;display: inline-block;">@debt.Date.ToShortDateString()</span>
+                <span class="edit-date hidden" style="width: 100px;display: inline-block;"><input type="text" class="need-init-picker" onfocus="InitDatePicker(this)" value="@debt.Date.ToShortDateString()"></span>
+                @*<span>@debt.Date.ToString("HH:mm")</span>*@
+
+                <span class="show-sum" style="width: 150px;display: inline-block;">@(debt.PaySum == 0 ? ""+debt.Sum : ""+ (debt.Sum - debt.PaySum)+"/" + debt.Sum) </span>
+                <span class="edit-sum hidden" style="width: 150px;display: inline-block;"><input type="text" value="@debt.Sum"></span>
+
+                <span class="show-name" style="width: 100px;display: inline-block;">@debt.Name</span>
+                <span class="edit-name hidden" style="width: 100px;display: inline-block;"><input type="text" value="@debt.Name"></span>
+
+                <span class="show-comment"  style="width: 200px;display: inline-block;">@debt.Comment</span>
+                <span class="edit-comment hidden" style="width: 100px;display: inline-block;"><input type="text" value="@debt.Comment"></span>
+
+                <span style="width: 200px;display: inline-block;" title="@debt.PayComment">@(debt.PaySum == 0 ? "" : "оплачено " + debt.PaySum) </span>
+
+                <i class="start-delete fa-2x fa fa-trash" onclick="DeleteDebt('@debt.Id')" title="Удалить"></i>
+                <i class="confirm-delete hidden fa-2x fa fa-check" onclick="ConfirmDeleteDebt('@debt.Id')" title="Подтвердить удаление"></i>
+                <i class="cancel-delete hidden fa-2x fa fa-remove" onclick="CancelDeleteDebt('@debt.Id')" title="Отменить удаление"></i>
+            </div>
+        }
+    }
+}
+<script>
+    var debtAllNames = '@names';
+</script>

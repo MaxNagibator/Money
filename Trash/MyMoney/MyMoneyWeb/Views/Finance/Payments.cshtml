@@ -1,0 +1,86 @@
+﻿@using System.Security.AccessControl
+@using Common
+@using Common.Enums
+@using Extentions
+@using MyMoneyWeb.Models
+
+@model PaymentsModel
+@{
+}
+<div class="panel" style="margin-bottom: 0px;">
+    период с @Model.MinDate по @Model.MaxDate
+    <span style="min-width: 100px; display: inline-block; margin-left: 50px;">
+        <i class="fa fa-arrow-circle-o-down payment-costs"></i>
+        <span id="TotalSumHeaderText-@((int)PaymentTypes.Costs)">@Model.Payments.Where(x => x.PaymentType == PaymentTypes.Costs).Sum(x => x.Sum.ToDecimal())</span>
+    </span>
+    <span style="min-width: 100px; display: inline-block; margin-left: 50px;">
+        <i class="fa fa-arrow-circle-o-up payment-income"></i>
+        <span id="TotalSumHeaderText-@((int)PaymentTypes.Income)">@Model.Payments.Where(x => x.PaymentType == PaymentTypes.Income).Sum(x => x.Sum.ToDecimal())</span>
+    </span>
+
+    @*<button class="btn btn-info" style="margin-top: 0px; display: block;" onclick="$('#paymentsListContainer').toggleClass('hidden');">Операции</button>
+    <button class="btn btn-info" style="margin-top: 20px; display: block;" onclick="$('#stats').toggleClass('hidden');">Статистика</button>*@
+</div>
+
+<ul class="nav nav-tabs">
+    <li><a data-toggle="tab" class="type-tab" href="#tab_11" id="operationsTab" onclick="operationTabClicked = 'operationsTab';" data-type-id="1">Операции</a></li>
+    <li><a data-toggle="tab" class="type-tab" href="#tab_12" id="statsTab" onclick="operationTabClicked = 'statsTab';" data-type-id="2">Статистика</a></li>
+</ul>
+<div class="tab-content">
+    <div id="tab_11" class="tab-pane fade">
+        <div id="paymentsListContainer">
+            <button class="btn btn-default" onclick="AddPayment('@((int)PaymentTypes.Costs)');" title="Добавить расходы"><i class="fa fa-plus-circle payment-costs"></i>Добавить</button>
+            <button class="btn btn-default" onclick="AddPayment('@((int)PaymentTypes.Income)');" title="Добавить доходы"><i class="fa fa-plus-circle payment-income"></i>Добавить</button>
+            <div class="btn-group" id="addPaymentFastDiv">
+                <button class="btn btn-default dropdown-toggle" 
+                        onclick="AddPaymentFast(this)" 
+                        title="Добавить быструю операцию"
+                        data-toggle="dropdown" aria-haspopup="true">
+                    <i class="fa fa-plus-circle payment-fast"></i>
+                    Добавить
+                </button>
+                <div class="dropdown-menu"> 
+                    <span class="dropdown-item fast-operation" onclick="$('#operation-tab-3').click();">Создайте шаблоны быстрых операций</span>
+                </div>
+            </div>
+            <div class="panel panel-default hidden" id="paymentFormBaseDivPanel" style="margin: 5px 0 5px;">
+                <div class="panel-heading">Добавление операции</div>
+                <div id="paymentFormBaseDiv" class="panel-body">
+                </div>
+            </div>
+            <div id="paymentList" style="padding-top: 10px;">
+                @if (Model.Payments.Count > 0)
+                {
+                    var dayPayments = Model.Payments.GroupBy(x => x.Date.Date).ToList();
+                    var minDate = Model.Payments.Min(x => x.Date).Date;
+                    var maxDate = Model.Payments.Max(x => x.Date).Date;
+                    while (maxDate >= minDate)
+                    {
+                        var payments = dayPayments.FirstOrDefault(x => x.Key == maxDate);
+                        //var dayId = "day-" + payments.Key.Date.ToString("yyyy-MM-dd");
+                        //var paymentDate = payments.Key.Date.ToShortDateString();
+                        var paymentDayModel = new PaymentsDayModel();
+                        paymentDayModel.Categories = Model.Categories;
+                        paymentDayModel.Payments = payments != null ? payments.ToList() : new List<PaymentModel>();
+                        paymentDayModel.Date = maxDate;
+                        @Html.Partial("PaymentsDay", paymentDayModel);
+                        maxDate = maxDate.AddDays(-1);
+                    }
+                }
+            </div>
+        </div>
+    </div>
+@{
+    var statModel = new PaymentsStatsModel();
+    statModel.Categories = Model.Categories;
+    statModel.Payments = Model.Payments;
+    statModel.MaxDate = Model.MaxDate;
+    statModel.MinDate = Model.MinDate;
+}    
+    <div id="tab_12" class="tab-pane fade">
+    <div id="stats">
+        @Html.Partial("PaymentsStats", statModel)
+    </div>
+    </div>
+
+</div>

@@ -1,0 +1,35 @@
+﻿@using Extentions
+@model MyMoneyWeb.Models.CommentsModel
+@{
+}
+@foreach (var comment in Model.Comments)
+{
+    var date = DateTime.Parse(comment.CreateDate);
+    var dateStr = date.ToShortDateString();
+    var span = DateTime.Now - date;
+    var tm = (int)span.TotalMinutes;
+    if (tm < 1)
+    {
+        dateStr = "Только что";
+    }
+    else if (tm < 55)
+    {
+        dateStr = tm + " минут назад";
+    }
+    else if (tm < 720)
+    {
+        dateStr = (int)span.TotalHours + " часа назад";
+    }
+    <div class="panel panel-default" id="day-2017-05-29">
+        <div class="panel-heading">
+            <span style="width: 200px; display: inline-block;"><i class="fa fa-calendar" style=" padding-right: 10px;"></i>@dateStr</span>
+            <span style=""><label>@comment.Title</label></span>
+        </div>
+
+        <div class="panel-body" style="white-space: pre-line;">@comment.Text</div>
+
+        <div class="panel-footer"><i class="fa fa-user"></i>
+            @comment.Author
+        </div>
+    </div>
+}

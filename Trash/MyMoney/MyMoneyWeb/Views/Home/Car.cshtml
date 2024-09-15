@@ -1,0 +1,360 @@
+﻿@using Common.Enums
+@{
+    ViewBag.Title = "Машинки";
+}
+<div id="cars"></div>
+
+<div id="myModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Добавление авто</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="carName">Наименование</label>
+                    <input type="text" class="form-control" id="carName" placeholder="Моя машинка">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="createCarBtn" class="btn btn-info" onclick="CreateCar(this)" @*data-dismiss="modal"*@><i class="fa fa-save"></i>Подтвердить</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Отменить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="editCarModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+
+        </div>
+    </div>
+</div>
+
+<div id="addCarEventModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Добавление заметки</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="carEventTitle">Описание</label>
+                    <input type="text" class="form-control" id="carEventTitle" placeholder="Что произошло">
+                </div>
+                <div class="form-group car-types">
+                    <img src="/Images/EventType/sdelka_64.png" onclick="selectCarEventType(this)" data-type-id="@((int)CarEventTypes.Buy)" title="Приоберетение" />
+                    <img src="/Images/EventType/strahovka_64.png" onclick="selectCarEventType(this)" data-type-id="@((int)CarEventTypes.Strahovka)" title="Страховка" />
+                    <img src="/Images/EventType/service_64.png" class="type-selected" onclick="selectCarEventType(this)" data-type-id="@((int)CarEventTypes.Service)" title="Обслуживание">
+                    <img src="/Images/EventType/other_64.png" onclick="selectCarEventType(this)" data-type-id="@((int)CarEventTypes.Other)" title="Прочее" />
+                </div>
+                <div class="form-group col-md-6" style="padding-left: 0;">
+                    <label for="carEventDate">Дата</label>
+                    <input type="text" class="form-control" id="carEventDate" placeholder="когда">
+                </div>
+                <div class="form-group col-md-6" style="padding-right: 0;">
+                    <label for="carEventMileage">Пробег(км)</label>
+                    <input type="number" min="0" step="1000" class="form-control" id="carEventMileage" placeholder="10000">
+                </div>
+                <div class="form-group">
+                    <label for="carEventComment">Комментарий</label>
+                    <input type="text" class="form-control" id="carEventComment" placeholder="Подброности">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="createCarBtn" class="btn btn-info" onclick="CreateCarEvent(this)" @*data-dismiss="modal"*@><i class="fa fa-save"></i>Подтвердить</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Отменить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="editCarEventModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        </div>
+    </div>
+</div>
+
+<style>
+    #carLink a {
+        border-bottom: 1px solid gray;
+    }
+    #carLink input {
+        width: 100%;
+    }
+    .car-types img{
+        opacity: 0,7;
+    }
+    .type-selected {
+        border: solid 2px orange;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+        GetCars();
+        $("#carEventDate").datetimepicker({
+            format: 'DD.MM.YYYY',
+            language: 'ru',
+        });
+    });
+
+    function GetCars() {
+        $.ajax({
+            url: '/Car/GetCars',
+            type: "POST",
+            data: { main: 'good' },
+            traditional: true
+        }).done(function (result) {
+            $('#cars').html(result);
+        }).fail(function (xhr, textStatus, errorThrown) {
+            ShowAlert('Внимание!', window.commonErrorMessage, window.AlertType.Error, 2000);
+        }).always(function () {
+        });
+    }
+
+    function CreateCar() {
+        var name = $('#myModal #carName').val();
+        $('#createCarBtn i').addClass('icon-rotate-250ms');
+        $.ajax({
+            url: '/Car/CreateCar',
+            type: "POST",
+            data: { "carName": name },
+            success: function (result) {
+                if (result.success == true) {
+                    GetCars();
+                    $('#myModal').modal('hide');
+                } else {
+                    ShowAlert('Внимание!', result.message, window.AlertType.Warning, 3000);
+                }
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                ShowAlert('Ошибка!', window.commonErrorMessage, window.AlertType.Error, 2000);
+            }
+        }).always(function () {
+            $('#createCarBtn i').removeClass('icon-rotate-250ms');
+        });
+    }
+
+    function editCar(carId) {
+        $.ajax({
+            url: '/Car/GetCarEditForm',
+            type: "POST",
+            data: { "carId": carId },
+            success: function (result) {
+                if (result.success == false) {
+                    ShowAlert('Внимание!', result.message, window.AlertType.Warning, 3000);
+                } else {
+                    $('#editCarModal .modal-content').html(result);
+                    $('#editCarModal').modal('show');
+                }
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                ShowAlert('Ошибка!', window.commonErrorMessage, window.AlertType.Error, 2000);
+            }
+        }).always(function () {
+        });
+    }
+
+    function updateCar(carId) {
+        var name = $('#editCarModal #carName').val();
+        var id = $('#editCarModal #carId').val();
+        $.ajax({
+            url: '/Car/UpdateCar',
+            type: "POST",
+            data: { "carId": id, "carName": name },
+            success: function (result) {
+                if (result.success == true) {
+                    $('#editCarModal').modal('hide');
+                    SelectCar($('.btn-tab.active'));
+                    $('.btn-tab.active span').text(name);
+                } else {
+                    ShowAlert('Внимание!', result.message, window.AlertType.Warning, 3000);
+                }
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                ShowAlert('Ошибка!', window.commonErrorMessage, window.AlertType.Error, 2000);
+            }
+        }).always(function () {
+        });
+    }
+
+    function removeCar(eventId) {
+        $('#car-details .confirm-delete').removeClass('hidden');
+        $('#car-details .cancel-delete').removeClass('hidden');
+        $('#car-details .start-delete').addClass('hidden');
+    }
+
+    function cancelRemoveCar(eventId) {
+        $('#car-details .confirm-delete').addClass('hidden');
+        $('#car-details .cancel-delete').addClass('hidden');
+        $('#car-details .start-delete').removeClass('hidden');
+    }
+
+    function confirmRemoveCar(carId) {
+        $.ajax({
+            url: '/Car/DeleteCar',
+            type: "POST",
+            data: { carId: carId },
+            traditional: true
+        }).done(function (result) {
+            if (result.success == false) {
+                ShowAlert('Внимание!', result.message, window.AlertType.Warning, 2000);
+            } else {
+                ShowAlert('Успех!', "Удалено", window.AlertType.Success, 2000);
+                $('.btn-tab[data-car-id="' + carId + '"').remove();
+                $('#carTab').empty();
+            }
+        }).fail(function (xhr, textStatus, errorThrown) {
+            ShowAlert('Внимание!', commonErrorMessage, window.AlertType.Error, 2000);
+        }).always(function () {
+        });
+    }
+
+    function SelectCar(elem) {
+        var carId = $(elem).data('car-id');
+        $.ajax({
+            url: '/Car/GetCar',
+            type: "POST",
+            data: { "carId" : carId },
+            traditional: true
+        }).done(function (result) {
+            if (result.success == false) {
+                ShowAlert('Внимание!', result.message, window.AlertType.Warning, 2000);
+            } else {
+                $('#carTab').html(result);
+                $('.btn-tab').removeClass('active');
+                $(elem).addClass('active');
+            }
+        }).fail(function (xhr, textStatus, errorThrown) {
+            ShowAlert('Внимание!', commonErrorMessage, window.AlertType.Error, 2000);
+        }).always(function () {
+        });
+    }
+
+    function StartCreateCarEvent() {
+    }
+
+    function selectCarEventType(elem) {
+        var typeId = $(elem).data('type-id');
+        $('.car-types img').removeClass('type-selected');
+        $(elem).addClass('type-selected');
+    }
+
+    function CreateCarEvent() {
+        var carId = $('.btn-tab.active').data('car-id');
+        var createData = {
+            carId: carId,
+            title: $('#addCarEventModal #carEventTitle').val(),
+            date: $('#addCarEventModal #carEventDate').val(),
+            mileage: parseFloat($('#addCarEventModal #carEventMileage').val()).toFixed(3),
+            comment: $('#addCarEventModal #carEventComment').val(),
+            type: $('#addCarEventModal .car-types .type-selected').data('type-id'),
+        }
+        $('#createCarEventBtn i').addClass('icon-rotate-250ms');
+        $.ajax({
+            url: '/Car/CreateCarEvent',
+            type: "POST",
+            data: createData,
+            success: function (result) {
+                if (result.success == true) {
+                    $('#addCarEventModal').modal('hide');
+                    SelectCar($('.btn-tab.active'));
+                } else {
+                    ShowAlert('Внимание!', result.message, window.AlertType.Warning, 3000);
+                }
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                ShowAlert('Ошибка!', window.commonErrorMessage, window.AlertType.Error, 2000);
+            }
+        }).always(function () {
+            $('#createCarEventBtn i').removeClass('icon-rotate-250ms');
+        });
+    }
+
+    function editCarEvent(carEventId) {
+        $.ajax({
+            url: '/Car/GetCarEventEditForm',
+            type: "POST",
+            data: { "carEventId": carEventId },
+            success: function (result) {
+                if (result.success == false) {
+                    ShowAlert('Внимание!', result.message, window.AlertType.Warning, 3000);
+                } else {
+                    $('#editCarEventModal .modal-content').html(result);
+                    $('#editCarEventModal').modal('show');
+                }
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                ShowAlert('Ошибка!', window.commonErrorMessage, window.AlertType.Error, 2000);
+            }
+        }).always(function () {
+        });
+    }
+
+    function updateCarEvent(carId) {
+        var updateData = {
+            carEventId: $('#editCarEventModal #carEventId').val(),
+            title: $('#editCarEventModal #carEventTitle').val(),
+            date: $('#editCarEventModal #carEventDate').val(),
+            mileage: parseFloat($('#editCarEventModal #carEventMileage').val()).toFixed(3),
+            comment: $('#editCarEventModal #carEventComment').val(),
+            type: $('#editCarEventModal .car-types .type-selected').data('type-id'),
+        }
+        $.ajax({
+            url: '/Car/UpdateCarEvent',
+            type: "POST",
+            data: updateData,
+            success: function (result) {
+                if (result.success == true) {
+                    $('#editCarEventModal').modal('hide');
+                    SelectCar($('.btn-tab.active'));
+                } else {
+                    ShowAlert('Внимание!', result.message, window.AlertType.Warning, 3000);
+                }
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                ShowAlert('Ошибка!', window.commonErrorMessage, window.AlertType.Error, 2000);
+            }
+        }).always(function () {
+        });
+    }
+
+    function removeCarEvent(eventId) {
+        $('#carEvent_' + eventId + ' .confirm-delete').removeClass('hidden');
+        $('#carEvent_' + eventId + ' .cancel-delete').removeClass('hidden');
+        $('#carEvent_' + eventId + ' .start-delete').addClass('hidden');
+    }
+
+    function cancelRemoveCarEvent(eventId) {
+        $('#carEvent_' + eventId + ' .confirm-delete').addClass('hidden');
+        $('#carEvent_' + eventId + ' .cancel-delete').addClass('hidden');
+        $('#carEvent_' + eventId + ' .start-delete').removeClass('hidden');
+    }
+
+    function confirmRemoveCarEvent(eventId) {
+        var carId = $('.btn-tab.active').data('car-id');
+        $.ajax({
+            url: '/Car/DeleteCarEvent',
+            type: "POST",
+            data: { carEventId: eventId},
+            traditional: true
+        }).done(function (result) {
+            if (result.success == false) {
+                ShowAlert('Внимание!', result.message, window.AlertType.Warning, 2000);
+            } else {
+                $('#carEvent_' + eventId).remove();
+                ShowAlert('Успех!', "Удалено", window.AlertType.Success, 2000);
+            }
+        }).fail(function (xhr, textStatus, errorThrown) {
+            ShowAlert('Внимание!', commonErrorMessage, window.AlertType.Error, 2000);
+        }).always(function () {
+        });
+    }
+</script>

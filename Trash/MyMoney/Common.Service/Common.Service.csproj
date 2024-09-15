@@ -1,0 +1,132 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{6FBE7073-4CA9-4D81-8318-08A601C9AD68}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Common.Service</RootNamespace>
+    <AssemblyName>Common.Service</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ServiceRequest\Account\CreateCommentRequest.cs" />
+    <Compile Include="ServiceRequest\Account\LoginRequest.cs" />
+    <Compile Include="ServiceRequest\Account\ConfirmEmailRequest.cs" />
+    <Compile Include="ServiceRequest\Account\СhangePasswordRequest.cs" />
+    <Compile Include="ServiceRequest\Account\GetCommentsRequest.cs" />
+    <Compile Include="ServiceRequest\Account\RegistrationRequest.cs" />
+    <Compile Include="ServiceRequest\Cars\CreateCarEventRequest.cs" />
+    <Compile Include="ServiceRequest\Cars\DeleteCarEventRequest.cs" />
+    <Compile Include="ServiceRequest\Cars\GetCarEventsRequest.cs" />
+    <Compile Include="ServiceRequest\Cars\UpdateCarEventRequest.cs" />
+    <Compile Include="ServiceRequest\Cars\UpdateCarRequest.cs" />
+    <Compile Include="ServiceRequest\Cars\CreateCarRequest.cs" />
+    <Compile Include="ServiceRequest\Cars\DeleteCarRequest.cs" />
+    <Compile Include="ServiceRequest\Cars\GetCarsRequest.cs" />
+    <Compile Include="ServiceRequest\DocumentTemplates\CreateDocumentTemplateRequest.cs" />
+    <Compile Include="ServiceRequest\DocumentTemplates\DeleteDocumentTemplateRequest.cs" />
+    <Compile Include="ServiceRequest\DocumentTemplates\GetDocumentTemplatesRequest.cs" />
+    <Compile Include="ServiceRequest\Money\CategoryRequests.cs" />
+    <Compile Include="ServiceRequest\Money\FastOperationRequests.cs" />
+    <Compile Include="ServiceRequest\Money\RegularTaskRequests.cs" />
+    <Compile Include="ServiceRequest\Money\PaymentResults.cs" />
+    <Compile Include="ServiceRequest\Money\DebtRequests.cs" />
+    <Compile Include="ServiceResponse\AccountResponses.cs" />
+    <Compile Include="ServiceResponse\Cars\CreateCarEventResponse.cs" />
+    <Compile Include="ServiceResponse\Cars\CreateCarResponse.cs" />
+    <Compile Include="ServiceResponse\Cars\DeleteCarEventResponse.cs" />
+    <Compile Include="ServiceResponse\Cars\GetCarEventsResponse.cs" />
+    <Compile Include="ServiceResponse\Cars\UpdateCarEventResponse.cs" />
+    <Compile Include="ServiceResponse\Cars\UpdateCarResponse.cs" />
+    <Compile Include="ServiceResponse\Cars\DeleteCarResponse.cs" />
+    <Compile Include="ServiceResponse\Cars\GetCarsResponse.cs" />
+    <Compile Include="ServiceResponse\DocumentTemplates\CreateDocumentTemplateResponse.cs" />
+    <Compile Include="ServiceResponse\DocumentTemplates\DeleteDocumentTemplateResponse.cs" />
+    <Compile Include="ServiceResponse\DocumentTemplates\GetDocumentTemplatesResponse.cs" />
+    <Compile Include="ServiceResponse\Money\Category\CategoryResponses.cs" />
+    <Compile Include="ServiceResponse\Money\Debt\GetDebtUsersResponse.cs" />
+    <Compile Include="ServiceResponse\Money\Payment\GetPlacesResponse.cs" />
+    <Compile Include="ServiceResponse\Money\FastOperation\GetFastOperationResponse.cs" />
+    <Compile Include="ServiceResponse\Money\FastOperation\GetFastOperationsResponse.cs" />
+    <Compile Include="ServiceResponse\Money\FastOperation\FastOperationResonses.cs" />
+    <Compile Include="ServiceResponse\Money\RegularTask\RegularTaskResonses.cs" />
+    <Compile Include="ServiceResponse\Money\RegularTask\GetRegularTaskResponse.cs" />
+    <Compile Include="ServiceResponse\Money\RegularTask\GetRegularTasksResponse.cs" />
+    <Compile Include="ServiceResponse\Money\Debt\DebtResonses.cs" />
+    <Compile Include="ServiceResponse\Money\GetCategoriesResponse.cs" />
+    <Compile Include="ServiceResponse\Money\Debt\GetDebtsResponse.cs" />
+    <Compile Include="ServiceResponse\Money\Debt\GetDebtResponse.cs" />
+    <Compile Include="ServiceResponse\Money\Payment\PaymentsResponses.cs" />
+    <Compile Include="ServiceResponse\Money\Payment\GetPaymentsResponse.cs" />
+    <Compile Include="ServiceResponse\Money\Payment\GetPaymentResponse.cs" />
+    <Compile Include="ServiceResponse\Money\GetCategoryResponse.cs" />
+    <Compile Include="ServiceRequest\TokenRequest.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="ServiceResponse\Account\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Common.Enums\Common.Enums.csproj">
+      <Project>{806B4CA0-F65A-47A2-B5A2-76A1DC0631BC}</Project>
+      <Name>Common.Enums</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

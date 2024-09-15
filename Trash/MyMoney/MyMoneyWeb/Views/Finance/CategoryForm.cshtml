@@ -1,0 +1,59 @@
+﻿@using Extentions
+@model MyMoneyWeb.Models.CategoryFormModel
+@{
+    if (String.IsNullOrEmpty(Model.Category.Color))
+    {
+        Model.Category.Color = "#2c5acf";
+    }
+}
+@using (Html.BeginForm("SaveCategory", "Finance", FormMethod.Post, new { id = "categoryForm" }))
+{
+    @Html.HiddenFor(x => x.Category.Id)
+    @Html.HiddenFor(x => x.Category.PaymentTypeId)
+    for (int i = 0; i < Model.Categories.Count; i++)
+    {
+        @Html.HiddenFor(x => x.Categories[i].Id)
+        @Html.HiddenFor(x => x.Categories[i].Name)
+    }
+    <div class="form-group">
+        @Html.LabelFor(model => model.Category.Name)
+        @Html.TextBoxFor(model => model.Category.Name, new { @class = "form-control" })
+        @Html.ValidationMessageFor(model => model.Category.Name)
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(model => model.Category.Order)
+        @Html.TextBoxFor(model => model.Category.Order, new { @class = "form-control" })
+        @Html.ValidationMessageFor(model => model.Category.Order)
+    </div>
+    @*<div class="form-group">
+        @Html.LabelFor(model => model.Category.Description)
+        @Html.TextBoxFor(model => model.Category.Description, new { @class = "form-control" })
+        @Html.ValidationMessageFor(model => model.Category.Description)
+    </div>*@
+    <div class="form-group">
+        @Html.LabelFor(model => model.Category.Color)
+        <div id="cp2" class="input-group colorpicker-component">
+            <span class="input-group-addon"><i></i></span>
+            @Html.TextBoxFor(model => model.Category.Color, new { @class = "form-control" })
+        </div>
+        @Html.ValidationMessageFor(model => model.Category.Color)
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(model => model.Category.ParentId)
+        @{
+            var catList = Model.Categories.Select(x => new SelectListItem { Text = x.Name, Value = x.Id.ToString() }).ToList();
+            catList.Insert(0, new SelectListItem { Text = "-", Value = "-1" });
+        }
+        @Html.DropDownListFor(model => model.Category.ParentId, catList, new { @class = "form-control" })
+        @Html.ValidationMessageFor(model => model.Category.ParentId)
+    </div>
+    <button type="button" id="debtFormSaveButton" class="btn btn-success" onclick="SaveCategory(@Model.Category.PaymentTypeId)"><i class="glyphicon glyphicon-ok-sign"></i>Подтвердить</button>
+    <button type="button" id="debtFormCancelButton" class="btn btn-danger" onclick="CancelCategory(@Model.Category.PaymentTypeId)"><i class="glyphicon glyphicon-remove-circle"></i>Отменить</button>
+            }
+<link href="~/Content/bootstrap-colorpicker/css/bootstrap-colorpicker.css" rel="stylesheet">
+<script src="~/Scripts/bootstrap-colorpicker.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#cp2').colorpicker();
+    });
+</script>

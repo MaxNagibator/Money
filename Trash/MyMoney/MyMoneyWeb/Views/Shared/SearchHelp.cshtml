@@ -1,0 +1,9 @@
+﻿@model MyMoneyWeb.Models.SearchHelpModel
+
+@if (Model != null && Model.Words != null)
+{
+    foreach (var word in Model.Words)
+    {
+        <option value="@word.Value">@word.Text</option>
+    }
+}

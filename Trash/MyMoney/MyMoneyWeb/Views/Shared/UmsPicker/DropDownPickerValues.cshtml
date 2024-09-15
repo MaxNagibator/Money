@@ -1,0 +1,161 @@
+﻿@using System.Text.RegularExpressions
+@using MyMoneyWeb.Models.UmsPicker
+
+@model DropDownPickerValuesModel
+@if (Model != null)
+{
+    var dropDownPickerId = Model.Id;
+    var currentCount = Model.Values.Count;
+    var searchCount = Model.SearchCount;
+    var totalCount = Model.TotalCount;
+    var offset = Model.CurrentOffset;
+    var nextCount = searchCount - offset - currentCount;
+    var prevCount = offset;
+    var values = Model.Values;
+    var showColumnNames = Model.ShowColumns;
+    var idColumnName = Model.IdColumnName;
+    var additionalValues = Model.AdditionalValues;
+    var isHideSearch = Model.IsHideSearch;
+    var paramString = String.Format("'{0}'", dropDownPickerId);
+    var disableLoadNextButton = Model.DisableLoadNextButton;
+    var pageCount = Model.PageCount;
+    <input style="display: none" id="idItemsCountOf_@dropDownPickerId" data-count="@searchCount" data-total-count="@totalCount" data-count-values="@currentCount"/>
+    if (totalCount >= 10 && !isHideSearch)
+    {
+        <li class="multiselect-item" value="0">
+            <div class="search-block input-group">
+                <input tabindex="-1" type="text" class="form-control"
+                       id="DropDownPickerSearchInput_@dropDownPickerId"
+                       onkeypress="DropDownPickerSearchKeyPress(event, @paramString)"
+                       placeholder="Это поиск"
+                       value="@Model.SearchString">
+                <span class="input-group-btn">
+                    <button tabindex="-1"
+                            class="btn blue-btn"
+                            style="margin-bottom: 0; border: 0"
+                            type="button"
+                            onclick="DropDownPickerSearchButtonClick(@paramString) ">
+                        <i class="fa fa-search"></i>
+                    </button>
+                </span>
+            </div>
+        </li>
+    }
+    if (!String.IsNullOrEmpty(Model.SelectAllText) && searchCount > 0)
+    {
+        <li class="dd-select-all-id" data-mapped-values-count="@values.Count">
+            <a href="javascript:void(0);">
+                <label class="checkbox selectAllText">
+                    <input type="checkbox" value=false onclick="DropDownPickerSelectAllValues(this, @paramString, @searchCount)">@Model.SelectAllText
+                </label>
+            </a>
+        </li>
+    }
+    MatchCollection matches = Regex.Matches(showColumnNames, @"\{[^\}]+\}");
+    var columns = new List<string>();
+    foreach (Match match in matches)
+    {
+        columns.Add(match.Value);
+    }
+    if (!String.IsNullOrEmpty(additionalValues) && offset == 0)
+    {
+        var parts = additionalValues.Split(';');
+        foreach (var a in parts.Where(x => x.Contains('=')))
+        {
+            var partSplit = a.Split('=');
+            var valueId = partSplit[0].Trim(' ');
+            var showValue = partSplit[1];
+            <li class="dd-select-item">
+                <a href="javascript:void(0);">
+                    <label class="checkbox">
+                        <input type="checkbox" value="@valueId" data-show-value="@showValue" onclick="DropDownPickerSelectValue(this, @paramString)">@showValue
+                    </label>
+                </a>
+            </li>
+        }
+    }
+    foreach (var refValue in values)
+    {
+
+        var showValue = showColumnNames;
+        foreach (var column in columns)
+        {
+            var columnWithoutBrackets = column.TrimStart('{').TrimEnd('}');
+            var xs = refValue[columnWithoutBrackets];
+            showValue = showValue.Replace(column, xs);
+        }
+
+        var valueId = String.IsNullOrEmpty(idColumnName) ? refValue.Id : refValue[idColumnName];
+        var activeClass = refValue.IsChecked ? "active" : "";
+        var checkedParam = refValue.IsChecked ? "checked" : "";
+        <li class="dd-select-item @activeClass">
+            <a href="javascript:void(0);">
+                <label class="checkbox">
+                    <input type="checkbox" value="@valueId" @checkedParam data-show-value="@showValue" onclick="DropDownPickerSelectValue(this, @paramString)">@showValue
+                </label>
+            </a>
+        </li>
+    }
+
+    if (!disableLoadNextButton)
+    {
+
+        if (searchCount > currentCount)
+        {
+            <li class="multiselect-item center" value="0">
+                @{
+                    var to = offset + currentCount;
+                }
+                с @offset по @to из @searchCount
+            </li>
+            <li class="multiselect-item center" value="0">
+                @{
+                    var func = "DropDownPickerLoadNextButtonClick";
+                }
+                @if (prevCount > 0)
+                {
+                    var prevOffset = offset - pageCount;
+                    var loadFunc = func + "(" + paramString + ", '" + @Model.SearchString + "', '" + prevOffset + "',null)";
+                    <div style="white-space: normal; padding: 0; display: inline;">
+                        <button type="button"
+
+                                class="btn light-blue-btn refPrevNextBtn"
+                                title="Предыдущие"
+                                onclick="@loadFunc"
+                                tabindex="-1">
+                            <i class="fa fa-arrow-circle-left"></i>
+                        </button>
+                    </div>
+                }
+                @if (searchCount > currentCount && searchCount < 2000)
+                {
+                    var loadFunc = func + "(" + paramString + ", '" + @Model.SearchString + "', '0', '" + searchCount + "')";
+                    <div style="white-space: normal; display: inline;">
+                        <button type="button"
+                                @*id="idButtonLoadAll_@dropDownPickerId"*@
+                                class="btn blue-btn refAllBtn"
+                                title="Показать все @searchCount"
+                                onclick="@loadFunc"
+                                tabindex="-1">
+                            Все
+                        </button>
+                    </div>
+                }
+                @if (nextCount > 0)
+                {
+                    var nextOffset = offset + pageCount;
+                    var loadFunc = func + "(" + paramString + ", '" + @Model.SearchString + "', '" + nextOffset + "',null)";
+                    <div style="white-space: normal; padding: 0; display: inline;">
+                        <button type="button"
+                                class="btn light-blue-btn refPrevNextBtn"
+                                title="Следующие"
+                                onclick="@loadFunc"
+                                tabindex="-1">
+                            <i class="fa fa-arrow-circle-right"></i>
+                        </button>
+                    </div>
+                }
+            </li>
+        }
+    }
+}

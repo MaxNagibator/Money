@@ -1,0 +1,99 @@
+﻿@model MyMoneyWeb.Models.LoginModel
+
+@{
+    ViewBag.Title = "Заходи";
+}
+
+<hgroup class="title">
+    <h1>@ViewBag.Title</h1>
+</hgroup>
+
+<section id="loginForm">
+@using (Html.BeginForm(new { ReturnUrl = ViewBag.ReturnUrl })) {
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>Log in Form</legend>
+        <ol>
+            <li>
+                @Html.LabelFor(m => m.UserName)
+                @Html.TextBoxFor(m => m.UserName, new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.UserName)
+            </li>
+            <li>
+                @Html.LabelFor(m => m.Password)
+                @Html.PasswordFor(m => m.Password, new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.Password)
+            </li>
+            <li style="padding-top: 10px;">
+                <input class="checkbox" data-val="true" id="RememberMe" name="RememberMe" type="checkbox" value="true">
+                @Html.LabelFor(m => m.RememberMe)
+            </li>
+        </ol>
+        <input type="submit" value="Вход" class="btn btn-info" />  Нет акаунта? <b>@Html.ActionLink("Зарегистрируйся", "Register")</b>
+    </fieldset>
+}
+</section>
+
+@*<section class="social" id="socialLoginForm">
+    <h2>Use another service to log in.</h2>
+    @Html.Action("ExternalLoginsList", new { ReturnUrl = ViewBag.ReturnUrl })
+</section>*@
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}
+
+<style>
+.checkbox {
+	vertical-align: top;
+	width: 17px;
+	height: 17px;
+	margin: 0 3px 0 0;
+}
+.checkbox + label {
+	cursor: pointer;
+}
+.checkbox:not(checked) {
+	position: absolute;
+	opacity: 0;
+}
+.checkbox:not(checked) + label {
+	position: relative;
+	padding: 0 0 0 60px;
+}
+.checkbox:not(checked) + label:before {
+	content: '';
+	position: absolute;
+	top: -4px;
+	left: 0;
+	width: 50px;
+	height: 26px;
+	border-radius: 13px;
+	background: #CDD1DA;
+	box-shadow: inset 0 2px 3px rgba(0,0,0,.2);
+}
+.checkbox:not(checked) + label:after {
+	content: '';
+	position: absolute;
+	top: -2px;
+	left: 2px;
+	width: 22px;
+	height: 22px;
+	border-radius: 10px;
+	background: #FFF;
+	box-shadow: 0 2px 5px rgba(0,0,0,.3);
+	transition: all .2s;
+}
+.checkbox:checked + label:before {
+	background: #9FD468;
+}
+.checkbox:checked + label:after {
+	left: 26px;
+}
+.checkbox:focus + label:before {
+	/*box-shadow: 0 0 0 3px rgba(255,255,0,.5);*/
+}
+
+</style>

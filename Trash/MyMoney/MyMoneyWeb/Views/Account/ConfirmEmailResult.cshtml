@@ -1,0 +1,16 @@
+﻿@using Common.Core
+@model MyMoneyWeb.Models.ConfirmEmailResultModel
+@{
+    ViewBag.Title = "Результат подтверждения почты";
+}
+<div>
+    @if (Model.Result.Type == OperationResultTypes.Success)
+    {
+        <label style="color: green">@Model.Result.Message</label>
+    }
+    else
+    {
+        <label style="color: orange">@Model.Result.Message</label>
+    }
+</div>
+@Html.ActionLink("На главную", "Index","Home")

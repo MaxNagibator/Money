@@ -1,0 +1,48 @@
+#operationLink a {
+    border-bottom: 1px solid gray;
+}
+
+#paymentList input {
+    width: 100%;
+}
+
+#paymentList textarea {
+    height: 33px;
+    resize: vertical;
+    width: 100%;
+    min-height: 32px;
+}
+
+#paymentList .edit-comment {
+    padding-left: 32px;
+    padding-right: 32px;
+    display: inline-block;
+    width: 100%;
+}
+
+.tab-content {
+    padding-top: 10px;
+}
+
+
+.operation-type-selector {
+    width: 200px;
+    display: inline-block;
+}
+
+.filter-category-select {
+    width: 150px;
+    vertical-align: top;
+}
+
+.date-mode-control .btn{
+    border-radius: 0px;
+}
+.date-mode-control .mode-btn.mode-active {
+    color: #5bc0de;
+    border-color: #46b8da;
+}
+
+.hide-zero .zero-day {
+    display:none;
+}

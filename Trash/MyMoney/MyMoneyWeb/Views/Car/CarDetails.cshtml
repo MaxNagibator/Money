@@ -1,0 +1,64 @@
+﻿@using Common.Enums
+@using Extentions
+@model MyMoneyWeb.Models.CarDetailsModel
+@{
+    var car = Model.Car;
+}
+<div style="position: relative;
+    border: 1px solid;
+    padding: 10px;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;">
+    <label>@car.Name</label>
+    <i class="fa fa-edit" onclick="editCar('@car.Id')" style="cursor: pointer; margin-left: 10px;" title="Изменить"></i>
+    <div id="car-details" style="position: absolute;right: 0;top: 0;">
+        <i class="start-delete fa fa fa-trash" onclick="removeCar('@car.Id')" title="Удалить"></i>
+        <i class="confirm-delete hidden fa fa fa-check" onclick="confirmRemoveCar('@car.Id')" title="Подтвердить удаление"></i>
+        <i class="cancel-delete hidden fa fa fa-remove" onclick="cancelRemoveCar('@car.Id')" title="Отменить удаление"></i>
+    </div>
+
+    <div style="padding-top: 20px; ">
+        <label>События</label>
+        <button id="addCarEventBtn" class="btn btn-info" data-toggle="modal" data-target="#addCarEventModal" @*onclick="startCreateCarEvent();"*@><i class="fa fa-plus-circle"></i>Добавить</button>
+        @foreach (var ev in Model.Car.Events)
+        {
+            <div id="carEvent_@ev.Id" style="border: 1px solid gray; margin-top: 10px; position: relative; padding: 5px;
+    border-radius: 5px;">
+                <div style="width: 80px; float: left;">
+                    @if (ev.Type == CarEventTypes.Service)
+                {
+                        <img src="/Images/EventType/service_64.png" data-type-id="@((int)CarEventTypes.Service)" title="Обслуживание">
+                    }
+                    else if (ev.Type == CarEventTypes.Buy)
+                    {
+                        <img src="/Images/EventType/sdelka_64.png" data-type-id="@((int)CarEventTypes.Buy)" title="Приоберетение" />
+                    }
+                    else if (ev.Type == CarEventTypes.Strahovka)
+                    {
+                        <img src="/Images/EventType/strahovka_64.png" data-type-id="@((int)CarEventTypes.Strahovka)" title="Страховка" />
+                    }
+                    else if (ev.Type == CarEventTypes.Other)
+                    {
+                        <img src="/Images/EventType/other_64.png" data-type-id="@((int)CarEventTypes.Other)" title="Прочее" />
+                    }
+                </div>
+                <div>
+                    <i class="fa fa-edit" onclick="editCarEvent('@ev.Id')" style="cursor: pointer" title="Изменить"></i>
+                    <label>@ev.Title</label>
+                </div>
+                <div style="height: 50px">
+                    <span><i class="fa fa-calendar" style="margin-right: 10px;"></i>@ev.Date.ToShortDateString()</span>
+                    <span style="margin-left: 20px;"><i class="fa fa-taxi" style="margin-right: 10px;"></i>@(ev.Mileage != null && (ev.Mileage - (int)ev.Mileage) == 0 ? ((int)ev.Mileage).ToString() : ev.Mileage.ToString())</span>
+                </div>
+                <div>
+                    <span>@ev.Comment</span>
+                </div>
+                <div style="position: absolute;right: 0;top: 0;">
+                    <i class="start-delete fa fa fa-trash" onclick="removeCarEvent('@ev.Id')" title="Удалить"></i>
+                    <i class="confirm-delete hidden fa fa fa-check" onclick="confirmRemoveCarEvent('@ev.Id')" title="Подтвердить удаление"></i>
+                    <i class="cancel-delete hidden fa fa fa-remove" onclick="cancelRemoveCarEvent('@ev.Id')" title="Отменить удаление"></i>
+                </div>
+            </div>
+        }
+    </div>
+</div>

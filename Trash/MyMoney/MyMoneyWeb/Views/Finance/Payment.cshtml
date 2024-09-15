@@ -1,0 +1,55 @@
+﻿@using System.Security.AccessControl
+@using Common
+@using Common.Enums
+@using MyMoneyWeb.Models
+@model PaymentRowModel
+@{
+    var payment = Model.Payment;
+    var categoryName = Model.CategoryName;
+}
+@{
+    var pClass = "";
+    if (payment.PaymentType == PaymentTypes.Costs)
+    {
+        pClass = "fa fa-arrow-circle-o-down payment-costs";
+    }
+    if (payment.PaymentType == PaymentTypes.Income)
+    {
+        pClass = "fa fa-arrow-circle-o-up payment-income";
+    }
+}
+<div id="payment_@payment.Id" class="payment-row" data-payment-id="@payment.Id" data-payment-type-id="@((int)payment.PaymentType)">
+    <i class="@pClass"></i>
+    <i class="start-edit fa fa-edit" onclick="EditPayment2('@payment.Id')" title="Редактировать"></i>
+    <i class="confirm-edit hidden fa fa-check" onclick="ConfirmEditPayment2('@payment.Id')" title="Подтвердить редактирование"></i>
+    <i class="cancel-edit hidden fa fa-remove" onclick="CancelEditPayment2('@payment.Id')" title="Отменить редактирование"></i>
+
+    @*<span class="show-date" style="width: 100px;display: inline-block;">@debt.Date.ToShortDateString()</span>*@
+    @*<span>@debt.Date.ToString("HH:mm")</span>*@
+
+    <span class="show-sum" style="width: 100px;display: inline-block;">@payment.Sum</span>
+    <span class="edit-sum hidden" style="width: 100px;display: inline-block;"><input type="text" class="form-control" value="@payment.Sum" placeholder="Сумма"></span>
+    <span class="show-catname" style="width: 200px;display: inline-block;" title="@categoryName">@categoryName</span>
+    <span class="show-place" style="width: 100px;display: inline-block;" title="@payment.Place">@payment.Place</span>
+    <span class="edit-place hidden" style="width: 100px;display: inline-block;"><input type="text" class="form-control" value="@payment.Place" placeholder="Место"></span>
+    <span class="edit-catname hidden" style="width: 200px;display: inline-block;">
+        <input type="hidden" value="@payment.CategoryId" onfocus="InitCategoryPicker(this)">
+    </span>
+    @if (payment.CreatedTaskId != null)
+    {
+        <span class="fa fa-calendar-check-o" title="Создано регулярной задачей"></span>
+    }
+    <span class="show-comment" style="display: inline-block;">@payment.Comment</span>
+    <span class="edit-date hidden datepicker" style="width: 100px;display: inline-block;">
+        <input type="text" class="form-control need-init-picker" value="@payment.Date.ToShortDateString()" onfocus="InitDatePicker(this)">
+    </span>
+
+    <span class="pull-right">
+        <i class="start-delete fa fa-trash" onclick="DeletePayment('@payment.Id')" title="Удалить"></i>
+        <i class="confirm-delete hidden fa fa-check" onclick="ConfirmDeletePayment('@payment.Id')" title="Подтвердить удаление"></i>
+        <i class="cancel-delete hidden fa fa-remove" onclick="CancelDeletePayment('@payment.Id')" title="Отменить удаление"></i>
+    </span>
+    <span class="edit-comment hidden">
+        <textarea style="">@payment.Comment</textarea>
+    </span>
+</div>

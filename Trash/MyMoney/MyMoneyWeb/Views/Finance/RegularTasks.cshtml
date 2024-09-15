@@ -1,0 +1,44 @@
+﻿@using System.Globalization
+@using Common.Enums
+@using Extentions
+@model MyMoneyWeb.Models.RegularTasksModel
+
+@foreach (var regularTask in Model.RegularTasks.OrderBy(x=>x.RunTime == null).ThenBy(x=>x.RunTime))
+{
+<div id="regularTask_@regularTask.Id" class="panel panel-primary regular-task-item" data-regular-task-id="@regularTask.Id">
+    <div class="panel-heading">
+        <span>@regularTask.Name</span>
+        <span class="pull-right">Следующий запуск: @(regularTask.RunTime == null? "-":regularTask.RunTime.Value.ToShortDateString())</span>
+    </div>
+    <div class="panel-body">
+        <span>@regularTask.Type.DescriptionAttr()</span>
+        <span style="padding-left: 30px;">@regularTask.TimeType.DescriptionAttr()</span>
+        @if (regularTask.TimeType == RegularTaskTimeTypes.EveryWeek)
+        {
+            var t = regularTask.TimeValue.Value;
+            if (t == 7)
+            {
+                t = 0;
+            }
+            <span>(@CultureInfo.CurrentCulture.DateTimeFormat.DayNames[t])</span>
+        }
+        @if (regularTask.TimeType == RegularTaskTimeTypes.EveryMonth)
+        {
+            <span>(@regularTask.TimeValue.Value число)</span>
+        }
+        @if (regularTask.Payment != null)
+        {
+            <span style="padding-left: 30px;">@("сумма " + regularTask.Payment.Sum )</span>
+            if (!string.IsNullOrEmpty(regularTask.Payment.Comment))
+            {
+                <span style="padding-left: 30px;">@(regularTask.Payment.Comment )</span>
+            }
+        }
+
+        <span class="pull-right">
+            <i class="fa-2x fa fa-edit" onclick="EditRegularTask(this)" title="Редактировать"></i>
+            <i class="fa-2x fa fa-trash" onclick="DeleteRegularTask(this)" title="Удалить"></i>
+        </span>
+    </div>
+</div>
+}

@@ -1,0 +1,23 @@
+﻿@using Extentions
+@model MyMoneyWeb.Models.CarsModel
+    
+<div id="examinationTemplateWorkspace">
+    <div class="fake-tab">
+        @foreach (var car in Model.Cars)
+        {
+            <button type="button" class="btn-tab" data-car-id="@car.Id" onclick="SelectCar(this);">
+                <span>@car.Name</span>
+            </button>
+        }
+        <button type="button" class="btn-tab" id="startCreateCarBtn"  data-toggle="modal" data-target="#myModal">
+            <span>+</span>
+        </button>
+    </div>
+    <div class="ums-tab">
+        <div class="tab-header"></div>
+        <div id="panelBody" class="tab-body">
+            <div id="carTab" class="items-page">
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,47 @@
+﻿@using Extentions
+@using MyMoneyWeb.Models
+@model DocumentTemplateGroupModel
+
+<div>
+    <input id="id" type="hidden" value="@Model.Id" />
+
+    <div class="form-group">
+        <label for="name">Наименование</label>
+        <input type="text" class="form-control" id="name" placeholder="Название" value="@Model.Name">
+    </div>
+    <div class="form-group">
+        <label for="name">Заменяемые слова</label>
+        <div id="replaceWords">
+            @if (Model.ReplaceWords != null)
+            {
+                foreach (var replaceWord in Model.ReplaceWords)
+                {
+                    @Html.Partial("ReplaceWord", replaceWord)
+                }
+            }
+        </div>
+        <button class="btn btn-info" onclick="addReplaceWord()"><i class="fa fa-plus"></i>Добавить</button>
+        <div class="hidden" id="newReplaceWord">
+            @Html.Partial("ReplaceWord", new ReplaceWordModel())
+        </div>
+    </div>
+    <div>
+        <label>Шаблоны документов: </label>
+        <div id="documentTemplates">
+            <div class="form-group">
+                <input id="uploadFileInput" class="hidden" type="file" autocomplete="off" accept=".xls,.xlsx,.doc,.docx">
+                <button id="uploadFileBtn" class="btn btn-info">
+                    <i class="fa fa-file"></i>
+                    <span>Выберите файл для загрузки</span>
+                </button>
+            </div>
+            @if (Model.DocumentTemplates != null)
+            {
+                foreach (var docTemplate in Model.DocumentTemplates)
+                {
+                    @Html.Partial("DocumentTemplate", docTemplate)
+                }
+            }
+        </div>
+    </div>
+</div>
