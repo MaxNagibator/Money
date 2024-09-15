@@ -26,7 +26,7 @@ public static class AppDefinitionExtensions
         {
             string modulesFolder = Path.Combine(builder.Environment.ContentRootPath, modulesFolderPath);
 
-            if (!Directory.Exists(modulesFolder))
+            if (Directory.Exists(modulesFolder) == false)
             {
                 if (logger.IsEnabled(LogLevel.Debug))
                 {

@@ -1,9 +1,8 @@
-﻿using Money.BusinessLogic.Models;
+﻿using Money.Business.Models;
 
-namespace Money.BusinessLogic.Interfaces
+namespace Money.Business.Interfaces;
+
+public interface IAccountService
 {
-    public interface IAccountService
-    {
-        Task RegisterAsync(RegisterViewModel model);
-    }
+    Task RegisterAsync(RegisterViewModel model);
 }

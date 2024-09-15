@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace Money.Api.Common.Pagination;
+namespace Money.Common.Pagination;
 
 /// <summary>
 ///     Предоставляет вспомогательные методы для интерфейса <see cref="IPagedList{T}" />.

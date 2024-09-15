@@ -1,7 +1,3 @@
-﻿namespace Money.Common.Exceptions
-{
-    public class PermissionException : Exception
-    {
-        public PermissionException(string message) : base(message) { }
-    }
-}
+﻿namespace Money.Common.Exceptions;
+
+public class PermissionException(string message) : Exception(message);

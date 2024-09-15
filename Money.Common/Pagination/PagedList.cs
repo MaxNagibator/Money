@@ -1,4 +1,4 @@
-namespace Money.Api.Common.Pagination;
+namespace Money.Common.Pagination;
 
 /// <summary>
 ///     Представляет стандартную реализацию интерфейса <see cref="IPagedList{T}" />.

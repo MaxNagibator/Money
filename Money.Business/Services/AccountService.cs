@@ -1,39 +1,33 @@
-﻿using Money.Common.Exceptions;
-using Microsoft.AspNetCore.Identity;
-using Money.BusinessLogic.Interfaces;
+﻿using Microsoft.AspNetCore.Identity;
+using Money.Business.Interfaces;
+using Money.Business.Models;
+using Money.Common.Exceptions;
 using Money.Data.Entities;
-using Money.BusinessLogic.Models;
 
-namespace Money.BusinessLogic.Services
+namespace Money.Business.Services;
+
+public class AccountService(UserManager<ApplicationUser> userManager) : IAccountService
 {
-    public class AccountService : IAccountService
+    public async Task RegisterAsync(RegisterViewModel model)
     {
-        private readonly UserManager<ApplicationUser> _userManager;
+        ApplicationUser? user = await userManager.FindByNameAsync(model.Email);
 
-        public AccountService(UserManager<ApplicationUser> userManager)
+        if (user != null)
         {
-            _userManager = userManager;
+            throw new EntityExistsException("Пользователь уже зарегистрирован.");
         }
 
-        public async Task RegisterAsync(RegisterViewModel model)
+        user = new ApplicationUser
         {
-            ApplicationUser user = await _userManager.FindByNameAsync(model.Email);
-            if (user != null)
-            {
-                throw new EntityExistsException("Пользователь уже зарегистрирован.");
-            }
+            UserName = model.Email,
+            Email = model.Email
+        };
 
-            user = new ApplicationUser
-            {
-                UserName = model.Email,
-                Email = model.Email
-            };
+        IdentityResult result = await userManager.CreateAsync(user, model.Password);
 
-            IdentityResult result = await _userManager.CreateAsync(user, model.Password);
-            if (!result.Succeeded)
-            {
-                throw new Exception($"Ошибки: {string.Join("; ", result.Errors)}");
-            }
+        if (result.Succeeded == false)
+        {
+            throw new Exception($"Ошибки: {string.Join("; ", result.Errors)}");
         }
     }
 }

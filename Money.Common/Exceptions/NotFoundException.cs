@@ -1,7 +1,3 @@
-﻿namespace Money.Common.Exceptions
-{
-    public class NotFoundException : Exception
-    {
-        public NotFoundException(string message) : base(message) { }
-    }
-}
+﻿namespace Money.Common.Exceptions;
+
+public class NotFoundException(string message) : Exception(message);

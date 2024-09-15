@@ -1,68 +1,58 @@
-﻿using Money.Common.Exceptions;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Money.Common.Exceptions;
 
-namespace Money.Api.Middlewares
+namespace Money.Api.Middlewares;
+
+public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
 {
-    public class ExceptionHandlingMiddleware
+    public async Task InvokeAsync(HttpContext context)
     {
-        private readonly RequestDelegate _next;
-        private readonly ILogger<ExceptionHandlingMiddleware> _logger;
-
-        public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
+        try
         {
-            _next = next;
-            _logger = logger;
+            await next(context);
         }
-
-        public async Task InvokeAsync(HttpContext context)
+        catch (EntityExistsException exception)
         {
-            try
-            {
-                await _next(context);
-            }
-            catch (EntityExistsException exception)
-            {
-                await HandleExceptionAsync(context, exception, StatusCodes.Status409Conflict);
-            }
-            catch (NotFoundException exception)
-            {
-                await HandleExceptionAsync(context, exception, StatusCodes.Status404NotFound);
-            }
-            catch (IncorrectDataException exception)
-            {
-                await HandleExceptionAsync(context, exception, StatusCodes.Status400BadRequest);
-            }
-            catch (PermissionException exception)
-            {
-                await HandleExceptionAsync(context, exception, StatusCodes.Status403Forbidden);
-            }
-            catch (Exception exception)
-            {
-                _logger.LogError(exception, "Exception occurred: {Message}", exception.Message);
-
-                var problemDetails = new ProblemDetails
-                {
-                    Status = StatusCodes.Status500InternalServerError,
-                    Title = $"Server Error: {exception.Message}"
-                };
-
-                context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-                await context.Response.WriteAsJsonAsync(problemDetails);
-            }
+            await HandleExceptionAsync(context, exception, StatusCodes.Status409Conflict);
         }
-
-        private async Task HandleExceptionAsync(HttpContext context, Exception exception, int statusCode)
+        catch (NotFoundException exception)
         {
-            _logger.LogError(exception, "Exception occurred: {Message}", exception.Message);
+            await HandleExceptionAsync(context, exception, StatusCodes.Status404NotFound);
+        }
+        catch (IncorrectDataException exception)
+        {
+            await HandleExceptionAsync(context, exception, StatusCodes.Status400BadRequest);
+        }
+        catch (PermissionException exception)
+        {
+            await HandleExceptionAsync(context, exception, StatusCodes.Status403Forbidden);
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Exception occurred: {Message}", exception.Message);
 
-            var problemDetails = new ProblemDetails
+            ProblemDetails problemDetails = new()
             {
-                Status = statusCode,
-                Title = exception.Message
+                Status = StatusCodes.Status500InternalServerError,
+                Title = $"Server Error: {exception.Message}"
             };
 
-            context.Response.StatusCode = statusCode;
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
             await context.Response.WriteAsJsonAsync(problemDetails);
         }
+    }
+
+    private async Task HandleExceptionAsync(HttpContext context, Exception exception, int statusCode)
+    {
+        logger.LogError(exception, "Exception occurred: {Message}", exception.Message);
+
+        ProblemDetails problemDetails = new()
+        {
+            Status = statusCode,
+            Title = exception.Message
+        };
+
+        context.Response.StatusCode = statusCode;
+        await context.Response.WriteAsJsonAsync(problemDetails);
     }
 }

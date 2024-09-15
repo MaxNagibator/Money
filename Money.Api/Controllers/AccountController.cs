@@ -1,32 +1,24 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Money.BusinessLogic.Interfaces;
-using Money.BusinessLogic.Models;
+using Money.Business.Interfaces;
+using Money.Business.Models;
 
-namespace Money.Api.Controllers
+namespace Money.Api.Controllers;
+
+[Authorize]
+[Route("[controller]")]
+public class AccountController(IAccountService accountService) : ControllerBase
 {
-    [Authorize]
-    [Route("[controller]")]
-    public class AccountController : ControllerBase
+    [HttpPost("register")]
+    [AllowAnonymous]
+    public async Task<IActionResult> Register(RegisterViewModel model)
     {
-        private readonly IAccountService _accountService;
-
-        public AccountController(IAccountService accountService)
+        if (ModelState.IsValid == false)
         {
-            _accountService = accountService;
+            return BadRequest(ModelState);
         }
 
-        [HttpPost("register")]
-        [AllowAnonymous]
-        public async Task<IActionResult> Register(RegisterViewModel model)
-        {
-            if (ModelState.IsValid == false)
-            {
-                return BadRequest(ModelState);
-            }
-
-            await _accountService.RegisterAsync(model);
-            return Ok();
-        }
+        await accountService.RegisterAsync(model);
+        return Ok();
     }
 }

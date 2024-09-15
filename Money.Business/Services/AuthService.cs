@@ -1,116 +1,107 @@
-﻿using System.Collections.Immutable;
-using System.Security.Claims;
-using Money.Common.Exceptions;
+﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
-using Money.BusinessLogic.Interfaces;
-using OpenIddict.Abstractions;
+using Money.Business.Interfaces;
+using Money.Common.Exceptions;
 using Money.Data.Entities;
+using OpenIddict.Abstractions;
+using static OpenIddict.Abstractions.OpenIddictConstants;
 
-namespace Money.BusinessLogic.Services
+namespace Money.Business.Services;
+
+public class AuthService(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager) : IAuthService
 {
-    public class AuthService : IAuthService
+    public async Task<ClaimsPrincipal> ExchangeAsync(OpenIddictRequest request)
     {
-        private readonly SignInManager<ApplicationUser> _signInManager;
-        private readonly UserManager<ApplicationUser> _userManager;
-
-        public AuthService(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager)
+        if (request.IsPasswordGrantType() == false)
         {
-            _signInManager = signInManager;
-            _userManager = userManager;
+            throw new IncorrectDataException("Указанный тип гранта не реализован");
         }
 
-        public async Task<ClaimsPrincipal> ExchangeAsync(OpenIddictRequest request)
+        ApplicationUser? user = await userManager.FindByNameAsync(request.Username ?? string.Empty);
+
+        if (user == null)
         {
-            if (request.IsPasswordGrantType() == false)
-            {
-                throw new IncorrectDataException("Указанный тип гранта не реализован");
-            }
-
-            var user = await _userManager.FindByNameAsync(request.Username);
-            if (user == null)
-            {
-                throw new IncorrectDataException("Пара логин/пароль недействительна");
-            }
-
-            var signInResult = await _signInManager.CheckPasswordSignInAsync(user, request.Password, true);
-            if (signInResult.Succeeded == false)
-            {
-                throw new IncorrectDataException("Пара логин/пароль недействительна");
-            }
-
-            var userIdTask = _userManager.GetUserIdAsync(user);
-            var emailTask = _userManager.GetEmailAsync(user);
-            var userNameTask = _userManager.GetUserNameAsync(user);
-            var rolesTask = _userManager.GetRolesAsync(user);
-
-            await Task.WhenAll(userIdTask, emailTask, userNameTask, rolesTask);
-
-            var identity = new ClaimsIdentity(TokenValidationParameters.DefaultAuthenticationType,
-                OpenIddictConstants.Claims.Name, OpenIddictConstants.Claims.Role);
-
-            identity.SetClaim(OpenIddictConstants.Claims.Subject, userIdTask.Result)
-                .SetClaim(OpenIddictConstants.Claims.Email, emailTask.Result)
-                .SetClaim(OpenIddictConstants.Claims.Name, userNameTask.Result)
-                .SetClaim(OpenIddictConstants.Claims.PreferredUsername, userNameTask.Result)
-                .SetClaims(OpenIddictConstants.Claims.Role, rolesTask.Result.ToImmutableArray());
-
-            var scopes = new[]
-            {
-                OpenIddictConstants.Scopes.OpenId,
-                OpenIddictConstants.Scopes.Email,
-                OpenIddictConstants.Scopes.Profile,
-                OpenIddictConstants.Scopes.Roles
-            }.Intersect(request.GetScopes());
-
-            identity.SetScopes(scopes);
-            identity.SetDestinations(GetDestinations);
-
-            var claimsPrincipal = new ClaimsPrincipal(identity);
-            return claimsPrincipal;
+            throw new IncorrectDataException("Пара логин/пароль недействительна");
         }
 
-        private static IEnumerable<string> GetDestinations(Claim claim)
+        SignInResult? signInResult = await signInManager.CheckPasswordSignInAsync(user, request.Password, true);
+
+        if (signInResult.Succeeded == false)
         {
-            switch (claim.Type)
-            {
-                case OpenIddictConstants.Claims.Name or OpenIddictConstants.Claims.PreferredUsername:
-                    yield return OpenIddictConstants.Destinations.AccessToken;
+            throw new IncorrectDataException("Пара логин/пароль недействительна");
+        }
 
-                    if (claim.Subject != null && claim.Subject.HasScope(OpenIddictConstants.Permissions.Scopes.Profile))
-                    {
-                        yield return OpenIddictConstants.Destinations.IdentityToken;
-                    }
+        Task<string> userIdTask = userManager.GetUserIdAsync(user);
+        Task<string?> emailTask = userManager.GetEmailAsync(user);
+        Task<string?> userNameTask = userManager.GetUserNameAsync(user);
+        Task<IList<string>> rolesTask = userManager.GetRolesAsync(user);
 
-                    yield break;
+        await Task.WhenAll(userIdTask, emailTask, userNameTask, rolesTask);
 
-                case OpenIddictConstants.Claims.Email:
-                    yield return OpenIddictConstants.Destinations.AccessToken;
+        ClaimsIdentity identity = new(TokenValidationParameters.DefaultAuthenticationType, Claims.Name, Claims.Role);
 
-                    if (claim.Subject != null && claim.Subject.HasScope(OpenIddictConstants.Permissions.Scopes.Email))
-                    {
-                        yield return OpenIddictConstants.Destinations.IdentityToken;
-                    }
+        identity.SetClaim(Claims.Subject, userIdTask.Result)
+            .SetClaim(Claims.Email, emailTask.Result)
+            .SetClaim(Claims.Name, userNameTask.Result)
+            .SetClaim(Claims.PreferredUsername, userNameTask.Result)
+            .SetClaims(Claims.Role, [..rolesTask.Result]);
 
-                    yield break;
+        IEnumerable<string> scopes = new[]
+        {
+            Scopes.OpenId,
+            Scopes.Email,
+            Scopes.Profile,
+            Scopes.Roles
+        }.Intersect(request.GetScopes());
 
-                case OpenIddictConstants.Claims.Role:
-                    yield return OpenIddictConstants.Destinations.AccessToken;
+        identity.SetScopes(scopes);
+        identity.SetDestinations(GetDestinations);
 
-                    if (claim.Subject != null && claim.Subject.HasScope(OpenIddictConstants.Permissions.Scopes.Roles))
-                    {
-                        yield return OpenIddictConstants.Destinations.IdentityToken;
-                    }
+        ClaimsPrincipal claimsPrincipal = new(identity);
+        return claimsPrincipal;
+    }
 
-                    yield break;
+    private static IEnumerable<string> GetDestinations(Claim claim)
+    {
+        switch (claim.Type)
+        {
+            case Claims.Name or Claims.PreferredUsername:
+                yield return Destinations.AccessToken;
 
-                case "AspNet.Identity.SecurityStamp":
-                    yield break;
+                if (claim.Subject != null && claim.Subject.HasScope(Permissions.Scopes.Profile))
+                {
+                    yield return Destinations.IdentityToken;
+                }
 
-                default:
-                    yield return OpenIddictConstants.Destinations.AccessToken;
-                    yield break;
-            }
+                yield break;
+
+            case Claims.Email:
+                yield return Destinations.AccessToken;
+
+                if (claim.Subject != null && claim.Subject.HasScope(Permissions.Scopes.Email))
+                {
+                    yield return Destinations.IdentityToken;
+                }
+
+                yield break;
+
+            case Claims.Role:
+                yield return Destinations.AccessToken;
+
+                if (claim.Subject != null && claim.Subject.HasScope(Permissions.Scopes.Roles))
+                {
+                    yield return Destinations.IdentityToken;
+                }
+
+                yield break;
+
+            case "AspNet.Identity.SecurityStamp":
+                yield break;
+
+            default:
+                yield return Destinations.AccessToken;
+                yield break;
         }
     }
 }

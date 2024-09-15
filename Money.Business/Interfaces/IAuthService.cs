@@ -1,10 +1,9 @@
-﻿using OpenIddict.Abstractions;
-using System.Security.Claims;
+﻿using System.Security.Claims;
+using OpenIddict.Abstractions;
 
-namespace Money.BusinessLogic.Interfaces
+namespace Money.Business.Interfaces;
+
+public interface IAuthService
 {
-    public interface IAuthService
-    {
-        public Task<ClaimsPrincipal> ExchangeAsync(OpenIddictRequest request);
-    }
+    public Task<ClaimsPrincipal> ExchangeAsync(OpenIddictRequest request);
 }

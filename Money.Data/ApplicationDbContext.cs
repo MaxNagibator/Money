@@ -2,11 +2,10 @@
 using Microsoft.EntityFrameworkCore;
 using Money.Data.Entities;
 
-namespace Money.Data
+namespace Money.Data;
+
+public class ApplicationDbContext(DbContextOptions options) : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>(options)
 {
-    public class ApplicationDbContext(DbContextOptions options) : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>(options)
-    {
-        public DbSet<Category> Categories { get; set; } = null!;
-        public DbSet<DomainUser> DomainUsers { get; set; } = null!;
-    }
+    public DbSet<Category> Categories { get; set; } = null!;
+    public DbSet<DomainUser> DomainUsers { get; set; } = null!;
 }
