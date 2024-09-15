@@ -1,29 +1,35 @@
-using Money.Api.Definitions;
-using Money.Api.Extensions;
-using Money.Api.Middlewares;
+using Money.Api.Definitions.Base;
+using NLog;
+using NLog.Web;
 
-WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+Logger? logger = LogManager.Setup()
+    .LoadConfigurationFromAppSettings()
+    .GetCurrentClassLogger();
 
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddCors();
-builder.Services.ConfigureServices(builder.Configuration);
+logger.Debug("init main");
 
-WebApplication app = builder.Build();
-
-if (app.Environment.IsDevelopment())
+try
 {
-    app.UseSwaggerDefinition();
+    WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+    builder.Logging.ClearProviders();
+    builder.Host.UseNLog();
+
+    builder.AddDefinitions(typeof(Program));
+builder.Services.ConfigureServices(builder.Configuration);
+    WebApplication app = builder.Build();
+
+    app.UseDefinitions();
+
+    app.Run();
 }
-
-app.UseHttpsRedirection();
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapControllers();
-app.MapDefaultControllerRoute();
-
+catch (Exception exception)
+{
+    logger.Error(exception, "Stopped program because of exception");
+    throw;
+}
+finally
+{
+    LogManager.Shutdown();
+}
 app.UseMiddleware<ExceptionHandlingMiddleware>();
-
-app.Run();

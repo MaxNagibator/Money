@@ -1,12 +1,13 @@
 ﻿using Money.Data;
+using Money.Api.Definitions.Base;
 
 namespace Money.Api.Definitions;
 
-public static class OpenIddictDefinition
+public class OpenIddictDefinition : AppDefinition
 {
-    public static void AddOpenIddictDefinition(this IServiceCollection services)
+    public override void ConfigureServices(WebApplicationBuilder builder)
     {
-        services.AddOpenIddict()
+        builder.Services.AddOpenIddict()
             .AddCore(options =>
             {
                 options.UseEntityFrameworkCore()
