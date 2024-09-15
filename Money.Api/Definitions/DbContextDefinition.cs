@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Money.Api.Data;
 using Money.Api.Definitions.Base;
+using Money.Data;
+using Money.Data.Entities;
 using OpenIddict.Abstractions;
 
 namespace Money.Api.Definitions;

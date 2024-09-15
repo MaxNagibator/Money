@@ -1,4 +1,5 @@
 using Money.Api.Definitions.Base;
+using Money.Api.Middlewares;
 using NLog;
 using NLog.Web;
 
@@ -16,11 +17,10 @@ try
     builder.Host.UseNLog();
 
     builder.AddDefinitions(typeof(Program));
-builder.Services.ConfigureServices(builder.Configuration);
     WebApplication app = builder.Build();
 
     app.UseDefinitions();
-
+    app.UseMiddleware<ExceptionHandlingMiddleware>();
     app.Run();
 }
 catch (Exception exception)
@@ -32,4 +32,3 @@ finally
 {
     LogManager.Shutdown();
 }
-app.UseMiddleware<ExceptionHandlingMiddleware>();

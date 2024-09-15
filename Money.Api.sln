@@ -5,11 +5,11 @@ VisualStudioVersion = 17.11.35219.272
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Money.Api", "Money.Api\Money.Api.csproj", "{674A4ADE-C390-456D-9376-7C634BD570FF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Money.Common", "Money.Common\Money.Common.csproj", "{D451D1FD-BA3E-4C0A-AD02-FF89EBE9FC95}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Money.Common", "Money.Common\Money.Common.csproj", "{D451D1FD-BA3E-4C0A-AD02-FF89EBE9FC95}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Money.BusinessLogic", "Money.BusinessLogic\Money.BusinessLogic.csproj", "{57659065-897F-479D-B635-3AA37BA167FB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Money.Business", "Money.Business\Money.Business.csproj", "{57659065-897F-479D-B635-3AA37BA167FB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Money.Data", "Money.Data\Money.Data.csproj", "{1A0720C5-82DA-450B-A944-7FBFBA85AE99}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Money.Data", "Money.Data\Money.Data.csproj", "{1A0720C5-82DA-450B-A944-7FBFBA85AE99}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

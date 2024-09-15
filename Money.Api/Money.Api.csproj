@@ -16,19 +16,19 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="8.0.8"/>
-        <PackageReference Include="Microsoft.Identity.Web" Version="3.1.0"/>
-        <PackageReference Include="Microsoft.Identity.Web.DownstreamApi" Version="3.1.0"/>
-        <PackageReference Include="NLog.Schema" Version="5.3.4"/>
-        <PackageReference Include="NLog.Web.AspNetCore" Version="5.3.13"/>
-        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.4"/>
-        <PackageReference Include="OpenIddict.AspNetCore" Version="5.8.0"/>
-        <PackageReference Include="OpenIddict.EntityFrameworkCore" Version="5.8.0"/>
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.3"/>
+        <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="8.0.8" />
+        <PackageReference Include="Microsoft.Identity.Web" Version="3.1.0" />
+        <PackageReference Include="Microsoft.Identity.Web.DownstreamApi" Version="3.1.0" />
+        <PackageReference Include="NLog.Schema" Version="5.3.4" />
+        <PackageReference Include="NLog.Web.AspNetCore" Version="5.3.13" />
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.4" />
+        <PackageReference Include="OpenIddict.AspNetCore" Version="5.8.0" />
+        <PackageReference Include="OpenIddict.EntityFrameworkCore" Version="5.8.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.3" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Money.BusinessLogic\Money.BusinessLogic.csproj" />
+      <ProjectReference Include="..\Money.Business\Money.Business.csproj" />
       <ProjectReference Include="..\Money.Common\Money.Common.csproj" />
       <ProjectReference Include="..\Money.Data\Money.Data.csproj" />
     </ItemGroup>
