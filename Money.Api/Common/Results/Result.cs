@@ -1,4 +1,4 @@
-﻿namespace Money.Api.Common;
+﻿namespace Money.Api.Common.Results;
 
 public class ResultBase
 {

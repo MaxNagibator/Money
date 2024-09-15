@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
-using Money.Api.Common;
+using Money.Api.Common.Results;
 using Money.Api.Services;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
