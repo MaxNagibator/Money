@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Money.Api.Dto;
 using Money.Business.Enums;
+using Money.Business.Models;
 using Money.Business.Services;
 using OpenIddict.Validation.AspNetCore;
 
@@ -16,9 +17,9 @@ public class CategoriesController(
 {
     [HttpGet]
     [Route("")]
-    public async Task<GetCategoriesResponse> Get(PaymentTypes type)
+    public async Task<GetCategoriesResponse> Get(PaymentTypes type, CancellationToken cancellationToken)
     {
-        var categories = await paymentCategoryService.Get(type);
+        ICollection<PaymentCategory> categories = await paymentCategoryService.GetAsync(type, cancellationToken);
         return new GetCategoriesResponse(categories);
     }
 
@@ -31,10 +32,10 @@ public class CategoriesController(
 
     [HttpPost]
     [Route("")]
-    public async Task<int> CreateAsync([FromBody]CreatePaymentRequest request)
+    public async Task<int> CreateAsync([FromBody] CreatePaymentRequest request, CancellationToken cancellationToken)
     {
-        var business = request.GetBusinessModel();
-        var id = await paymentCategoryService.Create(business);
+        PaymentCategory business = request.GetBusinessModel();
+        int id = await paymentCategoryService.CreateAsync(business, cancellationToken);
         return id;
     }
 

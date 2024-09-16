@@ -22,7 +22,7 @@ public class AuthMiddleware(RequestDelegate next, ILogger<AuthMiddleware> logger
 
             if (user != null)
             {
-                environment.UserId = await accountService.GetOrCreateUserId(user.Id);
+                environment.UserId = await accountService.EnsureUserIdAsync(user.Id, context.RequestAborted);
             }
         }
 

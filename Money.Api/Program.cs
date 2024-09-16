@@ -1,5 +1,4 @@
 using Money.Api.Definitions.Base;
-using Money.Api.Middlewares;
 using NLog;
 using NLog.Web;
 
@@ -19,6 +18,7 @@ try
     builder.AddDefinitions(typeof(Program));
 
     WebApplication app = builder.Build();
+
     app.UseDefinitions();
 
     app.Run();

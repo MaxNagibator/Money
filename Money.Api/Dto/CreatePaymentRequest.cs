@@ -15,7 +15,7 @@ public class CreatePaymentRequest
 
     public string? Description { get; set; }
 
-    public PaymentTypes PaymentType { get; set; }
+    public required PaymentTypes PaymentType { get; set; }
 
     public PaymentCategory GetBusinessModel()
     {
@@ -26,7 +26,7 @@ public class CreatePaymentRequest
             Order = Order,
             Description = Description,
             PaymentType = PaymentType,
-            ParentId = ParentId,
+            ParentId = ParentId
         };
     }
 }

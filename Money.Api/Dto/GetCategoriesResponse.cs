@@ -8,14 +8,15 @@ public class GetCategoriesResponse
     public GetCategoriesResponse(ICollection<PaymentCategory> business)
     {
         Categories = business.Select(x => new CategoryValue
-        {
-            Id = x.Id,
-            Name = x.Name,
-            Color = x.Color,
-            ParentId = x.ParentId,
-            Order = x.Order,
-            PaymentType = x.PaymentType,
-        }).ToArray();
+            {
+                Id = x.Id,
+                Name = x.Name,
+                Color = x.Color,
+                ParentId = x.ParentId,
+                Order = x.Order,
+                PaymentType = x.PaymentType
+            })
+            .ToArray();
     }
 
     public CategoryValue[] Categories { get; set; }
