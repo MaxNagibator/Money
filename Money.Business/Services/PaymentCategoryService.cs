@@ -52,7 +52,14 @@ public class PaymentCategoryService(RequestEnvironment environment, ApplicationD
         }
 
         //todo need optimization in future
-        var categoryId = context.Categories.Where(x => x.UserId == environment.UserId).Select(x => x.Id).DefaultIfEmpty(0).Max() + 1;
+        //+ дополнительный костыль, чтобы запрос заработал
+        //(The LINQ expression 'DbSet<Category>().Where(x => x.UserId == __userId_0).Select(x => x.Id).DefaultIfEmpty(__p_1)' could not be translated.)
+        int categoryId = context.Categories.AsEnumerable()
+                             .Where(x => x.UserId == environment.UserId)
+                             .Select(x => x.Id)
+                             .DefaultIfEmpty(0)
+                             .Max()
+                         + 1;
 
         var dbCategory = new Data.Entities.Category
         {
