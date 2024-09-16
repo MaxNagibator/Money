@@ -16,8 +16,8 @@ public class CategoriesController(
     PaymentCategoryService paymentCategoryService) : ControllerBase
 {
     [HttpGet]
-    [Route("")]
-    public async Task<GetCategoriesResponse> Get(PaymentTypes type, CancellationToken cancellationToken)
+    [Route("{type:int}")]
+    public async Task<GetCategoriesResponse> Get(int type, CancellationToken cancellationToken)
     {
         ICollection<PaymentCategory> categories = await paymentCategoryService.GetAsync(type, cancellationToken);
         return new GetCategoriesResponse(categories);

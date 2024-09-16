@@ -47,7 +47,7 @@ public class PaymentCategoryService(RequestEnvironment environment, ApplicationD
 
         if (category.ParentId != null)
         {
-            bool hasCategory = await context.Categories.AnyAsync(x => x.UserId == environment.UserId && x.Id == category.ParentId && x.TypeId == (int)category.PaymentType, cancellationToken);
+            bool hasCategory = await context.Categories.AnyAsync(x => x.UserId == environment.UserId && x.Id == category.ParentId && x.TypeId == category.PaymentType, cancellationToken);
 
             if (hasCategory == false)
             {
@@ -74,7 +74,7 @@ public class PaymentCategoryService(RequestEnvironment environment, ApplicationD
             Description = category.Description,
             Name = category.Name,
             Order = category.Order,
-            TypeId = (int)category.PaymentType
+            TypeId = category.PaymentType
         };
 
         await context.Categories.AddAsync(dbCategory, cancellationToken);
