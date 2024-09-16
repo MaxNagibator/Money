@@ -1,7 +1,3 @@
-﻿namespace Money.Common.Exceptions
-{
-    public class IncorrectDataException : Exception
-    {
-        public IncorrectDataException(string message) : base(message) { }
-    }
-}
+﻿namespace Money.Common.Exceptions;
+
+public class IncorrectDataException(string message) : Exception(message);

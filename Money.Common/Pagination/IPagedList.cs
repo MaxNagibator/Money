@@ -1,4 +1,4 @@
-namespace Money.Api.Common.Pagination;
+namespace Money.Common.Pagination;
 
 /// <summary>
 ///     Предоставляет интерфейсы для постраничного списка любого типа.

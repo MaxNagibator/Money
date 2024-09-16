@@ -1,5 +1,5 @@
-﻿using Money.Data;
-using Money.Api.Definitions.Base;
+﻿using Money.Api.Definitions.Base;
+using Money.Data;
 
 namespace Money.Api.Definitions;
 

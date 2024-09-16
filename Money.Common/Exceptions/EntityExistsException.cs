@@ -1,7 +1,3 @@
-﻿namespace Money.Common.Exceptions
-{
-    public class EntityExistsException : Exception
-    {
-        public EntityExistsException(string message) : base(message) { }
-    }
-}
+﻿namespace Money.Common.Exceptions;
+
+public class EntityExistsException(string message) : Exception(message);

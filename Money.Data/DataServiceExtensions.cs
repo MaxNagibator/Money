@@ -1,29 +1,20 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Money.Data.Interfaces;
-using Money.Data.Repositories;
 
-namespace Money.Data
+namespace Money.Data;
+
+public static class DataServiceExtensions
 {
-    public static class DataServiceExtensions
+    public static IServiceCollection ConfigureDataServices(this IServiceCollection services, IConfiguration configuration)
     {
-        public static IServiceCollection ConfigureDataServices(this IServiceCollection services, IConfiguration configuration)
+        services.AddDbContext<ApplicationDbContext>(options =>
         {
-            var serviceProvider = services.BuildServiceProvider();
-            var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
+            options.UseNpgsql(configuration.GetConnectionString(nameof(ApplicationDbContext)));
+            options.UseSnakeCaseNamingConvention();
+            options.UseOpenIddict();
+        });
 
-            services.AddDbContext<ApplicationDbContext>(options =>
-            {
-                options.UseLoggerFactory(loggerFactory);
-                options.UseSnakeCaseNamingConvention();
-                options.UseNpgsql(configuration.GetConnectionString("SecurityDb"));
-                options.UseOpenIddict();
-            });
-
-            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-            return services;
-        }
+        return services;
     }
 }
