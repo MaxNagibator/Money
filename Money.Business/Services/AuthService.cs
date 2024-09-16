@@ -1,15 +1,17 @@
-﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Money.Business.Interfaces;
 using Money.Common.Exceptions;
 using Money.Data.Entities;
 using OpenIddict.Abstractions;
+using System.Security.Claims;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace Money.Business.Services;
 
-public class AuthService(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager) : IAuthService
+public class AuthService(
+    SignInManager<ApplicationUser> signInManager,
+    UserManager<ApplicationUser> userManager) : IAuthService
 {
     public async Task<ClaimsPrincipal> ExchangeAsync(OpenIddictRequest request)
     {
@@ -45,7 +47,7 @@ public class AuthService(SignInManager<ApplicationUser> signInManager, UserManag
             .SetClaim(Claims.Email, emailTask.Result)
             .SetClaim(Claims.Name, userNameTask.Result)
             .SetClaim(Claims.PreferredUsername, userNameTask.Result)
-            .SetClaims(Claims.Role, [..rolesTask.Result]);
+            .SetClaims(Claims.Role, [.. rolesTask.Result]);
 
         IEnumerable<string> scopes = new[]
         {

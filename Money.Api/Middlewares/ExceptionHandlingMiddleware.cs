@@ -19,13 +19,13 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
         {
             await HandleExceptionAsync(context, exception, StatusCodes.Status404NotFound);
         }
-        catch (IncorrectDataException exception)
-        {
-            await HandleExceptionAsync(context, exception, StatusCodes.Status400BadRequest);
-        }
         catch (PermissionException exception)
         {
             await HandleExceptionAsync(context, exception, StatusCodes.Status403Forbidden);
+        }
+        catch (BusinessException exception)
+        {
+            await HandleExceptionAsync(context, exception, StatusCodes.Status400BadRequest);
         }
         catch (Exception exception)
         {

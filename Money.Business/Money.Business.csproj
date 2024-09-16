@@ -7,14 +7,14 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0"/>
-        <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.0.2"/>
-        <PackageReference Include="OpenIddict.Abstractions" Version="5.8.0"/>
+        <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
+        <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.0.2" />
+        <PackageReference Include="OpenIddict.Abstractions" Version="5.8.0" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Money.Common\Money.Common.csproj"/>
-        <ProjectReference Include="..\Money.Data\Money.Data.csproj"/>
+        <ProjectReference Include="..\Money.Common\Money.Common.csproj" />
+        <ProjectReference Include="..\Money.Data\Money.Data.csproj" />
     </ItemGroup>
 
 </Project>

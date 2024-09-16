@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Money.Api.Dto;
+using Money.Business.Enums;
+using Money.Business.Services;
 using OpenIddict.Validation.AspNetCore;
 
 namespace Money.Api.Controllers;
@@ -7,13 +10,16 @@ namespace Money.Api.Controllers;
 [ApiController]
 [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
 [Route("[controller]")]
-public class CategoriesController(ILogger<CategoriesController> logger) : ControllerBase
+public class CategoriesController(
+    ILogger<CategoriesController> logger,
+    PaymentCategoryService paymentCategoryService) : ControllerBase
 {
     [HttpGet]
     [Route("")]
-    public string Get()
+    public async Task<GetCategoriesResponse> Get(PaymentTypes type)
     {
-        return "list";
+        var categories = await paymentCategoryService.Get(type);
+        return new GetCategoriesResponse(categories);
     }
 
     [HttpGet]
@@ -24,10 +30,12 @@ public class CategoriesController(ILogger<CategoriesController> logger) : Contro
     }
 
     [HttpPost]
-    [Route("{id:guid}")]
-    public string Create(Guid id)
+    [Route("")]
+    public async Task<int> CreateAsync([FromBody]CreatePaymentRequest request)
     {
-        return "create" + id;
+        var business = request.GetBusinessModel();
+        var id = await paymentCategoryService.Create(business);
+        return id;
     }
 
     [HttpPut]
