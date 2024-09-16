@@ -15,7 +15,7 @@ public class PaymentCategoryService(RequestEnvironment environment, ApplicationD
 
         if (type != null)
         {
-            query = query.Where(x => x.TypeId == (int)type);
+            query = query.Where(x => x.TypeId == type);
         }
 
         List<Category> dbCategories = await query.OrderBy(x => x.Order == null)

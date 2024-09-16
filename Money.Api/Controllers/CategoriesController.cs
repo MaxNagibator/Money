@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Money.Api.Dto;
-using Money.Business.Enums;
 using Money.Business.Models;
 using Money.Business.Services;
 using OpenIddict.Validation.AspNetCore;
@@ -16,8 +15,8 @@ public class CategoriesController(
     PaymentCategoryService paymentCategoryService) : ControllerBase
 {
     [HttpGet]
-    [Route("{type:int}")]
-    public async Task<GetCategoriesResponse> Get(int type, CancellationToken cancellationToken)
+    [Route("")]
+    public async Task<GetCategoriesResponse> Get([FromQuery] int? type, CancellationToken cancellationToken)
     {
         ICollection<PaymentCategory> categories = await paymentCategoryService.GetAsync(type, cancellationToken);
         return new GetCategoriesResponse(categories);

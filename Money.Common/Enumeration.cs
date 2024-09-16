@@ -23,7 +23,6 @@ public abstract class Enumeration(int value, string name) : IComparable
     public static IEnumerable<T> GetAll<T>() where T : Enumeration
     {
         FieldInfo[] fields = typeof(T).GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly);
-
         return fields.Select(f => f.GetValue(null)).Cast<T>();
     }
 
@@ -69,12 +68,7 @@ public abstract class Enumeration(int value, string name) : IComparable
             return 0;
         }
 
-        if (other is null)
-        {
-            return 1;
-        }
-
-        return Value.CompareTo(other.Value);
+        return other is null ? 1 : Value.CompareTo(other.Value);
     }
 
     public int CompareTo(object? obj)
@@ -96,12 +90,7 @@ public abstract class Enumeration(int value, string name) : IComparable
     {
         T? matchingItem = GetAll<T>().FirstOrDefault(predicate);
 
-        if (matchingItem == null)
-        {
-            throw new InvalidOperationException($"'{value}' is not a valid {description} in {typeof(T)}");
-        }
-
-        return matchingItem;
+        return matchingItem ?? throw new InvalidOperationException($"'{value}' is not a valid {description} in {typeof(T)}");
     }
 }
 
@@ -109,13 +98,13 @@ public class EnumerationConverter<T> : JsonConverter<T> where T : Enumeration
 {
     public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        if (reader.TokenType == JsonTokenType.Number)
+        if (reader.TokenType != JsonTokenType.Number)
         {
-            int value = reader.GetInt32();
-            return Enumeration.FromValue<T>(value);
+            throw new JsonException("Invalid JSON token for Enumeration");
         }
 
-        throw new JsonException("Invalid JSON token for Enumeration");
+        int value = reader.GetInt32();
+        return Enumeration.FromValue<T>(value);
     }
 
     public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
