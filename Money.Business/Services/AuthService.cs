@@ -1,17 +1,16 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
-using Money.Business.Interfaces;
 using Money.Common.Exceptions;
 using Money.Data.Entities;
 using OpenIddict.Abstractions;
-using System.Security.Claims;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace Money.Business.Services;
 
 public class AuthService(
     SignInManager<ApplicationUser> signInManager,
-    UserManager<ApplicationUser> userManager) : IAuthService
+    UserManager<ApplicationUser> userManager)
 {
     public async Task<ClaimsPrincipal> ExchangeAsync(OpenIddictRequest request)
     {

@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Money.Business.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Money.Business.Models;
 using Money.Common.Exceptions;
 using Money.Data;
@@ -7,7 +7,7 @@ using Money.Data.Entities;
 
 namespace Money.Business.Services;
 
-public class AccountService(UserManager<ApplicationUser> userManager, ApplicationDbContext context) : IAccountService
+public class AccountService(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
 {
     public async Task RegisterAsync(RegisterViewModel model)
     {
@@ -28,19 +28,32 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
 
         if (result.Succeeded == false)
         {
-            throw new Exception($"Ошибки: {string.Join("; ", result.Errors)}");
+            throw new IncorrectDataException($"Ошибки: {string.Join("; ", result.Errors.Select(error => error.Description))}");
         }
-        context.DomainUsers.Add(new DomainUser { AuthUserId = user.Id });
-    }
-    public int GetOrCreateUserId(Guid authUserId)
-    {
-        var domainUser = context.DomainUsers.FirstOrDefault(x => x.AuthUserId == authUserId);
-        if (domainUser == null)
+
+        await context.DomainUsers.AddAsync(new DomainUser
         {
-            domainUser = new DomainUser { AuthUserId = authUserId };
-            context.DomainUsers.Add(domainUser);
-            context.SaveChanges();
+            AuthUserId = user.Id
+        });
+    }
+
+    public async Task<int> EnsureUserIdAsync(Guid authUserId, CancellationToken cancellationToken = default)
+    {
+        DomainUser? domainUser = await context.DomainUsers.FirstOrDefaultAsync(x => x.AuthUserId == authUserId, cancellationToken);
+
+        if (domainUser != null)
+        {
+            return domainUser.Id;
         }
+
+        domainUser = new DomainUser
+        {
+            AuthUserId = authUserId
+        };
+
+        await context.DomainUsers.AddAsync(domainUser, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+
         return domainUser.Id;
     }
 }

@@ -3,24 +3,27 @@ using Money.Business.Enums;
 using Money.Business.Models;
 using Money.Common.Exceptions;
 using Money.Data;
+using Money.Data.Entities;
 
 namespace Money.Business.Services;
 
 public class PaymentCategoryService(RequestEnvironment environment, ApplicationDbContext context)
 {
-    public async Task<ICollection<PaymentCategory>> Get(PaymentTypes? type = null)
+    public async Task<ICollection<PaymentCategory>> GetAsync(PaymentTypes? type = null, CancellationToken cancellationToken = default)
     {
-        var dbCats = context.Categories.Where(x => x.UserId == environment.UserId);
+        IQueryable<Category> query = context.Categories.Where(x => x.UserId == environment.UserId);
+
         if (type != null)
         {
-            dbCats = dbCats.Where(x => x.TypeId == (int)type);
+            query = query.Where(x => x.TypeId == type);
         }
 
-        var dbCategories = await dbCats.OrderBy(x => x.Order == null).ThenBy(x => x.Order).ThenBy(x => x.Name).ToListAsync();
-        var categories = new List<PaymentCategory>();
-        foreach (var dbCategory in dbCategories)
-        {
-            var category = new PaymentCategory
+        List<Category> dbCategories = await query.OrderBy(x => x.Order == null)
+            .ThenBy(x => x.Order)
+            .ThenBy(x => x.Name)
+            .ToListAsync(cancellationToken);
+
+        List<PaymentCategory> categories = dbCategories.Select(dbCategory => new PaymentCategory
             {
                 Id = dbCategory.Id,
                 Name = dbCategory.Name,
@@ -28,33 +31,41 @@ public class PaymentCategoryService(RequestEnvironment environment, ApplicationD
                 Color = dbCategory.Color,
                 ParentId = dbCategory.ParentId,
                 Order = dbCategory.Order,
-                PaymentType = (PaymentTypes)dbCategory.TypeId
-            };
-            categories.Add(category);
-        }
+                PaymentType = dbCategory.TypeId
+            })
+            .ToList();
 
         return categories;
     }
 
-    public async Task<int> Create(PaymentCategory category)
+    public async Task<int> CreateAsync(PaymentCategory category, CancellationToken cancellationToken = default)
     {
         if (environment.UserId == null)
         {
             throw new Exception("empty userId");
         }
+
         if (category.ParentId != null)
         {
-            var hasCategory = context.Categories.Any(x => x.UserId == environment.UserId && x.Id == category.ParentId && x.TypeId == ((int)category.PaymentType));
-            if (!hasCategory)
+            bool hasCategory = await context.Categories.AnyAsync(x => x.UserId == environment.UserId && x.Id == category.ParentId && x.TypeId == category.PaymentType, cancellationToken);
+
+            if (hasCategory == false)
             {
                 throw new BusinessException("parent category not found");
             }
         }
 
         //todo need optimization in future
-        var categoryId = context.Categories.Where(x => x.UserId == environment.UserId).Select(x => x.Id).DefaultIfEmpty(0).Max() + 1;
+        //+ дополнительный костыль, чтобы запрос заработал
+        //(The LINQ expression 'DbSet<Category>().Where(x => x.UserId == __userId_0).Select(x => x.Id).DefaultIfEmpty(__p_1)' could not be translated.)
+        int categoryId = context.Categories.AsEnumerable()
+                             .Where(x => x.UserId == environment.UserId)
+                             .Select(x => x.Id)
+                             .DefaultIfEmpty(0)
+                             .Max()
+                         + 1;
 
-        var dbCategory = new Data.Entities.Category
+        Category dbCategory = new()
         {
             Id = categoryId,
             UserId = environment.UserId.Value,
@@ -63,10 +74,11 @@ public class PaymentCategoryService(RequestEnvironment environment, ApplicationD
             Description = category.Description,
             Name = category.Name,
             Order = category.Order,
-            TypeId = (int)category.PaymentType
+            TypeId = category.PaymentType
         };
-        await context.Categories.AddAsync(dbCategory);
-        context.SaveChanges();
+
+        await context.Categories.AddAsync(dbCategory, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
         return categoryId;
     }
 }

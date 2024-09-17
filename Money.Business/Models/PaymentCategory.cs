@@ -1,15 +1,14 @@
 ﻿using Money.Business.Enums;
 
-namespace Money.Business.Models
+namespace Money.Business.Models;
+
+public class PaymentCategory
 {
-    public class PaymentCategory
-    {
-        public int Id { get; set; }
-        public required string Name { get; set; }
-        public string? Description { get; set; }
-        public int? ParentId { get; set; }
-        public int? Order { get; set; }
-        public string? Color { get; set; }
-        public PaymentTypes PaymentType { get; set; }
-    }
+    public int Id { get; set; }
+    public required string Name { get; set; }
+    public string? Description { get; set; }
+    public int? ParentId { get; set; }
+    public int? Order { get; set; }
+    public string? Color { get; set; }
+    public required PaymentTypes PaymentType { get; set; }
 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Money.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
@@ -151,7 +152,7 @@ namespace Money.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Money.Api.Data.ApplicationRole", b =>
+            modelBuilder.Entity("Money.Data.Entities.ApplicationRole", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -183,7 +184,7 @@ namespace Money.Data.Migrations
                     b.ToTable("AspNetRoles", (string)null);
                 });
 
-            modelBuilder.Entity("Money.Api.Data.ApplicationUser", b =>
+            modelBuilder.Entity("Money.Data.Entities.ApplicationUser", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -264,7 +265,7 @@ namespace Money.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("Money.Api.Data.Category", b =>
+            modelBuilder.Entity("Money.Data.Entities.Category", b =>
                 {
                     b.Property<int>("UserId")
                         .HasColumnType("integer")
@@ -310,7 +311,7 @@ namespace Money.Data.Migrations
                     b.ToTable("categories", (string)null);
                 });
 
-            modelBuilder.Entity("Money.Api.Data.DomainUser", b =>
+            modelBuilder.Entity("Money.Data.Entities.DomainUser", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -596,7 +597,7 @@ namespace Money.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
-                    b.HasOne("Money.Api.Data.ApplicationRole", null)
+                    b.HasOne("Money.Data.Entities.ApplicationRole", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -606,7 +607,7 @@ namespace Money.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
                 {
-                    b.HasOne("Money.Api.Data.ApplicationUser", null)
+                    b.HasOne("Money.Data.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -616,7 +617,7 @@ namespace Money.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
                 {
-                    b.HasOne("Money.Api.Data.ApplicationUser", null)
+                    b.HasOne("Money.Data.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -626,14 +627,14 @@ namespace Money.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
                 {
-                    b.HasOne("Money.Api.Data.ApplicationRole", null)
+                    b.HasOne("Money.Data.Entities.ApplicationRole", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_asp_net_user_roles_asp_net_roles_role_id");
 
-                    b.HasOne("Money.Api.Data.ApplicationUser", null)
+                    b.HasOne("Money.Data.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -643,7 +644,7 @@ namespace Money.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
                 {
-                    b.HasOne("Money.Api.Data.ApplicationUser", null)
+                    b.HasOne("Money.Data.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -651,9 +652,9 @@ namespace Money.Data.Migrations
                         .HasConstraintName("fk_asp_net_user_tokens_asp_net_users_user_id");
                 });
 
-            modelBuilder.Entity("Money.Api.Data.Category", b =>
+            modelBuilder.Entity("Money.Data.Entities.Category", b =>
                 {
-                    b.HasOne("Money.Api.Data.DomainUser", "User")
+                    b.HasOne("Money.Data.Entities.DomainUser", "User")
                         .WithMany("Categories")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -690,7 +691,7 @@ namespace Money.Data.Migrations
                     b.Navigation("Authorization");
                 });
 
-            modelBuilder.Entity("Money.Api.Data.DomainUser", b =>
+            modelBuilder.Entity("Money.Data.Entities.DomainUser", b =>
                 {
                     b.Navigation("Categories");
                 });

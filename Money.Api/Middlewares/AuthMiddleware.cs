@@ -6,20 +6,26 @@ using OpenIddict.Abstractions;
 
 namespace Money.Api.Middlewares;
 
-public class AuthMiddleware(
-    RequestDelegate next, 
-    ILogger<ExceptionHandlingMiddleware> logger,
-    RequestEnvironment environment,
-    UserManager<ApplicationUser> userManager,
-    AccountService accountService)
+public class AuthMiddleware(RequestDelegate next, ILogger<AuthMiddleware> logger)
 {
-    public async Task InvokeAsync(HttpContext context)
+    public async Task InvokeAsync(
+        HttpContext context,
+        RequestEnvironment environment,
+        UserManager<ApplicationUser> userManager,
+        AccountService accountService)
     {
-        ApplicationUser? user = await userManager.FindByIdAsync(context.User.GetClaim(OpenIddictConstants.Claims.Subject) ?? string.Empty);
-        if(user != null)
+        string? userId = context.User.GetClaim(OpenIddictConstants.Claims.Subject);
+
+        if (userId != null)
         {
-            environment.UserId = accountService.GetOrCreateUserId(user.Id);
+            ApplicationUser? user = await userManager.FindByIdAsync(userId);
+
+            if (user != null)
+            {
+                environment.UserId = await accountService.EnsureUserIdAsync(user.Id, context.RequestAborted);
+            }
         }
+
         await next(context);
     }
 }

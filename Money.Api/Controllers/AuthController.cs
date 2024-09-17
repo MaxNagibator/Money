@@ -1,13 +1,13 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
-using Money.Business.Interfaces;
+using Money.Business.Services;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 
 namespace Money.Api.Controllers;
 
-public class AuthController(IAuthService authorizationService) : Controller
+public class AuthController(AuthService authorizationService) : Controller
 {
     [HttpPost("~/connect/token")]
     [IgnoreAntiforgeryToken]
