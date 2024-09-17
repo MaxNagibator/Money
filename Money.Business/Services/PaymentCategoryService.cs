@@ -24,15 +24,15 @@ public class PaymentCategoryService(RequestEnvironment environment, ApplicationD
             .ToListAsync(cancellationToken);
 
         List<PaymentCategory> categories = dbCategories.Select(dbCategory => new PaymentCategory
-            {
-                Id = dbCategory.Id,
-                Name = dbCategory.Name,
-                Description = dbCategory.Description,
-                Color = dbCategory.Color,
-                ParentId = dbCategory.ParentId,
-                Order = dbCategory.Order,
-                PaymentType = dbCategory.TypeId
-            })
+        {
+            Id = dbCategory.Id,
+            Name = dbCategory.Name,
+            Description = dbCategory.Description,
+            Color = dbCategory.Color,
+            ParentId = dbCategory.ParentId,
+            Order = dbCategory.Order,
+            PaymentType = dbCategory.TypeId
+        })
             .ToList();
 
         return categories;
@@ -56,8 +56,6 @@ public class PaymentCategoryService(RequestEnvironment environment, ApplicationD
         }
 
         //todo need optimization in future
-        //+ дополнительный костыль, чтобы запрос заработал
-        //(The LINQ expression 'DbSet<Category>().Where(x => x.UserId == __userId_0).Select(x => x.Id).DefaultIfEmpty(__p_1)' could not be translated.)
         int categoryId = context.Categories.AsEnumerable()
                              .Where(x => x.UserId == environment.UserId)
                              .Select(x => x.Id)
