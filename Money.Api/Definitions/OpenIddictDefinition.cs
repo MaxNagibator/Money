@@ -39,7 +39,10 @@ public class OpenIddictDefinition : AppDefinition
 
                 // Register the ASP.NET Core host and configure the ASP.NET Core-specific options.
                 options.UseAspNetCore()
-                    .EnableTokenEndpointPassthrough();
+                    .EnableTokenEndpointPassthrough()
+                    .EnableAuthorizationEndpointPassthrough()
+                    .EnableLogoutEndpointPassthrough()
+                    .DisableTransportSecurityRequirement();
             })
 
             // Register the OpenIddict validation components.

@@ -15,7 +15,7 @@ public class CreatePaymentRequest
 
     public string? Description { get; set; }
 
-    public required PaymentTypes PaymentType { get; set; }
+    public required int PaymentType { get; set; }
 
     public PaymentCategory GetBusinessModel()
     {

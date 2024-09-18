@@ -1,7 +1,7 @@
-﻿using Money.Business.Enums;
-using Newtonsoft.Json;
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Json;
+using Money.Business.Enums;
+using Newtonsoft.Json;
 
 namespace Money.Api.Tests;
 
@@ -98,6 +98,11 @@ public class ApiClientExecutor
 
     private void SetAuthHeaders(HttpRequestMessage requestMessage)
     {
+        if (Integration.AuthData != null)
+        {
+            AddHeader("Authorization", "Bearer " + Integration.AuthData.AccessToken);
+        }
+
         //if (User != null)
         //{
         //    var userJson = JsonConvert.SerializeObject(User.Data);
@@ -110,11 +115,11 @@ public class ApiClientExecutor
         //    AddHeader(Headers.Permissions, permissionHeader);
         //}
 
-        //void AddHeader(string key, string value)
-        //{
-        //    Console.WriteLine(key + ": " + value);
-        //    requestMessage.Headers.Add(key, value);
-        //}
+        void AddHeader(string key, string value)
+        {
+            Console.WriteLine(key + ": " + value);
+            requestMessage.Headers.Add(key, value);
+        }
     }
 
     private ApiClientResponse<T> ProcessResponse<T>(HttpResponseMessage response)

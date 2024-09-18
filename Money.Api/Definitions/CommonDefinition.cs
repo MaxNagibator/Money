@@ -7,11 +7,7 @@ public class CommonDefinition : AppDefinition
 {
     public override void ConfigureServices(WebApplicationBuilder builder)
     {
-        builder.Services.AddControllers()
-            .AddJsonOptions(options =>
-            {
-                options.JsonSerializerOptions.Converters.Add(new EnumerationConverterFactory());
-            });
+        builder.Services.AddControllers();
 
         builder.Services.AddLocalization();
         builder.Services.AddHttpContextAccessor();
