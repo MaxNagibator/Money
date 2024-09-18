@@ -16,7 +16,7 @@ internal class CategoryClient : ApiClientExecutor
     public async Task<ApiClientResponse<GetCategoriesModel>> Get(int? type = null)
     {
         var paramUri = type == null ? "" : "?type=" + type;
-        return await GetAsync<GetCategoriesModel>($"/categories" + paramUri);
+        return await GetAsync<GetCategoriesModel>($"/Categories" + paramUri);
     }
 
     public class GetCategoriesModel

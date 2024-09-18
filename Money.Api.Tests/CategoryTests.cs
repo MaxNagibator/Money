@@ -1,4 +1,6 @@
-﻿namespace Money.Api.Tests;
+﻿using Microsoft.AspNetCore.Mvc.Testing;
+
+namespace Money.Api.Tests;
 
 public class CategoryTests
 {
