@@ -11,6 +11,7 @@ public class PaymentCategoryService(RequestEnvironment environment, ApplicationD
 {
     public async Task<ICollection<PaymentCategory>> GetAsync(PaymentTypes? type = null, CancellationToken cancellationToken = default)
     {
+        var asd = context.Database.GetConnectionString();
         IQueryable<Category> query = context.Categories.Where(x => x.UserId == environment.UserId);
 
         if (type != null)

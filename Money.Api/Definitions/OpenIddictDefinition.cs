@@ -5,9 +5,9 @@ namespace Money.Api.Definitions;
 
 public class OpenIddictDefinition : AppDefinition
 {
-    public override void ConfigureServices(WebApplicationBuilder builder)
+    public override void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
-        builder.Services.AddOpenIddict()
+        services.AddOpenIddict()
             .AddCore(options =>
             {
                 options.UseEntityFrameworkCore()

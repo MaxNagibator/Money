@@ -8,9 +8,9 @@ namespace Money.Api.Definitions;
 
 public class IdentityDefinition : AppDefinition
 {
-    public override void ConfigureServices(WebApplicationBuilder builder)
+    public override void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
-        builder.Services.Configure<IdentityOptions>(options =>
+        services.Configure<IdentityOptions>(options =>
         {
             options.ClaimsIdentity.UserNameClaimType = OpenIddictConstants.Claims.Name;
             options.ClaimsIdentity.UserIdClaimType = OpenIddictConstants.Claims.Subject;
@@ -18,7 +18,7 @@ public class IdentityDefinition : AppDefinition
             options.ClaimsIdentity.EmailClaimType = OpenIddictConstants.Claims.Email;
         });
 
-        builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
+        services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
             {
                 options.Password.RequireDigit = false;
                 options.Password.RequireLowercase = false;

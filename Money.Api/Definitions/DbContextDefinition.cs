@@ -6,11 +6,11 @@ namespace Money.Api.Definitions;
 
 public class DbContextDefinition : AppDefinition
 {
-    public override void ConfigureServices(WebApplicationBuilder builder)
+    public override void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
-        builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        services.AddDbContext<ApplicationDbContext>(options =>
         {
-            options.UseNpgsql(builder.Configuration.GetConnectionString(nameof(ApplicationDbContext)));
+            options.UseNpgsql(configuration.GetConnectionString(nameof(ApplicationDbContext)));
             options.UseSnakeCaseNamingConvention();
             options.UseOpenIddict();
         });

@@ -33,11 +33,11 @@ public interface IAppDefinition
     ///     Настройка служб для текущего приложения
     /// </summary>
     /// <param name="builder">Экземпляр <see cref="WebApplicationBuilder" /></param>
-    void ConfigureServices(WebApplicationBuilder builder);
+    void ConfigureServices(IServiceCollection builder, IConfiguration configuration);
 
     /// <summary>
     ///     Настройка приложения для текущего приложения
     /// </summary>
     /// <param name="app">Экземпляр <see cref="WebApplication" /></param>
-    void ConfigureApplication(WebApplication app);
+    void ConfigureApplication(IApplicationBuilder app);
 }

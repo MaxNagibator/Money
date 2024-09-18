@@ -7,84 +7,84 @@ namespace Money.Api.Definitions.Base;
 /// </summary>
 public static class AppDefinitionExtensions
 {
-    /// <summary>
-    ///     Поиск всех определений в проекте и их включение в конвейер. Модули из сторонних *.dll также будут найдены.
-    ///     <br />
-    ///     Использует <see cref="IServiceCollection" /> для регистрации.
-    /// </summary>
-    /// <remarks>
-    ///     При выполнении в среде разработки доступно больше диагностической информации в консоли.
-    /// </remarks>
-    /// <param name="builder">Экземпляр <see cref="WebApplicationBuilder" />.</param>
-    /// <param name="modulesFolderPath">Путь к папке с модулями.</param>
-    /// <param name="entryPointsAssembly">Типы сборок точек входа.</param>
-    public static void AddDefinitionsWithModules(this WebApplicationBuilder builder, string modulesFolderPath, params Type[] entryPointsAssembly)
-    {
-        ILogger<IAppDefinition> logger = builder.Services.BuildServiceProvider().GetRequiredService<ILogger<IAppDefinition>>();
+    ///// <summary>
+    /////     Поиск всех определений в проекте и их включение в конвейер. Модули из сторонних *.dll также будут найдены.
+    /////     <br />
+    /////     Использует <see cref="IServiceCollection" /> для регистрации.
+    ///// </summary>
+    ///// <remarks>
+    /////     При выполнении в среде разработки доступно больше диагностической информации в консоли.
+    ///// </remarks>
+    ///// <param name="builder">Экземпляр <see cref="WebApplicationBuilder" />.</param>
+    ///// <param name="modulesFolderPath">Путь к папке с модулями.</param>
+    ///// <param name="entryPointsAssembly">Типы сборок точек входа.</param>
+    //public static void AddDefinitionsWithModules(this IApplicationBuilder builder, string modulesFolderPath, params Type[] entryPointsAssembly)
+    //{
+    //    ILogger<IAppDefinition> logger = builder.Services.BuildServiceProvider().GetRequiredService<ILogger<IAppDefinition>>();
 
-        try
-        {
-            string modulesFolder = Path.Combine(builder.Environment.ContentRootPath, modulesFolderPath);
+    //    try
+    //    {
+    //        string modulesFolder = Path.Combine(builder.Environment.ContentRootPath, modulesFolderPath);
 
-            if (Directory.Exists(modulesFolder) == false)
-            {
-                if (logger.IsEnabled(LogLevel.Debug))
-                {
-                    logger.LogDebug("[Ошибка]: Директория не существует {ModuleName}", modulesFolder);
-                }
+    //        if (Directory.Exists(modulesFolder) == false)
+    //        {
+    //            if (logger.IsEnabled(LogLevel.Debug))
+    //            {
+    //                logger.LogDebug("[Ошибка]: Директория не существует {ModuleName}", modulesFolder);
+    //            }
 
-                throw new DirectoryNotFoundException(modulesFolder);
-            }
+    //            throw new DirectoryNotFoundException(modulesFolder);
+    //        }
 
-            List<Type> types = [];
-            types.AddRange(entryPointsAssembly);
+    //        List<Type> types = [];
+    //        types.AddRange(entryPointsAssembly);
 
-            DirectoryInfo modulesDirectory = new(modulesFolderPath);
-            FileInfo[] modules = modulesDirectory.GetFiles("*.dll");
+    //        DirectoryInfo modulesDirectory = new(modulesFolderPath);
+    //        FileInfo[] modules = modulesDirectory.GetFiles("*.dll");
 
-            if (modules.Length == 0)
-            {
-                if (logger.IsEnabled(LogLevel.Debug))
-                {
-                    logger.LogDebug("[Предупреждение]: Модули не найдены в папке {ModuleName}", modulesFolder);
-                }
+    //        if (modules.Length == 0)
+    //        {
+    //            if (logger.IsEnabled(LogLevel.Debug))
+    //            {
+    //                logger.LogDebug("[Предупреждение]: Модули не найдены в папке {ModuleName}", modulesFolder);
+    //            }
 
-                return;
-            }
+    //            return;
+    //        }
 
-            foreach (FileInfo fileInfo in modules)
-            {
-                Assembly module = Assembly.LoadFile(fileInfo.FullName);
-                Type[] typesAll = module.GetExportedTypes();
+    //        foreach (FileInfo fileInfo in modules)
+    //        {
+    //            Assembly module = Assembly.LoadFile(fileInfo.FullName);
+    //            Type[] typesAll = module.GetExportedTypes();
 
-                List<Type> typesDefinition = typesAll
-                    .Where(Predicate)
-                    .ToList();
+    //            List<Type> typesDefinition = typesAll
+    //                .Where(Predicate)
+    //                .ToList();
 
-                List<Type> instances = typesDefinition.Select(Activator.CreateInstance)
-                    .Cast<IAppDefinition>()
-                    .Where(definition => definition.Enabled && definition.Exported)
-                    .Select(definition => definition.GetType())
-                    .ToList();
+    //            List<Type> instances = typesDefinition.Select(Activator.CreateInstance)
+    //                .Cast<IAppDefinition>()
+    //                .Where(definition => definition.Enabled && definition.Exported)
+    //                .Select(definition => definition.GetType())
+    //                .ToList();
 
-                types.AddRange(instances);
-            }
+    //            types.AddRange(instances);
+    //        }
 
-            if (types.Count != 0)
-            {
-                AddDefinitions(builder, types.ToArray());
-            }
-        }
-        catch (Exception exception)
-        {
-            logger.LogError(exception, "Ошибка при добавлении определений. Тип ошибки: {ExceptionType}, сообщение: {Message}, стек вызовов: {StackTrace}",
-                exception.GetType().Name,
-                exception.Message,
-                exception.StackTrace);
+    //        if (types.Count != 0)
+    //        {
+    //            AddDefinitions(builder, null, types.ToArray());
+    //        }
+    //    }
+    //    catch (Exception exception)
+    //    {
+    //        logger.LogError(exception, "Ошибка при добавлении определений. Тип ошибки: {ExceptionType}, сообщение: {Message}, стек вызовов: {StackTrace}",
+    //            exception.GetType().Name,
+    //            exception.Message,
+    //            exception.StackTrace);
 
-            throw;
-        }
-    }
+    //        throw;
+    //    }
+    //}
 
     /// <summary>
     ///     Поиск всех определений в проекте и их включение в конвейер.
@@ -96,13 +96,13 @@ public static class AppDefinitionExtensions
     /// </remarks>
     /// <param name="builder">Экземпляр <see cref="WebApplicationBuilder" />.</param>
     /// <param name="entryPointsAssembly">Типы сборок точек входа.</param>
-    public static void AddDefinitions(this WebApplicationBuilder builder, params Type[] entryPointsAssembly)
+    public static void AddDefinitions(this IServiceCollection services, IConfiguration configuration, params Type[] entryPointsAssembly)
     {
-        ILogger<IAppDefinition> logger = builder.Services.BuildServiceProvider().GetRequiredService<ILogger<IAppDefinition>>();
+        ILogger<IAppDefinition> logger = services.BuildServiceProvider().GetRequiredService<ILogger<IAppDefinition>>();
 
         try
         {
-            AppDefinitionCollection? appDefinitionInfo = builder.Services.BuildServiceProvider().GetService<AppDefinitionCollection>();
+            AppDefinitionCollection? appDefinitionInfo = services.BuildServiceProvider().GetService<AppDefinitionCollection>();
             AppDefinitionCollection definitionCollection = appDefinitionInfo ?? new AppDefinitionCollection();
 
             foreach (Type entryPoint in entryPointsAssembly)
@@ -142,10 +142,10 @@ public static class AppDefinitionExtensions
                         item.Exported ? "(экспортируемый)" : string.Empty);
                 }
 
-                item.Definition.ConfigureServices(builder);
+                item.Definition.ConfigureServices(services, configuration);
             }
 
-            builder.Services.AddSingleton(definitionCollection);
+            services.AddSingleton(definitionCollection);
 
             if (logger.IsEnabled(LogLevel.Debug) == false)
             {
@@ -189,10 +189,10 @@ public static class AppDefinitionExtensions
     ///     При выполнении в среде разработки доступно больше диагностической информации в консоли.
     /// </remarks>
     /// <param name="source">Экземпляр <see cref="WebApplication" />.</param>
-    public static void UseDefinitions(this WebApplication source)
+    public static void UseDefinitions(this IApplicationBuilder source, IServiceCollection services)
     {
-        ILogger<AppDefinition> logger = source.Services.GetRequiredService<ILogger<AppDefinition>>();
-        AppDefinitionCollection definitionCollection = source.Services.GetRequiredService<AppDefinitionCollection>();
+        ILogger<AppDefinition> logger = services.BuildServiceProvider().GetRequiredService<ILogger<AppDefinition>>();
+        AppDefinitionCollection definitionCollection = services.BuildServiceProvider().GetRequiredService<AppDefinitionCollection>();
 
         List<AppDefinitionItem> items = definitionCollection.GetDistinct().OrderBy(item => item.Definition.ApplicationOrderIndex).ToList();
 

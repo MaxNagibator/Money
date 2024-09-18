@@ -6,13 +6,13 @@ namespace Money.Api.Definitions;
 
 public class ContainerDefinition : AppDefinition
 {
-    public override void ConfigureServices(WebApplicationBuilder builder)
+    public override void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
-        builder.Services.AddScoped<RequestEnvironment>();
+        services.AddScoped<RequestEnvironment>();
 
-        builder.Services.AddScoped<AccountService>();
-        builder.Services.AddScoped<AuthService>();
+        services.AddScoped<AccountService>();
+        services.AddScoped<AuthService>();
 
-        builder.Services.AddScoped<PaymentCategoryService>();
+        services.AddScoped<PaymentCategoryService>();
     }
 }

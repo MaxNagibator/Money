@@ -5,23 +5,24 @@ namespace Money.Api.Definitions;
 
 public class CommonDefinition : AppDefinition
 {
-    public override void ConfigureServices(WebApplicationBuilder builder)
+    public override void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
-        builder.Services.AddControllers()
+        services.AddControllers()
             .AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.Converters.Add(new EnumerationConverterFactory());
             });
 
-        builder.Services.AddLocalization();
-        builder.Services.AddHttpContextAccessor();
-        builder.Services.AddResponseCaching();
-        builder.Services.AddMemoryCache();
+        services.AddLocalization();
+        services.AddHttpContextAccessor();
+        services.AddResponseCaching();
+        services.AddMemoryCache();
     }
 
-    public override void ConfigureApplication(WebApplication app)
+    public override int ApplicationOrderIndex => 2;
+    public override void ConfigureApplication(IApplicationBuilder app)
     {
-        app.MapControllers();
-        app.MapDefaultControllerRoute();
+        //app.MapControllers();
+        //app.MapDefaultControllerRoute();
     }
 }

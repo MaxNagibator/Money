@@ -18,12 +18,12 @@ public abstract class AppDefinition : IAppDefinition
     public virtual bool Exported { get; protected set; }
 
     /// <inheritdoc />
-    public virtual void ConfigureServices(WebApplicationBuilder builder)
+    public virtual void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
     }
 
     /// <inheritdoc />
-    public virtual void ConfigureApplication(WebApplication app)
+    public virtual void ConfigureApplication(IApplicationBuilder app)
     {
     }
 }

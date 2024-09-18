@@ -4,8 +4,8 @@ namespace Money.Api.Definitions;
 
 public class CorsDefinition : AppDefinition
 {
-    public override void ConfigureServices(WebApplicationBuilder builder)
+    public override void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
-        builder.Services.AddCors();
+        services.AddCors();
     }
 }

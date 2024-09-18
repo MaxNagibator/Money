@@ -7,9 +7,7 @@ public class MiddlewareDefinition : AppDefinition
 {
     public override int ApplicationOrderIndex => 1;
 
-    public override void ConfigureApplication(WebApplication app)
+    public override void ConfigureApplication(IApplicationBuilder app)
     {
-        app.UseMiddleware<ExceptionHandlingMiddleware>();
-        app.UseMiddleware<AuthMiddleware>();
     }
 }

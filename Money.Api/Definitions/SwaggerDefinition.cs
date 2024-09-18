@@ -6,11 +6,11 @@ namespace Money.Api.Definitions;
 
 public class SwaggerDefinition : AppDefinition
 {
-    public override void ConfigureServices(WebApplicationBuilder builder)
+    public override void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
-        builder.Services.AddEndpointsApiExplorer();
+        services.AddEndpointsApiExplorer();
 
-        builder.Services.AddSwaggerGen(options =>
+        services.AddSwaggerGen(options =>
         {
             options.ResolveConflictingActions(descriptions => descriptions.First());
 
@@ -48,12 +48,12 @@ public class SwaggerDefinition : AppDefinition
         });
     }
 
-    public override void ConfigureApplication(WebApplication app)
+    public override void ConfigureApplication(IApplicationBuilder app)
     {
-        if (app.Environment.IsDevelopment() == false)
-        {
-            return;
-        }
+        //if (app.Environment.IsDevelopment() == false)
+        //{
+        //    return;
+        //}
 
         app.UseSwagger();
         app.UseSwaggerUI();
