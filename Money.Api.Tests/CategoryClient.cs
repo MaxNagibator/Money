@@ -1,5 +1,4 @@
 ﻿using Money.Api.Tests.ApiClient;
-using Money.Api.Tests.TestTools;
 using Money.Business.Enums;
 
 namespace Money.Api.Tests;

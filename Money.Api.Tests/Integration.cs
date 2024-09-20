@@ -13,23 +13,25 @@ namespace Money.Api.Tests;
 public class Integration
 {
     private static readonly ConcurrentBag<HttpClient> HttpClients = [];
+
     public static TestServer TestServer { get; private set; } = null!;
     //public static AuthData AuthData { get; private set; } = null!;
 
     public static DatabaseClient GetDatabaseClient()
     {
-        var config = TestServer.Services.GetRequiredService<IConfigurationRoot>();
-        var connectionString = config.GetConnectionString("ApplicationDbContext");
+        IConfigurationRoot config = TestServer.Services.GetRequiredService<IConfigurationRoot>();
+        string? connectionString = config.GetConnectionString("ApplicationDbContext");
 
-        Func<ApplicationDbContext> createDbContext = () =>
+        return new DatabaseClient(CreateDbContext);
+
+        ApplicationDbContext CreateDbContext()
         {
-            var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+            DbContextOptionsBuilder<ApplicationDbContext> optionsBuilder = new();
             optionsBuilder.UseNpgsql(connectionString);
             optionsBuilder.UseSnakeCaseNamingConvention();
-            var context = new ApplicationDbContext(optionsBuilder.Options);
+            ApplicationDbContext context = new(optionsBuilder.Options);
             return context;
-        };
-        return new DatabaseClient(createDbContext);
+        }
     }
 
     public static HttpClient GetHttpClient()
@@ -41,9 +43,13 @@ public class Integration
 
     public static async Task Register(string email, string password)
     {
-        var aasd = JsonContent.Create(new { email = email, password = password });
+        JsonContent aasd = JsonContent.Create(new
+        {
+            email, password
+        });
+
         HttpResponseMessage response = await GetHttpClient().PostAsync($"{TestServer.BaseAddress}Account/register", aasd);
-        var content = await response.Content.ReadAsStringAsync();
+        string content = await response.Content.ReadAsStringAsync();
         Console.WriteLine(content);
     }
 

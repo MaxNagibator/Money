@@ -1,38 +1,33 @@
-﻿using Money.Data;
+﻿using Money.Api.Tests.TestTools.Entities;
+using Money.Data;
 
 namespace Money.Api.Tests.TestTools;
 
-public class DatabaseClient
+public class DatabaseClient(Func<ApplicationDbContext> createWebDbContext)
 {
-    public DatabaseClient(Func<ApplicationDbContext> createWebDbContext)
-    {
-        CreateApplicationDbContext = createWebDbContext;
-    }
-
-    public Func<ApplicationDbContext> CreateApplicationDbContext { get; }
-    private ApplicationDbContext _context;
-    public ApplicationDbContext Context => _context ?? (_context = CreateApplicationDbContext());
-    public List<TestObject> TestObjects = new List<TestObject>();
+    private static readonly object LockObject = new();
+    public List<TestObject>? TestObjects = [];
+    private ApplicationDbContext? _context;
+    public Func<ApplicationDbContext> CreateApplicationDbContext { get; } = createWebDbContext;
+    public ApplicationDbContext Context => _context ??= CreateApplicationDbContext();
 
     public TestUser WithUser()
     {
-        var obj = new TestUser();
+        TestUser obj = new();
         obj.Attach(this);
-
         return obj;
     }
 
-    private static object lockObject = new object();
     public DatabaseClient Save()
     {
         if (TestObjects != null)
         {
             // поскольку тесты в несколько потоков это выполняют, а политика партии пока не рассматривает конкаранси случаи
-            lock (lockObject)
+            lock (LockObject)
             {
-                foreach (var o in TestObjects)
+                foreach (TestObject testObject in TestObjects)
                 {
-                    o.SaveObject();
+                    testObject.SaveObject();
                 }
             }
         }
@@ -42,7 +37,11 @@ public class DatabaseClient
 
     public DatabaseClient Clear()
     {
-        TestObjects = new List<TestObject>();
+        lock (LockObject)
+        {
+            TestObjects = [];
+        }
+
         return this;
     }
 }

@@ -1,41 +1,39 @@
 ﻿using Money.Business.Enums;
-using Polly;
-using System;
 
-namespace Money.Api.Tests.TestTools;
+namespace Money.Api.Tests.TestTools.Entities;
 
 /// <summary>
-/// Категория.
+///     Категория.
 /// </summary>
 public class TestCategory : TestObject
 {
+    public TestCategory(TestUser user)
+    {
+        IsNew = true;
+        Name = $"P{Guid.NewGuid()}";
+        PaymentType = PaymentTypes.Costs;
+        User = user;
+    }
+
     /// <summary>
-    /// Идентификатор.
+    ///     Идентификатор.
     /// </summary>
     public int Id { get; private set; }
 
     /// <summary>
-    /// Наименование.
+    ///     Наименование.
     /// </summary>
     public string Name { get; set; }
 
     /// <summary>
-    /// Тип.
+    ///     Тип.
     /// </summary>
     public PaymentTypes PaymentType { get; set; }
 
     /// <summary>
-    /// Пользователь.
+    ///     Пользователь.
     /// </summary>
     public TestUser User { get; set; }
-
-    public TestCategory(TestUser user)
-    {
-        IsNew = true;
-        Name = "P" + Guid.NewGuid();
-        PaymentType = PaymentTypes.Costs;
-        User = user;
-    }
 
     public override void LocalSave()
     {
@@ -49,11 +47,12 @@ public class TestCategory : TestObject
                                  .Max()
                              + 1;
 
-            var obj = new Money.Data.Entities.Category
+            Money.Data.Entities.Category obj = new()
             {
                 Id = categoryId,
-                Name = "",
+                Name = ""
             };
+
             FillDbProperties(obj);
             Environment.Context.Categories.Add(obj);
             IsNew = false;
@@ -62,7 +61,7 @@ public class TestCategory : TestObject
         }
         else
         {
-            var obj = Environment.Context.Categories.First(x => x.Id == Id);
+            Money.Data.Entities.Category obj = Environment.Context.Categories.First(x => x.Id == Id);
             FillDbProperties(obj);
             Environment.Context.SaveChanges();
         }

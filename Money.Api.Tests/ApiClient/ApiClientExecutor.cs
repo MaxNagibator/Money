@@ -1,5 +1,5 @@
 ﻿using System.Net.Http.Json;
-using Money.Api.Tests.TestTools;
+using Money.Api.Tests.TestTools.Entities;
 using Newtonsoft.Json;
 
 namespace Money.Api.Tests.ApiClient;
@@ -8,16 +8,16 @@ public class ApiClientExecutor(HttpClient client, Action<string> log)
 {
     public ApiUser? User { get; set; }
 
+    protected virtual string ApiPrefix => "api";
+
     internal void SetUser(TestUser user)
     {
         User = new ApiUser
         {
             Username = user.Login,
-            Password = user.Pasword,
+            Password = user.Password
         };
     }
-
-    protected virtual string ApiPrefix => "api";
 
     protected async Task<ApiClientResponse<T>> GetAsync<T>(string uri)
     {
@@ -41,16 +41,16 @@ public class ApiClientExecutor(HttpClient client, Action<string> log)
 
     private async Task<ApiClientResponse<T>> SendWithBody<T>(HttpMethod method, string uri, object? body = null)
     {
-        using HttpRequestMessage requestMessage = new(method, ApiPrefix + uri);
+        using HttpRequestMessage requestMessage = new(method, $"{ApiPrefix}{uri}");
 
-        log("method: " + method);
-        log("url: " + ApiPrefix + uri);
+        log($"method: {method}");
+        log($"url: {ApiPrefix}{uri}");
         await SetAuthHeaders(requestMessage);
 
         if (body != null)
         {
             requestMessage.Content = JsonContent.Create(body);
-            log("body: " + JsonConvert.SerializeObject(body));
+            log($"body: {JsonConvert.SerializeObject(body)}");
         }
 
         HttpResponseMessage response = await client.SendAsync(requestMessage);
@@ -63,15 +63,16 @@ public class ApiClientExecutor(HttpClient client, Action<string> log)
         {
             if (User.Token == null)
             {
-                var authData = await Integration.GetAuthData(User.Username, User.Password);
+                AuthData authData = await Integration.GetAuthData(User.Username, User.Password);
                 User.Token = authData.AccessToken;
             }
-            AddHeader("Authorization", "Bearer " + User.Token);
+
+            AddHeader("Authorization", $"Bearer {User.Token}");
         }
 
         void AddHeader(string key, string value)
         {
-            log(key + ": " + value);
+            log($"{key}: {value}");
             requestMessage.Headers.Add(key, value);
         }
     }
