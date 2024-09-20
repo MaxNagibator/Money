@@ -93,36 +93,3 @@ public abstract class Enumeration(int value, string name) : IComparable
         return matchingItem ?? throw new InvalidOperationException($"'{value}' is not a valid {description} in {typeof(T)}");
     }
 }
-
-public class EnumerationConverter<T> : JsonConverter<T> where T : Enumeration
-{
-    public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        if (reader.TokenType != JsonTokenType.Number)
-        {
-            throw new JsonException("Invalid JSON token for Enumeration");
-        }
-
-        int value = reader.GetInt32();
-        return Enumeration.FromValue<T>(value);
-    }
-
-    public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
-    {
-        writer.WriteNumberValue(value.Value);
-    }
-}
-
-public class EnumerationConverterFactory : JsonConverterFactory
-{
-    public override bool CanConvert(Type typeToConvert)
-    {
-        return typeof(Enumeration).IsAssignableFrom(typeToConvert);
-    }
-
-    public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options)
-    {
-        Type converterType = typeof(EnumerationConverter<>).MakeGenericType(typeToConvert);
-        return (JsonConverter)Activator.CreateInstance(converterType)!;
-    }
-}
