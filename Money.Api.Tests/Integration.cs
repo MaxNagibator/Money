@@ -1,6 +1,11 @@
 using System.Collections.Concurrent;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Money.Api.Tests.TestTools;
+using Money.Data;
 
 namespace Money.Api.Tests;
 
@@ -9,7 +14,23 @@ public class Integration
 {
     private static readonly ConcurrentBag<HttpClient> HttpClients = [];
     public static TestServer TestServer { get; private set; } = null!;
-    public static AuthData AuthData { get; private set; } = null!;
+    //public static AuthData AuthData { get; private set; } = null!;
+
+    public static DatabaseClient GetDatabaseClient()
+    {
+        var config = TestServer.Services.GetRequiredService<IConfigurationRoot>();
+        var connectionString = config.GetConnectionString("ApplicationDbContext");
+
+        Func<ApplicationDbContext> createDbContext = () =>
+        {
+            var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+            optionsBuilder.UseNpgsql(connectionString);
+            optionsBuilder.UseSnakeCaseNamingConvention();
+            var context = new ApplicationDbContext(optionsBuilder.Options);
+            return context;
+        };
+        return new DatabaseClient(createDbContext);
+    }
 
     public static HttpClient GetHttpClient()
     {
@@ -18,11 +39,19 @@ public class Integration
         return client;
     }
 
-    public static async Task<AuthData> GetAuthData()
+    public static async Task Register(string email, string password)
     {
-        string username = "bob217@mail.ru";
-        string password = "stringA123!";
-        //string password = "222Aasdasdas123123123!";
+        var aasd = JsonContent.Create(new { email = email, password = password });
+        HttpResponseMessage response = await GetHttpClient().PostAsync($"{TestServer.BaseAddress}Account/register", aasd);
+        var content = await response.Content.ReadAsStringAsync();
+        Console.WriteLine(content);
+    }
+
+    public static async Task<AuthData> GetAuthData(string username, string password)
+    {
+        //string username = "bob217@mail.ru";
+        //string password = "stringA123!";
+        ////string password = "222Aasdasdas123123123!";
 
         FormUrlEncodedContent requestContent = new([
             new KeyValuePair<string, string>("grant_type", "password"),
@@ -40,7 +69,7 @@ public class Integration
         CustomWebApplicationFactory<Program> webHostBuilder = new();
         TestServer = webHostBuilder.Server;
 
-        AuthData = await GetAuthData();
+        //AuthData = await GetAuthData();
     }
 
     [OneTimeTearDown]

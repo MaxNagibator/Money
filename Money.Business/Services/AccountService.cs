@@ -35,6 +35,7 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
         {
             AuthUserId = user.Id
         });
+        context.SaveChanges();
     }
 
     public async Task<int> EnsureUserIdAsync(Guid authUserId, CancellationToken cancellationToken = default)

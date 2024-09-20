@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Json;
+using Money.Api.Tests.TestTools;
 using Newtonsoft.Json;
 
 namespace Money.Api.Tests.ApiClient;
@@ -6,6 +7,16 @@ namespace Money.Api.Tests.ApiClient;
 public class ApiClientExecutor(HttpClient client, Action<string> log)
 {
     public ApiUser? User { get; set; }
+
+    internal void SetUser(TestUser user)
+    {
+        User = new ApiUser
+        {
+            Username = user.Login,
+            Password = user.Pasword,
+        };
+    }
+
     protected virtual string ApiPrefix => "api";
 
     protected async Task<ApiClientResponse<T>> GetAsync<T>(string uri)
@@ -34,7 +45,7 @@ public class ApiClientExecutor(HttpClient client, Action<string> log)
 
         log("method: " + method);
         log("url: " + ApiPrefix + uri);
-        SetAuthHeaders(requestMessage);
+        await SetAuthHeaders(requestMessage);
 
         if (body != null)
         {
@@ -46,22 +57,17 @@ public class ApiClientExecutor(HttpClient client, Action<string> log)
         return ProcessResponse<T>(response);
     }
 
-    private void SetAuthHeaders(HttpRequestMessage requestMessage)
+    private async Task SetAuthHeaders(HttpRequestMessage requestMessage)
     {
-        AddHeader("Authorization", "Bearer " + Integration.AuthData.AccessToken);
-        return;
-
-        //if (User != null)
-        //{
-        //    var userJson = JsonConvert.SerializeObject(User.Data);
-        //    var valueBytes = Encoding.UTF8.GetBytes(userJson);
-        //    var userHeader = Convert.ToBase64String(valueBytes);
-        //    var modulesHeader = ((int)User.Modules).ToString();
-        //    var permissionHeader = User.Permissions;
-        //    AddHeader(Headers.User, userHeader);
-        //    AddHeader(Headers.Modules, modulesHeader);
-        //    AddHeader(Headers.Permissions, permissionHeader);
-        //}
+        if (User != null)
+        {
+            if (User.Token == null)
+            {
+                var authData = await Integration.GetAuthData(User.Username, User.Password);
+                User.Token = authData.AccessToken;
+            }
+            AddHeader("Authorization", "Bearer " + User.Token);
+        }
 
         void AddHeader(string key, string value)
         {
