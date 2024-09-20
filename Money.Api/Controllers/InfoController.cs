@@ -13,13 +13,24 @@ namespace Money.Api.Controllers;
 [Route("[controller]")]
 public class InfoController(UserManager<ApplicationUser> userManager) : ControllerBase
 {
+    /// <summary>
+    ///     Получить информацию о доступе.
+    /// </summary>
+    /// <returns>Сообщение о том, что доступ разрешен.</returns>
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult Get()
     {
-        return Ok("I am Authorize");
+        return Ok("Я авторизован");
     }
 
+    /// <summary>
+    ///     Получить сообщение о пользователе.
+    /// </summary>
+    /// <returns>Сообщение с именем пользователя, если аутентификация успешна.</returns>
     [HttpGet("message")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetMessage()
     {
         ApplicationUser? user = await userManager.FindByIdAsync(User.GetClaim(OpenIddictConstants.Claims.Subject) ?? string.Empty);
@@ -31,10 +42,10 @@ public class InfoController(UserManager<ApplicationUser> userManager) : Controll
                 {
                     [OpenIddictValidationAspNetCoreConstants.Properties.Error] = OpenIddictConstants.Errors.InvalidToken,
                     [OpenIddictValidationAspNetCoreConstants.Properties.ErrorDescription] =
-                        "The specified access token is bound to an account that no longer exists."
+                        "Указанный токен доступа связан с учетной записью, которая больше не существует."
                 }));
         }
 
-        return Content($"{user.UserName} has been successfully authenticated.");
+        return Content($"{user.UserName} успешно аутентифицирован.");
     }
 }

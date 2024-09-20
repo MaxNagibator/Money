@@ -27,7 +27,7 @@ public class TestUser : TestObject
             Integration.RegisterAsync(Login, Password).Wait();
 
             Money.Data.Entities.ApplicationUser dbUser = Environment.Context.Users
-                .Single(x => string.Equals(x.UserName, Login, StringComparison.Ordinal));
+                .Single(x =>x.UserName == Login);
 
             Money.Data.Entities.DomainUser domainUser = Environment.Context.DomainUsers
                 .Single(x => x.AuthUserId == dbUser.Id);
