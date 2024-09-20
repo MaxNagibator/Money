@@ -2,17 +2,19 @@
 
 namespace Money.Business.Enums;
 
-public class PaymentTypes : Enumeration
+public class PaymentTypes(int value, string name, string description) : Enumeration(value, name)
 {
+    /// <summary>
+    ///     Расходы - 1.
+    /// </summary>
     public static readonly PaymentTypes Costs = new(1, nameof(Costs), "Расходы");
+
+    /// <summary>
+    ///     Доходы - 2.
+    /// </summary>
     public static readonly PaymentTypes Income = new(2, nameof(Income), "Доходы");
 
-    public PaymentTypes(int value, string name, string description) : base(value, name)
-    {
-        Description = description;
-    }
-
-    public string Description { get; private set; }
+    public string Description { get; private set; } = description;
 
     public static implicit operator PaymentTypes(int value)
     {

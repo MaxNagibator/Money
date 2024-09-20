@@ -24,9 +24,14 @@ public class TestUser : TestObject
     {
         if (IsNew)
         {
-            Integration.Register(Login, Password).Wait();
-            Money.Data.Entities.ApplicationUser dbUser = Environment.Context.Users.Single(x => x.UserName == Login);
-            Money.Data.Entities.DomainUser domainUser = Environment.Context.DomainUsers.Single(x => x.AuthUserId == dbUser.Id);
+            Integration.RegisterAsync(Login, Password).Wait();
+
+            Money.Data.Entities.ApplicationUser dbUser = Environment.Context.Users
+                .Single(x => string.Equals(x.UserName, Login, StringComparison.Ordinal));
+
+            Money.Data.Entities.DomainUser domainUser = Environment.Context.DomainUsers
+                .Single(x => x.AuthUserId == dbUser.Id);
+
             Id = domainUser.Id;
         }
     }

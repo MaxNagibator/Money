@@ -11,21 +11,27 @@ public class CategoryTests
     {
         DatabaseClient dbClient = Integration.GetDatabaseClient();
         TestUser user = dbClient.WithUser();
-        TestCategory firstCategory = user.WithCategory();
-        user.WithCategory();
-        user.WithCategory();
+
+        TestCategory[] categories =
+        [
+            user.WithCategory(),
+            user.WithCategory(),
+            user.WithCategory()
+        ];
+
         dbClient.Save();
 
         CategoryClient apiClient = new(Integration.GetHttpClient(), Console.WriteLine);
         apiClient.SetUser(user);
-        CategoryClient.GetCategoriesModel? result = (await apiClient.Get(1)).IsSuccess().Content;
 
+        GetCategoriesModel? result = (await apiClient.Get(1)).IsSuccess().Content;
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Categories, Is.Not.Null);
         Assert.That(result.Categories, Is.Not.Empty);
         Assert.That(result.Categories.Count, Is.EqualTo(3));
-        CategoryClient.GetCategoriesModel.CategoryValue? apiCategory = result.Categories.FirstOrDefault(x => x.Id == firstCategory.Id);
-        Assert.That(apiCategory, Is.Not.Null);
-        Assert.That(apiCategory.Name, Is.EqualTo(firstCategory.Name));
+
+        TestCategory[] testCategories = categories.ExceptBy(result.Categories.Select(x => x.Id), category => category.Id).ToArray();
+        Assert.That(testCategories, Is.Not.Null);
+        Assert.That(testCategories, Is.Empty);
     }
 }

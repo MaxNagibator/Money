@@ -1,11 +1,10 @@
 ﻿using Money.Business.Enums;
-using Money.Business.Models;
 
 namespace Money.Api.Dto;
 
 public class GetCategoriesResponse
 {
-    public GetCategoriesResponse(ICollection<PaymentCategory> business)
+    public GetCategoriesResponse(ICollection<Business.Models.PaymentCategory> business)
     {
         Categories = business.Select(x => new CategoryValue
             {

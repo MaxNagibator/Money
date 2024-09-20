@@ -9,10 +9,10 @@ public class TestCategory : TestObject
 {
     public TestCategory(TestUser user)
     {
+        User = user;
         IsNew = true;
         Name = $"P{Guid.NewGuid()}";
         PaymentType = PaymentTypes.Costs;
-        User = user;
     }
 
     /// <summary>
@@ -23,17 +23,17 @@ public class TestCategory : TestObject
     /// <summary>
     ///     Наименование.
     /// </summary>
-    public string Name { get; set; }
+    public string Name { get; }
 
     /// <summary>
     ///     Тип.
     /// </summary>
-    public PaymentTypes PaymentType { get; set; }
+    public PaymentTypes PaymentType { get; }
 
     /// <summary>
     ///     Пользователь.
     /// </summary>
-    public TestUser User { get; set; }
+    public TestUser User { get; }
 
     public override void LocalSave()
     {

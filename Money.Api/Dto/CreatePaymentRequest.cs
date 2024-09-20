@@ -1,7 +1,4 @@
-﻿using Money.Business.Enums;
-using Money.Business.Models;
-
-namespace Money.Api.Dto;
+﻿namespace Money.Api.Dto;
 
 public class CreatePaymentRequest
 {
@@ -17,9 +14,9 @@ public class CreatePaymentRequest
 
     public required int PaymentType { get; set; }
 
-    public PaymentCategory GetBusinessModel()
+    public Business.Models.PaymentCategory GetBusinessModel()
     {
-        return new PaymentCategory
+        return new Business.Models.PaymentCategory
         {
             Color = Color,
             Name = Name,

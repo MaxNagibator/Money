@@ -2,33 +2,31 @@
 
 public abstract class TestObject
 {
-    public bool IsNew { get; set; }
-    public List<TestObject>? Objects { get; set; } = [];
+    private readonly List<TestObject> _objects = [];
+
     public DatabaseClient Environment { get; private set; }
+    protected bool IsNew { get; set; }
 
     public virtual void Attach(DatabaseClient env)
     {
         Environment = env;
         AfterAttach();
-        env.TestObjects?.Add(this);
+        env.AddObject(this);
+    }
+
+    public virtual void AfterAttach()
+    {
     }
 
     public abstract void LocalSave();
 
-    internal virtual void AfterAttach()
-    {
-    }
-
-    internal TestObject SaveObject()
+    public TestObject SaveObject()
     {
         LocalSave();
 
-        if (Objects != null)
+        foreach (TestObject testObject in _objects)
         {
-            foreach (TestObject x in Objects)
-            {
-                x.SaveObject();
-            }
+            testObject.SaveObject();
         }
 
         return this;

@@ -6,8 +6,10 @@ namespace Money.Api.Tests.TestTools;
 public class DatabaseClient(Func<ApplicationDbContext> createWebDbContext)
 {
     private static readonly object LockObject = new();
-    public List<TestObject>? TestObjects = [];
+
+    private List<TestObject>? _testObjects = [];
     private ApplicationDbContext? _context;
+
     public Func<ApplicationDbContext> CreateApplicationDbContext { get; } = createWebDbContext;
     public ApplicationDbContext Context => _context ??= CreateApplicationDbContext();
 
@@ -18,14 +20,19 @@ public class DatabaseClient(Func<ApplicationDbContext> createWebDbContext)
         return obj;
     }
 
+    public void AddObject(TestObject testObject)
+    {
+        _testObjects?.Add(testObject);
+    }
+
     public DatabaseClient Save()
     {
-        if (TestObjects != null)
+        if (_testObjects != null)
         {
             // поскольку тесты в несколько потоков это выполняют, а политика партии пока не рассматривает конкаранси случаи
             lock (LockObject)
             {
-                foreach (TestObject testObject in TestObjects)
+                foreach (TestObject testObject in _testObjects)
                 {
                     testObject.SaveObject();
                 }
@@ -39,7 +46,7 @@ public class DatabaseClient(Func<ApplicationDbContext> createWebDbContext)
     {
         lock (LockObject)
         {
-            TestObjects = [];
+            _testObjects = [];
         }
 
         return this;

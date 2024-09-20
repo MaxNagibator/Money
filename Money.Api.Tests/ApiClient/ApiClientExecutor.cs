@@ -6,11 +6,11 @@ namespace Money.Api.Tests.ApiClient;
 
 public class ApiClientExecutor(HttpClient client, Action<string> log)
 {
-    public ApiUser? User { get; set; }
-
     protected virtual string ApiPrefix => "api";
 
-    internal void SetUser(TestUser user)
+    private ApiUser? User { get; set; }
+
+    public void SetUser(TestUser user)
     {
         User = new ApiUser
         {
@@ -59,16 +59,20 @@ public class ApiClientExecutor(HttpClient client, Action<string> log)
 
     private async Task SetAuthHeaders(HttpRequestMessage requestMessage)
     {
-        if (User != null)
+        if (User == null)
         {
-            if (User.Token == null)
-            {
-                AuthData authData = await Integration.GetAuthData(User.Username, User.Password);
-                User.Token = authData.AccessToken;
-            }
-
-            AddHeader("Authorization", $"Bearer {User.Token}");
+            return;
         }
+
+        if (User.Token == null)
+        {
+            AuthData authData = await Integration.LoginAsync(User.Username, User.Password);
+            User.Token = authData.AccessToken;
+        }
+
+        AddHeader("Authorization", $"Bearer {User.Token}");
+
+        return;
 
         void AddHeader(string key, string value)
         {
