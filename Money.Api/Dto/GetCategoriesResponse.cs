@@ -1,11 +1,17 @@
 ﻿using Money.Business.Enums;
-using Money.Business.Models;
 
 namespace Money.Api.Dto;
 
+/// <summary>
+///     Ответ на запрос получения категорий.
+/// </summary>
 public class GetCategoriesResponse
 {
-    public GetCategoriesResponse(ICollection<PaymentCategory> business)
+    /// <summary>
+    ///     Инициализирует новый экземпляр класса <see cref="GetCategoriesResponse" />.
+    /// </summary>
+    /// <param name="business">Список бизнес-моделей категорий платежей.</param>
+    public GetCategoriesResponse(ICollection<Business.Models.PaymentCategory> business)
     {
         Categories = business.Select(x => new CategoryValue
             {
@@ -19,20 +25,44 @@ public class GetCategoriesResponse
             .ToArray();
     }
 
+    /// <summary>
+    ///     Категории.
+    /// </summary>
     public CategoryValue[] Categories { get; set; }
 
+    /// <summary>
+    ///    Категория платежа.
+    /// </summary>
     public class CategoryValue
     {
+        /// <summary>
+        ///     Идентификатор категории.
+        /// </summary>
         public int Id { get; set; }
 
+        /// <summary>
+        ///     Название категории.
+        /// </summary>
         public required string Name { get; set; }
 
+        /// <summary>
+        ///     Идентификатор родительской категории (если есть).
+        /// </summary>
         public int? ParentId { get; set; }
 
+        /// <summary>
+        ///     Порядок отображения категории.
+        /// </summary>
         public int? Order { get; set; }
 
+        /// <summary>
+        ///     Цвет категории.
+        /// </summary>
         public string? Color { get; set; }
 
-        public PaymentTypes PaymentType { get; set; }
+        /// <summary>
+        ///     Тип платежа.
+        /// </summary>
+        public required PaymentTypes PaymentType { get; set; }
     }
 }

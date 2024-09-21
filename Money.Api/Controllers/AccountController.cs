@@ -9,16 +9,27 @@ namespace Money.Api.Controllers;
 [Route("[controller]")]
 public class AccountController(AccountService accountService) : ControllerBase
 {
+    /// <summary>
+    ///     Регистрация нового пользователя.
+    /// </summary>
+    /// <remarks>
+    ///     Этот метод позволяет зарегистрировать нового пользователя в системе.
+    /// </remarks>
+    /// <param name="model">Модель регистрации, содержащая данные пользователя.</param>
+    /// <param name="cancellationToken">Токен отмены.</param>
+    /// <returns>Статус выполнения операции.</returns>
     [HttpPost("register")]
     [AllowAnonymous]
-    public async Task<IActionResult> Register([FromBody] RegisterViewModel model)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Register([FromBody] RegisterViewModel model, CancellationToken cancellationToken)
     {
         if (ModelState.IsValid == false)
         {
             return BadRequest(ModelState);
         }
 
-        await accountService.RegisterAsync(model);
+        await accountService.RegisterAsync(model, cancellationToken);
         return Ok();
     }
 }

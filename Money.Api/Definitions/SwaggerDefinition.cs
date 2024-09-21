@@ -1,4 +1,5 @@
-﻿using Microsoft.Net.Http.Headers;
+﻿using System.Reflection;
+using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
 using Money.Api.Definitions.Base;
 
@@ -12,6 +13,17 @@ public class SwaggerDefinition : AppDefinition
 
         builder.Services.AddSwaggerGen(options =>
         {
+            options.SwaggerDoc("v1", new OpenApiInfo
+            {
+                Title = "Money API",
+                Version = "v1",
+                Description = "API для управления финансами"
+            });
+
+            string xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+            string xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+            options.IncludeXmlComments(xmlPath);
+
             options.ResolveConflictingActions(descriptions => descriptions.First());
 
             options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme

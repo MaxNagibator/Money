@@ -9,7 +9,7 @@ namespace Money.Business.Services;
 
 public class AccountService(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
 {
-    public async Task RegisterAsync(RegisterViewModel model)
+    public async Task RegisterAsync(RegisterViewModel model, CancellationToken cancellationToken = default)
     {
         ApplicationUser? user = await userManager.FindByNameAsync(model.Email);
 
@@ -34,8 +34,9 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
         await context.DomainUsers.AddAsync(new DomainUser
         {
             AuthUserId = user.Id
-        });
-        context.SaveChanges();
+        }, cancellationToken);
+
+        await context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<int> EnsureUserIdAsync(Guid authUserId, CancellationToken cancellationToken = default)

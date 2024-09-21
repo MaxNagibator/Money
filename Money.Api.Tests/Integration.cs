@@ -13,23 +13,24 @@ namespace Money.Api.Tests;
 public class Integration
 {
     private static readonly ConcurrentBag<HttpClient> HttpClients = [];
+
     public static TestServer TestServer { get; private set; } = null!;
-    //public static AuthData AuthData { get; private set; } = null!;
 
     public static DatabaseClient GetDatabaseClient()
     {
-        var config = TestServer.Services.GetRequiredService<IConfigurationRoot>();
-        var connectionString = config.GetConnectionString("ApplicationDbContext");
+        IConfigurationRoot config = TestServer.Services.GetRequiredService<IConfigurationRoot>();
+        string? connectionString = config.GetConnectionString(nameof(ApplicationDbContext));
 
-        Func<ApplicationDbContext> createDbContext = () =>
+        return new DatabaseClient(CreateDbContext);
+
+        ApplicationDbContext CreateDbContext()
         {
-            var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+            DbContextOptionsBuilder<ApplicationDbContext> optionsBuilder = new();
             optionsBuilder.UseNpgsql(connectionString);
             optionsBuilder.UseSnakeCaseNamingConvention();
-            var context = new ApplicationDbContext(optionsBuilder.Options);
+            ApplicationDbContext context = new(optionsBuilder.Options);
             return context;
-        };
-        return new DatabaseClient(createDbContext);
+        }
     }
 
     public static HttpClient GetHttpClient()
@@ -39,37 +40,33 @@ public class Integration
         return client;
     }
 
-    public static async Task Register(string email, string password)
+    public static async Task RegisterAsync(string email, string password)
     {
-        var aasd = JsonContent.Create(new { email = email, password = password });
-        HttpResponseMessage response = await GetHttpClient().PostAsync($"{TestServer.BaseAddress}Account/register", aasd);
-        var content = await response.Content.ReadAsStringAsync();
+        JsonContent user = JsonContent.Create(new { email, password });
+
+        HttpResponseMessage response = await GetHttpClient().PostAsync("Account/register", user);
+        string content = await response.Content.ReadAsStringAsync();
+
         Console.WriteLine(content);
     }
 
-    public static async Task<AuthData> GetAuthData(string username, string password)
+    public static async Task<AuthData> LoginAsync(string username, string password)
     {
-        //string username = "bob217@mail.ru";
-        //string password = "stringA123!";
-        ////string password = "222Aasdasdas123123123!";
-
         FormUrlEncodedContent requestContent = new([
             new KeyValuePair<string, string>("grant_type", "password"),
             new KeyValuePair<string, string>("username", username),
             new KeyValuePair<string, string>("password", password)
         ]);
 
-        HttpResponseMessage response = await GetHttpClient().PostAsync($"{TestServer.BaseAddress}connect/token", requestContent);
+        HttpResponseMessage response = await GetHttpClient().PostAsync("connect/token", requestContent);
         return await response.Content.ReadFromJsonAsync<AuthData>() ?? throw new InvalidOperationException();
     }
 
     [OneTimeSetUp]
-    public async Task OneTimeSetUp()
+    public void OneTimeSetUp()
     {
         CustomWebApplicationFactory<Program> webHostBuilder = new();
         TestServer = webHostBuilder.Server;
-
-        //AuthData = await GetAuthData();
     }
 
     [OneTimeTearDown]

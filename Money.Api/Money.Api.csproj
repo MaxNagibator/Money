@@ -7,6 +7,11 @@
         <UserSecretsId>aspnet-Money.Api-26398e04-77b1-49a9-8839-7af63f49f8bc</UserSecretsId>
     </PropertyGroup>
 
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+        <DocumentationFile>bin\Debug\Money.Api.xml</DocumentationFile>
+        <NoWarn>1701;1702;1591</NoWarn>
+    </PropertyGroup>
+
     <ItemGroup>
         <PackageReference Include="EFCore.NamingConventions" Version="8.0.3" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.8" NoWarn="NU1605" />
@@ -19,6 +24,7 @@
         <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="8.0.8" />
         <PackageReference Include="Microsoft.Identity.Web" Version="3.1.0" />
         <PackageReference Include="Microsoft.Identity.Web.DownstreamApi" Version="3.1.0" />
+        <PackageReference Include="Microsoft.OpenApi" Version="1.6.21" />
         <PackageReference Include="NLog.Schema" Version="5.3.4" />
         <PackageReference Include="NLog.Web.AspNetCore" Version="5.3.13" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.4" />
