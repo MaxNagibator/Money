@@ -4,6 +4,7 @@ using Money.Business.Models;
 using Money.Common.Exceptions;
 using Money.Data;
 using Money.Data.Entities;
+using Money.Data.Extensions;
 
 namespace Money.Business.Services;
 
@@ -11,7 +12,7 @@ public class PaymentCategoryService(RequestEnvironment environment, ApplicationD
 {
     public async Task<ICollection<PaymentCategory>> GetAsync(PaymentTypes? type = null, CancellationToken cancellationToken = default)
     {
-        IQueryable<Category> query = context.Categories.Where(x => x.UserId == environment.UserId);
+        IQueryable<Category> query = context.Categories.IsUserEntity(environment.UserId);
 
         if (type != null)
         {
@@ -31,18 +32,15 @@ public class PaymentCategoryService(RequestEnvironment environment, ApplicationD
 
     public async Task<PaymentCategory> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
-        Category? dbCategory = await GetByIdInternal(id, cancellationToken);
-        var category = MapTo(dbCategory);
+        Category dbCategory = await GetByIdInternal(id, cancellationToken);
+        PaymentCategory category = MapTo(dbCategory);
         return category;
     }
 
     private async Task<Category> GetByIdInternal(int id, CancellationToken cancellationToken)
     {
-        var dbCategory = await context.Categories.SingleOrDefaultAsync(x => x.Id == id && x.UserId == environment.UserId && x.IsDeleted == false, cancellationToken);
-        if (dbCategory == null)
-        {
-            throw new NotFoundException("Категория не найдена");
-        }
+        Category dbCategory = await context.Categories.SingleOrDefaultAsync(environment.UserId, id, cancellationToken)
+                              ?? throw new NotFoundException("Категория не найдена");
 
         return dbCategory;
     }
@@ -70,7 +68,9 @@ public class PaymentCategoryService(RequestEnvironment environment, ApplicationD
 
         if (category.ParentId != null)
         {
-            bool hasCategory = await context.Categories.AnyAsync(x => x.UserId == environment.UserId && x.Id == category.ParentId && x.TypeId == category.PaymentType, cancellationToken);
+            bool hasCategory = await context.Categories
+                .IsUserEntity(environment.UserId, category.ParentId)
+                .AnyAsync(x => x.TypeId == category.PaymentType, cancellationToken);
 
             if (hasCategory == false)
             {
@@ -107,6 +107,6 @@ public class PaymentCategoryService(RequestEnvironment environment, ApplicationD
     {
         Category dbCategory = await GetByIdInternal(id, cancellationToken);
         dbCategory.IsDeleted = true;
-        context.SaveChanges();
+        await context.SaveChangesAsync(cancellationToken);
     }
 }
