@@ -86,6 +86,7 @@ public class ApiClientExecutor(HttpClient client, Action<string> log)
         using StreamReader responseStreamReader = new(response.Content.ReadAsStream());
 
         string responseContent = responseStreamReader.ReadToEnd();
+        log("response: " + responseContent);
         return new ApiClientResponse<T>(response.StatusCode, responseContent);
     }
 }

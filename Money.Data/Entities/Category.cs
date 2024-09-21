@@ -32,4 +32,6 @@ public class Category
     public int? Order { get; set; }
 
     public DomainUser? User { get; set; }
+
+    public bool IsDeleted { get; set; }
 }

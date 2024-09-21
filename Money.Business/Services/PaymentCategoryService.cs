@@ -23,7 +23,33 @@ public class PaymentCategoryService(RequestEnvironment environment, ApplicationD
             .ThenBy(x => x.Name)
             .ToListAsync(cancellationToken);
 
-        List<PaymentCategory> categories = dbCategories.Select(dbCategory => new PaymentCategory
+        List<PaymentCategory> categories = dbCategories.Select(MapTo)
+            .ToList();
+
+        return categories;
+    }
+
+    public async Task<PaymentCategory> GetByIdAsync(int id, CancellationToken cancellationToken)
+    {
+        Category? dbCategory = await GetByIdInternal(id, cancellationToken);
+        var category = MapTo(dbCategory);
+        return category;
+    }
+
+    private async Task<Category> GetByIdInternal(int id, CancellationToken cancellationToken)
+    {
+        var dbCategory = await context.Categories.SingleOrDefaultAsync(x => x.Id == id && x.UserId == environment.UserId && x.IsDeleted == false, cancellationToken);
+        if (dbCategory == null)
+        {
+            throw new NotFoundException("Категория не найдена");
+        }
+
+        return dbCategory;
+    }
+
+    private PaymentCategory MapTo(Category dbCategory)
+    {
+        return new PaymentCategory
         {
             Id = dbCategory.Id,
             Name = dbCategory.Name,
@@ -32,10 +58,7 @@ public class PaymentCategoryService(RequestEnvironment environment, ApplicationD
             ParentId = dbCategory.ParentId,
             Order = dbCategory.Order,
             PaymentType = dbCategory.TypeId
-        })
-            .ToList();
-
-        return categories;
+        };
     }
 
     public async Task<int> CreateAsync(PaymentCategory category, CancellationToken cancellationToken = default)
@@ -78,5 +101,12 @@ public class PaymentCategoryService(RequestEnvironment environment, ApplicationD
         await context.Categories.AddAsync(dbCategory, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
         return categoryId;
+    }
+
+    public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
+    {
+        Category dbCategory = await GetByIdInternal(id, cancellationToken);
+        dbCategory.IsDeleted = true;
+        context.SaveChanges();
     }
 }

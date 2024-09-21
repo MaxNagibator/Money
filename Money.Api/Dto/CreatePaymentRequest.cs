@@ -31,9 +31,9 @@ public class CreatePaymentRequest
     public string? Description { get; set; }
 
     /// <summary>
-    ///     Тип платежа.
+    ///     Илентификатор типа платежа.
     /// </summary>
-    public required int PaymentType { get; set; }
+    public required int PaymentTypeId { get; set; }
 
     /// <summary>
     ///     Преобразует текущую модель в бизнес-модель.
@@ -47,7 +47,7 @@ public class CreatePaymentRequest
             Name = Name,
             Order = Order,
             Description = Description,
-            PaymentType = PaymentType,
+            PaymentType = PaymentTypeId,
             ParentId = ParentId
         };
     }

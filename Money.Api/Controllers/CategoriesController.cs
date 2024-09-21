@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Money.Api.Dto;
 using Money.Business.Services;
 using OpenIddict.Validation.AspNetCore;
+using System.Threading;
 
 namespace Money.Api.Controllers;
 
@@ -19,25 +20,27 @@ public class CategoriesController(ILogger<CategoriesController> logger, PaymentC
     /// <returns>Список категорий платежей.</returns>
     [HttpGet]
     [Route("")]
-    [ProducesResponseType(typeof(GetCategoriesResponse), StatusCodes.Status200OK)]
-    public async Task<GetCategoriesResponse> Get([FromQuery] int? type, CancellationToken cancellationToken)
+    [ProducesResponseType(typeof(CategoryDto[]), StatusCodes.Status200OK)]
+    public async Task<CategoryDto[]> Get([FromQuery] int? type, CancellationToken cancellationToken)
     {
         ICollection<Business.Models.PaymentCategory> categories = await paymentCategoryService.GetAsync(type, cancellationToken);
-        return new GetCategoriesResponse(categories);
+        return categories.Select(x => new CategoryDto(x)).ToArray();
     }
 
     /// <summary>
     ///     Получить категорию платежа по идентификатору.
     /// </summary>
     /// <param name="id">Идентификатор категории.</param>
+    /// <param name="cancellationToken">Токен отмены.</param>
     /// <returns>Информация о категории.</returns>
     [HttpGet]
-    [Route("{id:guid}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [Route("{id:int}")]
+    [ProducesResponseType(typeof(CategoryDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public string GetById(Guid id)
+    public async Task<CategoryDto> GetById(int id, CancellationToken cancellationToken)
     {
-        return "byid" + id;
+        Business.Models.PaymentCategory category = await paymentCategoryService.GetByIdAsync(id, cancellationToken);
+        return new CategoryDto(category);
     }
 
     /// <summary>
@@ -60,11 +63,12 @@ public class CategoriesController(ILogger<CategoriesController> logger, PaymentC
     ///     Обновить существующую категорию платежа.
     /// </summary>
     /// <param name="id">Идентификатор категории.</param>
+    /// <param name="cancellationToken">Токен отмены.</param>
     /// <returns>Сообщение об обновлении.</returns>
     [HttpPut]
     [Route("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public string Update(Guid id)
+    public string Update(Guid id, CancellationToken cancellationToken)
     {
         return "update";
     }
@@ -73,12 +77,14 @@ public class CategoriesController(ILogger<CategoriesController> logger, PaymentC
     ///     Удалить категорию платежа по идентификатору.
     /// </summary>
     /// <param name="id">Идентификатор категории.</param>
+    /// <param name="cancellationToken">Токен отмены.</param>
     /// <returns>Сообщение об удалении.</returns>
     [HttpDelete]
-    [Route("{id:guid}")]
+    [Route("{id:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public string Delete(Guid id)
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task Delete(int id, CancellationToken cancellationToken)
     {
-        return "delete";
+        await paymentCategoryService.DeleteAsync(id, cancellationToken);
     }
 }
