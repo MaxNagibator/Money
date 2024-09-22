@@ -1,23 +1,11 @@
-﻿using System.Net.Http.Json;
-using Money.Api.Tests.TestTools.Entities;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
+using System.Net.Http.Json;
 
-namespace Money.Api.Tests.ApiClient;
+namespace Money.Api.Tests;
 
-public class ApiClientExecutor(HttpClient client, Action<string> log)
+public class ApiClientExecutor(ApiClient apiClient)
 {
     protected virtual string ApiPrefix => "api";
-
-    private ApiUser? User { get; set; }
-
-    public void SetUser(TestUser user)
-    {
-        User = new ApiUser
-        {
-            Username = user.Login,
-            Password = user.Password
-        };
-    }
 
     protected async Task<ApiClientResponse<T>> GetAsync<T>(string uri)
     {
@@ -43,40 +31,40 @@ public class ApiClientExecutor(HttpClient client, Action<string> log)
     {
         using HttpRequestMessage requestMessage = new(method, $"{ApiPrefix}{uri}");
 
-        log($"method: {method}");
-        log($"url: {ApiPrefix}{uri}");
+        apiClient.Log($"method: {method}");
+        apiClient.Log($"url: {ApiPrefix}{uri}");
         await SetAuthHeaders(requestMessage);
 
         if (body != null)
         {
             requestMessage.Content = JsonContent.Create(body);
-            log($"body: {JsonConvert.SerializeObject(body)}");
+            apiClient.Log($"body: {JsonConvert.SerializeObject(body)}");
         }
 
-        HttpResponseMessage response = await client.SendAsync(requestMessage);
+        HttpResponseMessage response = await apiClient.HttpClient.SendAsync(requestMessage);
         return ProcessResponse<T>(response);
     }
 
     private async Task SetAuthHeaders(HttpRequestMessage requestMessage)
     {
-        if (User == null)
+        if (apiClient.User == null)
         {
             return;
         }
 
-        if (User.Token == null)
+        if (apiClient.User.Token == null)
         {
-            AuthData authData = await Integration.LoginAsync(User.Username, User.Password);
-            User.Token = authData.AccessToken;
+            AuthData authData = await apiClient.LoginAsync(apiClient.User.Username, apiClient.User.Password);
+            apiClient.User.Token = authData.AccessToken;
         }
 
-        AddHeader("Authorization", $"Bearer {User.Token}");
+        AddHeader("Authorization", $"Bearer {apiClient.User.Token}");
 
         return;
 
         void AddHeader(string key, string value)
         {
-            log($"{key}: {value}");
+            apiClient.Log($"{key}: {value}");
             requestMessage.Headers.Add(key, value);
         }
     }
@@ -86,7 +74,7 @@ public class ApiClientExecutor(HttpClient client, Action<string> log)
         using StreamReader responseStreamReader = new(response.Content.ReadAsStream());
 
         string responseContent = responseStreamReader.ReadToEnd();
-        log("response: " + responseContent);
+        apiClient.Log("response: " + responseContent);
         return new ApiClientResponse<T>(response.StatusCode, responseContent);
     }
 }

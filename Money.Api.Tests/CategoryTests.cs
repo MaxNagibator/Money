@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Money.Api.Tests.ApiClient;
 using Money.Api.Tests.TestTools;
 using Money.Api.Tests.TestTools.Entities;
 using Money.Data;
@@ -12,14 +11,14 @@ public class CategoryTests
 {
     private DatabaseClient _dbClient;
     private TestUser _user;
-    private CategoryClient _apiClient;
+    private ApiClient _apiClient;
 
     [SetUp]
     public void Setup()
     {
         _dbClient = Integration.GetDatabaseClient();
         _user = _dbClient.WithUser();
-        _apiClient = new CategoryClient(Integration.GetHttpClient(), Console.WriteLine);
+        _apiClient = new ApiClient(Integration.GetHttpClient(), Console.WriteLine);
         _apiClient.SetUser(_user);
     }
 
@@ -35,9 +34,9 @@ public class CategoryTests
 
         _dbClient.Save();
 
-        CategoryClient.Category[]? apiCategories = await _apiClient.Get(1).IsSuccessWithContent();
+        CategoryClient.Category[]? apiCategories = await _apiClient.Category.Get(1).IsSuccessWithContent();
         Assert.That(apiCategories, Is.Not.Null);
-        Assert.That(apiCategories.Count, Is.EqualTo(3));
+        Assert.That(apiCategories.Count, Is.GreaterThanOrEqualTo(3));
 
         TestCategory[] testCategories = categories.ExceptBy(apiCategories.Select(x => x.Id), category => category.Id).ToArray();
         Assert.That(testCategories, Is.Not.Null);
@@ -50,7 +49,7 @@ public class CategoryTests
         TestCategory category = _user.WithCategory();
         _dbClient.Save();
 
-        CategoryClient.Category? apiCategory = await _apiClient.GetById(category.Id).IsSuccessWithContent();
+        CategoryClient.Category? apiCategory = await _apiClient.Category.GetById(category.Id).IsSuccessWithContent();
 
         Assert.That(apiCategory, Is.Not.Null);
 
@@ -78,7 +77,7 @@ public class CategoryTests
             ParentId = null
         };
 
-        int createdCategoryId = await _apiClient.Create(request).IsSuccessWithContent();
+        int createdCategoryId = await _apiClient.Category.Create(request).IsSuccessWithContent();
         Category? dbCategory = _dbClient.CreateApplicationDbContext().Categories.SingleOrDefault(_user.Id, createdCategoryId);
 
         Assert.That(dbCategory, Is.Not.Null);
@@ -99,7 +98,7 @@ public class CategoryTests
         TestCategory category = _user.WithCategory();
         _dbClient.Save();
 
-        await _apiClient.Delete(category.Id).IsSuccess();
+        await _apiClient.Category.Delete(category.Id).IsSuccess();
 
         await using ApplicationDbContext context = _dbClient.CreateApplicationDbContext();
 

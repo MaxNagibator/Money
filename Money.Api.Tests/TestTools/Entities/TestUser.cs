@@ -24,7 +24,7 @@ public class TestUser : TestObject
     {
         if (IsNew)
         {
-            Integration.RegisterAsync(Login, Password).Wait();
+            Environment.ApiClient.RegisterAsync(Login, Password).Wait();
 
             Money.Data.Entities.ApplicationUser dbUser = Environment.Context.Users
                 .Single(x =>x.UserName == Login);

@@ -3,7 +3,7 @@ using Money.Data;
 
 namespace Money.Api.Tests.TestTools;
 
-public class DatabaseClient(Func<ApplicationDbContext> createWebDbContext)
+public class DatabaseClient(Func<ApplicationDbContext> createWebDbContext, ApiClient apiClient)
 {
     private static readonly object LockObject = new();
 
@@ -12,6 +12,7 @@ public class DatabaseClient(Func<ApplicationDbContext> createWebDbContext)
 
     public Func<ApplicationDbContext> CreateApplicationDbContext { get; } = createWebDbContext;
     public ApplicationDbContext Context => _context ??= CreateApplicationDbContext();
+    public ApiClient ApiClient { get; } = apiClient;
 
     public TestUser WithUser()
     {

@@ -1,9 +1,6 @@
-﻿using Money.Api.Tests.ApiClient;
-using Money.Business.Enums;
+﻿namespace Money.Api.Tests;
 
-namespace Money.Api.Tests;
-
-public class CategoryClient(HttpClient client, Action<string> log) : ApiClientExecutor(client, log)
+public class CategoryClient(ApiClient apiClient) : ApiClientExecutor(apiClient)
 {
     protected override string ApiPrefix => "";
 

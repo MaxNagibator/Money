@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace Money.Api.Tests.ApiClient;
+namespace Money.Api.Tests;
 
 public static class ApiClientExtensions
 {

@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using Newtonsoft.Json;
 
-namespace Money.Api.Tests.ApiClient;
+namespace Money.Api.Tests;
 
 public class ApiClientResponse(HttpStatusCode code, string content)
 {

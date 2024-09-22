@@ -21,7 +21,7 @@ public class Integration
         IConfigurationRoot config = TestServer.Services.GetRequiredService<IConfigurationRoot>();
         string? connectionString = config.GetConnectionString(nameof(ApplicationDbContext));
 
-        return new DatabaseClient(CreateDbContext);
+        return new DatabaseClient(CreateDbContext, new ApiClient(GetHttpClient(), Console.WriteLine));
 
         ApplicationDbContext CreateDbContext()
         {
@@ -38,28 +38,6 @@ public class Integration
         HttpClient client = TestServer.CreateClient();
         HttpClients.Add(client);
         return client;
-    }
-
-    public static async Task RegisterAsync(string email, string password)
-    {
-        JsonContent user = JsonContent.Create(new { email, password });
-
-        HttpResponseMessage response = await GetHttpClient().PostAsync("Account/register", user);
-        string content = await response.Content.ReadAsStringAsync();
-
-        Console.WriteLine(content);
-    }
-
-    public static async Task<AuthData> LoginAsync(string username, string password)
-    {
-        FormUrlEncodedContent requestContent = new([
-            new KeyValuePair<string, string>("grant_type", "password"),
-            new KeyValuePair<string, string>("username", username),
-            new KeyValuePair<string, string>("password", password)
-        ]);
-
-        HttpResponseMessage response = await GetHttpClient().PostAsync("connect/token", requestContent);
-        return await response.Content.ReadFromJsonAsync<AuthData>() ?? throw new InvalidOperationException();
     }
 
     [OneTimeSetUp]
