@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Money.Data.Entities;
 
 [PrimaryKey(nameof(UserId), nameof(Id))]
-public class Category
+public class Category : IUserEntity
 {
     [Key]
     [Column(Order = 1)]

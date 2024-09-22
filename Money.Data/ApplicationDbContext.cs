@@ -8,4 +8,11 @@ public class ApplicationDbContext(DbContextOptions options) : IdentityDbContext<
 {
     public DbSet<Category> Categories { get; set; } = null!;
     public DbSet<DomainUser> DomainUsers { get; set; } = null!;
+
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        base.OnModelCreating(builder);
+
+        builder.Entity<Category>().HasQueryFilter(category => category.IsDeleted == false);
+    }
 }

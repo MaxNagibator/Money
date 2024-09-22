@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Money.Api.Dto;
 using Money.Business.Services;
 using OpenIddict.Validation.AspNetCore;
-using System.Threading;
 
 namespace Money.Api.Controllers;
 
