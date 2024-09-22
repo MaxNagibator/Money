@@ -10,7 +10,7 @@
     <AuthorizeView>
         <Authorized>
             <MudNavLink Href="Account/Manage" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">@context.User.Identity?.Name</MudNavLink>
-            <form action="Account/Logout" method="post">
+            <form action="Account/Logout" method="get">
                 <AntiforgeryToken />
                 <input type="hidden" name="ReturnUrl" value="@currentUrl" />
                 <button type="submit" class="mud-nav-link mud-ripple">
