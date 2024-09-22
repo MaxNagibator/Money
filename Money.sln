@@ -11,9 +11,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Money.Business", "Money.Bus
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Money.Data", "Money.Data\Money.Data.csproj", "{1A0720C5-82DA-450B-A944-7FBFBA85AE99}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Money.Api.Tests", "Money.Api.Tests\Money.Api.Tests.csproj", "{43C1ECF1-FE0E-4431-BF47-A5A668566114}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Money.Api.Tests", "Money.Api.Tests\Money.Api.Tests.csproj", "{43C1ECF1-FE0E-4431-BF47-A5A668566114}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{C048BFE0-0921-416E-999C-2DDE4D278C93}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UI", "UI", "{F53F7CCA-C10D-4E54-B1AC-CB4819113AEC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Money.Web", "Money.Web\Money.Web.csproj", "{D5B7A211-E1F1-4779-A287-7DA71E06F750}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,12 +45,17 @@ Global
 		{43C1ECF1-FE0E-4431-BF47-A5A668566114}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{43C1ECF1-FE0E-4431-BF47-A5A668566114}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{43C1ECF1-FE0E-4431-BF47-A5A668566114}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5B7A211-E1F1-4779-A287-7DA71E06F750}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5B7A211-E1F1-4779-A287-7DA71E06F750}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5B7A211-E1F1-4779-A287-7DA71E06F750}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5B7A211-E1F1-4779-A287-7DA71E06F750}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{43C1ECF1-FE0E-4431-BF47-A5A668566114} = {C048BFE0-0921-416E-999C-2DDE4D278C93}
+		{D5B7A211-E1F1-4779-A287-7DA71E06F750} = {F53F7CCA-C10D-4E54-B1AC-CB4819113AEC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E7847BC1-7435-4940-AAFD-270B882B1486}
