@@ -1,7 +1,7 @@
 ﻿using System.Net;
-using Newtonsoft.Json;
+using System.Text.Json;
 
-namespace Money.Api.Tests;
+namespace Money.ApiClient;
 
 public class ApiClientResponse(HttpStatusCode code, string content)
 {
@@ -24,7 +24,7 @@ public class ApiClientResponse<T>(HttpStatusCode code, string content) : ApiClie
                 return (T)Convert.ChangeType(StringContent, typeof(T));
             }
 
-            return JsonConvert.DeserializeObject<T>(StringContent);
+            return JsonSerializer.Deserialize<T>(StringContent, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
         }
     }
 }

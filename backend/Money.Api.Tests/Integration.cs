@@ -1,11 +1,11 @@
-using System.Collections.Concurrent;
-using System.Net.Http.Json;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Money.Api.Tests.TestTools;
+using Money.ApiClient;
 using Money.Data;
+using System.Collections.Concurrent;
 
 namespace Money.Api.Tests;
 
@@ -21,7 +21,7 @@ public class Integration
         IConfigurationRoot config = TestServer.Services.GetRequiredService<IConfigurationRoot>();
         string? connectionString = config.GetConnectionString(nameof(ApplicationDbContext));
 
-        return new DatabaseClient(CreateDbContext, new ApiClient(GetHttpClient(), Console.WriteLine));
+        return new DatabaseClient(CreateDbContext, new MoneyClient(GetHttpClient(), Console.WriteLine));
 
         ApplicationDbContext CreateDbContext()
         {

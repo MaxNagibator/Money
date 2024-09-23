@@ -1,4 +1,4 @@
-﻿namespace Money.Api.Tests;
+﻿namespace Money.ApiClient;
 
 public class ApiUser
 {

@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Money.Api.Tests;
+namespace Money.ApiClient;
 
 public record AuthData(
     [property: JsonPropertyName("access_token")]

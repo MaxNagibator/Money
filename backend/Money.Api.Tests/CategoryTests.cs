@@ -4,6 +4,7 @@ using Money.Api.Tests.TestTools.Entities;
 using Money.Data;
 using Money.Data.Entities;
 using Money.Data.Extensions;
+using Money.ApiClient;
 
 namespace Money.Api.Tests;
 
@@ -11,14 +12,14 @@ public class CategoryTests
 {
     private DatabaseClient _dbClient;
     private TestUser _user;
-    private ApiClient _apiClient;
+    private MoneyClient _apiClient;
 
     [SetUp]
     public void Setup()
     {
         _dbClient = Integration.GetDatabaseClient();
         _user = _dbClient.WithUser();
-        _apiClient = new ApiClient(Integration.GetHttpClient(), Console.WriteLine);
+        _apiClient = new MoneyClient(Integration.GetHttpClient(), Console.WriteLine);
         _apiClient.SetUser(_user);
     }
 

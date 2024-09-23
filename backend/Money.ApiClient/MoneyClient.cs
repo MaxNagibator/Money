@@ -1,27 +1,26 @@
-﻿using Money.Api.Tests.TestTools.Entities;
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 
-namespace Money.Api.Tests;
+namespace Money.ApiClient;
 
-public class ApiClient
+public class MoneyClient
 {
     public ApiUser? User { get; set; }
     public Action<string> Log;
     public HttpClient HttpClient;
 
-    public ApiClient(HttpClient client, Action<string> log)
+    public MoneyClient(HttpClient client, Action<string> log)
     {
         HttpClient = client;
         Log = log;
         Category = new CategoryClient(this);
     }
 
-    public void SetUser(TestUser user)
+    public void SetUser(string login, string password)
     {
         User = new ApiUser
         {
-            Username = user.Login,
-            Password = user.Password
+            Username = login,
+            Password = password,
         };
     }
 

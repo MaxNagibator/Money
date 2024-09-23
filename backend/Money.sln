@@ -15,6 +15,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Money.Api.Tests", "Money.Ap
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{C048BFE0-0921-416E-999C-2DDE4D278C93}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Money.ApiClient", "Money.ApiClient\Money.ApiClient.csproj", "{6412D321-7428-4A0F-946B-1C88E2ED524D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,12 +43,17 @@ Global
 		{43C1ECF1-FE0E-4431-BF47-A5A668566114}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{43C1ECF1-FE0E-4431-BF47-A5A668566114}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{43C1ECF1-FE0E-4431-BF47-A5A668566114}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6412D321-7428-4A0F-946B-1C88E2ED524D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6412D321-7428-4A0F-946B-1C88E2ED524D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6412D321-7428-4A0F-946B-1C88E2ED524D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6412D321-7428-4A0F-946B-1C88E2ED524D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{43C1ECF1-FE0E-4431-BF47-A5A668566114} = {C048BFE0-0921-416E-999C-2DDE4D278C93}
+		{6412D321-7428-4A0F-946B-1C88E2ED524D} = {C048BFE0-0921-416E-999C-2DDE4D278C93}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E7847BC1-7435-4940-AAFD-270B882B1486}

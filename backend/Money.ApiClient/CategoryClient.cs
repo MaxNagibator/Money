@@ -1,6 +1,8 @@
-﻿namespace Money.Api.Tests;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
-public class CategoryClient(ApiClient apiClient) : ApiClientExecutor(apiClient)
+namespace Money.ApiClient;
+
+public class CategoryClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
 {
     protected override string ApiPrefix => "";
 
@@ -27,7 +29,7 @@ public class CategoryClient(ApiClient apiClient) : ApiClientExecutor(apiClient)
 
     public class CreateCategoryRequest
     {
-        public required string Name { get; set; }
+        public string? Name { get; set; }
 
         public int? ParentId { get; set; }
 
@@ -42,7 +44,7 @@ public class CategoryClient(ApiClient apiClient) : ApiClientExecutor(apiClient)
     {
         public int Id { get; set; }
 
-        public required string Name { get; set; }
+        public string? Name { get; set; }
 
         public int? ParentId { get; set; }
 

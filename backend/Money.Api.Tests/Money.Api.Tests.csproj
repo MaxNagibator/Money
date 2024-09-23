@@ -45,11 +45,16 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Money.ApiClient\Money.ApiClient.csproj" />
         <ProjectReference Include="..\Money.Api\Money.Api.csproj" />
     </ItemGroup>
 
     <ItemGroup>
         <Using Include="NUnit.Framework" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="ApiClient\" />
     </ItemGroup>
 
 </Project>

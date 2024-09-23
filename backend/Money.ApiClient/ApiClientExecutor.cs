@@ -1,9 +1,9 @@
-﻿using Newtonsoft.Json;
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
+using System.Text.Json;
 
-namespace Money.Api.Tests;
+namespace Money.ApiClient;
 
-public class ApiClientExecutor(ApiClient apiClient)
+public class ApiClientExecutor(MoneyClient apiClient)
 {
     protected virtual string ApiPrefix => "api";
 
@@ -38,7 +38,7 @@ public class ApiClientExecutor(ApiClient apiClient)
         if (body != null)
         {
             requestMessage.Content = JsonContent.Create(body);
-            apiClient.Log($"body: {JsonConvert.SerializeObject(body)}");
+            apiClient.Log($"body: {JsonSerializer.Serialize(body)}");
         }
 
         HttpResponseMessage response = await apiClient.HttpClient.SendAsync(requestMessage);
