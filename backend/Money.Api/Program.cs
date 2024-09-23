@@ -33,4 +33,4 @@ finally
     LogManager.Shutdown();
 }
 
-public partial class Program { }
+public partial class Program;

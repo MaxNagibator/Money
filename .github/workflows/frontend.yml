@@ -1,4 +1,4 @@
-name: Build
+name: Build frontend
 
 on:
   push:
@@ -10,6 +10,9 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
 
     steps:
       - uses: actions/checkout@v4
@@ -19,8 +22,8 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Restore dependencies
+      - name: Restore backend dependencies
         run: dotnet restore
 
-      - name: Build
+      - name: Build backend
         run: dotnet build --no-restore
