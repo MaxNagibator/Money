@@ -1,42 +1,44 @@
-using System.Net;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Security.Claims;
-using System.Text;
-using System.Text.Encodings.Web;
-using System.Text.Json;
-using Microsoft.AspNetCore.Components;
-using MudBlazor;
 
 namespace Money.Web;
 
-public static class JwtParser
+public class JwtParser(HttpClient client)
 {
-    public static IEnumerable<Claim> ParseClaimsFromJwt(string jwt)
+    public async Task<ClaimsPrincipal> ValidateJwt(string token)
     {
-        var claims = new List<Claim>();
-        var payload = jwt.Split('.')[1];
+        Dictionary<string, object> claimsDictionary = await GetUserInfo(token);
 
-        var jsonBytes = ParseBase64WithoutPadding(payload);
+        List<Claim> claims = [];
 
-        var keyValuePairs = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonBytes);
-
-        claims.AddRange(keyValuePairs.Select(kvp => new Claim(kvp.Key, kvp.Value.ToString())));
-
-        return claims;
-    }
-
-    private static byte[] ParseBase64WithoutPadding(string base64)
-    {
-        switch (base64.Length % 4)
+        foreach ((string? key, object? value) in claimsDictionary)
         {
-            case 2:
-                base64 += "==";
-                break;
+            string claimType = key switch
+            {
+                "sub" => "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier",
+                "name" => "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name",
+                "email" => "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress",
+                var _ => key
+            };
 
-            case 3:
-                base64 += "=";
-                break;
+            claims.Add(new Claim(claimType, value.ToString() ?? string.Empty));
         }
 
-        return Convert.FromBase64String(base64);
+        ClaimsIdentity claimsIdentity = new(claims, "jwt");
+
+        return new ClaimsPrincipal(claimsIdentity);
+    }
+
+    public async Task<Dictionary<string, object>> GetUserInfo(string accessToken)
+    {
+        HttpRequestMessage request = new(HttpMethod.Get, "https://localhost:7124/connect/userinfo");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+        HttpResponseMessage response = await client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+
+        Dictionary<string, object>? userInfo = await response.Content.ReadFromJsonAsync<Dictionary<string, object>>();
+        return userInfo ?? throw new InvalidOperationException();
     }
 }

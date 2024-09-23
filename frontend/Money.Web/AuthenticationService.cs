@@ -4,35 +4,30 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
-using OpenIddict.Client;
 
 namespace Money.Web;
 
 public class AuthenticationService(
     HttpClient client,
     AuthenticationStateProvider authStateProvider,
-    ILocalStorageService localStorage,
-    OpenIddictClientService openIddictClientService)
+    ILocalStorageService localStorage)
 {
-    private readonly JsonSerializerOptions _options = new() { PropertyNameCaseInsensitive = true };
+    private readonly JsonSerializerOptions _options = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
 
     public async Task Register(UserDto user)
     {
-        var response = await client.PostAsJsonAsync("https://localhost:7124/Account/register", new { user.Email, user.Password });
+        HttpResponseMessage response = await client.PostAsJsonAsync("https://localhost:7124/Account/register", new { user.Email, user.Password });
     }
 
     public async Task Login(UserDto user)
     {
-       // var result = await openIddictClientService.AuthenticateWithPasswordAsync(new()
-       // {
-       //     Username = user.Email,
-       //     Password = user.Password
-       // });
-
-       var result = await LoginAsync(user.Email, user.Password);
+        AuthData result = await LoginAsync(user.Email, user.Password);
 
         await localStorage.SetItemAsync("authToken", result.AccessToken);
-        ((AuthStateProvider)authStateProvider).NotifyUserAuthentication(user.Email);
+        await ((AuthStateProvider)authStateProvider).NotifyUserAuthentication(result.AccessToken);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", result.AccessToken);
     }
 

@@ -45,7 +45,8 @@ public class OpenIddictDefinition : AppDefinition
                     .EnableLogoutEndpointPassthrough()
                     .EnableTokenEndpointPassthrough()
                     .EnableUserinfoEndpointPassthrough()
-                    .EnableStatusCodePagesIntegration();
+                    .EnableStatusCodePagesIntegration()
+                    .DisableTransportSecurityRequirement();
             })
             .AddValidation(options =>
             {
