@@ -9,7 +9,7 @@ namespace Money.Api.Controllers;
 [ApiController]
 [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
 [Route("[controller]")]
-public class CategoriesController(ILogger<CategoriesController> logger, PaymentCategoryService paymentCategoryService) : ControllerBase
+public class CategoriesController(PaymentCategoryService paymentCategoryService) : ControllerBase
 {
     /// <summary>
     ///     Получить список категорий платежей.

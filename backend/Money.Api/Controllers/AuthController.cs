@@ -11,10 +11,11 @@ using OpenIddict.Server.AspNetCore;
 
 namespace Money.Api.Controllers;
 
-public class AuthController(AuthService authorizationService, UserManager<ApplicationUser> userManager) : Controller
+[ApiController]
+public class AuthController(AuthService authorizationService, UserManager<ApplicationUser> userManager) : ControllerBase
 {
     /// <summary>
-    ///     Обменять учетные данные на токен доступа.
+    ///     Обменивает учетные данные пользователя на токен доступа.
     /// </summary>
     /// <remarks>
     ///     Этот метод обрабатывает запросы на получение токена доступа, используя учетные данные пользователя.
@@ -34,32 +35,40 @@ public class AuthController(AuthService authorizationService, UserManager<Applic
         return SignIn(claims, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
     }
 
+    /// <summary>
+    ///     Возвращает информацию о пользователе.
+    /// </summary>
+    /// <remarks>
+    ///     Этот метод обрабатывает запросы на получение информации о пользователе.
+    /// </remarks>
+    /// <returns>Информация о пользователе в формате JSON.</returns>
     [Authorize(AuthenticationSchemes = OpenIddictServerAspNetCoreDefaults.AuthenticationScheme)]
     [HttpGet("~/connect/userinfo")]
     [HttpPost("~/connect/userinfo")]
     [Produces("application/json")]
+    [ProducesResponseType(typeof(Dictionary<string, string>), StatusCodes.Status200OK)]
     public async Task<IActionResult> Userinfo()
     {
-        ApplicationUser? user = await userManager.FindByIdAsync(User.GetClaim(OpenIddictConstants.Claims.Subject));
+        string userId = User.GetClaim(OpenIddictConstants.Claims.Subject)
+                        ?? throw new InvalidOperationException();
+
+        ApplicationUser? user = await userManager.FindByIdAsync(userId);
 
         if (user == null)
         {
+            Dictionary<string, string> errors = new()
+            {
+                [OpenIddictServerAspNetCoreConstants.Properties.Error] =
+                    OpenIddictConstants.Errors.InvalidToken,
+                [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
+                    "Указанный токен доступа привязан к учетной записи, которая больше не существует."
+            };
+
             return Challenge(authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
-                properties: new AuthenticationProperties(new Dictionary<string, string>
-                {
-                    [OpenIddictServerAspNetCoreConstants.Properties.Error] = OpenIddictConstants.Errors.InvalidToken,
-                    [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
-                        "The specified access token is bound to an account that no longer exists."
-                }));
+                properties: new AuthenticationProperties(errors!));
         }
 
-        Dictionary<string, object> claims = new(StringComparer.Ordinal);
-
-        foreach (Claim claim in User.Claims)
-        {
-            claims[claim.Type] = claim.Value;
-        }
-
+        Dictionary<string, string> claims = User.Claims.ToDictionary(claim => claim.Type, claim => claim.Value, StringComparer.Ordinal);
         return Ok(claims);
     }
 }
