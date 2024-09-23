@@ -4,10 +4,6 @@ namespace Money.ApiClient;
 
 public class MoneyClient
 {
-    public ApiUser? User { get; set; }
-    public Action<string> Log;
-    public HttpClient HttpClient;
-
     public MoneyClient(HttpClient client, Action<string> log)
     {
         HttpClient = client;
@@ -15,23 +11,29 @@ public class MoneyClient
         Category = new CategoryClient(this);
     }
 
+    public HttpClient HttpClient { get; }
+    public Action<string> Log { get; }
+    public ApiUser? User { get; private set; }
+
+    public CategoryClient Category { get; }
+
     public void SetUser(string login, string password)
     {
         User = new ApiUser
         {
             Username = login,
-            Password = password,
+            Password = password
         };
     }
 
     public async Task RegisterAsync(string email, string password)
     {
-        JsonContent user = JsonContent.Create(new { email, password });
+        JsonContent requestContent = JsonContent.Create(new { email, password });
+        HttpResponseMessage response = await HttpClient.PostAsync("Account/register", requestContent);
+        response.EnsureSuccessStatusCode();
 
-        HttpResponseMessage response = await HttpClient.PostAsync("Account/register", user);
         string content = await response.Content.ReadAsStringAsync();
-
-        Console.WriteLine(content);
+        Log(content);
     }
 
     public async Task<AuthData> LoginAsync(string username, string password)
@@ -43,8 +45,8 @@ public class MoneyClient
         ]);
 
         HttpResponseMessage response = await HttpClient.PostAsync("connect/token", requestContent);
+        response.EnsureSuccessStatusCode();
+
         return await response.Content.ReadFromJsonAsync<AuthData>() ?? throw new InvalidOperationException();
     }
-
-    public CategoryClient Category { get; }
 }

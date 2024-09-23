@@ -1,10 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Money.Api.Tests.TestTools;
 using Money.Api.Tests.TestTools.Entities;
+using Money.ApiClient;
 using Money.Data;
 using Money.Data.Entities;
 using Money.Data.Extensions;
-using Money.ApiClient;
 
 namespace Money.Api.Tests;
 

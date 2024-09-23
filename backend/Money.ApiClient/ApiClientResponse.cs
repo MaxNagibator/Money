@@ -8,23 +8,33 @@ public class ApiClientResponse(HttpStatusCode code, string content)
     /// <summary>
     ///     HTTP код ответа.
     /// </summary>
-    public HttpStatusCode Code { get; set; } = code;
+    public HttpStatusCode Code { get; } = code;
 
-    public string StringContent { get; set; } = content;
+    /// <summary>
+    ///     Содержимое ответа в строковом представлении.
+    /// </summary>
+    public string StringContent { get; } = content;
 }
 
 public class ApiClientResponse<T>(HttpStatusCode code, string content) : ApiClientResponse(code, content)
 {
-    public T? Content
+    private readonly JsonSerializerOptions _serializerOptions = new()
     {
-        get
-        {
-            if (typeof(T) == typeof(string))
-            {
-                return (T)Convert.ChangeType(StringContent, typeof(T));
-            }
+        PropertyNameCaseInsensitive = true
+    };
 
-            return JsonSerializer.Deserialize<T>(StringContent, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
+    /// <summary>
+    ///     Содержимое ответа.
+    /// </summary>
+    public T? Content => DeserializeContent();
+
+    private T? DeserializeContent()
+    {
+        if (typeof(T) == typeof(string))
+        {
+            return (T)Convert.ChangeType(StringContent, typeof(T));
         }
+
+        return JsonSerializer.Deserialize<T>(StringContent, _serializerOptions);
     }
 }
