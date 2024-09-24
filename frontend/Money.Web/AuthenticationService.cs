@@ -1,9 +1,9 @@
+п»їusing Blazored.LocalStorage;
+using Microsoft.AspNetCore.Components.Authorization;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Blazored.LocalStorage;
-using Microsoft.AspNetCore.Components.Authorization;
 
 namespace Money.Web;
 
@@ -45,7 +45,6 @@ public class AuthenticationService(
 
     public async Task Logout()
     {
-        // todo после разлогинивания менюха, как у залогиненного, остаётся до нажатия Ф5
         await localStorage.RemoveItemAsync("authToken");
         ((AuthStateProvider)authStateProvider).NotifyUserLogout();
         client.DefaultRequestHeaders.Authorization = null;

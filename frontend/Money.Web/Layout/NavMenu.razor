@@ -3,48 +3,25 @@
 @inject NavigationManager NavigationManager
 
 <MudNavMenu>
-    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-    <MudNavLink Href="weather" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Weather</MudNavLink>
-    <MudNavLink Href="auth" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Lock">Auth Required</MudNavLink>
+    <MudNavLink Href="" Icon="@Icons.Material.Filled.Home" Match="NavLinkMatch.All">Home</MudNavLink>
+    <MudNavLink Href="weather" Icon="@Icons.Material.Filled.List" Match="NavLinkMatch.Prefix">Weather</MudNavLink>
+    <MudNavLink Href="auth" Icon="@Icons.Material.Filled.Lock" Match="NavLinkMatch.Prefix">Auth Required</MudNavLink>
     <AuthorizeView>
         <Authorized>
-            <MudNavLink Href="Operations" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Money">Операции</MudNavLink>
-            <MudNavLink Href="Categories" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Category">Категории</MudNavLink>
-            <MudNavLink Href="Account/Manage" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">@context.User.Identity?.Name</MudNavLink>
+            <MudNavLink Href="Operations" Icon="@Icons.Material.Filled.Money" Match="NavLinkMatch.Prefix">Операции</MudNavLink>
+            <MudNavLink Href="Categories" Icon="@Icons.Material.Filled.Category" Match="NavLinkMatch.Prefix">Категории</MudNavLink>
+            <MudNavLink Href="Account/Manage" Icon="@Icons.Material.Filled.Person" Match="NavLinkMatch.Prefix">@context.User.Identity?.Name</MudNavLink>
             <form action="Account/Logout" method="get">
                 <AntiforgeryToken />
-                <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                <input type="hidden" name="ReturnUrl" value="@_currentUrl" />
                 <button type="submit" class="mud-nav-link mud-ripple">
-                    <MudIcon Icon="@Icons.Material.Filled.Logout" Color="Color.Info" Class="mr-3"></MudIcon> Logout
+                    <MudIcon Class="mr-3" Color="Color.Info" Icon="@Icons.Material.Filled.Logout" /> Logout
                 </button>
             </form>
-
         </Authorized>
         <NotAuthorized>
-            <MudNavLink Href="Account/Register" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">Register</MudNavLink>
-            <MudNavLink Href="Account/Login" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Password">Login</MudNavLink>
+            <MudNavLink Href="Account/Register" Icon="@Icons.Material.Filled.Person" Match="NavLinkMatch.Prefix">Register</MudNavLink>
+            <MudNavLink Href="Account/Login" Icon="@Icons.Material.Filled.Password" Match="NavLinkMatch.Prefix">Login</MudNavLink>
         </NotAuthorized>
     </AuthorizeView>
 </MudNavMenu>
-
-@code {
-    private string? currentUrl;
-
-    protected override void OnInitialized()
-    {
-        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
-        NavigationManager.LocationChanged += OnLocationChanged;
-    }
-
-    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
-    {
-        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
-        StateHasChanged();
-    }
-
-    public void Dispose()
-    {
-        NavigationManager.LocationChanged -= OnLocationChanged;
-    }
-
-}

@@ -1,11 +1,8 @@
 ﻿@page "/Account/Login"
-@using System.ComponentModel.DataAnnotations
-@using Microsoft.AspNetCore.Http
 
 @inject AuthenticationService SignInManager
 @inject ILogger<Login> Logger
 @inject NavigationManager NavigationManager
-@inject IdentityRedirectManager RedirectManager
 
 <PageTitle>Log in</PageTitle>
 
@@ -13,7 +10,7 @@
 
 <MudGrid>
     <MudItem md="6">
-        <statusmessage Message="@errorMessage" />
+        <statusmessage Message="@_errorMessage" />
         <EditForm Model="Input" method="post" OnValidSubmit="LoginUser" FormName="login">
             <DataAnnotationsValidator />
 
@@ -45,50 +42,3 @@
         </MudGrid>
     </MudItem>
 </MudGrid>
-
-@code {
-    private string? errorMessage;
-
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
-
-    [SupplyParameterFromForm]
-    private InputModel Input { get; set; } = new();
-
-    [SupplyParameterFromQuery]
-    private string? ReturnUrl { get; set; }
-
-    public async Task LoginUser()
-    {
-        Logger.LogInformation("User loggig in");
-
-        await SignInManager.Login(new UserDto(Input.Email, Input.Password));
-
-        // if (result.Succeeded)
-        // {
-        Logger.LogInformation("User logged in");
-        RedirectManager.RedirectTo(ReturnUrl);
-        // }
-        // else if (result.IsLockedOut)
-        // {
-        //     Logger.LogWarning("User account locked out.");
-        //     RedirectManager.RedirectTo("Account/Lockout");
-        // }
-        // else
-        // {
-        //     errorMessage = "Error: Invalid login attempt.";
-        // }
-    }
-
-    private sealed class InputModel
-    {
-        [Required]
-        [EmailAddress]
-        public string Email { get; set; } = "";
-
-        [Required]
-        [DataType(DataType.Password)]
-        public string Password { get; set; } = "";
-    }
-
-}
