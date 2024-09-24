@@ -1,4 +1,5 @@
 ﻿@page "/categories"
+@attribute [Authorize]
 
 <PageTitle>Категории</PageTitle>
 
@@ -11,7 +12,7 @@
         }
         <MudTreeViewItem @bind-Expanded="@context.Expanded" Items="@context.Children" Value="@context.Value">
             <Content>
-                <MudTreeViewItemToggleButton @bind-Expanded="@context.Expanded" Visible="@context.HasChildren"  />
+                <MudTreeViewItemToggleButton @bind-Expanded="@context.Expanded" Visible="@context.HasChildren" />
                 <MudText>@category?.Name</MudText>
                 @if (category?.Color is not null)
                 {

@@ -11,7 +11,6 @@ public class ContainerDefinition : AppDefinition
         builder.Services.AddScoped<RequestEnvironment>();
 
         builder.Services.AddScoped<AccountService>();
-        builder.Services.AddScoped<AuthService>();
 
         builder.Services.AddScoped<PaymentCategoryService>();
     }

@@ -1,9 +1,8 @@
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
-using System.Net.Http.Headers;
 using System.Security.Claims;
 
-namespace Money.Web;
+namespace Money.Web.Services;
 
 public class AuthStateProvider(ILocalStorageService localStorage, HttpClient httpClient, JwtParser jwtParser)
     : AuthenticationStateProvider
@@ -28,7 +27,6 @@ public class AuthStateProvider(ILocalStorageService localStorage, HttpClient htt
             return _anonymous;
         }
 
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
         return new AuthenticationState(authenticatedUser);
     }
 

@@ -1,4 +1,5 @@
-﻿using Money.ApiClient;
+﻿using Microsoft.AspNetCore.Components;
+using Money.ApiClient;
 using MudBlazor;
 
 namespace Money.Web.Pages;
@@ -7,15 +8,13 @@ public partial class Categories
 {
     private List<TreeItemData<Category>> InitialTreeItems { get; } = [];
 
+    [Inject]
+    private IHttpClientFactory HttpClient { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
-        HttpClient client = new()
-        {
-            BaseAddress = new Uri("https://localhost:7124/")
-        };
-
-        MoneyClient apiClient = new(client, Console.WriteLine);
-        apiClient.SetUser("bob217@mail.ru", "123123123");
+        MoneyClient apiClient = new(HttpClient.CreateClient("api"), Console.WriteLine);
+        // apiClient.SetUser("bob217@mail.ru", "123123123");
 
         ApiClientResponse<CategoryClient.Category[]> apiCategories = await apiClient.Category.Get();
 

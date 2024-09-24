@@ -2,7 +2,7 @@
 using System.Net.Http.Json;
 using System.Security.Claims;
 
-namespace Money.Web;
+namespace Money.Web.Services;
 
 public class JwtParser(HttpClient client)
 {
@@ -37,7 +37,7 @@ public class JwtParser(HttpClient client)
 
     public async Task<Dictionary<string, object>?> GetUserInfo(string accessToken)
     {
-        HttpRequestMessage request = new(HttpMethod.Get, "https://localhost:7124/connect/userinfo");
+        HttpRequestMessage request = new(HttpMethod.Get, "connect/userinfo");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
         HttpResponseMessage response = await client.SendAsync(request);
