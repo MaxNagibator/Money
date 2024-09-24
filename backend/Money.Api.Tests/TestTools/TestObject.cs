@@ -4,7 +4,7 @@ public abstract class TestObject
 {
     private readonly List<TestObject> _objects = [];
 
-    public DatabaseClient Environment { get; private set; }
+    public DatabaseClient Environment { get; private set; } = null!;
     protected bool IsNew { get; set; }
 
     public virtual void Attach(DatabaseClient env)

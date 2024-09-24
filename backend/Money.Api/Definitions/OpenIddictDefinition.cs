@@ -16,13 +16,6 @@ public class OpenIddictDefinition : AppDefinition
             .AddServer(options =>
             {
                 options.SetAuthorizationEndpointUris("connect/authorize")
-                    .SetLogoutEndpointUris("connect/logout")
-                    .SetIntrospectionEndpointUris("connect/introspect")
-                    .SetTokenEndpointUris("connect/token")
-                    .SetUserinfoEndpointUris("connect/userinfo")
-                    .SetVerificationEndpointUris("connect/verify");
-
-                options.SetAuthorizationEndpointUris("connect/authorize")
                     //.RequireProofKeyForCodeExchange() // enable PKCE
                     //.SetDeviceEndpointUris("connect/device")
                     .SetIntrospectionEndpointUris("connect/introspect")

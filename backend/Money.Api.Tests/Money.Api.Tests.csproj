@@ -10,11 +10,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <None Remove="appsettings.Development.json" />
-        <None Remove="appsettings.json" />
-    </ItemGroup>
-
-    <ItemGroup>
         <Content Include="appsettings.Development.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
@@ -51,10 +46,6 @@
 
     <ItemGroup>
         <Using Include="NUnit.Framework" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="ApiClient\" />
     </ItemGroup>
 
 </Project>

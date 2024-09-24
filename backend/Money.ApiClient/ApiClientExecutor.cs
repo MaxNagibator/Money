@@ -47,18 +47,20 @@ public class ApiClientExecutor(MoneyClient apiClient)
 
     private async Task SetAuthHeaders(HttpRequestMessage requestMessage)
     {
-        if (apiClient.User == null)
+        ApiUser? user = apiClient.User;
+
+        if (user == null)
         {
             return;
         }
 
-        if (apiClient.User.Token == null)
+        if (user.Token == null)
         {
-            AuthData authData = await apiClient.LoginAsync(apiClient.User.Username, apiClient.User.Password);
-            apiClient.User.Token = authData.AccessToken;
+            AuthData authData = await apiClient.LoginAsync(user.Username, user.Password);
+            user.AuthData = authData;
         }
 
-        AddHeader("Authorization", $"Bearer {apiClient.User.Token}");
+        AddHeader("Authorization", $"Bearer {user.Token}");
 
         return;
 

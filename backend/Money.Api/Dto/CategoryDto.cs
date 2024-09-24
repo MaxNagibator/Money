@@ -1,51 +1,40 @@
-﻿using Money.Business.Enums;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 
 namespace Money.Api.Dto;
 
 /// <summary>
-///    Категория платежа.
+///     Категория платежа.
 /// </summary>
-public class CategoryDto
+[method: SetsRequiredMembers]
+public class CategoryDto(Business.Models.PaymentCategory businessModel)
 {
-    [method: SetsRequiredMembers]
-    public CategoryDto(Business.Models.PaymentCategory businesModel)
-    {
-        Id = businesModel.Id;
-        Name = businesModel.Name;
-        Color = businesModel.Color;
-        ParentId = businesModel.ParentId;
-        Order = businesModel.Order;
-        PaymentTypeId = businesModel.PaymentType;
-    }
-
     /// <summary>
     ///     Идентификатор категории.
     /// </summary>
-    public int Id { get; set; }
+    public int Id { get; set; } = businessModel.Id;
 
     /// <summary>
     ///     Название категории.
     /// </summary>
-    public required string Name { get; set; }
+    public required string Name { get; set; } = businessModel.Name;
 
     /// <summary>
     ///     Идентификатор родительской категории (если есть).
     /// </summary>
-    public int? ParentId { get; set; }
+    public int? ParentId { get; set; } = businessModel.ParentId;
 
     /// <summary>
     ///     Порядок отображения категории.
     /// </summary>
-    public int? Order { get; set; }
+    public int? Order { get; set; } = businessModel.Order;
 
     /// <summary>
     ///     Цвет категории.
     /// </summary>
-    public string? Color { get; set; }
+    public string? Color { get; set; } = businessModel.Color;
 
     /// <summary>
-    ///     Илентификатор типа платежа.
+    ///     Идентификатор типа платежа.
     /// </summary>
-    public required int PaymentTypeId { get; set; }
+    public required int PaymentTypeId { get; set; } = businessModel.PaymentType;
 }

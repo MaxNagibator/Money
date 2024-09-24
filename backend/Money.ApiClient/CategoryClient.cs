@@ -1,57 +1,57 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-
-namespace Money.ApiClient;
+﻿namespace Money.ApiClient;
 
 public class CategoryClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
 {
+    private const string BaseUri = "/Categories";
+
     protected override string ApiPrefix => "";
 
     public async Task<ApiClientResponse<Category[]>> Get(int? type = null)
     {
         string paramUri = type == null ? "" : $"?type={type}";
-        return await GetAsync<Category[]>($"/Categories{paramUri}");
+        return await GetAsync<Category[]>($"{BaseUri}{paramUri}");
     }
 
     public async Task<ApiClientResponse<Category>> GetById(int id)
     {
-        return await GetAsync<Category>($"/Categories/{id}");
+        return await GetAsync<Category>($"{BaseUri}/{id}");
     }
 
     public async Task<ApiClientResponse<int>> Create(CreateCategoryRequest request)
     {
-        return await PostAsync<int>($"/Categories", request);
+        return await PostAsync<int>(BaseUri, request);
     }
 
     public async Task<ApiClientResponse> Delete(int id)
     {
-        return await DeleteAsync($"/Categories/{id}");
+        return await DeleteAsync($"{BaseUri}/{id}");
     }
 
     public class CreateCategoryRequest
     {
-        public string? Name { get; set; }
+        public required string Name { get; set; }
+
+        public required int PaymentTypeId { get; set; }
 
         public int? ParentId { get; set; }
 
         public int? Order { get; set; }
 
         public string? Color { get; set; }
-
-        public int PaymentTypeId { get; set; }
     }
 
     public class Category
     {
-        public int Id { get; set; }
+        public required int Id { get; set; }
 
-        public string? Name { get; set; }
+        public required string Name { get; set; }
+
+        public required int PaymentTypeId { get; set; }
 
         public int? ParentId { get; set; }
 
         public int? Order { get; set; }
 
         public string? Color { get; set; }
-
-        public int PaymentTypeId { get; set; }
     }
 }

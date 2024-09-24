@@ -6,7 +6,7 @@ using OpenIddict.Abstractions;
 
 namespace Money.Api.Middlewares;
 
-public class AuthMiddleware(RequestDelegate next, ILogger<AuthMiddleware> logger)
+public class AuthMiddleware(RequestDelegate next)
 {
     public async Task InvokeAsync(
         HttpContext context,
