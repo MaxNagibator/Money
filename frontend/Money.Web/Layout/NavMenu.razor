@@ -4,11 +4,12 @@
 
 <MudNavMenu>
     <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-    <MudNavLink Href="counter" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Add">Counter</MudNavLink>
     <MudNavLink Href="weather" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Weather</MudNavLink>
     <MudNavLink Href="auth" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Lock">Auth Required</MudNavLink>
     <AuthorizeView>
         <Authorized>
+            <MudNavLink Href="Operations" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Money">Операции</MudNavLink>
+            <MudNavLink Href="Categories" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Category">Категории</MudNavLink>
             <MudNavLink Href="Account/Manage" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">@context.User.Identity?.Name</MudNavLink>
             <form action="Account/Logout" method="get">
                 <AntiforgeryToken />
@@ -17,6 +18,7 @@
                     <MudIcon Icon="@Icons.Material.Filled.Logout" Color="Color.Info" Class="mr-3"></MudIcon> Logout
                 </button>
             </form>
+
         </Authorized>
         <NotAuthorized>
             <MudNavLink Href="Account/Register" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">Register</MudNavLink>

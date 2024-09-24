@@ -1,0 +1,135 @@
+﻿@page "/categories"
+@using Money.ApiClient
+
+<PageTitle>Категории</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">Категории</MudText>
+
+<MudText Class="mb-4">Current count: @currentCount</MudText>
+
+<MudButton Color="Color.Primary" Variant="Variant.Filled" @onclick="IncrementCount">Click me</MudButton>
+
+<MudPaper Width="300px" Elevation="0">
+    <MudTreeView ServerData="@LoadServerData"  Items="@InitialTreeItems">
+        <ItemTemplate>
+            <MudTreeViewItem Value="@context.Value" Icon="@context.Icon" LoadingIconColor="Color.Info" CanExpand="@context.Expandable" />
+        </ItemTemplate>
+    </MudTreeView>
+</MudPaper>
+@code {
+    private int currentCount;
+
+    private async Task IncrementCount()
+    {
+        var client = new HttpClient();
+        client.BaseAddress = new Uri("https://localhost:7124/");
+        var apiClient = new MoneyClient(client, Console.WriteLine);
+        apiClient.SetUser("bob217@mail.ru", "123123123");
+        var apiCategories = await apiClient.Category.Get();
+        currentCount = apiCategories.Content?.Length ?? -1;
+        var categories = new List<Category>();
+        foreach (var apiCategory in apiCategories.Content)
+        {
+            var category = new Category
+                {
+                    Id = apiCategory.Id,
+                    ParentId = apiCategory.ParentId,
+                    Name = apiCategory.Name,
+                    PaymentTypeId = apiCategory.PaymentTypeId,
+                };
+            categories.Add(category);
+        }
+
+        var categoriesTree =  getBla(null);
+
+        List<TreeItemData<Category>> getBla(int? parentId)
+        {
+            var categories123123 = new List<TreeItemData<Category>>();
+            foreach (var category in categories.Where(x=>x.ParentId == parentId))
+            {
+                var item = new TreeItemData<Category> { Value = category, Text = category.Name };
+                var children = getBla(category.Id);
+                item.Children = children;
+                categories123123.Add(item);
+                Console.WriteLine(category.Id);
+            }
+            return categories123123;
+        }
+
+        InitialTreeItems = categoriesTree;
+    }
+
+    private List<TreeItemData<Category>> InitialTreeItems { get; set; } = new();
+    private List<TreeItemData<Category>> ServerTreeItems { get; set; } = new();
+
+    public async Task<IReadOnlyCollection<TreeItemData<Category>>> LoadServerData(Category parentValue)
+    {
+        // wait 500ms to simulate a server load, then recursively search through our tree to find the child items for the given value
+        await Task.Delay(1);
+        foreach (var item in ServerTreeItems) {
+            if (item.Value.Id == parentValue.Id)
+                return item.Children;
+            if (!item.HasChildren)
+                continue;
+            var descendentItem = FindTreeItemData(parentValue.Id, item);
+            if (descendentItem != null)
+                return descendentItem.Children;
+        }
+        return null;
+    }
+    private TreeItemData<Category> FindTreeItemData(int value, TreeItemData<Category> parent)
+    {
+        foreach (var child in parent.Children)
+        {
+            if (child.Value.Id == value)
+                return child;
+            if (!child.HasChildren)
+                continue;
+            var descendentItem = FindTreeItemData(value, child);
+            if (descendentItem != null)
+                return descendentItem;
+        }
+        return null;
+    }
+
+    public class Category()
+    {
+        /// <summary>
+        ///     Идентификатор категории.
+        /// </summary>
+        public int Id { get; set; }
+
+        /// <summary>
+        ///     Название категории.
+        /// </summary>
+        public required string Name { get; set; }
+
+        /// <summary>
+        ///     Идентификатор родительской категории (если есть).
+        /// </summary>
+        public int? ParentId { get; set; }
+
+        /// <summary>
+        ///     Порядок отображения категории.
+        /// </summary>
+        public int? Order { get; set; }
+
+        /// <summary>
+        ///     Цвет категории.
+        /// </summary>
+        public string? Color { get; set; }
+
+        /// <summary>
+        ///     Идентификатор типа платежа.
+        /// </summary>
+        public required int PaymentTypeId { get; set; }
+
+        public List<Category> Categories { get; set; }
+
+        public override string ToString()
+        {
+            return Name;
+        }
+    }
+
+}

@@ -45,6 +45,7 @@ public class AuthenticationService(
 
     public async Task Logout()
     {
+        // todo после разлогинивания менюха, как у залогиненного, остаётся до нажатия Ф5
         await localStorage.RemoveItemAsync("authToken");
         ((AuthStateProvider)authStateProvider).NotifyUserLogout();
         client.DefaultRequestHeaders.Authorization = null;

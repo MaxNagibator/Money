@@ -19,8 +19,15 @@ public class AuthStateProvider(ILocalStorageService localStorage, HttpClient htt
             return _anonymous;
         }
 
+        ClaimsPrincipal? authenticatedUser = await jwtParser.ValidateJwt(token);
+        if(authenticatedUser == null)
+        {
+            Task<AuthenticationState> authState = Task.FromResult(_anonymous);
+            NotifyAuthenticationStateChanged(authState);
+            return _anonymous;
+        }
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
-        return new AuthenticationState(await jwtParser.ValidateJwt(token));
+        return new AuthenticationState(authenticatedUser);
     }
 
     public async Task NotifyUserAuthentication(string token)
