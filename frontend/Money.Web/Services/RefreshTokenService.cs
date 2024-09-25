@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
 
 namespace Money.Web.Services;
@@ -25,7 +24,7 @@ public class RefreshTokenService(AuthenticationStateProvider authProvider, Authe
 
         if (diff.TotalMinutes <= 2)
         {
-            return await authService.RefreshToken();
+            return await authService.RefreshTokenAsync();
         }
 
         return string.Empty;

@@ -1,25 +1,25 @@
 ﻿@page "/categories"
-@using Money.Web.Models
-@using Money.Web.Services
 @attribute [Authorize]
 
 <PageTitle>Категории</PageTitle>
 
 <MudText GutterBottom Typo="Typo.h3">Категории</MudText>
 
-@if (!_init)
+@if (_init == false)
 {
     <MudStack AlignItems="AlignItems.Center" Row>
         <MudProgressCircular Indeterminate />
         <MudText Typo="Typo.body1">Загрузка..</MudText>
     </MudStack>
+
     return;
 }
+
 <MudTabs Elevation="4" Color="@Color.Primary">
-    @foreach (var paymentType in PaymentTypes.Values)
+    @foreach (PaymentTypes.Value paymentType in PaymentTypes.Values)
     {
         <MudTabPanel Text="@paymentType.Name">
-            <MudButton OnClick="Create"
+            <MudButton OnClick="() => Create(paymentType)"
                        Size="Size.Large"
                        Variant="Variant.Outlined">
                 Создать

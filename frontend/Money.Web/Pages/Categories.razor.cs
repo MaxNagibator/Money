@@ -1,8 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Money.ApiClient;
-using Money.Web.Models;
-using Money.Web.Services;
-using MudBlazor;
 
 namespace Money.Web.Pages;
 
@@ -13,14 +10,14 @@ public partial class Categories
     private Dictionary<int, List<TreeItemData<Category>>> InitialTreeItems { get; } = [];
 
     [Inject]
-    private IHttpClientFactory HttpClient { get; set; }
+    private HttpClient HttpClient { get; set; } = default!;
 
     [Inject]
-    private IDialogService DialogService { get; set; }
+    private IDialogService DialogService { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
-        MoneyClient apiClient = new(HttpClient.CreateClient("api"), Console.WriteLine);
+        MoneyClient apiClient = new(HttpClient, Console.WriteLine);
         ApiClientResponse<CategoryClient.Category[]> apiCategories = await apiClient.Category.Get();
 
         if (apiCategories.Content == null)
@@ -29,26 +26,29 @@ public partial class Categories
         }
 
         List<Category> categories = apiCategories.Content.Select(apiCategory => new Category
-        {
-            Id = apiCategory.Id,
-            ParentId = apiCategory.ParentId,
-            Name = apiCategory.Name,
-            PaymentTypeId = apiCategory.PaymentTypeId
-        }).ToList();
+            {
+                Id = apiCategory.Id,
+                ParentId = apiCategory.ParentId,
+                Name = apiCategory.Name,
+                PaymentTypeId = apiCategory.PaymentTypeId
+            })
+            .ToList();
 
-        foreach (var paymentType in PaymentTypes.Values)
+        foreach (PaymentTypes.Value paymentType in PaymentTypes.Values)
         {
             InitialTreeItems.Add(paymentType.Id, BuildChildren(categories.Where(x => x.PaymentTypeId == paymentType.Id).ToList(), null));
         }
+
         _init = true;
     }
 
-    private void Create()
+    private void Create(PaymentTypes.Value paymentType)
     {
         DialogParameters<CategoryDialog> parameters = new()
         {
-            { dialog => dialog.Category, new Category { ParentId = null, Id = null, PaymentTypeId = 1 } },
+            { dialog => dialog.Category, new Category { ParentId = null, Id = null, PaymentTypeId = paymentType.Id } }
         };
+
         DialogService.Show<CategoryDialog>("Создать", parameters);
     }
 
@@ -64,4 +64,3 @@ public partial class Categories
             .ToList();
     }
 }
-

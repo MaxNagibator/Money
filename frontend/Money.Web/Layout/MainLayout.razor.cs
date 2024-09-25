@@ -1,6 +1,4 @@
-﻿using MudBlazor;
-
-namespace Money.Web.Layout;
+﻿namespace Money.Web.Layout;
 
 public partial class MainLayout
 {

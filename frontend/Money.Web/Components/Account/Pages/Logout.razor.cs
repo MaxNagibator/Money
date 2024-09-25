@@ -7,9 +7,15 @@ public partial class Logout
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; } = null;
 
+    [Inject]
+    private AuthenticationService AuthenticationService { get; set; } = default!;
+
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = default!;
+
     protected override async Task OnInitializedAsync()
     {
-        await SignInManager.Logout();
+        await AuthenticationService.LogoutAsync();
         NavigationManager.NavigateTo(ReturnUrl ?? "", true);
     }
 }

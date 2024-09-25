@@ -6,8 +6,6 @@ namespace Money.Web.Components.Account.Pages;
 
 public partial class Login
 {
-    private readonly string? _errorMessage = null;
-
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
@@ -17,23 +15,16 @@ public partial class Login
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; } = null;
 
+    [Inject]
+    private AuthenticationService AuthenticationService { get; set; } = default!;
+
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = default!;
+
     public async Task LoginUser()
     {
-        await SignInManager.Login(new UserDto(Input.Email, Input.Password));
-
-        // if (result.Succeeded)
-        // {
+        await AuthenticationService.LoginAsync(new UserDto(Input.Email, Input.Password));
         NavigationManager.NavigateTo(ReturnUrl ?? string.Empty);
-        // }
-        // else if (result.IsLockedOut)
-        // {
-        //     Logger.LogWarning("User account locked out.");
-        //     RedirectManager.RedirectTo("Account/Lockout");
-        // }
-        // else
-        // {
-        //     errorMessage = "Error: Invalid login attempt.";
-        // }
     }
 
     private sealed class InputModel
