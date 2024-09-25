@@ -1,0 +1,41 @@
+﻿@using Money.Web.Pages
+
+<MudDialog OnBackdropClick="UpdateAsync">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            Параметры
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="2">
+            <MudStack>
+                <MudTextField @bind-Value="@Category.Name"></MudTextField>
+                <MudText>Цвет лабиринта</MudText>
+                <MudColorPicker @bind-Text="@Category.Color"
+                                ColorPickerMode="ColorPickerMode.HEX"
+                                PickerVariant="PickerVariant.Static"
+                                Rounded="true"
+                                ShowColorField="true"
+                                ShowInputs="true"
+                                ShowAlpha="true"
+                                ShowModeSwitch="true"
+                                ShowPreview="true"
+                                ShowSliders="true"
+                                ShowToolbar="true" />
+            </MudStack>
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Отмена</MudButton>
+        <MudButton Color="Color.Success" Disabled="@_isProcessing" OnClick="UpdateAsync">
+            @if (_isProcessing)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+            }
+            else
+            {
+                <MudText Typo="Typo.button">Сохранить</MudText>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>

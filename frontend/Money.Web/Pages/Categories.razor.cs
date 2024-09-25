@@ -1,21 +1,26 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Money.ApiClient;
+using Money.Web.Models;
+using Money.Web.Services;
 using MudBlazor;
 
 namespace Money.Web.Pages;
 
 public partial class Categories
 {
-    private List<TreeItemData<Category>> InitialTreeItems { get; } = [];
+    private bool _init;
+
+    private Dictionary<int, List<TreeItemData<Category>>> InitialTreeItems { get; } = [];
 
     [Inject]
     private IHttpClientFactory HttpClient { get; set; }
 
+    [Inject]
+    private IDialogService DialogService { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         MoneyClient apiClient = new(HttpClient.CreateClient("api"), Console.WriteLine);
-        // apiClient.SetUser("bob217@mail.ru", "123123123");
-
         ApiClientResponse<CategoryClient.Category[]> apiCategories = await apiClient.Category.Get();
 
         if (apiCategories.Content == null)
@@ -24,15 +29,27 @@ public partial class Categories
         }
 
         List<Category> categories = apiCategories.Content.Select(apiCategory => new Category
-            {
-                Id = apiCategory.Id,
-                ParentId = apiCategory.ParentId,
-                Name = apiCategory.Name,
-                PaymentTypeId = apiCategory.PaymentTypeId
-            })
-            .ToList();
+        {
+            Id = apiCategory.Id,
+            ParentId = apiCategory.ParentId,
+            Name = apiCategory.Name,
+            PaymentTypeId = apiCategory.PaymentTypeId
+        }).ToList();
 
-        InitialTreeItems.AddRange(BuildChildren(categories, null));
+        foreach (var paymentType in PaymentTypes.Values)
+        {
+            InitialTreeItems.Add(paymentType.Id, BuildChildren(categories.Where(x => x.PaymentTypeId == paymentType.Id).ToList(), null));
+        }
+        _init = true;
+    }
+
+    private void Create()
+    {
+        DialogParameters<CategoryDialog> parameters = new()
+        {
+            { dialog => dialog.Category, new Category { ParentId = null, Id = null, PaymentTypeId = 1 } },
+        };
+        DialogService.Show<CategoryDialog>("Создать", parameters);
     }
 
     private List<TreeItemData<Category>> BuildChildren(List<Category> categories, int? parentId)
@@ -48,40 +65,3 @@ public partial class Categories
     }
 }
 
-public class Category
-{
-    /// <summary>
-    ///     Идентификатор категории.
-    /// </summary>
-    public int Id { get; set; }
-
-    /// <summary>
-    ///     Название категории.
-    /// </summary>
-    public required string Name { get; set; }
-
-    /// <summary>
-    ///     Идентификатор родительской категории (если есть).
-    /// </summary>
-    public int? ParentId { get; set; }
-
-    /// <summary>
-    ///     Порядок отображения категории.
-    /// </summary>
-    public int? Order { get; set; }
-
-    /// <summary>
-    ///     Цвет категории.
-    /// </summary>
-    public string? Color { get; set; }
-
-    /// <summary>
-    ///     Идентификатор типа платежа.
-    /// </summary>
-    public required int PaymentTypeId { get; set; }
-
-    public override string ToString()
-    {
-        return Name;
-    }
-}
