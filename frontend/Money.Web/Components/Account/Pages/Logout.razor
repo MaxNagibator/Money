@@ -1,16 +1,5 @@
 ﻿@page "/Account/Logout"
+@using Money.Web.Services
 
 @inject AuthenticationService SignInManager
-@inject IdentityRedirectManager NavigationManager
-
-@code {
-    [SupplyParameterFromQuery]
-    private string? ReturnUrl { get; set; }
-
-    protected override async Task OnInitializedAsync()
-    {
-        await SignInManager.Logout();
-        NavigationManager.RedirectTo(ReturnUrl ?? "");
-    }
-
-}
+@inject NavigationManager NavigationManager

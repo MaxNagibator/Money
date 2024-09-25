@@ -1,10 +1,9 @@
 ﻿@page "/Account/Register"
-@using System.ComponentModel.DataAnnotations
+@using Money.Web.Services
 
 @inject AuthenticationService SignInManager
 @inject ILogger<Register> Logger
 @inject NavigationManager NavigationManager
-@inject IdentityRedirectManager RedirectManager
 
 <PageTitle>Register</PageTitle>
 
@@ -20,18 +19,18 @@
             <MudGrid>
                 <MudItem md="12">
                     <MudTextField For="@(() => Input.Email)" @bind-Value="Input.Email"
-                                        Label="Email" Placeholder="name@example.com"
-                                        UserAttributes="@(new() { { "autocomplete", "true" }, { "aria-required", "true" } } )" />
+                                  Label="Email" Placeholder="name@example.com"
+                                  UserAttributes="@(new Dictionary<string, object?> { { "autocomplete", "true" }, { "aria-required", "true" } })" />
                 </MudItem>
                 <MudItem md="12">
                     <MudTextField For="@(() => Input.Password)" @bind-Value="Input.Password"
-                                        Label="Password" InputType="InputType.Password" Placeholder="password"
-                                        UserAttributes="@(new() { { "autocomplete", "new-password" }, { "aria-required", "true" } } )" />
+                                  Label="Password" InputType="InputType.Password" Placeholder="password"
+                                  UserAttributes="@(new Dictionary<string, object?> { { "autocomplete", "new-password" }, { "aria-required", "true" } })" />
                 </MudItem>
                 <MudItem md="12">
                     <MudTextField For="@(() => Input.ConfirmPassword)" @bind-Value="Input.ConfirmPassword"
-                                        Label="Confirm Password" InputType="InputType.Password" Placeholder="confirm password"
-                                        UserAttributes="@(new() { { "autocomplete", "new-password" }, { "aria-required", "true" } } )" />
+                                  Label="Confirm Password" InputType="InputType.Password" Placeholder="confirm password"
+                                  UserAttributes="@(new Dictionary<string, object?> { { "autocomplete", "new-password" }, { "aria-required", "true" } })" />
                 </MudItem>
                 <MudItem md="12">
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" ButtonType="ButtonType.Submit">Register</MudButton>
@@ -41,43 +40,3 @@
     </MudItem>
 
 </MudGrid>
-
-@code {
-    private string? identityErrors;
-
-    [SupplyParameterFromForm]
-    private InputModel Input { get; set; } = new();
-
-    [SupplyParameterFromQuery]
-    private string? ReturnUrl { get; set; }
-
-    private string? Message => identityErrors is null ? null : identityErrors;
-
-    public async Task RegisterUser(EditContext editContext)
-    {
-        UserDto user = new(Input.Email, Input.Password);
-        await SignInManager.Register(user);
-
-        await SignInManager.Login(user);
-        RedirectManager.RedirectTo(ReturnUrl);
-    }
-
-    private sealed class InputModel
-    {
-        [Required]
-        [EmailAddress]
-        [Display(Name = "Email")]
-        public string Email { get; set; } = "";
-
-        [Required]
-        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
-        [DataType(DataType.Password)]
-        [Display(Name = "Password")]
-        public string Password { get; set; } = "";
-
-        [DataType(DataType.Password)]
-        [Display(Name = "Confirm password")]
-        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
-        public string ConfirmPassword { get; set; } = "";
-    }
-}

@@ -1,18 +1,20 @@
-using System.Net.Http.Headers;
+п»їusing System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Claims;
 
-namespace Money.Web;
+namespace Money.Web.Services;
 
 public class JwtParser(HttpClient client)
 {
     public async Task<ClaimsPrincipal?> ValidateJwt(string token)
     {
         Dictionary<string, object>? claimsDictionary = await GetUserInfo(token);
-        if(claimsDictionary == null)
+
+        if (claimsDictionary == null)
         {
             return null;
         }
+
         List<Claim> claims = [];
 
         foreach ((string? key, object? value) in claimsDictionary)
@@ -35,15 +37,17 @@ public class JwtParser(HttpClient client)
 
     public async Task<Dictionary<string, object>?> GetUserInfo(string accessToken)
     {
-        HttpRequestMessage request = new(HttpMethod.Get, "https://localhost:7124/connect/userinfo");
+        HttpRequestMessage request = new(HttpMethod.Get, "connect/userinfo");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
         HttpResponseMessage response = await client.SendAsync(request);
-        if(!response.IsSuccessStatusCode)
+
+        if (!response.IsSuccessStatusCode)
         {
             return null;
         }
-        // todo если тут вернулся 401 Unauthorized, нужно разлогинить человечка.
+
+        // todo РµСЃР»Рё С‚СѓС‚ РІРµСЂРЅСѓР»СЃСЏ 401 Unauthorized, РЅСѓР¶РЅРѕ СЂР°Р·Р»РѕРіРёРЅРёС‚СЊ С‡РµР»РѕРІРµС‡РєР°.
         response.EnsureSuccessStatusCode();
 
         Dictionary<string, object>? userInfo = await response.Content.ReadFromJsonAsync<Dictionary<string, object>>();
