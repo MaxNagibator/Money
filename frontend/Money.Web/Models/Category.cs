@@ -20,7 +20,7 @@ public class Category
     /// <summary>
     ///     Порядок отображения категории.
     /// </summary>
-    public int? Order { get; set; }
+    public int Order { get; set; }
 
     /// <summary>
     ///     Цвет категории.

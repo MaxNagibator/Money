@@ -21,6 +21,7 @@ public class CategoryClient(MoneyClient apiClient) : ApiClientExecutor(apiClient
     {
         return await PostAsync<int>(BaseUri, request);
     }
+
     public async Task<ApiClientResponse> Update(UpdateCategoryRequest request)
     {
         return await PutAsync(BaseUri, request);
@@ -44,7 +45,7 @@ public class CategoryClient(MoneyClient apiClient) : ApiClientExecutor(apiClient
         public string? Color { get; set; }
     }
 
-    public class UpdateCategoryRequest:  CreateCategoryRequest
+    public class UpdateCategoryRequest : CreateCategoryRequest
     {
         public required int Id { get; set; }
     }

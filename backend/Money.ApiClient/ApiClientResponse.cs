@@ -13,10 +13,7 @@ public class ApiClientResponse(HttpStatusCode code, string content)
     /// <summary>
     ///     Код успешный.
     /// </summary>
-    public bool IsSuccessStatusCode
-    {
-        get { return ((int)Code >= 200) && ((int)Code <= 299); }
-    }
+    public bool IsSuccessStatusCode => (int)Code >= 200 && (int)Code <= 299;
 
     /// <summary>
     ///     Содержимое ответа в строковом представлении.
@@ -28,7 +25,7 @@ public class ApiClientResponse<T>(HttpStatusCode code, string content) : ApiClie
 {
     private readonly JsonSerializerOptions _serializerOptions = new()
     {
-        PropertyNameCaseInsensitive = true
+        PropertyNameCaseInsensitive = true,
     };
 
     /// <summary>

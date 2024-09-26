@@ -18,12 +18,7 @@
 <MudTabs Elevation="4" Color="@Color.Primary">
     @foreach (PaymentTypes.Value paymentType in PaymentTypes.Values)
     {
-        <MudTabPanel Text="@paymentType.Name">
-            <MudButton OnClick="() => Create(paymentType, null)"
-                       Size="Size.Large"
-                       Variant="Variant.Outlined">
-                Создать
-            </MudButton>
+        <MudTabPanel Text="@paymentType.Name" ID='@paymentType.Id'>
             <MudTreeView ExpandOnClick Hover Items="@InitialTreeItems[paymentType.Id]" ReadOnly Ripple>
                 <ItemTemplate>
                     @{
@@ -33,24 +28,27 @@
                         <Content>
                             <MudTreeViewItemToggleButton @bind-Expanded="@context.Expanded" Visible="@context.HasChildren" />
                             <MudText>@category?.Name</MudText>
+                            <MudSpacer />
                             @if (category?.Color is not null)
                             {
-                                <MudChip Class="ml-1">@category.Color</MudChip>
+                                <div class="chip" style="background-color: @category.Color"></div>
                             }
-                            <MudButton OnClick="() => Create(paymentType, category.Id)"
-                                               Size="Size.Large"
-                                               Variant="Variant.Outlined">
-                                Создать
-                            </MudButton>
-                            <MudButton OnClick="() => Delete(category)"
-                                       Size="Size.Large"
-                                       Variant="Variant.Outlined">
-                                Удалить
-                            </MudButton>
+                            <MudIconButton Color="Color.Success"
+                                           Icon="@Icons.Material.TwoTone.Add"
+                                           OnClick="() => Create(paymentType, category.Id)" />
+
+                            <MudIconButton Color="Color.Error"
+                                           Icon="@Icons.Material.TwoTone.Delete"
+                                           OnClick="() => Delete(category)" />
                         </Content>
                     </MudTreeViewItem>
                 </ItemTemplate>
             </MudTreeView>
+            <MudButton EndIcon="@Icons.Material.TwoTone.Add"
+                       OnClick="() => Create(paymentType, null)"
+                       Variant="Variant.Filled">
+                Создать
+            </MudButton>
         </MudTabPanel>
     }
 </MudTabs>
