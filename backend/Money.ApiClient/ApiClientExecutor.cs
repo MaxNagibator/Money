@@ -17,6 +17,11 @@ public class ApiClientExecutor(MoneyClient apiClient)
         return await SendWithBody<T>(HttpMethod.Post, uri, body);
     }
 
+    protected async Task<ApiClientResponse> PutAsync(string uri, object body)
+    {
+        return await SendWithBody<string>(HttpMethod.Put, uri, body);
+    }
+
     protected async Task<ApiClientResponse<T>> PatchAsync<T>(string uri, object body)
     {
         return await SendWithBody<T>(HttpMethod.Patch, uri, body);

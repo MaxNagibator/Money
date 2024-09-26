@@ -1,6 +1,7 @@
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Money.ApiClient;
 using MudBlazor.Services;
 
 WebAssemblyHostBuilder builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -29,6 +30,13 @@ builder.Services.AddScoped(provider =>
 {
     IHttpClientFactory factory = provider.GetRequiredService<IHttpClientFactory>();
     return factory.CreateClient("api");
+});
+
+builder.Services.AddScoped(provider =>
+{
+    IHttpClientFactory factory = provider.GetRequiredService<IHttpClientFactory>();
+    var moneyClient = new MoneyClient(factory.CreateClient("api"), Console.WriteLine);
+    return moneyClient;
 });
 
 await builder.Build().RunAsync();

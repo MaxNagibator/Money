@@ -11,6 +11,14 @@ public class ApiClientResponse(HttpStatusCode code, string content)
     public HttpStatusCode Code { get; } = code;
 
     /// <summary>
+    ///     Код успешный.
+    /// </summary>
+    public bool IsSuccessStatusCode
+    {
+        get { return ((int)Code >= 200) && ((int)Code <= 299); }
+    }
+
+    /// <summary>
     ///     Содержимое ответа в строковом представлении.
     /// </summary>
     public string StringContent { get; } = content;

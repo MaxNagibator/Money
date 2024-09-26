@@ -7,8 +7,11 @@
     <DialogContent>
         <MudStack Spacing="2">
             <MudStack>
+                <MudText>Наименование:</MudText>
                 <MudTextField @bind-Value="@Category.Name"></MudTextField>
-                <MudText>Цвет лабиринта</MudText>
+                <MudText>Значение для сортировки:</MudText>
+                <MudTextField @bind-Value="@Category.Order"></MudTextField>
+                <MudText>Цвет:</MudText>
                 <MudColorPicker @bind-Text="@Category.Color"
                                 ColorPickerMode="ColorPickerMode.HEX"
                                 PickerVariant="PickerVariant.Static"
@@ -25,7 +28,7 @@
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Отмена</MudButton>
-        <MudButton Color="Color.Success" Disabled="@_isProcessing" OnClick="UpdateAsync">
+        <MudButton Color="Color.Success" Disabled="@_isProcessing" OnClick="SaveAsync">
             @if (_isProcessing)
             {
                 <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />

@@ -1,5 +1,6 @@
 ﻿using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components;
+using Money.ApiClient;
 
 namespace Money.Web.Pages;
 
@@ -20,6 +21,9 @@ public partial class CategoryDialog
     public MudDialogInstance MudDialog { get; set; } = default!;
 
     [Inject]
+    private MoneyClient MoneyClient { get; set; } = default!;
+
+    [Inject]
     private ISnackbar SnackbarService { get; set; } = default!;
 
     [Inject]
@@ -30,17 +34,42 @@ public partial class CategoryDialog
         MudDialog.SetOptions(_dialogOptions);
     }
 
-    private async Task UpdateAsync()
+    private async Task SaveAsync()
     {
         _isProcessing = true;
 
         try
         {
+            if(Category.Id == null)
+            {
+                var result = await MoneyClient.Category.Create(new CategoryClient.CreateCategoryRequest
+                {
+                    Name = Category.Name,
+                    PaymentTypeId = Category.PaymentTypeId,
+                    Color = Category.Color,
+                    Order = Category.Order,
+                    ParentId = Category.ParentId,
+                });
+                Category.Id = result.Content;
+            }
+            else
+            {
+                await MoneyClient.Category.Update(new CategoryClient.UpdateCategoryRequest
+                {
+                    Id = Category.Id.Value,
+                    Name = Category.Name,
+                    PaymentTypeId = Category.PaymentTypeId,
+                    Color = Category.Color,
+                    Order = Category.Order,
+                    ParentId = Category.ParentId,
+                });
+            }
             SnackbarService.Add("Сохранено!", Severity.Success);
-            MudDialog.Close();
+            MudDialog.Close(DialogResult.Ok(Category));
         }
         catch
         {
+            // todo лог
             SnackbarService.Add("Не удалось сохранить", Severity.Error);
         }
 

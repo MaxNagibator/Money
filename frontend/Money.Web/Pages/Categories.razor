@@ -19,7 +19,7 @@
     @foreach (PaymentTypes.Value paymentType in PaymentTypes.Values)
     {
         <MudTabPanel Text="@paymentType.Name">
-            <MudButton OnClick="() => Create(paymentType)"
+            <MudButton OnClick="() => Create(paymentType, null)"
                        Size="Size.Large"
                        Variant="Variant.Outlined">
                 Создать
@@ -37,6 +37,16 @@
                             {
                                 <MudChip Class="ml-1">@category.Color</MudChip>
                             }
+                            <MudButton OnClick="() => Create(paymentType, category.Id)"
+                                               Size="Size.Large"
+                                               Variant="Variant.Outlined">
+                                Создать
+                            </MudButton>
+                            <MudButton OnClick="() => Delete(category)"
+                                       Size="Size.Large"
+                                       Variant="Variant.Outlined">
+                                Удалить
+                            </MudButton>
                         </Content>
                     </MudTreeViewItem>
                 </ItemTemplate>
