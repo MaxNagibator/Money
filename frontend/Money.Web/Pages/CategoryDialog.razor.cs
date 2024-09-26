@@ -1,25 +1,34 @@
 ﻿using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components;
-using Money.Web.Models;
-using MudBlazor;
 
 namespace Money.Web.Pages;
 
 public partial class CategoryDialog
 {
+    private readonly DialogOptions _dialogOptions = new()
+    {
+        CloseButton = true,
+        BackdropClick = false
+    };
+
     private bool _isProcessing;
 
     [Parameter]
-    public Category Category {get;set;}
+    public Category Category { get; set; } = default!;
 
     [CascadingParameter]
-    public required MudDialogInstance MudDialog { get; set; }
+    public MudDialogInstance MudDialog { get; set; } = default!;
 
     [Inject]
-    public required ISnackbar SnackbarService { get; set; }
+    private ISnackbar SnackbarService { get; set; } = default!;
 
     [Inject]
-    public required ILocalStorageService LocalStorage { get; set; }
+    private ILocalStorageService LocalStorage { get; set; } = default!;
+
+    protected override void OnParametersSet()
+    {
+        MudDialog.SetOptions(_dialogOptions);
+    }
 
     private async Task UpdateAsync()
     {

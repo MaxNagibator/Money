@@ -6,22 +6,25 @@ namespace Money.Web.Components.Account.Pages;
 
 public partial class Register
 {
-    private readonly string? _identityErrors = null;
-
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
 
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; } = null;
 
-    private string? Message => _identityErrors is null ? null : _identityErrors;
+    [Inject]
+    private AuthenticationService AuthenticationService { get; set; } = default!;
+
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = default!;
 
     public async Task RegisterUser(EditContext editContext)
     {
         UserDto user = new(Input.Email, Input.Password);
-        await SignInManager.Register(user);
 
-        await SignInManager.Login(user);
+        await AuthenticationService.RegisterAsync(user);
+        await AuthenticationService.LoginAsync(user);
+
         NavigationManager.NavigateTo(ReturnUrl ?? string.Empty);
     }
 

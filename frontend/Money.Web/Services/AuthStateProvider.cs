@@ -1,10 +1,9 @@
 using Blazored.LocalStorage;
-using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
 
 namespace Money.Web.Services;
 
-public class AuthStateProvider(ILocalStorageService localStorage, HttpClient httpClient, JwtParser jwtParser)
+public class AuthStateProvider(ILocalStorageService localStorage, JwtParser jwtParser)
     : AuthenticationStateProvider
 {
     private readonly AuthenticationState _anonymous = new(new ClaimsPrincipal(new ClaimsIdentity()));

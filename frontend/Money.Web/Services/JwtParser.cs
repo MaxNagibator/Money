@@ -4,8 +4,10 @@ using System.Security.Claims;
 
 namespace Money.Web.Services;
 
-public class JwtParser(HttpClient client)
+public class JwtParser(IHttpClientFactory clientFactory)
 {
+    private readonly HttpClient _client = clientFactory.CreateClient("api_base");
+
     public async Task<ClaimsPrincipal?> ValidateJwt(string token)
     {
         Dictionary<string, object>? claimsDictionary = await GetUserInfo(token);
@@ -35,12 +37,12 @@ public class JwtParser(HttpClient client)
         return new ClaimsPrincipal(claimsIdentity);
     }
 
-    public async Task<Dictionary<string, object>?> GetUserInfo(string accessToken)
+    private async Task<Dictionary<string, object>?> GetUserInfo(string accessToken)
     {
         HttpRequestMessage request = new(HttpMethod.Get, "connect/userinfo");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
-        HttpResponseMessage response = await client.SendAsync(request);
+        HttpResponseMessage response = await _client.SendAsync(request);
 
         if (!response.IsSuccessStatusCode)
         {

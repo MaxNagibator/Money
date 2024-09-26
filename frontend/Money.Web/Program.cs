@@ -1,9 +1,6 @@
 using Blazored.LocalStorage;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using Money.Web;
-using Money.Web.Services;
 using MudBlazor.Services;
 
 WebAssemblyHostBuilder builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -21,19 +18,17 @@ builder.Services.AddScoped<JwtParser>();
 builder.Services.AddScoped<RefreshTokenService>();
 builder.Services.AddTransient<RefreshTokenHandler>();
 
-builder.Services.AddScoped(_ => new HttpClient
-{
-    BaseAddress = new Uri("https://localhost:7124/")
-});
-
 builder.Services.AddHttpClient("api")
     .ConfigureHttpClient(client => client.BaseAddress = new Uri("https://localhost:7124/"))
     .AddHttpMessageHandler<RefreshTokenHandler>();
 
-/*builder.Services.AddScoped(provider =>
+builder.Services.AddHttpClient("api_base")
+    .ConfigureHttpClient(client => client.BaseAddress = new Uri("https://localhost:7124/"));
+
+builder.Services.AddScoped(provider =>
 {
     IHttpClientFactory factory = provider.GetRequiredService<IHttpClientFactory>();
     return factory.CreateClient("api");
-});*/
+});
 
 await builder.Build().RunAsync();

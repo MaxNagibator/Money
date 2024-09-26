@@ -1,9 +1,4 @@
 ﻿@page "/Account/Login"
-@using Money.Web.Services
-
-@inject AuthenticationService SignInManager
-@inject ILogger<Login> Logger
-@inject NavigationManager NavigationManager
 
 <PageTitle>Log in</PageTitle>
 
@@ -11,7 +6,6 @@
 
 <MudGrid>
     <MudItem md="6">
-        <statusmessage Message="@_errorMessage" />
         <EditForm Model="Input" method="post" OnValidSubmit="LoginUser" FormName="login">
             <DataAnnotationsValidator />
 

@@ -1,56 +1,50 @@
 ﻿using Blazored.LocalStorage;
-using Microsoft.AspNetCore.Components.Authorization;
-using Money.Web.Components;
 using System.Net.Http.Json;
-using System.Text.Json.Serialization;
 
 namespace Money.Web.Services;
 
 public class AuthenticationService(
-    HttpClient client,
+    IHttpClientFactory clientFactory,
     AuthenticationStateProvider authStateProvider,
     ILocalStorageService localStorage)
 {
     private const string AccessTokenKey = "authToken";
     private const string RefreshTokenKey = "refreshToken";
+    private readonly HttpClient _client = clientFactory.CreateClient("api_base");
 
-    public async Task Register(UserDto user)
+    public async Task RegisterAsync(UserDto user)
     {
-        HttpResponseMessage response = await client.PostAsJsonAsync("Account/register", new { user.Email, user.Password });
+        HttpResponseMessage response = await _client.PostAsJsonAsync("Account/register", new { user.Email, user.Password });
+        response.EnsureSuccessStatusCode();
     }
 
-    public async Task Login(UserDto user)
-    {
-        AuthData result = await LoginAsync(user.Email, user.Password);
-
-        await localStorage.SetItemAsync(AccessTokenKey, result.AccessToken);
-        await localStorage.SetItemAsync(RefreshTokenKey, result.RefreshToken);
-
-        await ((AuthStateProvider)authStateProvider).NotifyUserAuthentication(result.AccessToken);
-    }
-
-    public async Task<AuthData> LoginAsync(string username, string password)
+    public async Task LoginAsync(UserDto user)
     {
         FormUrlEncodedContent requestContent = new([
             new KeyValuePair<string, string>("grant_type", "password"),
-            new KeyValuePair<string, string>("username", username),
-            new KeyValuePair<string, string>("password", password)
+            new KeyValuePair<string, string>("username", user.Email),
+            new KeyValuePair<string, string>("password", user.Password)
         ]);
 
-        HttpResponseMessage response = await client.PostAsync("connect/token", requestContent);
-        return await response.Content.ReadFromJsonAsync<AuthData>() ?? throw new InvalidOperationException();
+        AuthData result = await AuthenticateAsync(requestContent);
+        await ((AuthStateProvider)authStateProvider).NotifyUserAuthentication(result.AccessToken);
     }
 
-    public async Task Logout()
+    public async Task LogoutAsync()
     {
         await localStorage.RemoveItemsAsync([AccessTokenKey, RefreshTokenKey]);
         ((AuthStateProvider)authStateProvider).NotifyUserLogout();
     }
 
-    public async Task<string> RefreshToken()
+    public async Task<string> RefreshTokenAsync()
     {
         string? token = await localStorage.GetItemAsync<string>(AccessTokenKey);
         string? refreshToken = await localStorage.GetItemAsync<string>(RefreshTokenKey);
+
+        if (token == null || refreshToken == null)
+        {
+            throw new ApplicationException("Не удалось получить токен доступа или токен обновления.");
+        }
 
         FormUrlEncodedContent requestContent = new([
             new KeyValuePair<string, string>("grant_type", "refresh_token"),
@@ -58,28 +52,22 @@ public class AuthenticationService(
         ]);
 
         requestContent.Headers.Add("Authorization", $"Bearer {token}");
-        HttpResponseMessage response = await client.PostAsync("connect/token", requestContent);
+        AuthData result = await AuthenticateAsync(requestContent);
+        return result.AccessToken;
+    }
+
+    private async Task<AuthData> AuthenticateAsync(FormUrlEncodedContent requestContent)
+    {
+        HttpResponseMessage response = await _client.PostAsync("connect/token", requestContent);
         AuthData? result = await response.Content.ReadFromJsonAsync<AuthData>();
 
-        if (!response.IsSuccessStatusCode)
+        if (result == null || response.IsSuccessStatusCode == false)
         {
-            throw new ApplicationException("Something went wrong during the refresh token action");
+            throw new ApplicationException("Не могу получить данные авторизации.");
         }
 
         await localStorage.SetItemAsync(AccessTokenKey, result.AccessToken);
         await localStorage.SetItemAsync(RefreshTokenKey, result.RefreshToken);
-        return result.AccessToken;
+        return result;
     }
 }
-
-public record AuthData(
-    [property: JsonPropertyName("access_token")]
-    string AccessToken,
-    [property: JsonPropertyName("token_type")]
-    string TokenType,
-    [property: JsonPropertyName("expires_in")]
-    int ExpiresIn,
-    [property: JsonPropertyName("scope")]
-    string Scope,
-    [property: JsonPropertyName("refresh_token")]
-    string RefreshToken);
