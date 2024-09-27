@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Money.Api.Dto;
+using Money.Api.Dto.Categories;
 using Money.Business.Services;
 using OpenIddict.Validation.AspNetCore;
 
@@ -51,7 +51,7 @@ public class CategoriesController(PaymentCategoryService paymentCategoryService)
     [HttpPost]
     [Route("")]
     [ProducesResponseType(typeof(int), StatusCodes.Status201Created)]
-    public async Task<int> CreateAsync([FromBody] CreatePaymentRequest request, CancellationToken cancellationToken)
+    public async Task<int> CreateAsync([FromBody] CreateRequest request, CancellationToken cancellationToken)
     {
         Business.Models.PaymentCategory business = request.GetBusinessModel();
         int id = await paymentCategoryService.CreateAsync(business, cancellationToken);

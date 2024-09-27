@@ -15,6 +15,9 @@ public partial class Categories
     [Inject]
     private IDialogService DialogService { get; set; } = default!;
 
+    [Inject]
+    private ISnackbar SnackbarService { get; set; } = default!;
+
     protected override async Task OnInitializedAsync()
     {
         ApiClientResponse<CategoryClient.Category[]> apiCategories = await MoneyClient.Category.Get();
@@ -93,15 +96,23 @@ public partial class Categories
             }
             else
             {
-                // todo не удаляется элемент не в корне
                 TreeItemData<Category>? parentItem = SearchParentTreeItem(InitialTreeItems[category.PaymentTypeId], category.ParentId.Value);
                 parentItem.Children.Remove(item);
             }
+        }
+        else
+        {
+            var message = result.StringContent; // todo обработать бизнес ошибки
+            SnackbarService.Add("Ошибка: " + message, Severity.Error);
         }
     }
 
     private TreeItemData<Category>? SearchParentTreeItem(List<TreeItemData<Category>> list, int id)
     {
+        if (list == null)
+        {
+            return null;
+        }
         foreach (TreeItemData<Category> item in list)
         {
             if (item.Value.Id == id)
@@ -113,7 +124,7 @@ public partial class Categories
 
             if (result != null)
             {
-                return item;
+                return result;
             }
         }
 

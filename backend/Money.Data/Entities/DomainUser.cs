@@ -11,5 +11,9 @@ public class DomainUser
 
     public Guid AuthUserId { get; set; }
 
+    public int NextCategoryId { get; set; }
+
+    public int NextPaymentId { get; set; }
+
     public List<Category>? Categories { get; set; }
 }

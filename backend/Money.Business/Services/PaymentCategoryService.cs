@@ -78,13 +78,9 @@ public class PaymentCategoryService(RequestEnvironment environment, ApplicationD
             }
         }
 
-        //todo need optimization in future
-        int categoryId = context.Categories.AsEnumerable()
-                             .Where(x => x.UserId == environment.UserId)
-                             .Select(x => x.Id)
-                             .DefaultIfEmpty(0)
-                             .Max()
-                         + 1;
+        var dbUser = context.DomainUsers.Single(x => x.Id == environment.UserId);
+        int categoryId = dbUser.NextCategoryId;
+        dbUser.NextCategoryId++; // todo обработать канкаренси
 
         Category dbCategory = new()
         {
@@ -106,6 +102,10 @@ public class PaymentCategoryService(RequestEnvironment environment, ApplicationD
     public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
         Category dbCategory = await GetByIdInternal(id, cancellationToken);
+        if (context.Categories.Any(x => x.ParentId == id && x.UserId == environment.UserId))
+        {
+            throw new BusinessException("удалите сначала дочернии категории");
+        }
         dbCategory.IsDeleted = true;
         await context.SaveChangesAsync(cancellationToken);
     }
