@@ -9,7 +9,7 @@ public partial class CategoryDialog
     private readonly DialogOptions _dialogOptions = new()
     {
         CloseButton = true,
-        BackdropClick = false
+        BackdropClick = false,
     };
 
     private bool _isProcessing;
@@ -40,16 +40,17 @@ public partial class CategoryDialog
 
         try
         {
-            if(Category.Id == null)
+            if (Category.Id == null)
             {
-                var result = await MoneyClient.Category.Create(new CategoryClient.CreateCategoryRequest
+                ApiClientResponse<int> result = await MoneyClient.Category.Create(new CategoryClient.CreateCategoryRequest
                 {
-                    Name = Category.Name,
+                    Name = Category.Name ?? string.Empty,
                     PaymentTypeId = Category.PaymentTypeId,
                     Color = Category.Color,
                     Order = Category.Order,
                     ParentId = Category.ParentId,
                 });
+
                 Category.Id = result.Content;
             }
             else
@@ -57,13 +58,14 @@ public partial class CategoryDialog
                 await MoneyClient.Category.Update(new CategoryClient.UpdateCategoryRequest
                 {
                     Id = Category.Id.Value,
-                    Name = Category.Name,
+                    Name = Category.Name ?? string.Empty,
                     PaymentTypeId = Category.PaymentTypeId,
                     Color = Category.Color,
                     Order = Category.Order,
                     ParentId = Category.ParentId,
                 });
             }
+
             SnackbarService.Add("Сохранено!", Severity.Success);
             MudDialog.Close(DialogResult.Ok(Category));
         }

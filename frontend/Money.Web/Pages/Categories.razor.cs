@@ -1,8 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Money.ApiClient;
-using Money.Web.Models;
-using MudBlazor;
-using static MudBlazor.CategoryTypes;
 
 namespace Money.Web.Pages;
 
@@ -27,13 +24,16 @@ public partial class Categories
             return;
         }
 
-        List<Category> categories = apiCategories.Content.Select(apiCategory => new Category
-        {
-            Id = apiCategory.Id,
-            ParentId = apiCategory.ParentId,
-            Name = apiCategory.Name,
-            PaymentTypeId = apiCategory.PaymentTypeId
-        })
+        List<Category> categories = apiCategories.Content
+            .Select(apiCategory => new Category
+            {
+                Id = apiCategory.Id,
+                ParentId = apiCategory.ParentId,
+                Name = apiCategory.Name,
+                PaymentTypeId = apiCategory.PaymentTypeId,
+                Color = apiCategory.Color,
+                Order = apiCategory.Order ?? 0,
+            })
             .ToList();
 
         foreach (PaymentTypes.Value paymentType in PaymentTypes.Values)
@@ -46,44 +46,47 @@ public partial class Categories
 
     private async Task Create(PaymentTypes.Value paymentType, int? parentId)
     {
-        var defaultColor = "#9b9b9bff";
+        string defaultColor = "#9b9b9bff";
+
         DialogParameters<CategoryDialog> parameters = new()
         {
-            { dialog => dialog.Category, new Category { ParentId = parentId, Id = null, PaymentTypeId = paymentType.Id, Color = defaultColor } }
+            { dialog => dialog.Category, new Category { ParentId = parentId, Id = null, PaymentTypeId = paymentType.Id, Color = defaultColor } },
         };
 
-        var dialog = DialogService.Show<CategoryDialog>("Создать", parameters);
-        var result = await dialog.Result;
-        if (result.Canceled == false)
+        IDialogReference dialog = await DialogService.ShowAsync<CategoryDialog>("Создать", parameters);
+        Category? createdCategory = await dialog.GetReturnValueAsync<Category>();
+
+        if (createdCategory != null)
         {
-            var createdCategory = result.Data as Category;
-            var asditem = new TreeItemData<Category>
+            TreeItemData<Category> addedItem = new()
             {
                 Text = createdCategory.Name,
                 Value = createdCategory,
             };
+
             if (createdCategory.ParentId == null)
             {
-                InitialTreeItems[paymentType.Id].Add(asditem);
+                InitialTreeItems[paymentType.Id].Add(addedItem);
             }
             else
             {
-                var item = SearchParentTreeItem(InitialTreeItems[paymentType.Id], createdCategory.ParentId.Value);
-                if (item.Children == null)
-                {
-                    item.Children = new List<TreeItemData<Category>>();
-                }
-                item.Children.Add(asditem);
+                TreeItemData<Category>? item = SearchParentTreeItem(InitialTreeItems[paymentType.Id], createdCategory.ParentId.Value);
+
+                item.Children ??= [];
+
+                item.Children.Add(addedItem);
             }
         }
     }
 
     private async Task Delete(Category category)
     {
-        var result = await MoneyClient.Category.Delete(category.Id.Value);
+        ApiClientResponse result = await MoneyClient.Category.Delete(category.Id.Value);
+
         if (result.IsSuccessStatusCode)
         {
-            var item = SearchParentTreeItem(InitialTreeItems[category.PaymentTypeId], category.Id.Value);
+            TreeItemData<Category>? item = SearchParentTreeItem(InitialTreeItems[category.PaymentTypeId], category.Id.Value);
+
             if (category.ParentId == null)
             {
                 InitialTreeItems[category.PaymentTypeId].Remove(item);
@@ -91,7 +94,7 @@ public partial class Categories
             else
             {
                 // todo не удаляется элемент не в корне
-                var parentItem = SearchParentTreeItem(InitialTreeItems[category.PaymentTypeId], category.ParentId.Value);
+                TreeItemData<Category>? parentItem = SearchParentTreeItem(InitialTreeItems[category.PaymentTypeId], category.ParentId.Value);
                 parentItem.Children.Remove(item);
             }
         }
@@ -99,18 +102,21 @@ public partial class Categories
 
     private TreeItemData<Category>? SearchParentTreeItem(List<TreeItemData<Category>> list, int id)
     {
-        foreach (var item in list)
+        foreach (TreeItemData<Category> item in list)
         {
             if (item.Value.Id == id)
             {
                 return item;
             }
-            var result = SearchParentTreeItem(item.Children, id);
+
+            TreeItemData<Category>? result = SearchParentTreeItem(item.Children, id);
+
             if (result != null)
             {
                 return item;
             }
         }
+
         return null;
     }
 
@@ -121,7 +127,7 @@ public partial class Categories
             {
                 Text = child.Name,
                 Value = child,
-                Children = BuildChildren(categories, child.Id)
+                Children = BuildChildren(categories, child.Id),
             })
             .ToList();
     }

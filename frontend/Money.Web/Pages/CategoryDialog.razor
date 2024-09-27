@@ -5,33 +5,45 @@
         </MudText>
     </TitleContent>
     <DialogContent>
-        <MudStack Spacing="2">
-            <MudStack>
-                <MudText>Наименование:</MudText>
-                <MudTextField @bind-Value="@Category.Name"></MudTextField>
-                <MudText>Значение для сортировки:</MudText>
-                <MudTextField @bind-Value="@Category.Order"></MudTextField>
-                <MudText>Цвет:</MudText>
+        <MudStack Spacing="3">
+            <MudTextField @bind-Value="@Category.Name"
+                          Clearable
+                          HelperText="Название категории"
+                          Label="Наименование"
+                          Variant="Variant.Text"
+                          Required AutoGrow />
+
+            <MudNumericField @bind-Value="@Category.Order"
+                             DebounceInterval="500"
+                             HelperText="Больше -> выше"
+                             Label="Значение для сортировки" />
+
+            <MudStack Spacing="0">
+                <MudText Typo="Typo.subtitle2">Цвет</MudText>
                 <MudColorPicker @bind-Text="@Category.Color"
                                 ColorPickerMode="ColorPickerMode.HEX"
                                 PickerVariant="PickerVariant.Static"
-                                Rounded="true"
-                                ShowColorField="true"
-                                ShowInputs="true"
-                                ShowAlpha="true"
-                                ShowModeSwitch="true"
-                                ShowPreview="true"
-                                ShowSliders="true"
-                                ShowToolbar="true" />
+                                Rounded
+                                ShowAlpha
+                                ShowColorField
+                                ShowInputs
+                                ShowModeSwitch
+                                ShowPreview
+                                ShowSliders
+                                ShowToolbar />
             </MudStack>
         </MudStack>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Отмена</MudButton>
-        <MudButton Color="Color.Success" Disabled="@_isProcessing" OnClick="SaveAsync">
+        <MudButton Color="Color.Success"
+                   Disabled="@_isProcessing"
+                   OnClick="SaveAsync">
             @if (_isProcessing)
             {
-                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                <MudProgressCircular Class="ms-n1"
+                                     Size="Size.Small"
+                                     Indeterminate="true" />
             }
             else
             {
