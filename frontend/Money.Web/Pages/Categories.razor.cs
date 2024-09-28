@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Money.ApiClient;
+using Money.Web.Models;
 
 namespace Money.Web.Pages;
 
@@ -80,6 +81,39 @@ public partial class Categories
                 item.Children.Add(addedItem);
             }
         }
+    }
+
+    private async Task Update(Category category)
+    {
+        DialogParameters<CategoryDialog> parameters = new()
+        {
+            { dialog => dialog.Category, category },
+        };
+
+        IDialogReference dialog = await DialogService.ShowAsync<CategoryDialog>("Обновить", parameters);
+        Category? createdCategory = await dialog.GetReturnValueAsync<Category>();
+
+        //if (createdCategory != null)
+        //{
+        //    TreeItemData<Category> addedItem = new()
+        //    {
+        //        Text = createdCategory.Name,
+        //        Value = createdCategory,
+        //    };
+
+        //    if (createdCategory.ParentId == null)
+        //    {
+        //        InitialTreeItems[paymentType.Id].Add(addedItem);
+        //    }
+        //    else
+        //    {
+        //        TreeItemData<Category>? item = SearchParentTreeItem(InitialTreeItems[paymentType.Id], createdCategory.ParentId.Value);
+
+        //        item.Children ??= [];
+
+        //        item.Children.Add(addedItem);
+        //    }
+        //}
     }
 
     private async Task Delete(Category category)

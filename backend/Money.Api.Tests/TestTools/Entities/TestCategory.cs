@@ -26,6 +26,11 @@ public class TestCategory : TestObject
     public string Name { get; }
 
     /// <summary>
+    ///     Родительская категория.
+    /// </summary>
+    public TestCategory? Parent { get; set; }
+
+    /// <summary>
     ///     Тип.
     /// </summary>
     public PaymentTypes PaymentType { get; }
@@ -67,10 +72,16 @@ public class TestCategory : TestObject
         }
     }
 
+    public void SetParent(TestCategory category)
+    {
+        Parent = category;
+    }
+
     private void FillDbProperties(Money.Data.Entities.Category obj)
     {
         obj.Name = Name;
         obj.TypeId = PaymentType;
         obj.UserId = User.Id;
+        obj.ParentId = Parent?.Id;
     }
 }

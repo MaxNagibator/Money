@@ -5,6 +5,8 @@ using Money.Common.Exceptions;
 using Money.Data;
 using Money.Data.Entities;
 using Money.Data.Extensions;
+using System.Drawing;
+using System.Xml.Linq;
 
 namespace Money.Business.Services;
 
@@ -99,9 +101,53 @@ public class PaymentCategoryService(RequestEnvironment environment, ApplicationD
         return categoryId;
     }
 
+    public async Task UpdateAsync(PaymentCategory category, CancellationToken cancellationToken)
+    {
+        var userId = environment.UserId;
+        var categoryId = category.Id;
+        var parentId = category.ParentId;
+        var dbCategory = context.Categories.SingleOrDefault(x => x.Id == categoryId && x.UserId == userId);
+        if (dbCategory == null)
+        {
+            throw new BusinessException("category not found");
+        }
+
+        if (parentId != null)
+        {
+            var hasCategory = context.Categories.Any(x => x.UserId == userId && x.Id == parentId && dbCategory.TypeId == x.TypeId);
+            if (!hasCategory)
+            {
+                throw new BusinessException("parent category not found");
+            }
+        }
+
+        var nextParentId = parentId;
+        while (true)
+        {
+            if (nextParentId == null)
+            {
+                break;
+            }
+
+            var parent = context.Categories.Single(x => x.Id == nextParentId && x.UserId == userId && dbCategory.TypeId == x.TypeId);
+            nextParentId = parent.ParentId;
+            if (nextParentId == categoryId)
+            {
+                throw new BusinessException("recursive parents");
+            }
+        }
+
+        dbCategory.ParentId = parentId;
+        dbCategory.Color = category.Color;
+        dbCategory.Description = category.Description;
+        dbCategory.Name = category.Name;
+        dbCategory.Order = category.Order;
+        context.SaveChanges();
+    }
+
     public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
-        Category dbCategory = await GetByIdInternal(id, cancellationToken);
+        var dbCategory = await GetByIdInternal(id, cancellationToken);
         if (context.Categories.Any(x => x.ParentId == id && x.UserId == environment.UserId))
         {
             throw new BusinessException("удалите сначала дочернии категории");

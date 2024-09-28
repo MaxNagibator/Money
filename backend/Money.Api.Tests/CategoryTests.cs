@@ -5,6 +5,7 @@ using Money.ApiClient;
 using Money.Data;
 using Money.Data.Entities;
 using Money.Data.Extensions;
+using System.Net;
 
 namespace Money.Api.Tests;
 
@@ -69,7 +70,7 @@ public class CategoryTests
 
         TestCategory category = _user.WithCategory();
 
-        CategoryClient.CreateCategoryRequest request = new()
+        CategoryClient.SaveRequest request = new()
         {
             Name = category.Name,
             PaymentTypeId = category.PaymentType,
@@ -91,6 +92,68 @@ public class CategoryTests
             Assert.That(dbCategory.Order, Is.EqualTo(request.Order));
             Assert.That(dbCategory.ParentId, Is.EqualTo(request.ParentId));
         });
+    }
+
+    [Test]
+    public async Task UpdateTest()
+    {
+        TestCategory category = _user.WithCategory();
+        _dbClient.Save();
+
+
+        CategoryClient.SaveRequest request = new()
+        {
+            Name = category.Name,
+            PaymentTypeId = category.PaymentType,
+            Color = "#606217",
+            Order = 217,
+            ParentId = null
+        };
+
+        await _apiClient.Category.Update(category.Id, request).IsSuccess();
+        Category? dbCategory = _dbClient.CreateApplicationDbContext().Categories.SingleOrDefault(_user.Id, category.Id);
+
+        Assert.That(dbCategory, Is.Not.Null);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(dbCategory.Name, Is.EqualTo(request.Name));
+            Assert.That(dbCategory.TypeId, Is.EqualTo(request.PaymentTypeId));
+            Assert.That(dbCategory.Color, Is.EqualTo(request.Color));
+            Assert.That(dbCategory.Order, Is.EqualTo(request.Order));
+            Assert.That(dbCategory.ParentId, Is.EqualTo(request.ParentId));
+        });
+    }
+
+    [Test]
+    public async Task UpdateRecursiveFailTest()
+    {
+        TestCategory category1 = _user.WithCategory();
+        TestCategory category2 = _user.WithCategory();
+        TestCategory category3 = _user.WithCategory();
+        category2.SetParent(category1);
+        category3.SetParent(category2);
+        _dbClient.Save();
+
+        CategoryClient.SaveRequest request = new()
+        {
+            Name = category1.Name,
+            PaymentTypeId = category1.PaymentType,
+            ParentId = category3.Id,
+        };
+
+        var httpCode = (await _apiClient.Category.Update(category1.Id, request)).Code;
+        Assert.That(httpCode, Is.EqualTo(HttpStatusCode.BadRequest));
+
+        request = new()
+        {
+            Name = category2.Name,
+            PaymentTypeId = category2.PaymentType,
+            ParentId = category3.Id,
+        };
+
+        httpCode = (await _apiClient.Category.Update(category2.Id, request)).Code;
+        Assert.That(httpCode, Is.EqualTo(HttpStatusCode.BadRequest));
     }
 
     [Test]

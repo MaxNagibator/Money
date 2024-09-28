@@ -51,7 +51,7 @@ public class CategoriesController(PaymentCategoryService paymentCategoryService)
     [HttpPost]
     [Route("")]
     [ProducesResponseType(typeof(int), StatusCodes.Status201Created)]
-    public async Task<int> CreateAsync([FromBody] CreateRequest request, CancellationToken cancellationToken)
+    public async Task<int> CreateAsync([FromBody] SaveRequest request, CancellationToken cancellationToken)
     {
         Business.Models.PaymentCategory business = request.GetBusinessModel();
         int id = await paymentCategoryService.CreateAsync(business, cancellationToken);
@@ -65,11 +65,13 @@ public class CategoriesController(PaymentCategoryService paymentCategoryService)
     /// <param name="cancellationToken">Токен отмены.</param>
     /// <returns>Сообщение об обновлении.</returns>
     [HttpPut]
-    [Route("{id:guid}")]
+    [Route("{id:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public string Update(Guid id, CancellationToken cancellationToken)
+    public async Task Update([FromBody] SaveRequest request, int id, CancellationToken cancellationToken)
     {
-        return "update";
+        Business.Models.PaymentCategory business = request.GetBusinessModel();
+        business.Id = id;
+        await paymentCategoryService.UpdateAsync(business, cancellationToken);
     }
 
     /// <summary>

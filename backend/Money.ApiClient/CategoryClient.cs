@@ -17,14 +17,14 @@ public class CategoryClient(MoneyClient apiClient) : ApiClientExecutor(apiClient
         return await GetAsync<Category>($"{BaseUri}/{id}");
     }
 
-    public async Task<ApiClientResponse<int>> Create(CreateCategoryRequest request)
+    public async Task<ApiClientResponse<int>> Create(SaveRequest request)
     {
         return await PostAsync<int>(BaseUri, request);
     }
 
-    public async Task<ApiClientResponse> Update(UpdateCategoryRequest request)
+    public async Task<ApiClientResponse> Update(int id, SaveRequest request)
     {
-        return await PutAsync(BaseUri, request);
+        return await PutAsync($"{BaseUri}/{id}", request);
     }
 
     public async Task<ApiClientResponse> Delete(int id)
@@ -32,7 +32,7 @@ public class CategoryClient(MoneyClient apiClient) : ApiClientExecutor(apiClient
         return await DeleteAsync($"{BaseUri}/{id}");
     }
 
-    public class CreateCategoryRequest
+    public class SaveRequest
     {
         public required string Name { get; set; }
 
@@ -43,11 +43,6 @@ public class CategoryClient(MoneyClient apiClient) : ApiClientExecutor(apiClient
         public int? Order { get; set; }
 
         public string? Color { get; set; }
-    }
-
-    public class UpdateCategoryRequest : CreateCategoryRequest
-    {
-        public required int Id { get; set; }
     }
 
     public class Category

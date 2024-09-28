@@ -37,6 +37,10 @@
                                            Icon="@Icons.Material.TwoTone.Add"
                                            OnClick="() => Create(paymentType, category.Id)" />
 
+                            <MudIconButton Color="Color.Success"
+                                           Icon="@Icons.Material.TwoTone.Edit"
+                                           OnClick="() => Update(category)" />
+
                             <MudIconButton Color="Color.Error"
                                            Icon="@Icons.Material.TwoTone.Delete"
                                            OnClick="() => Delete(category)" />

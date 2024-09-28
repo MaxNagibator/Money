@@ -40,30 +40,23 @@ public partial class CategoryDialog
 
         try
         {
+            var clientCategory = new CategoryClient.SaveRequest
+            {
+                Name = Category.Name ?? string.Empty,
+                PaymentTypeId = Category.PaymentTypeId,
+                Color = Category.Color,
+                Order = Category.Order,
+                ParentId = Category.ParentId,
+            };
             if (Category.Id == null)
             {
-                ApiClientResponse<int> result = await MoneyClient.Category.Create(new CategoryClient.CreateCategoryRequest
-                {
-                    Name = Category.Name ?? string.Empty,
-                    PaymentTypeId = Category.PaymentTypeId,
-                    Color = Category.Color,
-                    Order = Category.Order,
-                    ParentId = Category.ParentId,
-                });
+                ApiClientResponse<int> result = await MoneyClient.Category.Create(clientCategory);
 
                 Category.Id = result.Content;
             }
             else
             {
-                await MoneyClient.Category.Update(new CategoryClient.UpdateCategoryRequest
-                {
-                    Id = Category.Id.Value,
-                    Name = Category.Name ?? string.Empty,
-                    PaymentTypeId = Category.PaymentTypeId,
-                    Color = Category.Color,
-                    Order = Category.Order,
-                    ParentId = Category.ParentId,
-                });
+                await MoneyClient.Category.Update(Category.Id.Value, clientCategory);
             }
 
             SnackbarService.Add("Сохранено!", Severity.Success);
