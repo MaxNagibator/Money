@@ -6,7 +6,7 @@ namespace Money.Api.Dto.Categories;
 ///     Категория платежа.
 /// </summary>
 [method: SetsRequiredMembers]
-public class CategoryDto(Business.Models.PaymentCategory businessModel)
+public class CategoryDto(Business.Models.Category businessModel)
 {
     /// <summary>
     ///     Идентификатор категории.

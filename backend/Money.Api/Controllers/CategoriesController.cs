@@ -9,7 +9,7 @@ namespace Money.Api.Controllers;
 [ApiController]
 [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
 [Route("[controller]")]
-public class CategoriesController(PaymentCategoryService paymentCategoryService) : ControllerBase
+public class CategoriesController(CategoryService categoryService) : ControllerBase
 {
     /// <summary>
     ///     Получить список категорий платежей.
@@ -22,7 +22,7 @@ public class CategoriesController(PaymentCategoryService paymentCategoryService)
     [ProducesResponseType(typeof(CategoryDto[]), StatusCodes.Status200OK)]
     public async Task<CategoryDto[]> Get([FromQuery] int? type, CancellationToken cancellationToken)
     {
-        ICollection<Business.Models.PaymentCategory> categories = await paymentCategoryService.GetAsync(type, cancellationToken);
+        ICollection<Business.Models.Category> categories = await categoryService.GetAsync(type, cancellationToken);
         return categories.Select(x => new CategoryDto(x)).ToArray();
     }
 
@@ -38,7 +38,7 @@ public class CategoriesController(PaymentCategoryService paymentCategoryService)
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<CategoryDto> GetById(int id, CancellationToken cancellationToken)
     {
-        Business.Models.PaymentCategory category = await paymentCategoryService.GetByIdAsync(id, cancellationToken);
+        Business.Models.Category category = await categoryService.GetByIdAsync(id, cancellationToken);
         return new CategoryDto(category);
     }
 
@@ -53,8 +53,8 @@ public class CategoriesController(PaymentCategoryService paymentCategoryService)
     [ProducesResponseType(typeof(int), StatusCodes.Status201Created)]
     public async Task<int> CreateAsync([FromBody] SaveRequest request, CancellationToken cancellationToken)
     {
-        Business.Models.PaymentCategory business = request.GetBusinessModel();
-        int id = await paymentCategoryService.CreateAsync(business, cancellationToken);
+        Business.Models.Category business = request.GetBusinessModel();
+        int id = await categoryService.CreateAsync(business, cancellationToken);
         return id;
     }
 
@@ -69,9 +69,9 @@ public class CategoriesController(PaymentCategoryService paymentCategoryService)
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task Update([FromBody] SaveRequest request, int id, CancellationToken cancellationToken)
     {
-        Business.Models.PaymentCategory business = request.GetBusinessModel();
+        Business.Models.Category business = request.GetBusinessModel();
         business.Id = id;
-        await paymentCategoryService.UpdateAsync(business, cancellationToken);
+        await categoryService.UpdateAsync(business, cancellationToken);
     }
 
     /// <summary>
@@ -86,6 +86,6 @@ public class CategoriesController(PaymentCategoryService paymentCategoryService)
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task Delete(int id, CancellationToken cancellationToken)
     {
-        await paymentCategoryService.DeleteAsync(id, cancellationToken);
+        await categoryService.DeleteAsync(id, cancellationToken);
     }
 }

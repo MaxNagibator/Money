@@ -10,46 +10,46 @@ using System.Xml.Linq;
 
 namespace Money.Business.Services;
 
-public class PaymentCategoryService(RequestEnvironment environment, ApplicationDbContext context)
+public class CategoryService(RequestEnvironment environment, ApplicationDbContext context)
 {
-    public async Task<ICollection<PaymentCategory>> GetAsync(PaymentTypes? type = null, CancellationToken cancellationToken = default)
+    public async Task<ICollection<Models.Category>> GetAsync(PaymentTypes? type = null, CancellationToken cancellationToken = default)
     {
-        IQueryable<Category> query = context.Categories.IsUserEntity(environment.UserId);
+        IQueryable<Data.Entities.Category> query = context.Categories.IsUserEntity(environment.UserId);
 
         if (type != null)
         {
             query = query.Where(x => x.TypeId == type);
         }
 
-        List<Category> dbCategories = await query.OrderBy(x => x.Order == null)
+        List<Data.Entities.Category> dbCategories = await query.OrderBy(x => x.Order == null)
             .ThenBy(x => x.Order)
             .ThenBy(x => x.Name)
             .ToListAsync(cancellationToken);
 
-        List<PaymentCategory> categories = dbCategories.Select(MapTo)
+        List<Models.Category> categories = dbCategories.Select(MapTo)
             .ToList();
 
         return categories;
     }
 
-    public async Task<PaymentCategory> GetByIdAsync(int id, CancellationToken cancellationToken)
+    public async Task<Models.Category> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
-        Category dbCategory = await GetByIdInternal(id, cancellationToken);
-        PaymentCategory category = MapTo(dbCategory);
+        Data.Entities.Category dbCategory = await GetByIdInternal(id, cancellationToken);
+        Models.Category category = MapTo(dbCategory);
         return category;
     }
 
-    private async Task<Category> GetByIdInternal(int id, CancellationToken cancellationToken)
+    private async Task<Data.Entities.Category> GetByIdInternal(int id, CancellationToken cancellationToken)
     {
-        Category dbCategory = await context.Categories.SingleOrDefaultAsync(environment.UserId, id, cancellationToken)
+        Data.Entities.Category dbCategory = await context.Categories.SingleOrDefaultAsync(environment.UserId, id, cancellationToken)
                               ?? throw new NotFoundException("Категория не найдена");
 
         return dbCategory;
     }
 
-    private PaymentCategory MapTo(Category dbCategory)
+    private Models.Category MapTo(Data.Entities.Category dbCategory)
     {
-        return new PaymentCategory
+        return new Models.Category
         {
             Id = dbCategory.Id,
             Name = dbCategory.Name,
@@ -61,7 +61,7 @@ public class PaymentCategoryService(RequestEnvironment environment, ApplicationD
         };
     }
 
-    public async Task<int> CreateAsync(PaymentCategory category, CancellationToken cancellationToken = default)
+    public async Task<int> CreateAsync(Models.Category category, CancellationToken cancellationToken = default)
     {
         if (environment.UserId == null)
         {
@@ -84,7 +84,7 @@ public class PaymentCategoryService(RequestEnvironment environment, ApplicationD
         int categoryId = dbUser.NextCategoryId;
         dbUser.NextCategoryId++; // todo обработать канкаренси
 
-        Category dbCategory = new()
+        Data.Entities.Category dbCategory = new()
         {
             Id = categoryId,
             UserId = environment.UserId.Value,
@@ -101,7 +101,7 @@ public class PaymentCategoryService(RequestEnvironment environment, ApplicationD
         return categoryId;
     }
 
-    public async Task UpdateAsync(PaymentCategory category, CancellationToken cancellationToken)
+    public async Task UpdateAsync(Models.Category category, CancellationToken cancellationToken)
     {
         var userId = environment.UserId;
         var categoryId = category.Id;

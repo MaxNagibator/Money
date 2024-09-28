@@ -39,9 +39,9 @@ public class SaveRequest
     ///     Преобразует текущую модель в бизнес-модель.
     /// </summary>
     /// <returns>Бизнес-модель категории платежа.</returns>
-    public Business.Models.PaymentCategory GetBusinessModel()
+    public Business.Models.Category GetBusinessModel()
     {
-        return new Business.Models.PaymentCategory
+        return new Business.Models.Category
         {
             Color = Color,
             Name = Name,
