@@ -40,6 +40,11 @@ public class TestCategory : TestObject
     /// </summary>
     public TestUser User { get; }
 
+    /// <summary>
+    /// Удалена.
+    /// </summary>
+    public bool IsDeleted = false;
+
     public override void LocalSave()
     {
         if (IsNew)
@@ -72,9 +77,16 @@ public class TestCategory : TestObject
         }
     }
 
-    public void SetParent(TestCategory category)
+    public TestCategory SetParent(TestCategory category)
     {
         Parent = category;
+        return this;
+    }
+
+    public TestCategory SetIsDeleted()
+    {
+        IsDeleted = true;
+        return this;
     }
 
     private void FillDbProperties(Money.Data.Entities.Category obj)
@@ -83,5 +95,6 @@ public class TestCategory : TestObject
         obj.TypeId = PaymentType;
         obj.UserId = User.Id;
         obj.ParentId = Parent?.Id;
+        obj.IsDeleted = IsDeleted;
     }
 }

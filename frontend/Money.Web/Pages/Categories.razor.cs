@@ -81,6 +81,30 @@ public partial class Categories
                 item.Children.Add(addedItem);
             }
         }
+
+        TreeItemData<Category>? SearchParentTreeItem(List<TreeItemData<Category>> list, int id)
+        {
+            if (list == null)
+            {
+                return null;
+            }
+            foreach (TreeItemData<Category> item in list)
+            {
+                if (item.Value.Id == id)
+                {
+                    return item;
+                }
+
+                TreeItemData<Category>? result = SearchParentTreeItem(item.Children, id);
+
+                if (result != null)
+                {
+                    return result;
+                }
+            }
+
+            return null;
+        }
     }
 
     private async Task Update(Category category)
@@ -92,28 +116,6 @@ public partial class Categories
 
         IDialogReference dialog = await DialogService.ShowAsync<CategoryDialog>("Обновить", parameters);
         Category? createdCategory = await dialog.GetReturnValueAsync<Category>();
-
-        //if (createdCategory != null)
-        //{
-        //    TreeItemData<Category> addedItem = new()
-        //    {
-        //        Text = createdCategory.Name,
-        //        Value = createdCategory,
-        //    };
-
-        //    if (createdCategory.ParentId == null)
-        //    {
-        //        InitialTreeItems[paymentType.Id].Add(addedItem);
-        //    }
-        //    else
-        //    {
-        //        TreeItemData<Category>? item = SearchParentTreeItem(InitialTreeItems[paymentType.Id], createdCategory.ParentId.Value);
-
-        //        item.Children ??= [];
-
-        //        item.Children.Add(addedItem);
-        //    }
-        //}
     }
 
     private async Task Delete(Category category)
@@ -122,17 +124,7 @@ public partial class Categories
 
         if (result.IsSuccessStatusCode)
         {
-            TreeItemData<Category>? item = SearchParentTreeItem(InitialTreeItems[category.PaymentTypeId], category.Id.Value);
-
-            if (category.ParentId == null)
-            {
-                InitialTreeItems[category.PaymentTypeId].Remove(item);
-            }
-            else
-            {
-                TreeItemData<Category>? parentItem = SearchParentTreeItem(InitialTreeItems[category.PaymentTypeId], category.ParentId.Value);
-                parentItem.Children.Remove(item);
-            }
+            category.IsDeleted = true;
         }
         else
         {
@@ -141,28 +133,19 @@ public partial class Categories
         }
     }
 
-    private TreeItemData<Category>? SearchParentTreeItem(List<TreeItemData<Category>> list, int id)
+    private async Task Restore(Category category)
     {
-        if (list == null)
+        ApiClientResponse result = await MoneyClient.Category.Restore(category.Id.Value);
+
+        if (result.IsSuccessStatusCode)
         {
-            return null;
+            category.IsDeleted = false;
         }
-        foreach (TreeItemData<Category> item in list)
+        else
         {
-            if (item.Value.Id == id)
-            {
-                return item;
-            }
-
-            TreeItemData<Category>? result = SearchParentTreeItem(item.Children, id);
-
-            if (result != null)
-            {
-                return result;
-            }
+            var message = result.StringContent; // todo обработать бизнес ошибки
+            SnackbarService.Add("Ошибка: " + message, Severity.Error);
         }
-
-        return null;
     }
 
     private List<TreeItemData<Category>> BuildChildren(List<Category> categories, int? parentId)

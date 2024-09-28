@@ -31,4 +31,9 @@ public class Category
     ///     Идентификатор типа платежа.
     /// </summary>
     public required int PaymentTypeId { get; set; }
+
+    /// <summary>
+    ///       Удалён.
+    /// </summary>
+    public bool IsDeleted { get; set; }
 }

@@ -1,12 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Money.Business.Enums;
-using Money.Business.Models;
 using Money.Common.Exceptions;
 using Money.Data;
-using Money.Data.Entities;
 using Money.Data.Extensions;
-using System.Drawing;
-using System.Xml.Linq;
 
 namespace Money.Business.Services;
 
@@ -153,6 +149,21 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
             throw new BusinessException("удалите сначала дочернии категории");
         }
         dbCategory.IsDeleted = true;
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task RestoreAsync(int id, CancellationToken cancellationToken = default)
+    {
+        Data.Entities.Category dbCategory = await context.Categories.IgnoreQueryFilters()
+            .Where(x=>x.IsDeleted == true)
+            .SingleOrDefaultAsync(environment.UserId, id, cancellationToken)
+                              ?? throw new NotFoundException("Категория не найдена");
+
+        if (dbCategory.ParentId != null)
+        {
+            await GetByIdInternal(id, cancellationToken);
+        }
+        dbCategory.IsDeleted = false;
         await context.SaveChangesAsync(cancellationToken);
     }
 }

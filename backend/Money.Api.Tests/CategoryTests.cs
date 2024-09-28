@@ -178,4 +178,19 @@ public class CategoryTests
         Assert.That(dbCategory, Is.Not.Null);
         Assert.That(dbCategory.IsDeleted, Is.EqualTo(true));
     }
+
+    [Test]
+    public async Task RestoreTest()
+    {
+        TestCategory category = _user.WithCategory().SetIsDeleted();
+        _dbClient.Save();
+
+        await _apiClient.Category.Restore(category.Id).IsSuccess();
+
+        await using ApplicationDbContext context = _dbClient.CreateApplicationDbContext();
+
+        Category? dbCategory = context.Categories.SingleOrDefault(_user.Id, category.Id);
+        Assert.That(dbCategory, Is.Not.Null);
+        Assert.That(dbCategory.IsDeleted, Is.EqualTo(false));
+    }
 }

@@ -61,6 +61,7 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     /// <summary>
     ///     Обновить существующую категорию платежа.
     /// </summary>
+    /// <param name="request">Данные для обновление категории.</param>
     /// <param name="id">Идентификатор категории.</param>
     /// <param name="cancellationToken">Токен отмены.</param>
     /// <returns>Сообщение об обновлении.</returns>
@@ -87,5 +88,20 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     public async Task Delete(int id, CancellationToken cancellationToken)
     {
         await categoryService.DeleteAsync(id, cancellationToken);
+    }
+
+    /// <summary>
+    ///     Востановить категорию платежа по идентификатору.
+    /// </summary>
+    /// <param name="id">Идентификатор категории.</param>
+    /// <param name="cancellationToken">Токен отмены.</param>
+    /// <returns>Сообщение об удалении.</returns>
+    [HttpPost]
+    [Route("{id:int}/Restore")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task Restore(int id, CancellationToken cancellationToken)
+    {
+        await categoryService.RestoreAsync(id, cancellationToken);
     }
 }

@@ -12,17 +12,22 @@ public class ApiClientExecutor(MoneyClient apiClient)
         return await SendWithBody<T>(HttpMethod.Get, uri);
     }
 
-    protected async Task<ApiClientResponse<T>> PostAsync<T>(string uri, object body)
+    protected async Task<ApiClientResponse<T>> PostAsync<T>(string uri, object? body = null)
     {
         return await SendWithBody<T>(HttpMethod.Post, uri, body);
     }
 
-    protected async Task<ApiClientResponse> PutAsync(string uri, object body)
+    protected async Task<ApiClientResponse> PostAsync(string uri, object? body = null)
+    {
+        return await SendWithBody<string>(HttpMethod.Post, uri, body);
+    }
+
+    protected async Task<ApiClientResponse> PutAsync(string uri, object? body = null)
     {
         return await SendWithBody<string>(HttpMethod.Put, uri, body);
     }
 
-    protected async Task<ApiClientResponse<T>> PatchAsync<T>(string uri, object body)
+    protected async Task<ApiClientResponse<T>> PatchAsync<T>(string uri, object? body = null)
     {
         return await SendWithBody<T>(HttpMethod.Patch, uri, body);
     }
