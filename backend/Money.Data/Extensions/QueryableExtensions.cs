@@ -1,18 +1,18 @@
-﻿using System.Linq.Expressions;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Money.Data.Entities;
+using System.Linq.Expressions;
 
 namespace Money.Data.Extensions;
 
 public static class QueryableExtensions
 {
-    public static T? SingleOrDefault<T>(this IQueryable<T> queryable, int? userId, int entityId)
+    public static T? SingleOrDefault<T>(this IQueryable<T> queryable, int? userId, int? entityId)
         where T : class, IUserEntity
     {
         return queryable.SingleOrDefault(GetUserEntity<T>(userId, entityId));
     }
 
-    public static Task<T?> SingleOrDefaultAsync<T>(this IQueryable<T> queryable, int? userId, int entityId, CancellationToken cancellationToken = default)
+    public static Task<T?> SingleOrDefaultAsync<T>(this IQueryable<T> queryable, int? userId, int? entityId, CancellationToken cancellationToken = default)
         where T : class, IUserEntity
     {
         return queryable.SingleOrDefaultAsync(GetUserEntity<T>(userId, entityId), cancellationToken);

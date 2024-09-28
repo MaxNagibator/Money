@@ -41,26 +41,22 @@ public class TestCategory : TestObject
     public TestUser User { get; }
 
     /// <summary>
-    /// Удалена.
+    ///     Удалена.
     /// </summary>
-    public bool IsDeleted = false;
+    public bool IsDeleted { get; set; }
 
     public override void LocalSave()
     {
         if (IsNew)
         {
-            //todo need optimization in future
-            int categoryId = Environment.Context.Categories.AsEnumerable()
-                                 .Where(x => x.UserId == User.Id)
-                                 .Select(x => x.Id)
-                                 .DefaultIfEmpty(0)
-                                 .Max()
-                             + 1;
+            Money.Data.Entities.DomainUser dbUser = Environment.Context.DomainUsers.Single(x => x.Id == User.Id);
+            int categoryId = dbUser.NextCategoryId;
+            dbUser.NextCategoryId++; // todo обработать канкаренси
 
             Money.Data.Entities.Category obj = new()
             {
                 Id = categoryId,
-                Name = ""
+                Name = "",
             };
 
             FillDbProperties(obj);

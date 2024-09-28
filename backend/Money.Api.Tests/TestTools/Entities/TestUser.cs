@@ -27,7 +27,7 @@ public class TestUser : TestObject
             Environment.ApiClient.RegisterAsync(Login, Password).Wait();
 
             Money.Data.Entities.ApplicationUser dbUser = Environment.Context.Users
-                .Single(x =>x.UserName == Login);
+                .Single(x => x.UserName == Login);
 
             Money.Data.Entities.DomainUser domainUser = Environment.Context.DomainUsers
                 .Single(x => x.AuthUserId == dbUser.Id);

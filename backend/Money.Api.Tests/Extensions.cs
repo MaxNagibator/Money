@@ -30,11 +30,21 @@ public static class ApiClientExtensions
         return response;
     }
 
-    public static async Task<ApiClientResponse> IsSuccess(this Task<ApiClientResponse> responseTask)
+    public static async Task<ApiClientResponse> IsStatus(this Task<ApiClientResponse> responseTask, HttpStatusCode statusCode)
     {
         ApiClientResponse response = await responseTask;
-        Assert.That(response.Code, Is.EqualTo(HttpStatusCode.OK), response.StringContent);
+        Assert.That(response.Code, Is.EqualTo(statusCode), response.StringContent);
         return response;
+    }
+
+    public static Task<ApiClientResponse> IsSuccess(this Task<ApiClientResponse> responseTask)
+    {
+        return IsStatus(responseTask, HttpStatusCode.OK);
+    }
+
+    public static Task<ApiClientResponse> IsBadRequest(this Task<ApiClientResponse> responseTask)
+    {
+        return IsStatus(responseTask, HttpStatusCode.BadRequest);
     }
 
     public static async Task<T?> IsSuccessWithContent<T>(this Task<ApiClientResponse<T>> responseTask)

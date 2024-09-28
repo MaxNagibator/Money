@@ -21,7 +21,7 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
         user = new ApplicationUser
         {
             UserName = model.Email,
-            Email = model.Email
+            Email = model.Email,
         };
 
         IdentityResult result = await userManager.CreateAsync(user, model.Password);
@@ -33,7 +33,7 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
 
         await context.DomainUsers.AddAsync(new DomainUser
         {
-            AuthUserId = user.Id
+            AuthUserId = user.Id,
         }, cancellationToken);
 
         await context.SaveChangesAsync(cancellationToken);
@@ -50,7 +50,7 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
 
         domainUser = new DomainUser
         {
-            AuthUserId = authUserId
+            AuthUserId = authUserId,
         };
 
         await context.DomainUsers.AddAsync(domainUser, cancellationToken);

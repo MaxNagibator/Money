@@ -48,7 +48,7 @@ public class SaveRequest
             Order = Order,
             Description = Description,
             PaymentType = PaymentTypeId,
-            ParentId = ParentId
+            ParentId = ParentId,
         };
     }
 }
