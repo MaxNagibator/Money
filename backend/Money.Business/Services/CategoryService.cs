@@ -146,7 +146,7 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
         var dbCategory = await GetByIdInternal(id, cancellationToken);
         if (context.Categories.Any(x => x.ParentId == id && x.UserId == environment.UserId))
         {
-            throw new BusinessException("удалите сначала дочернии категории");
+            throw new BusinessException("Сначала удалите подкатегорию");
         }
         dbCategory.IsDeleted = true;
         await context.SaveChangesAsync(cancellationToken);
