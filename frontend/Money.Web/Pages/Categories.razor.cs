@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Money.ApiClient;
-using Money.Web.Models;
+using Money.Web.Common;
 
 namespace Money.Web.Pages;
 
@@ -52,45 +52,57 @@ public partial class Categories
     {
         string defaultColor = "#9b9b9bff";
 
+        Category category = new()
+        {
+            Id = null,
+            PaymentTypeId = paymentType.Id,
+            ParentId = parentId,
+            Color = defaultColor,
+        };
+
         DialogParameters<CategoryDialog> parameters = new()
         {
-            { dialog => dialog.Category, new Category { ParentId = parentId, Id = null, PaymentTypeId = paymentType.Id, Color = defaultColor } },
+            { dialog => dialog.Category, category },
         };
 
         IDialogReference dialog = await DialogService.ShowAsync<CategoryDialog>("Создать", parameters);
         Category? createdCategory = await dialog.GetReturnValueAsync<Category>();
 
-        if (createdCategory != null)
+        if (createdCategory == null)
         {
-            TreeItemData<Category> addedItem = new()
-            {
-                Text = createdCategory.Name,
-                Value = createdCategory,
-            };
-
-            if (createdCategory.ParentId == null)
-            {
-                InitialTreeItems[paymentType.Id].Add(addedItem);
-            }
-            else
-            {
-                TreeItemData<Category>? item = SearchParentTreeItem(InitialTreeItems[paymentType.Id], createdCategory.ParentId.Value);
-
-                item.Children ??= [];
-
-                item.Children.Add(addedItem);
-            }
+            return;
         }
 
-        TreeItemData<Category>? SearchParentTreeItem(List<TreeItemData<Category>> list, int id)
+        TreeItemData<Category> addedItem = new()
+        {
+            Text = createdCategory.Name,
+            Value = createdCategory,
+        };
+
+        if (createdCategory.ParentId == null)
+        {
+            InitialTreeItems[paymentType.Id].Add(addedItem);
+        }
+        else
+        {
+            TreeItemData<Category>? item = SearchParentTreeItem(InitialTreeItems[paymentType.Id], createdCategory.ParentId.Value);
+
+            item.Children ??= [];
+            item.Children.Add(addedItem);
+        }
+
+        return;
+
+        TreeItemData<Category>? SearchParentTreeItem(List<TreeItemData<Category>>? list, int id)
         {
             if (list == null)
             {
                 return null;
             }
+
             foreach (TreeItemData<Category> item in list)
             {
-                if (item.Value.Id == id)
+                if (item.Value?.Id == id)
                 {
                     return item;
                 }
@@ -114,38 +126,41 @@ public partial class Categories
             { dialog => dialog.Category, category },
         };
 
-        IDialogReference dialog = await DialogService.ShowAsync<CategoryDialog>("Обновить", parameters);
-        Category? createdCategory = await dialog.GetReturnValueAsync<Category>();
+        await DialogService.ShowAsync<CategoryDialog>("Обновить", parameters);
     }
 
     private async Task Delete(Category category)
     {
+        if (category.Id == null)
+        {
+            return;
+        }
+
         ApiClientResponse result = await MoneyClient.Category.Delete(category.Id.Value);
 
-        if (result.IsSuccessStatusCode)
+        if (result.GetError().ShowMessage(SnackbarService).HasError())
         {
-            category.IsDeleted = true;
+            return;
         }
-        else
-        {
-            var message = result.StringContent; // todo обработать бизнес ошибки
-            SnackbarService.Add("Ошибка: " + message, Severity.Error);
-        }
+
+        category.IsDeleted = true;
     }
 
     private async Task Restore(Category category)
     {
+        if (category.Id == null)
+        {
+            return;
+        }
+
         ApiClientResponse result = await MoneyClient.Category.Restore(category.Id.Value);
 
-        if (result.IsSuccessStatusCode)
+        if (result.GetError().ShowMessage(SnackbarService).HasError())
         {
-            category.IsDeleted = false;
+            return;
         }
-        else
-        {
-            var message = result.StringContent; // todo обработать бизнес ошибки
-            SnackbarService.Add("Ошибка: " + message, Severity.Error);
-        }
+
+        category.IsDeleted = false;
     }
 
     private List<TreeItemData<Category>> BuildChildren(List<Category> categories, int? parentId)

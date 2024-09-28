@@ -24,39 +24,46 @@
                     @{
                         Category? category = context.Value;
                     }
-                    @if(category.IsDeleted)
-                    {
-                        <div style="float:right">
-                        <MudIconButton Color="Color.Info"
-                                       Icon="@Icons.Material.TwoTone.Cancel"
-                                       OnClick="() => Restore(category)" />
-                        </div>
-                    }
-                    else
-                    {
-                        <MudTreeViewItem @bind-Expanded="@context.Expanded" Items="@context.Children" Value="@context.Value">
+                    <MudStack Row StretchItems="StretchItems.Start">
+                        <MudTreeViewItem @bind-Expanded="@context.Expanded" Items="@context.Children" Value="@context.Value" Disabled="category.IsDeleted">
                             <Content>
                                 <MudTreeViewItemToggleButton @bind-Expanded="@context.Expanded" Visible="@context.HasChildren" />
                                 <MudText>@category?.Name</MudText>
                                 <MudSpacer />
-                                @if (category?.Color is not null)
+                                @if (category is { Color: not null, IsDeleted: false })
                                 {
                                     <div class="chip" style="background-color: @category.Color"></div>
                                 }
-                                <MudIconButton Color="Color.Success"
-                                               Icon="@Icons.Material.TwoTone.Add"
-                                               OnClick="() => Create(paymentType, category.Id)" />
 
-                                <MudIconButton Color="Color.Success"
-                                               Icon="@Icons.Material.TwoTone.Edit"
-                                               OnClick="() => Update(category)" />
+                                @if (category.IsDeleted == false)
+                                {
+                                    <MudIconButton Color="Color.Success"
+                                                   Icon="@Icons.Material.TwoTone.Add"
+                                                   OnClick="() => Create(paymentType, category.Id)" />
 
-                                <MudIconButton Color="Color.Error"
-                                               Icon="@Icons.Material.TwoTone.Delete"
-                                               OnClick="() => Delete(category)" />
+                                    <MudIconButton Color="Color.Warning"
+                                                   Icon="@Icons.Material.TwoTone.Edit"
+                                                   OnClick="() => Update(category)" />
+
+                                    <MudIconButton Color="Color.Error"
+                                                   Icon="@Icons.Material.TwoTone.Delete"
+                                                   OnClick="() => Delete(category)" />
+                                }
                             </Content>
                         </MudTreeViewItem>
-                    }
+
+                        @if (category.IsDeleted)
+                        {
+                            <MudSpacer />
+
+                            <MudButton Color="Color.Info"
+                                       EndIcon="@Icons.Material.Sharp.Cancel"
+                                       OnClick="() => Restore(category)"
+                                       Size="Size.Large">
+                                Восстановить
+                            </MudButton>
+                        }
+                    </MudStack>
                 </ItemTemplate>
             </MudTreeView>
             <MudButton EndIcon="@Icons.Material.TwoTone.Add"
