@@ -5,34 +5,38 @@
         </MudText>
     </TitleContent>
     <DialogContent>
-        <MudStack Spacing="3">
-            <MudTextField @bind-Value="@Category.Name"
-                          Clearable
-                          HelperText="Название категории"
-                          Label="Наименование"
-                          Variant="Variant.Text"
-                          Required AutoGrow />
+        <MudForm  Validation="@(categoryDialogValidator.ValidateValue)" ValidationDelay="0" @ref="MudForm">
+            <MudStack Spacing="3">
+                <MudTextField @bind-Value="@Category.Name"
+                              Clearable
+                              HelperText="Название категории"
+                              Label="Наименование"
+                              Variant="Variant.Text"
+                              RequiredError="Категория обязательна"
+                              Required AutoGrow/>
 
-            <MudNumericField @bind-Value="@Category.Order"
-                             DebounceInterval="500"
-                             HelperText="Больше -> выше"
-                             Label="Значение для сортировки" />
+                <MudNumericField @bind-Value="@Category.Order"
+                                 DebounceInterval="500"
+                                 HelperText="Больше -> выше"
+                                 Label="Значение для сортировки"/>
 
-            <MudStack Spacing="0">
-                <MudText Typo="Typo.subtitle2">Цвет</MudText>
-                <MudColorPicker @bind-Text="@Category.Color"
-                                ColorPickerMode="ColorPickerMode.HEX"
-                                PickerVariant="PickerVariant.Static"
-                                Rounded
-                                ShowAlpha
-                                ShowColorField
-                                ShowInputs
-                                ShowModeSwitch
-                                ShowPreview
-                                ShowSliders
-                                ShowToolbar />
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.subtitle2">Цвет</MudText>
+                    <MudColorPicker @bind-Text="@Category.Color"
+                                    ColorPickerMode="ColorPickerMode.HEX"
+                                    PickerVariant="PickerVariant.Static"
+                                    Rounded
+                                    ShowAlpha
+                                    ShowColorField
+                                    ShowInputs
+                                    ShowModeSwitch
+                                    ShowPreview
+                                    ShowSliders
+                                    ShowToolbar/>
+                </MudStack>
             </MudStack>
-        </MudStack>
+        </MudForm>
+       
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Отмена</MudButton>

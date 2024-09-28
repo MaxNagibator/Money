@@ -10,7 +10,7 @@ public class Category
     /// <summary>
     ///     Название категории.
     /// </summary>
-    public string? Name { get; set; }
+    public string Name { get; set; } = null!;
 
     /// <summary>
     ///     Идентификатор родительской категории (если есть).

@@ -1,6 +1,7 @@
 ﻿using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components;
 using Money.ApiClient;
+using Money.Web.Validators.Category;
 
 namespace Money.Web.Pages;
 
@@ -19,6 +20,9 @@ public partial class CategoryDialog
 
     [CascadingParameter]
     public MudDialogInstance MudDialog { get; set; } = default!;
+    
+    [CascadingParameter]
+    public MudForm MudForm { get; set; } = default!;
 
     [Inject]
     private MoneyClient MoneyClient { get; set; } = default!;
@@ -29,15 +33,24 @@ public partial class CategoryDialog
     [Inject]
     private ILocalStorageService LocalStorage { get; set; } = default!;
 
+    private CategoryDialogModelFluentValidator categoryDialogValidator = new();
+    
     protected override void OnParametersSet()
     {
         MudDialog.SetOptions(_dialogOptions);
     }
 
     private async Task SaveAsync()
-    {
+    {     
         _isProcessing = true;
-
+        
+        await MudForm.Validate();
+        
+        if (!MudForm.IsValid)
+        {
+            _isProcessing = false;
+            return;
+        }
         try
         {
             var clientCategory = new CategoryClient.SaveRequest
