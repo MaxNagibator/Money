@@ -28,5 +28,5 @@ jobs:
       - name: Build backend
         run: dotnet build --no-restore
 
-      - name: Run tests
-  	run: dotnet test
+      - name: Test
+        run: dotnet test --no-build --verbosity normal
