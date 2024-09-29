@@ -1,10 +1,14 @@
-﻿using Microsoft.AspNetCore.Components.Routing;
+﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Routing;
 
 namespace Money.Web.Layout;
 
-public partial class NavMenu
+public partial class NavMenu : IDisposable
 {
     private string? _currentUrl;
+
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = default!;
 
     public void Dispose()
     {

@@ -1,8 +1,7 @@
-﻿using Blazored.LocalStorage;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Money.ApiClient;
 
-namespace Money.Web.Pages;
+namespace Money.Web.Components;
 
 public partial class CategoryDialog
 {
@@ -25,9 +24,6 @@ public partial class CategoryDialog
 
     [Inject]
     private ISnackbar SnackbarService { get; set; } = default!;
-
-    [Inject]
-    private ILocalStorageService LocalStorage { get; set; } = default!;
 
     protected override void OnParametersSet()
     {

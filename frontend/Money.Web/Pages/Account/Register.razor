@@ -1,37 +1,36 @@
 ﻿@page "/Account/Register"
 
-<PageTitle>Register</PageTitle>
+<PageTitle>Регистрация</PageTitle>
 
-<MudText Typo="Typo.h3" GutterBottom="true">Register</MudText>
+<MudText Typo="Typo.h3" GutterBottom>Регистрация</MudText>
 
 <MudGrid>
     <MudItem md="6">
         <EditForm Model="Input" asp-route-returnUrl="@ReturnUrl" method="post" OnValidSubmit="RegisterUser" FormName="register">
             <DataAnnotationsValidator />
 
-            <MudText Typo="Typo.body1" GutterBottom="true">Create a new account.</MudText>
+            <MudText Typo="Typo.body1" GutterBottom>Создание нового аккаунта</MudText>
 
             <MudGrid>
                 <MudItem md="12">
                     <MudTextField For="@(() => Input.Email)" @bind-Value="Input.Email"
-                                  Label="Email" Placeholder="name@example.com"
+                                  Label="Электронная почта" Placeholder="name@example.com"
                                   UserAttributes="@(new Dictionary<string, object?> { { "autocomplete", "true" }, { "aria-required", "true" } })" />
                 </MudItem>
                 <MudItem md="12">
                     <MudTextField For="@(() => Input.Password)" @bind-Value="Input.Password"
-                                  Label="Password" InputType="InputType.Password" Placeholder="password"
+                                  Label="Пароль" InputType="InputType.Password" Placeholder="пароль"
                                   UserAttributes="@(new Dictionary<string, object?> { { "autocomplete", "new-password" }, { "aria-required", "true" } })" />
                 </MudItem>
                 <MudItem md="12">
                     <MudTextField For="@(() => Input.ConfirmPassword)" @bind-Value="Input.ConfirmPassword"
-                                  Label="Confirm Password" InputType="InputType.Password" Placeholder="confirm password"
+                                  Label="Подтвердите пароль" InputType="InputType.Password" Placeholder="подтвердите пароль"
                                   UserAttributes="@(new Dictionary<string, object?> { { "autocomplete", "new-password" }, { "aria-required", "true" } })" />
                 </MudItem>
                 <MudItem md="12">
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" ButtonType="ButtonType.Submit">Register</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth ButtonType="ButtonType.Submit">Зарегистрироваться</MudButton>
                 </MudItem>
             </MudGrid>
         </EditForm>
     </MudItem>
-
 </MudGrid>

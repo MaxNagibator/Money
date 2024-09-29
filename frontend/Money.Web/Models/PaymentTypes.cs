@@ -10,13 +10,13 @@ public static class PaymentTypes
         return
         [
             new Value { Id = 1, Name = "Расходы" },
-            new Value { Id = 2, Name = "Доходы" }
+            new Value { Id = 2, Name = "Доходы" },
         ];
     }
 
     public class Value
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
+        public required int Id { get; init; }
+        public required string Name { get; init; }
     }
 }
