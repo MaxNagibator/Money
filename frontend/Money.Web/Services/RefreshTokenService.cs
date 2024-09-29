@@ -1,10 +1,11 @@
+using CSharpFunctionalExtensions;
 using System.Security.Claims;
 
 namespace Money.Web.Services;
 
 public class RefreshTokenService(AuthenticationStateProvider authProvider, AuthenticationService authService)
 {
-    public async Task<string> TryRefreshToken()
+    public async Task<Result<string>> TryRefreshToken()
     {
         AuthenticationState authState = await authProvider.GetAuthenticationStateAsync();
         ClaimsPrincipal user = authState.User;
