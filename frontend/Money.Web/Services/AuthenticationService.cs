@@ -8,8 +8,8 @@ public class AuthenticationService(
     AuthenticationStateProvider authStateProvider,
     ILocalStorageService localStorage)
 {
-    private const string AccessTokenKey = "authToken";
-    private const string RefreshTokenKey = "refreshToken";
+    public const string AccessTokenKey = "authToken";
+    public const string RefreshTokenKey = "refreshToken";
     private readonly HttpClient _client = clientFactory.CreateClient("api_base");
 
     public async Task RegisterAsync(UserDto user)
@@ -23,17 +23,17 @@ public class AuthenticationService(
         FormUrlEncodedContent requestContent = new([
             new KeyValuePair<string, string>("grant_type", "password"),
             new KeyValuePair<string, string>("username", user.Email),
-            new KeyValuePair<string, string>("password", user.Password)
+            new KeyValuePair<string, string>("password", user.Password),
         ]);
 
         AuthData result = await AuthenticateAsync(requestContent);
-        await ((AuthStateProvider)authStateProvider).NotifyUserAuthentication(result.AccessToken);
+        await ((AuthStateProvider)authStateProvider).NotifyUserAuthentication();
     }
 
     public async Task LogoutAsync()
     {
         await localStorage.RemoveItemsAsync([AccessTokenKey, RefreshTokenKey]);
-        ((AuthStateProvider)authStateProvider).NotifyUserLogout();
+        await ((AuthStateProvider)authStateProvider).NotifyUserAuthentication();
     }
 
     public async Task<string> RefreshTokenAsync()
@@ -48,7 +48,7 @@ public class AuthenticationService(
 
         FormUrlEncodedContent requestContent = new([
             new KeyValuePair<string, string>("grant_type", "refresh_token"),
-            new KeyValuePair<string, string>("refresh_token", refreshToken)
+            new KeyValuePair<string, string>("refresh_token", refreshToken),
         ]);
 
         requestContent.Headers.Add("Authorization", $"Bearer {token}");

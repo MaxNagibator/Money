@@ -35,7 +35,7 @@ builder.Services.AddScoped(provider =>
 builder.Services.AddScoped(provider =>
 {
     IHttpClientFactory factory = provider.GetRequiredService<IHttpClientFactory>();
-    var moneyClient = new MoneyClient(factory.CreateClient("api"), Console.WriteLine);
+    MoneyClient moneyClient = new(factory.CreateClient("api"), Console.WriteLine);
     return moneyClient;
 });
 

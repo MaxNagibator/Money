@@ -14,23 +14,23 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     /// <summary>
     ///     Получить список категорий платежей.
     /// </summary>
-    /// <param name="type">Тип категории (необязательный).</param>
-    /// <param name="cancellationToken">Токен отмены.</param>
-    /// <returns>Список категорий платежей.</returns>
+    /// <param name="type">Тип категории (опционально).</param>
+    /// <param name="cancellationToken">Токен отмены запроса.</param>
+    /// <returns>Массив категорий платежей.</returns>
     [HttpGet]
     [Route("")]
     [ProducesResponseType(typeof(CategoryDto[]), StatusCodes.Status200OK)]
     public async Task<CategoryDto[]> Get([FromQuery] int? type, CancellationToken cancellationToken)
     {
         ICollection<Business.Models.Category> categories = await categoryService.GetAsync(type, cancellationToken);
-        return categories.Select(x => new CategoryDto(x)).ToArray();
+        return categories.Select(CategoryDto.FromBusinessModel).ToArray();
     }
 
     /// <summary>
     ///     Получить категорию платежа по идентификатору.
     /// </summary>
     /// <param name="id">Идентификатор категории.</param>
-    /// <param name="cancellationToken">Токен отмены.</param>
+    /// <param name="cancellationToken">Токен отмены запроса.</param>
     /// <returns>Информация о категории.</returns>
     [HttpGet]
     [Route("{id:int}")]
@@ -39,21 +39,21 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     public async Task<CategoryDto> GetById(int id, CancellationToken cancellationToken)
     {
         Business.Models.Category category = await categoryService.GetByIdAsync(id, cancellationToken);
-        return new CategoryDto(category);
+        return category;
     }
 
     /// <summary>
     ///     Создать новую категорию платежа.
     /// </summary>
-    /// <param name="request">Данные для создания категории.</param>
-    /// <param name="cancellationToken">Токен отмены.</param>
+    /// <param name="request">Данные для создания новой категории.</param>
+    /// <param name="cancellationToken">Токен отмены запроса.</param>
     /// <returns>Идентификатор созданной категории.</returns>
     [HttpPost]
     [Route("")]
     [ProducesResponseType(typeof(int), StatusCodes.Status201Created)]
     public async Task<int> CreateAsync([FromBody] SaveRequest request, CancellationToken cancellationToken)
     {
-        Business.Models.Category business = request.GetBusinessModel();
+        Business.Models.Category business = request;
         int id = await categoryService.CreateAsync(business, cancellationToken);
         return id;
     }
@@ -61,16 +61,15 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     /// <summary>
     ///     Обновить существующую категорию платежа.
     /// </summary>
-    /// <param name="request">Данные для обновление категории.</param>
-    /// <param name="id">Идентификатор категории.</param>
-    /// <param name="cancellationToken">Токен отмены.</param>
-    /// <returns>Сообщение об обновлении.</returns>
+    /// <param name="id">Идентификатор обновляемой категории.</param>
+    /// <param name="request">Данные для обновления категории.</param>
+    /// <param name="cancellationToken">Токен отмены запроса.</param>
     [HttpPut]
     [Route("{id:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task Update([FromBody] SaveRequest request, int id, CancellationToken cancellationToken)
+    public async Task Update(int id, [FromBody] SaveRequest request, CancellationToken cancellationToken)
     {
-        Business.Models.Category business = request.GetBusinessModel();
+        Business.Models.Category business = request;
         business.Id = id;
         await categoryService.UpdateAsync(business, cancellationToken);
     }
@@ -79,8 +78,7 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     ///     Удалить категорию платежа по идентификатору.
     /// </summary>
     /// <param name="id">Идентификатор категории.</param>
-    /// <param name="cancellationToken">Токен отмены.</param>
-    /// <returns>Сообщение об удалении.</returns>
+    /// <param name="cancellationToken">Токен отмены запроса.</param>
     [HttpDelete]
     [Route("{id:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -91,11 +89,10 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     }
 
     /// <summary>
-    ///     Востановить категорию платежа по идентификатору.
+    ///     Восстановить категорию платежа по идентификатору.
     /// </summary>
     /// <param name="id">Идентификатор категории.</param>
-    /// <param name="cancellationToken">Токен отмены.</param>
-    /// <returns>Сообщение об удалении.</returns>
+    /// <param name="cancellationToken">Токен отмены запроса.</param>
     [HttpPost]
     [Route("{id:int}/Restore")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
