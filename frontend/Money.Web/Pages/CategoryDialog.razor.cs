@@ -40,35 +40,44 @@ public partial class CategoryDialog
 
         try
         {
-            var clientCategory = new CategoryClient.SaveRequest
-            {
-                Name = Category.Name ?? string.Empty,
-                PaymentTypeId = Category.PaymentTypeId,
-                Color = Category.Color,
-                Order = Category.Order,
-                ParentId = Category.ParentId,
-            };
-            if (Category.Id == null)
-            {
-                ApiClientResponse<int> result = await MoneyClient.Category.Create(clientCategory);
-
-                Category.Id = result.Content;
-            }
-            else
-            {
-                await MoneyClient.Category.Update(Category.Id.Value, clientCategory);
-            }
-
+            await SaveCategoryAsync();
             SnackbarService.Add("Сохранено!", Severity.Success);
             MudDialog.Close(DialogResult.Ok(Category));
         }
-        catch
+        catch (Exception)
         {
-            // todo лог
+            // TODO: добавить логирование ошибки
             SnackbarService.Add("Не удалось сохранить", Severity.Error);
         }
 
         _isProcessing = false;
+    }
+
+    private async Task SaveCategoryAsync()
+    {
+        CategoryClient.SaveRequest clientCategory = CreateSaveRequest();
+
+        if (Category.Id == null)
+        {
+            ApiClientResponse<int> result = await MoneyClient.Category.Create(clientCategory);
+            Category.Id = result.Content;
+        }
+        else
+        {
+            await MoneyClient.Category.Update(Category.Id.Value, clientCategory);
+        }
+    }
+
+    private CategoryClient.SaveRequest CreateSaveRequest()
+    {
+        return new CategoryClient.SaveRequest
+        {
+            Name = Category.Name ?? string.Empty,
+            PaymentTypeId = Category.PaymentTypeId,
+            Color = Category.Color,
+            Order = Category.Order,
+            ParentId = Category.ParentId,
+        };
     }
 
     private void Cancel()

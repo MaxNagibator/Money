@@ -6,16 +6,17 @@
     </TitleContent>
     <DialogContent>
         <MudStack Spacing="3">
-            <MudTextField @bind-Value="@Category.Name"
+            <MudTextField AutoGrow
+                          @bind-Value="@Category.Name"
                           Clearable
                           HelperText="Название категории"
                           Label="Наименование"
-                          Variant="Variant.Text"
-                          Required AutoGrow />
+                          Required
+                          Variant="Variant.Text" />
 
             <MudNumericField @bind-Value="@Category.Order"
                              DebounceInterval="500"
-                             HelperText="Больше -> выше"
+                             HelperText="Меньше -> выше"
                              Label="Значение для сортировки" />
 
             <MudStack Spacing="0">
@@ -41,9 +42,7 @@
                    OnClick="SaveAsync">
             @if (_isProcessing)
             {
-                <MudProgressCircular Class="ms-n1"
-                                     Size="Size.Small"
-                                     Indeterminate="true" />
+                <MudProgressCircular Class="ms-n1" Indeterminate="true" Size="Size.Small" />
             }
             else
             {

@@ -36,7 +36,7 @@ public partial class Categories
                 Name = apiCategory.Name,
                 PaymentTypeId = apiCategory.PaymentTypeId,
                 Color = apiCategory.Color,
-                Order = apiCategory.Order ?? 0,
+                Order = apiCategory.Order,
             })
             .ToList();
 
@@ -50,29 +50,70 @@ public partial class Categories
 
     private async Task Create(PaymentTypes.Value paymentType, int? parentId)
     {
-        string defaultColor = "#9b9b9bff";
-
         Category category = new()
         {
-            Id = null,
             PaymentTypeId = paymentType.Id,
             ParentId = parentId,
-            Color = defaultColor,
+            Color = "#9b9b9bff",
         };
 
-        DialogParameters<CategoryDialog> parameters = new()
-        {
-            { dialog => dialog.Category, category },
-        };
-
-        IDialogReference dialog = await DialogService.ShowAsync<CategoryDialog>("Создать", parameters);
-        Category? createdCategory = await dialog.GetReturnValueAsync<Category>();
+        Category? createdCategory = await ShowCategoryDialog("Создать", category);
 
         if (createdCategory == null)
         {
             return;
         }
 
+        AddCategoryToTree(createdCategory, paymentType.Id);
+        SortTree(category.PaymentTypeId);
+    }
+
+    private async Task Update(Category category)
+    {
+        await ShowCategoryDialog("Обновить", category);
+        SortTree(category.PaymentTypeId);
+    }
+
+    private async Task Delete(Category category)
+    {
+        await ModifyCategory(category, MoneyClient.Category.Delete, true);
+    }
+
+    private async Task Restore(Category category)
+    {
+        await ModifyCategory(category, MoneyClient.Category.Restore, false);
+    }
+
+    private async Task<Category?> ShowCategoryDialog(string title, Category category)
+    {
+        DialogParameters<CategoryDialog> parameters = new()
+        {
+            { dialog => dialog.Category, category },
+        };
+
+        IDialogReference dialog = await DialogService.ShowAsync<CategoryDialog>(title, parameters);
+        return await dialog.GetReturnValueAsync<Category>();
+    }
+
+    private async Task ModifyCategory(Category category, Func<int, Task<ApiClientResponse>> action, bool isDeleted)
+    {
+        if (category.Id == null)
+        {
+            return;
+        }
+
+        ApiClientResponse result = await action(category.Id.Value);
+
+        if (result.GetError().ShowMessage(SnackbarService).HasError())
+        {
+            return;
+        }
+
+        category.IsDeleted = isDeleted;
+    }
+
+    private void AddCategoryToTree(Category createdCategory, int paymentTypeId)
+    {
         TreeItemData<Category> addedItem = new()
         {
             Text = createdCategory.Name,
@@ -81,86 +122,69 @@ public partial class Categories
 
         if (createdCategory.ParentId == null)
         {
-            InitialTreeItems[paymentType.Id].Add(addedItem);
-        }
-        else
-        {
-            TreeItemData<Category>? item = SearchParentTreeItem(InitialTreeItems[paymentType.Id], createdCategory.ParentId.Value);
-
-            item.Children ??= [];
-            item.Children.Add(addedItem);
+            InitialTreeItems[paymentTypeId].Add(addedItem);
+            return;
         }
 
-        return;
+        TreeItemData<Category>? parentItem = SearchParentTreeItem(InitialTreeItems[paymentTypeId], createdCategory.ParentId.Value);
 
-        TreeItemData<Category>? SearchParentTreeItem(List<TreeItemData<Category>>? list, int id)
+        if (parentItem == null)
         {
-            if (list == null)
+            return;
+        }
+
+        parentItem.Children ??= [];
+        parentItem.Children.Add(addedItem);
+    }
+
+    private void SortTree(int paymentTypeId)
+    {
+        InitialTreeItems[paymentTypeId] = SortChildren(InitialTreeItems[paymentTypeId]);
+        StateHasChanged();
+    }
+
+    private List<TreeItemData<Category>> SortChildren(IEnumerable<TreeItemData<Category>> categories)
+    {
+        List<TreeItemData<Category>> sortedCategories = categories
+            .OrderBy(item => item.Value?.Order == null)
+            .ThenBy(item => item.Value?.Order)
+            .ThenBy(item => item.Value?.Name)
+            .ToList();
+
+        foreach (TreeItemData<Category> category in sortedCategories)
+        {
+            if (category.Children != null && category.Children.Count != 0)
             {
-                return null;
+                category.Children = SortChildren(category.Children);
             }
+        }
 
-            foreach (TreeItemData<Category> item in list)
-            {
-                if (item.Value?.Id == id)
-                {
-                    return item;
-                }
+        return sortedCategories;
+    }
 
-                TreeItemData<Category>? result = SearchParentTreeItem(item.Children, id);
-
-                if (result != null)
-                {
-                    return result;
-                }
-            }
-
+    private TreeItemData<Category>? SearchParentTreeItem(List<TreeItemData<Category>>? list, int id)
+    {
+        if (list == null)
+        {
             return null;
         }
-    }
 
-    private async Task Update(Category category)
-    {
-        DialogParameters<CategoryDialog> parameters = new()
+        foreach (TreeItemData<Category> item in list)
         {
-            { dialog => dialog.Category, category },
-        };
+            if (item.Value?.Id == id)
+            {
+                return item;
+            }
 
-        await DialogService.ShowAsync<CategoryDialog>("Обновить", parameters);
-    }
+            TreeItemData<Category>? result = SearchParentTreeItem(item.Children, id);
 
-    private async Task Delete(Category category)
-    {
-        if (category.Id == null)
-        {
-            return;
+            if (result != null)
+            {
+                return result;
+            }
         }
 
-        ApiClientResponse result = await MoneyClient.Category.Delete(category.Id.Value);
-
-        if (result.GetError().ShowMessage(SnackbarService).HasError())
-        {
-            return;
-        }
-
-        category.IsDeleted = true;
-    }
-
-    private async Task Restore(Category category)
-    {
-        if (category.Id == null)
-        {
-            return;
-        }
-
-        ApiClientResponse result = await MoneyClient.Category.Restore(category.Id.Value);
-
-        if (result.GetError().ShowMessage(SnackbarService).HasError())
-        {
-            return;
-        }
-
-        category.IsDeleted = false;
+        return null;
     }
 
     private List<TreeItemData<Category>> BuildChildren(List<Category> categories, int? parentId)
@@ -172,6 +196,9 @@ public partial class Categories
                 Value = child,
                 Children = BuildChildren(categories, child.Id),
             })
+            .OrderBy(item => item.Value?.Order == null)
+            .ThenBy(item => item.Value?.Order)
+            .ThenBy(item => item.Value?.Name)
             .ToList();
     }
 }
