@@ -1,4 +1,6 @@
-﻿namespace Money.Web.Models;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Money.Web.Models;
 
 public class Category
 {
@@ -10,6 +12,7 @@ public class Category
     /// <summary>
     ///     Название категории.
     /// </summary>
+    [Required]
     public string? Name { get; set; }
 
     /// <summary>

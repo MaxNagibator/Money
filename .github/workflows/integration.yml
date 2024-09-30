@@ -1,5 +1,10 @@
 ﻿name: Integration tests
-on: push
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
 
 jobs:
   runner-job:
@@ -30,7 +35,7 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Installing the tools
+      - name: Install EF CLI
         run: dotnet tool install --global dotnet-ef
 
       - name: Restore backend dependencies
@@ -42,5 +47,5 @@ jobs:
       - name: Update database
         run: dotnet ef database update -c Money.Data.ApplicationDbContext --project Money.Api
 
-      - name: Test
+      - name: Run tests
         run: dotnet test --no-build --verbosity normal

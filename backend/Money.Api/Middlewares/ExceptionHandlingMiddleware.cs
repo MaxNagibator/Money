@@ -34,7 +34,7 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
             ProblemDetails problemDetails = new()
             {
                 Status = StatusCodes.Status500InternalServerError,
-                Title = $"Что то пошло не так",
+                Title = "Что-то пошло не так",
             };
 
             context.Response.StatusCode = StatusCodes.Status500InternalServerError;
