@@ -34,7 +34,7 @@ public class CategoryClient(MoneyClient apiClient) : ApiClientExecutor(apiClient
 
     public async Task<ApiClientResponse> Restore(int id)
     {
-        return await PostAsync($"{BaseUri}/{id}/Restore", null);
+        return await PostAsync($"{BaseUri}/{id}/Restore");
     }
 
     public class SaveRequest

@@ -26,7 +26,7 @@ public class JwtParser(IHttpClientFactory clientFactory)
                 "sub" => "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier",
                 "name" => "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name",
                 "email" => "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress",
-                var _ => key
+                var _ => key,
             };
 
             claims.Add(new Claim(claimType, value.ToString() ?? string.Empty));
@@ -44,7 +44,7 @@ public class JwtParser(IHttpClientFactory clientFactory)
 
         HttpResponseMessage response = await _client.SendAsync(request);
 
-        if (!response.IsSuccessStatusCode)
+        if (response.IsSuccessStatusCode == false)
         {
             return null;
         }

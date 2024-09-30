@@ -34,7 +34,7 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
             ProblemDetails problemDetails = new()
             {
                 Status = StatusCodes.Status500InternalServerError,
-                Title = $"Server Error: {exception.Message}"
+                Title = $"Server Error: {exception.Message}",
             };
 
             context.Response.StatusCode = StatusCodes.Status500InternalServerError;
@@ -49,7 +49,7 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
         ProblemDetails problemDetails = new()
         {
             Status = statusCode,
-            Title = exception.Message
+            Title = exception.Message,
         };
 
         context.Response.StatusCode = statusCode;

@@ -1,7 +1,7 @@
 ﻿namespace Money.Api.Dto.Categories;
 
 /// <summary>
-///     Запрос на создание платежа.
+///     Запрос на сохранение категории платежа.
 /// </summary>
 public class SaveRequest
 {
@@ -31,15 +31,22 @@ public class SaveRequest
     public string? Description { get; set; }
 
     /// <summary>
-    ///     Илентификатор типа платежа.
+    ///     Идентификатор типа платежа.
     /// </summary>
     public required int PaymentTypeId { get; set; }
 
+    public static implicit operator Business.Models.Category(SaveRequest request)
+    {
+        return request.ToBusinessModel();
+    }
+
     /// <summary>
-    ///     Преобразует текущую модель в бизнес-модель.
+    ///     Преобразует текущую DTO-модель в бизнес-модель категории.
     /// </summary>
-    /// <returns>Бизнес-модель категории платежа.</returns>
-    public Business.Models.Category GetBusinessModel()
+    /// <returns>
+    ///     Экземпляр <see cref="Business.Models.Category" />, который представляет бизнес-модель категории платежа.
+    /// </returns>
+    public Business.Models.Category ToBusinessModel()
     {
         return new Business.Models.Category
         {
@@ -48,7 +55,7 @@ public class SaveRequest
             Order = Order,
             Description = Description,
             PaymentType = PaymentTypeId,
-            ParentId = ParentId
+            ParentId = ParentId,
         };
     }
 }

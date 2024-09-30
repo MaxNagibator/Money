@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Money.ApiClient;
 
@@ -19,6 +20,19 @@ public class ApiClientResponse(HttpStatusCode code, string content)
     ///     Содержимое ответа в строковом представлении.
     /// </summary>
     public string StringContent { get; } = content;
+
+    public ProblemDetails? GetError()
+    {
+        ProblemDetails? problemDetails = null;
+
+        if (IsSuccessStatusCode)
+        {
+            return problemDetails;
+        }
+
+        problemDetails = JsonSerializer.Deserialize<ProblemDetails>(StringContent);
+        return problemDetails;
+    }
 }
 
 public class ApiClientResponse<T>(HttpStatusCode code, string content) : ApiClientResponse(code, content)
@@ -42,4 +56,13 @@ public class ApiClientResponse<T>(HttpStatusCode code, string content) : ApiClie
 
         return JsonSerializer.Deserialize<T>(StringContent, _serializerOptions);
     }
+}
+
+public class ProblemDetails(string title, int status)
+{
+    [JsonPropertyName("title")]
+    public string Title { get; init; } = title;
+
+    [JsonPropertyName("status")]
+    public int Status { get; init; } = status;
 }

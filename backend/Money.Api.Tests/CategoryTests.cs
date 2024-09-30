@@ -5,7 +5,6 @@ using Money.ApiClient;
 using Money.Data;
 using Money.Data.Entities;
 using Money.Data.Extensions;
-using System.Net;
 
 namespace Money.Api.Tests;
 
@@ -31,7 +30,7 @@ public class CategoryTests
         [
             _user.WithCategory(),
             _user.WithCategory(),
-            _user.WithCategory()
+            _user.WithCategory(),
         ];
 
         _dbClient.Save();
@@ -76,7 +75,7 @@ public class CategoryTests
             PaymentTypeId = category.PaymentType,
             Color = "#606217",
             Order = 217,
-            ParentId = null
+            ParentId = null,
         };
 
         int createdCategoryId = await _apiClient.Category.Create(request).IsSuccessWithContent();
@@ -100,14 +99,13 @@ public class CategoryTests
         TestCategory category = _user.WithCategory();
         _dbClient.Save();
 
-
         CategoryClient.SaveRequest request = new()
         {
             Name = category.Name,
             PaymentTypeId = category.PaymentType,
             Color = "#606217",
             Order = 217,
-            ParentId = null
+            ParentId = null,
         };
 
         await _apiClient.Category.Update(category.Id, request).IsSuccess();
@@ -142,18 +140,16 @@ public class CategoryTests
             ParentId = category3.Id,
         };
 
-        var httpCode = (await _apiClient.Category.Update(category1.Id, request)).Code;
-        Assert.That(httpCode, Is.EqualTo(HttpStatusCode.BadRequest));
+        await _apiClient.Category.Update(category1.Id, request).IsBadRequest();
 
-        request = new()
+        request = new CategoryClient.SaveRequest
         {
             Name = category2.Name,
             PaymentTypeId = category2.PaymentType,
             ParentId = category3.Id,
         };
 
-        httpCode = (await _apiClient.Category.Update(category2.Id, request)).Code;
-        Assert.That(httpCode, Is.EqualTo(HttpStatusCode.BadRequest));
+        await _apiClient.Category.Update(category2.Id, request).IsBadRequest();
     }
 
     [Test]

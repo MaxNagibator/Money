@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 
-namespace Money.Web.Components.Account.Pages;
+namespace Money.Web.Pages.Account;
 
 public partial class Logout
 {
@@ -16,6 +16,6 @@ public partial class Logout
     protected override async Task OnInitializedAsync()
     {
         await AuthenticationService.LogoutAsync();
-        NavigationManager.NavigateTo(ReturnUrl ?? "", true);
+        NavigationManager.ReturnTo(ReturnUrl, true);
     }
 }

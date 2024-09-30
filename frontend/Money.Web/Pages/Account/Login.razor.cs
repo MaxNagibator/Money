@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using CSharpFunctionalExtensions;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 
-namespace Money.Web.Components.Account.Pages;
+namespace Money.Web.Pages.Account;
 
 public partial class Login
 {
@@ -21,10 +23,21 @@ public partial class Login
     [Inject]
     private NavigationManager NavigationManager { get; set; } = default!;
 
-    public async Task LoginUser()
+    [Inject]
+    private ISnackbar Snackbar { get; set; } = default!;
+
+    public async Task LoginUser(EditContext context)
     {
-        await AuthenticationService.LoginAsync(new UserDto(Input.Email, Input.Password));
-        NavigationManager.NavigateTo(ReturnUrl ?? string.Empty);
+        if (context.Validate() == false)
+        {
+            return;
+        }
+
+        UserDto user = new(Input.Email, Input.Password);
+
+        await AuthenticationService.LoginAsync(user)
+            .TapError(message => Snackbar.Add($"Ошибка во время входа {message}", Severity.Error))
+            .Tap(() => NavigationManager.ReturnTo(ReturnUrl));
     }
 
     private sealed class InputModel

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Money.ApiClient;
-using Money.Web.Models;
+using Money.Web.Components;
 
 namespace Money.Web.Pages;
 
@@ -36,7 +36,7 @@ public partial class Categories
                 Name = apiCategory.Name,
                 PaymentTypeId = apiCategory.PaymentTypeId,
                 Color = apiCategory.Color,
-                Order = apiCategory.Order ?? 0,
+                Order = apiCategory.Order,
             })
             .ToList();
 
@@ -50,102 +50,141 @@ public partial class Categories
 
     private async Task Create(PaymentTypes.Value paymentType, int? parentId)
     {
-        string defaultColor = "#9b9b9bff";
-
-        DialogParameters<CategoryDialog> parameters = new()
+        Category category = new()
         {
-            { dialog => dialog.Category, new Category { ParentId = parentId, Id = null, PaymentTypeId = paymentType.Id, Color = defaultColor } },
+            PaymentTypeId = paymentType.Id,
+            ParentId = parentId,
+            Color = "#9b9b9bff",
         };
 
-        IDialogReference dialog = await DialogService.ShowAsync<CategoryDialog>("Создать", parameters);
-        Category? createdCategory = await dialog.GetReturnValueAsync<Category>();
+        Category? createdCategory = await ShowCategoryDialog("Создать", category);
 
-        if (createdCategory != null)
+        if (createdCategory == null)
         {
-            TreeItemData<Category> addedItem = new()
-            {
-                Text = createdCategory.Name,
-                Value = createdCategory,
-            };
-
-            if (createdCategory.ParentId == null)
-            {
-                InitialTreeItems[paymentType.Id].Add(addedItem);
-            }
-            else
-            {
-                TreeItemData<Category>? item = SearchParentTreeItem(InitialTreeItems[paymentType.Id], createdCategory.ParentId.Value);
-
-                item.Children ??= [];
-
-                item.Children.Add(addedItem);
-            }
+            return;
         }
 
-        TreeItemData<Category>? SearchParentTreeItem(List<TreeItemData<Category>> list, int id)
-        {
-            if (list == null)
-            {
-                return null;
-            }
-            foreach (TreeItemData<Category> item in list)
-            {
-                if (item.Value.Id == id)
-                {
-                    return item;
-                }
-
-                TreeItemData<Category>? result = SearchParentTreeItem(item.Children, id);
-
-                if (result != null)
-                {
-                    return result;
-                }
-            }
-
-            return null;
-        }
+        AddCategoryToTree(createdCategory, paymentType.Id);
+        SortTree(category.PaymentTypeId);
     }
 
     private async Task Update(Category category)
+    {
+        await ShowCategoryDialog("Обновить", category);
+        SortTree(category.PaymentTypeId);
+    }
+
+    private async Task Delete(Category category)
+    {
+        await ModifyCategory(category, MoneyClient.Category.Delete, true);
+    }
+
+    private async Task Restore(Category category)
+    {
+        await ModifyCategory(category, MoneyClient.Category.Restore, false);
+    }
+
+    private async Task<Category?> ShowCategoryDialog(string title, Category category)
     {
         DialogParameters<CategoryDialog> parameters = new()
         {
             { dialog => dialog.Category, category },
         };
 
-        IDialogReference dialog = await DialogService.ShowAsync<CategoryDialog>("Обновить", parameters);
-        Category? createdCategory = await dialog.GetReturnValueAsync<Category>();
+        IDialogReference dialog = await DialogService.ShowAsync<CategoryDialog>(title, parameters);
+        return await dialog.GetReturnValueAsync<Category>();
     }
 
-    private async Task Delete(Category category)
+    private async Task ModifyCategory(Category category, Func<int, Task<ApiClientResponse>> action, bool isDeleted)
     {
-        ApiClientResponse result = await MoneyClient.Category.Delete(category.Id.Value);
+        if (category.Id == null)
+        {
+            return;
+        }
 
-        if (result.IsSuccessStatusCode)
+        ApiClientResponse result = await action(category.Id.Value);
+
+        if (result.GetError().ShowMessage(SnackbarService).HasError())
         {
-            category.IsDeleted = true;
+            return;
         }
-        else
-        {
-            var message = result.StringContent; // todo обработать бизнес ошибки
-            SnackbarService.Add("Ошибка: " + message, Severity.Error);
-        }
+
+        category.IsDeleted = isDeleted;
     }
 
-    private async Task Restore(Category category)
+    private void AddCategoryToTree(Category createdCategory, int paymentTypeId)
     {
-        ApiClientResponse result = await MoneyClient.Category.Restore(category.Id.Value);
+        TreeItemData<Category> addedItem = new()
+        {
+            Text = createdCategory.Name,
+            Value = createdCategory,
+        };
 
-        if (result.IsSuccessStatusCode)
+        if (createdCategory.ParentId == null)
         {
-            category.IsDeleted = false;
+            InitialTreeItems[paymentTypeId].Add(addedItem);
+            return;
         }
-        else
+
+        TreeItemData<Category>? parentItem = SearchParentTreeItem(InitialTreeItems[paymentTypeId], createdCategory.ParentId.Value);
+
+        if (parentItem == null)
         {
-            var message = result.StringContent; // todo обработать бизнес ошибки
-            SnackbarService.Add("Ошибка: " + message, Severity.Error);
+            return;
         }
+
+        parentItem.Children ??= [];
+        parentItem.Children.Add(addedItem);
+    }
+
+    private void SortTree(int paymentTypeId)
+    {
+        InitialTreeItems[paymentTypeId] = SortChildren(InitialTreeItems[paymentTypeId]);
+        StateHasChanged();
+    }
+
+    private List<TreeItemData<Category>> SortChildren(IEnumerable<TreeItemData<Category>> categories)
+    {
+        List<TreeItemData<Category>> sortedCategories = categories
+            .OrderBy(item => item.Value?.Order == null)
+            .ThenBy(item => item.Value?.Order)
+            .ThenBy(item => item.Value?.Name)
+            .ToList();
+
+        foreach (TreeItemData<Category> category in sortedCategories)
+        {
+            if (category.Children != null && category.Children.Count != 0)
+            {
+                category.Children = SortChildren(category.Children);
+            }
+        }
+
+        return sortedCategories;
+    }
+
+    private TreeItemData<Category>? SearchParentTreeItem(List<TreeItemData<Category>>? list, int id)
+    {
+        if (list == null)
+        {
+            return null;
+        }
+
+        foreach (TreeItemData<Category> item in list)
+        {
+            if (item.Value?.Id == id)
+            {
+                return item;
+            }
+
+            TreeItemData<Category>? result = SearchParentTreeItem(item.Children, id);
+
+            if (result != null)
+            {
+                return result;
+            }
+        }
+
+        return null;
     }
 
     private List<TreeItemData<Category>> BuildChildren(List<Category> categories, int? parentId)
@@ -157,6 +196,9 @@ public partial class Categories
                 Value = child,
                 Children = BuildChildren(categories, child.Id),
             })
+            .OrderBy(item => item.Value?.Order == null)
+            .ThenBy(item => item.Value?.Order)
+            .ThenBy(item => item.Value?.Name)
             .ToList();
     }
 }

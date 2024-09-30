@@ -1,37 +1,37 @@
 ﻿@page "/Account/Login"
 
-<PageTitle>Log in</PageTitle>
+<PageTitle>Вход</PageTitle>
 
-<MudText Typo="Typo.h3" GutterBottom="true">Log in</MudText>
+<MudText Typo="Typo.h3" GutterBottom="true">Вход</MudText>
 
 <MudGrid>
     <MudItem md="6">
-        <EditForm Model="Input" method="post" OnValidSubmit="LoginUser" FormName="login">
+        <EditForm FormName="login" method="post" Model="Input" OnValidSubmit="LoginUser">
             <DataAnnotationsValidator />
 
-            <MudText GutterBottom="true" Typo="Typo.body1">Use a local account to log in.</MudText>
+            <MudText GutterBottom Typo="Typo.body1">Используйте локальную учетную запись для входа</MudText>
 
             <MudGrid>
                 <MudItem md="12">
                     <MudTextField For="@(() => Input.Email)" @bind-Value="Input.Email"
-                                  Label="Email" Placeholder="name@example.com"
+                                  Label="Электронная почта" Placeholder="name@example.com"
                                   UserAttributes="@(new Dictionary<string, object?> { { "autocomplete", "true" }, { "aria-required", "true" } })" />
                 </MudItem>
                 <MudItem md="12">
                     <MudTextField For="@(() => Input.Password)" @bind-Value="Input.Password"
-                                  Label="Password" InputType="InputType.Password" Placeholder="password"
+                                  Label="Пароль" InputType="InputType.Password" Placeholder="пароль"
                                   UserAttributes="@(new Dictionary<string, object?> { { "autocomplete", "current-password" }, { "aria-required", "true" } })" />
                 </MudItem>
                 <MudItem md="12">
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" ButtonType="ButtonType.Submit">Log in</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" FullWidth Variant="Variant.Filled">Войти</MudButton>
                 </MudItem>
             </MudGrid>
         </EditForm>
 
         <MudGrid Class="mt-4">
             <MudItem md="12">
-                <MudLink Href="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))">
-                    Register as a new user
+                <MudLink Href="@(NavigationManager.GetUriWithReturnUrl("Account/Register", ReturnUrl))">
+                    Зарегистрироваться как новый пользователь
                 </MudLink>
             </MudItem>
         </MudGrid>

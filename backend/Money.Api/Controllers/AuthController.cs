@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Money.Common.Exceptions;
 using Money.Data.Entities;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
@@ -38,28 +39,14 @@ public class AuthController(UserManager<ApplicationUser> userManager, SignInMana
 
             if (user == null)
             {
-                AuthenticationProperties properties = new(new Dictionary<string, string>
-                {
-                    [OpenIddictServerAspNetCoreConstants.Properties.Error] = OpenIddictConstants.Errors.InvalidGrant,
-                    [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
-                        "The username/password couple is invalid."
-                }!);
-
-                return Forbid(properties, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+                throw new PermissionException("Пара имя пользователя/пароль недействительна.");
             }
 
             SignInResult result = await signInManager.CheckPasswordSignInAsync(user, request.Password, true);
 
             if (!result.Succeeded)
             {
-                AuthenticationProperties properties = new(new Dictionary<string, string>
-                {
-                    [OpenIddictServerAspNetCoreConstants.Properties.Error] = OpenIddictConstants.Errors.InvalidGrant,
-                    [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
-                        "The username/password couple is invalid."
-                }!);
-
-                return Forbid(properties, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+                throw new PermissionException("Пара имя пользователя/пароль недействительна.");
             }
 
             ClaimsIdentity identity = new(TokenValidationParameters.DefaultAuthenticationType,
@@ -87,24 +74,12 @@ public class AuthController(UserManager<ApplicationUser> userManager, SignInMana
 
             if (user == null)
             {
-                AuthenticationProperties properties = new(new Dictionary<string, string>
-                {
-                    [OpenIddictServerAspNetCoreConstants.Properties.Error] = OpenIddictConstants.Errors.InvalidGrant,
-                    [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "The refresh token is no longer valid."
-                }!);
-
-                return Forbid(properties, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+                throw new PermissionException("Токен обновления больше не действителен.");
             }
 
             if (!await signInManager.CanSignInAsync(user))
             {
-                AuthenticationProperties properties = new(new Dictionary<string, string>
-                {
-                    [OpenIddictServerAspNetCoreConstants.Properties.Error] = OpenIddictConstants.Errors.InvalidGrant,
-                    [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "The user is no longer allowed to sign in."
-                }!);
-
-                return Forbid(properties, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+                throw new PermissionException("Пользователю больше не разрешено входить в систему.");
             }
 
             ClaimsIdentity identity = new(result.Principal.Claims,
@@ -123,7 +98,7 @@ public class AuthController(UserManager<ApplicationUser> userManager, SignInMana
             return SignIn(new ClaimsPrincipal(identity), OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
 
-        throw new NotImplementedException("The specified grant type is not implemented.");
+        throw new NotImplementedException("Указанный тип предоставления не реализован.");
     }
 
     /// <summary>
@@ -147,16 +122,7 @@ public class AuthController(UserManager<ApplicationUser> userManager, SignInMana
 
         if (user == null)
         {
-            Dictionary<string, string> errors = new()
-            {
-                [OpenIddictServerAspNetCoreConstants.Properties.Error] =
-                    OpenIddictConstants.Errors.InvalidToken,
-                [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
-                    "Указанный токен доступа привязан к учетной записи, которая больше не существует."
-            };
-
-            return Challenge(authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
-                properties: new AuthenticationProperties(errors!));
+            throw new PermissionException("Указанный токен доступа привязан к учетной записи, которая больше не существует.");
         }
 
         Dictionary<string, string> claims = User.Claims.ToDictionary(claim => claim.Type, claim => claim.Value, StringComparer.Ordinal);

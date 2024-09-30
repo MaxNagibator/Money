@@ -22,7 +22,7 @@ public class MoneyClient
         User = new ApiUser
         {
             Username = login,
-            Password = password
+            Password = password,
         };
     }
 
@@ -41,7 +41,7 @@ public class MoneyClient
         FormUrlEncodedContent requestContent = new([
             new KeyValuePair<string, string>("grant_type", "password"),
             new KeyValuePair<string, string>("username", username),
-            new KeyValuePair<string, string>("password", password)
+            new KeyValuePair<string, string>("password", password),
         ]);
 
         HttpResponseMessage response = await HttpClient.PostAsync("connect/token", requestContent);

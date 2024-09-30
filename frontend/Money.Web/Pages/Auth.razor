@@ -2,10 +2,10 @@
 
 @attribute [Authorize]
 
-<PageTitle>Auth</PageTitle>
+<PageTitle>Аутентификация</PageTitle>
 
-<MudText Typo="Typo.h3" GutterBottom="true">You are authenticated</MudText>
+<MudText Typo="Typo.h3" GutterBottom>Вы авторизованы</MudText>
 
 <AuthorizeView>
-    <MudText Class="mb-4">Hello @context.User.Identity?.Name!</MudText>
+    <MudText Class="mb-4">Здравствуйте, @context.User.Identity?.Name!</MudText>
 </AuthorizeView>
