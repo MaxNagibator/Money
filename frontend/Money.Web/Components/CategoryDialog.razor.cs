@@ -78,6 +78,7 @@ public partial class CategoryDialog
 
     private void Cancel()
     {
+        // todo исходный объект не трогать, если отмена.
         MudDialog.Cancel();
     }
 }

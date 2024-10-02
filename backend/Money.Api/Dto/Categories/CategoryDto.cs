@@ -6,12 +6,12 @@
 public class CategoryDto
 {
     /// <summary>
-    ///     Идентификатор категории.
+    ///     Идентификатор.
     /// </summary>
     public int Id { get; set; }
 
     /// <summary>
-    ///     Название категории.
+    ///     Наименование.
     /// </summary>
     public required string Name { get; set; }
 
@@ -21,12 +21,12 @@ public class CategoryDto
     public int? ParentId { get; set; }
 
     /// <summary>
-    ///     Порядок отображения категории.
+    ///     Порядок отображения.
     /// </summary>
     public int? Order { get; set; }
 
     /// <summary>
-    ///     Цвет категории.
+    ///     Цвет.
     /// </summary>
     public string? Color { get; set; }
 

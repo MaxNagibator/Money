@@ -10,9 +10,10 @@ public class Category
     public int? Id { get; set; }
 
     /// <summary>
-    ///     Название категории.
+    ///     Наименование категории.
     /// </summary>
-    [Required]
+    [Required(ErrorMessage="Обязательно")] // todo подумать как красивее
+    [Display(Name = "Наименование")]
     public string? Name { get; set; }
 
     /// <summary>

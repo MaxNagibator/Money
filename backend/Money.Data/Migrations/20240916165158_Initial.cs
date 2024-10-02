@@ -236,7 +236,7 @@ namespace Money.Data.Migrations
                         column: x => x.user_id,
                         principalTable: "domain_users",
                         principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                 });
 
             migrationBuilder.CreateTable(

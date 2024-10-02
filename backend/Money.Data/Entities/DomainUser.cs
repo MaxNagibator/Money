@@ -15,5 +15,7 @@ public class DomainUser
 
     public int NextPaymentId { get; set; }
 
+    public int NextPlaceId { get; set; }
+
     public List<Category>? Categories { get; set; }
 }
