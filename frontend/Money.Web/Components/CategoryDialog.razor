@@ -1,53 +1,58 @@
-﻿<MudDialog>
-    <TitleContent>
-        <MudText Typo="Typo.h6">
-            @MudDialog.Title
-        </MudText>
-    </TitleContent>
-    <DialogContent>
-        <MudStack Spacing="3">
-            <MudTextField AutoGrow
-                          @bind-Value="@Category.Name"
-                          Clearable
-                          HelperText="Название категории"
-                          Label="Наименование"
-                          Required
-                          Variant="Variant.Text" />
+﻿<EditForm Model="@Category" OnValidSubmit="SaveAsync">
+    <DataAnnotationsValidator />
+    <MudDialog>
+        <TitleContent>
+            <MudText Typo="Typo.h6">
+                @MudDialog.Title
+            </MudText>
+        </TitleContent>
+        <DialogContent>
+            <MudStack Spacing="3">
+                <MudTextField AutoGrow
+                              @bind-Value="@Category.Name"
+                              Clearable
+                              HelperText="Название категории"
+                              Label="Наименование"
+                              Required
+                              Variant="Variant.Text"
+                              For="@(() => Category.Name)" />
 
-            <MudNumericField @bind-Value="@Category.Order"
-                             DebounceInterval="500"
-                             HelperText="Меньше -> выше"
-                             Label="Значение для сортировки" />
+                <MudNumericField @bind-Value="@Category.Order"
+                                 DebounceInterval="500"
+                                 HelperText="Меньше -> выше"
+                                 Label="Значение для сортировки"
+                                 For="@(() => Category.Order)" />
 
-            <MudStack Spacing="0">
-                <MudText Typo="Typo.subtitle2">Цвет</MudText>
-                <MudColorPicker @bind-Text="@Category.Color"
-                                ColorPickerMode="ColorPickerMode.HEX"
-                                PickerVariant="PickerVariant.Static"
-                                Rounded
-                                ShowAlpha
-                                ShowColorField
-                                ShowInputs
-                                ShowModeSwitch
-                                ShowPreview
-                                ShowSliders
-                                ShowToolbar />
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.subtitle2">Цвет</MudText>
+                    <MudColorPicker @bind-Text="@Category.Color"
+                                    ColorPickerMode="ColorPickerMode.HEX"
+                                    PickerVariant="PickerVariant.Static"
+                                    Rounded
+                                    ShowAlpha
+                                    ShowColorField
+                                    ShowInputs
+                                    ShowModeSwitch
+                                    ShowPreview
+                                    ShowSliders
+                                    ShowToolbar />
+                </MudStack>
             </MudStack>
-        </MudStack>
-    </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="Cancel">Отмена</MudButton>
-        <MudButton Color="Color.Success"
-                   Disabled="@_isProcessing"
-                   OnClick="SaveAsync">
-            @if (_isProcessing)
-            {
-                <MudProgressCircular Class="ms-n1" Indeterminate="true" Size="Size.Small" />
-            }
-            else
-            {
-                <MudText Typo="Typo.button">Сохранить</MudText>
-            }
-        </MudButton>
-    </DialogActions>
-</MudDialog>
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="Cancel">Отмена</MudButton>
+            <MudButton Color="Color.Success"
+                       Disabled="@_isProcessing"
+                       ButtonType="ButtonType.Submit">
+                @if (_isProcessing)
+                {
+                    <MudProgressCircular Class="ms-n1" Indeterminate="true" Size="Size.Small" />
+                }
+                else
+                {
+                    <MudText Typo="Typo.button">Сохранить</MudText>
+                }
+            </MudButton>
+        </DialogActions>
+    </MudDialog>
+</EditForm>

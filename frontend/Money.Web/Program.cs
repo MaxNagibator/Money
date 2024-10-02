@@ -3,14 +3,21 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Money.ApiClient;
 using MudBlazor.Services;
+using MudBlazor.Translations;
 
 WebAssemblyHostBuilder builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-builder.Services.AddMudServices();
+builder.Services.AddMudServices(configuration =>
+{
+    configuration.SnackbarConfiguration.PreventDuplicates = false;
+});
+
+builder.Services.AddMudTranslations();
 builder.Services.AddBlazoredLocalStorage();
 
+builder.Services.AddLocalization();
 builder.Services.AddAuthorizationCore();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<AuthenticationStateProvider, AuthStateProvider>();
