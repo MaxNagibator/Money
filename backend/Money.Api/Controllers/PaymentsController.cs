@@ -27,7 +27,7 @@ public class PaymentsController(PaymentService paymentService) : ControllerBase
          [FromQuery] string? place,
          CancellationToken cancellationToken)
     {
-        ICollection<Business.Models.Payment> categories = await paymentService.GetAsync(dateFrom, dateTo, categoryIds, comment, place, cancellationToken);
-        return categories.Select(PaymentDto.FromBusinessModel).ToArray();
+        ICollection<Business.Models.Payment> payments = await paymentService.GetAsync(dateFrom, dateTo, categoryIds, comment, place, cancellationToken);
+        return payments.Select(PaymentDto.FromBusinessModel).ToArray();
     }
 }
