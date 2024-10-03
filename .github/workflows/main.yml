@@ -1,0 +1,32 @@
+﻿name: Main
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+  integration:
+    permissions:
+      pull-requests: write
+      contents: write
+      statuses: write
+      checks: write
+      actions: write
+
+    uses: ./.github/workflows/integration.yml
+
+  backend:
+    if: ${{ always() }}
+    uses: ./.github/workflows/backend.yml
+
+  frontend:
+    if: ${{ always() }}
+    uses: ./.github/workflows/frontend.yml

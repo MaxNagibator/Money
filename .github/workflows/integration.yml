@@ -1,10 +1,14 @@
 ﻿name: Integration tests
 
 on:
-  push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+  workflow_call:
+
+permissions:
+  pull-requests: write
+  contents: write
+  statuses: write
+  checks: write
+  actions: write
 
 jobs:
   runner-job:
@@ -34,6 +38,7 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
+          dotnet-quality: 'ga'
 
       - name: Install EF CLI
         run: dotnet tool install --global dotnet-ef
@@ -48,4 +53,52 @@ jobs:
         run: dotnet ef database update -c Money.Data.ApplicationDbContext --project Money.Api
 
       - name: Run tests
-        run: dotnet test --no-build --verbosity normal
+        run: dotnet test --verbosity normal --logger trx --collect:"XPlat Code Coverage"
+
+      - name: Upload Test Result Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: ${{ github.workspace }}/**/TestResults/**/*
+
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: github.event_name != 'pull_request' && (success() || failure())
+        with:
+          name: Test Report
+          path: "${{ github.workspace }}/**/*.trx"
+          reporter: dotnet-trx
+          fail-on-error: 'false'
+          fail-on-empty: 'false'
+
+      - name: ReportGenerator
+        uses: danielpalme/ReportGenerator-GitHub-Action@5.3.10
+        with:
+          reports: "**/*.cobertura.xml"
+          targetdir: "${{ github.workspace }}"
+          reporttypes: HtmlInline_AzurePipelines
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coveragereport
+          path: "${{ github.workspace }}"
+
+      - name: Code Coverage Report
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: "**/*.cobertura.xml"
+          badge: true
+          fail_below_min: false
+          format: markdown
+          hide_branch_rate: false
+          hide_complexity: true
+          indicators: true
+          output: both
+          thresholds: "10 30"
+
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2.17.1
+        if: always()
+        with:
+          trx_files: "${{ github.workspace }}/**/*.trx"
