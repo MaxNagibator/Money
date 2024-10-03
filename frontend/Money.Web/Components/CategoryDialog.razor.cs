@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Money.ApiClient;
+using System.ComponentModel.DataAnnotations;
 
 namespace Money.Web.Components;
 
@@ -19,6 +20,9 @@ public partial class CategoryDialog
     [CascadingParameter]
     public MudDialogInstance MudDialog { get; set; } = default!;
 
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = default!;
+
     [Inject]
     private MoneyClient MoneyClient { get; set; } = default!;
 
@@ -27,6 +31,13 @@ public partial class CategoryDialog
 
     protected override void OnParametersSet()
     {
+        Input = new InputModel
+        {
+            Name = Category.Name,
+            Order = Category.Order,
+            Color = Category.Color,
+        };
+
         MudDialog.SetOptions(_dialogOptions);
     }
 
@@ -38,6 +49,11 @@ public partial class CategoryDialog
         {
             await SaveCategoryAsync();
             SnackbarService.Add("Сохранено!", Severity.Success);
+
+            Category.Name = Input.Name;
+            Category.Order = Input.Order;
+            Category.Color = Input.Color;
+
             MudDialog.Close(DialogResult.Ok(Category));
         }
         catch (Exception)
@@ -68,17 +84,27 @@ public partial class CategoryDialog
     {
         return new CategoryClient.SaveRequest
         {
-            Name = Category.Name ?? string.Empty,
-            PaymentTypeId = Category.PaymentTypeId,
-            Color = Category.Color,
-            Order = Category.Order,
+            Name = Input.Name ?? string.Empty,
+            Order = Input.Order,
+            Color = Input.Color,
             ParentId = Category.ParentId,
+            PaymentTypeId = Category.PaymentTypeId,
         };
     }
 
     private void Cancel()
     {
-        // todo исходный объект не трогать, если отмена.
         MudDialog.Cancel();
+    }
+
+    private sealed class InputModel
+    {
+        [Display(Name = "Наименование")] // todo подумать как красивее
+        [Required(ErrorMessage = "Обязательно")]
+        public string? Name { get; set; }
+
+        public int? Order { get; set; }
+
+        public string? Color { get; set; }
     }
 }
