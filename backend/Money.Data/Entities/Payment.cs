@@ -17,18 +17,27 @@ public class Payment : IUserEntity
 
     public decimal Sum { get; set; }
 
-    public int? CategoryId { get; set; }
-
-    public int TypeId { get; set; }
+    public int CategoryId { get; set; }
 
     [StringLength(4000)]
     public string Comment { get; set; }
 
-    // [DataType(DataType.Date)] todo разобратьс€ с атрибутом (нужна только дата)
     public DateTime Date { get; set; }
 
+    /// <summary>
+    ///    »дентификатор регул€рной задачи.
+    /// </summary>
+    /// <remarks>
+    ///    ¬ одной таблице хран€тс€ две сущности: платежи(TaskId=null) и регул€рные задачи(TaskId!=null)
+    /// </remarks>
     public int? TaskId { get; set; }
 
+    /// <summary>
+    ///    »дентификатор родительской регул€рной задачи.
+    /// </summary>
+    /// <remarks>
+    ///    Ќе null, если платЄж создан регул€рной задачей.
+    /// </remarks>
     public int? CreatedTaskId { get; set; }
 
     public int? PlaceId { get; set; }

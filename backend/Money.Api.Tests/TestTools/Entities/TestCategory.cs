@@ -85,6 +85,13 @@ public class TestCategory : TestObject
         return this;
     }
 
+    public TestPayment WithPayment()
+    {
+        TestPayment obj = new(this);
+        obj.Attach(Environment);
+        return obj;
+    }
+
     private void FillDbProperties(Money.Data.Entities.Category obj)
     {
         obj.Name = Name;

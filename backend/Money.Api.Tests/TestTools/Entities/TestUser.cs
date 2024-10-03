@@ -42,4 +42,11 @@ public class TestUser : TestObject
         obj.Attach(Environment);
         return obj;
     }
+
+    public TestPayment WithPayment()
+    {
+        TestPayment obj = new(WithCategory());
+        obj.Attach(Environment);
+        return obj;
+    }
 }
