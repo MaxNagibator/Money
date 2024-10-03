@@ -8,37 +8,32 @@ public class SaveRequest
     /// <summary>
     ///     Цвет категории платежа.
     /// </summary>
-    public string? Color { get; set; }
+    public string? Color { get; init; }
 
     /// <summary>
     ///     Идентификатор родительской категории (если есть).
     /// </summary>
-    public int? ParentId { get; set; }
+    public int? ParentId { get; init; }
 
     /// <summary>
     ///     Название категории платежа.
     /// </summary>
-    public required string Name { get; set; }
+    public required string Name { get; init; }
 
     /// <summary>
     ///     Порядок отображения категории.
     /// </summary>
-    public int? Order { get; set; }
+    public int? Order { get; init; }
 
     /// <summary>
     ///     Описание категории платежа.
     /// </summary>
-    public string? Description { get; set; }
+    public string? Description { get; init; }
 
     /// <summary>
     ///     Идентификатор типа платежа.
     /// </summary>
-    public required int PaymentTypeId { get; set; }
-
-    public static implicit operator Business.Models.Category(SaveRequest request)
-    {
-        return request.ToBusinessModel();
-    }
+    public required int PaymentTypeId { get; init; }
 
     /// <summary>
     ///     Преобразует текущую DTO-модель в бизнес-модель категории.

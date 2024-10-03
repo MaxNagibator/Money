@@ -1,7 +1,7 @@
-﻿using System.Reflection;
-using Microsoft.Net.Http.Headers;
+﻿using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
 using Money.Api.Definitions.Base;
+using System.Reflection;
 
 namespace Money.Api.Definitions;
 
@@ -17,7 +17,7 @@ public class SwaggerDefinition : AppDefinition
             {
                 Title = "Money API",
                 Version = "v1",
-                Description = "API для управления финансами"
+                Description = "API для управления финансами",
             });
 
             string xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
@@ -33,12 +33,12 @@ public class SwaggerDefinition : AppDefinition
                 {
                     Password = new OpenApiOAuthFlow
                     {
-                        TokenUrl = new Uri("/connect/token", UriKind.Relative)
-                    }
+                        TokenUrl = new Uri("/connect/token", UriKind.Relative),
+                    },
                 },
                 In = ParameterLocation.Header,
                 Name = HeaderNames.Authorization,
-                Type = SecuritySchemeType.OAuth2
+                Type = SecuritySchemeType.OAuth2,
             });
 
             options.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -49,13 +49,13 @@ public class SwaggerDefinition : AppDefinition
                         Reference = new OpenApiReference
                         {
                             Id = "oauth2",
-                            Type = ReferenceType.SecurityScheme
+                            Type = ReferenceType.SecurityScheme,
                         },
                         In = ParameterLocation.Cookie,
-                        Type = SecuritySchemeType.OAuth2
+                        Type = SecuritySchemeType.OAuth2,
                     },
                     new List<string>()
-                }
+                },
             });
         });
     }

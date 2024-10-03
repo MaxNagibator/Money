@@ -8,37 +8,32 @@ public class CategoryDto
     /// <summary>
     ///     Идентификатор.
     /// </summary>
-    public int Id { get; set; }
+    public int Id { get; init; }
 
     /// <summary>
     ///     Наименование.
     /// </summary>
-    public required string Name { get; set; }
+    public required string Name { get; init; }
 
     /// <summary>
     ///     Идентификатор родительской категории (если есть).
     /// </summary>
-    public int? ParentId { get; set; }
+    public int? ParentId { get; init; }
 
     /// <summary>
     ///     Порядок отображения.
     /// </summary>
-    public int? Order { get; set; }
+    public int? Order { get; init; }
 
     /// <summary>
     ///     Цвет.
     /// </summary>
-    public string? Color { get; set; }
+    public string? Color { get; init; }
 
     /// <summary>
     ///     Идентификатор типа платежа.
     /// </summary>
-    public required int PaymentTypeId { get; set; }
-
-    public static implicit operator CategoryDto(Business.Models.Category category)
-    {
-        return FromBusinessModel(category);
-    }
+    public required int PaymentTypeId { get; init; }
 
     /// <summary>
     ///     Фабричный метод для создания DTO категории на основе бизнес-модели.

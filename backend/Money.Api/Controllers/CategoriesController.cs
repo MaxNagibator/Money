@@ -39,7 +39,7 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     public async Task<CategoryDto> GetById(int id, CancellationToken cancellationToken)
     {
         Business.Models.Category category = await categoryService.GetByIdAsync(id, cancellationToken);
-        return category;
+        return CategoryDto.FromBusinessModel(category);
     }
 
     /// <summary>
@@ -53,7 +53,7 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     [ProducesResponseType(typeof(int), StatusCodes.Status201Created)]
     public async Task<int> CreateAsync([FromBody] SaveRequest request, CancellationToken cancellationToken)
     {
-        Business.Models.Category business = request;
+        Business.Models.Category business = request.ToBusinessModel();
         int id = await categoryService.CreateAsync(business, cancellationToken);
         return id;
     }
@@ -69,7 +69,7 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task Update(int id, [FromBody] SaveRequest request, CancellationToken cancellationToken)
     {
-        Business.Models.Category business = request;
+        Business.Models.Category business = request.ToBusinessModel();
         business.Id = id;
         await categoryService.UpdateAsync(business, cancellationToken);
     }

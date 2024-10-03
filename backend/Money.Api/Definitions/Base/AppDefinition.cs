@@ -12,10 +12,10 @@ public abstract class AppDefinition : IAppDefinition
     public virtual int ApplicationOrderIndex => 0;
 
     /// <inheritdoc />
-    public virtual bool Enabled { get; protected set; } = true;
+    public virtual bool Enabled => true;
 
     /// <inheritdoc />
-    public virtual bool Exported { get; protected set; }
+    public virtual bool Exported => false;
 
     /// <inheritdoc />
     public virtual void ConfigureServices(WebApplicationBuilder builder)

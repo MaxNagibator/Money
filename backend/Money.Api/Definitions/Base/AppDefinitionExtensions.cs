@@ -1,5 +1,3 @@
-using System.Reflection;
-
 namespace Money.Api.Definitions.Base;
 
 /// <summary>
@@ -7,85 +5,6 @@ namespace Money.Api.Definitions.Base;
 /// </summary>
 public static class AppDefinitionExtensions
 {
-    /// <summary>
-    ///     Поиск всех определений в проекте и их включение в конвейер. Модули из сторонних *.dll также будут найдены.
-    ///     <br />
-    ///     Использует <see cref="IServiceCollection" /> для регистрации.
-    /// </summary>
-    /// <remarks>
-    ///     При выполнении в среде разработки доступно больше диагностической информации в консоли.
-    /// </remarks>
-    /// <param name="builder">Экземпляр <see cref="WebApplicationBuilder" />.</param>
-    /// <param name="modulesFolderPath">Путь к папке с модулями.</param>
-    /// <param name="entryPointsAssembly">Типы сборок точек входа.</param>
-    public static void AddDefinitionsWithModules(this WebApplicationBuilder builder, string modulesFolderPath, params Type[] entryPointsAssembly)
-    {
-        ILogger<IAppDefinition> logger = builder.Services.BuildServiceProvider().GetRequiredService<ILogger<IAppDefinition>>();
-
-        try
-        {
-            string modulesFolder = Path.Combine(builder.Environment.ContentRootPath, modulesFolderPath);
-
-            if (Directory.Exists(modulesFolder) == false)
-            {
-                if (logger.IsEnabled(LogLevel.Debug))
-                {
-                    logger.LogDebug("[Ошибка]: Директория не существует {ModuleName}", modulesFolder);
-                }
-
-                throw new DirectoryNotFoundException(modulesFolder);
-            }
-
-            List<Type> types = [];
-            types.AddRange(entryPointsAssembly);
-
-            DirectoryInfo modulesDirectory = new(modulesFolderPath);
-            FileInfo[] modules = modulesDirectory.GetFiles("*.dll");
-
-            if (modules.Length == 0)
-            {
-                if (logger.IsEnabled(LogLevel.Debug))
-                {
-                    logger.LogDebug("[Предупреждение]: Модули не найдены в папке {ModuleName}", modulesFolder);
-                }
-
-                return;
-            }
-
-            foreach (FileInfo fileInfo in modules)
-            {
-                Assembly module = Assembly.LoadFile(fileInfo.FullName);
-                Type[] typesAll = module.GetExportedTypes();
-
-                List<Type> typesDefinition = typesAll
-                    .Where(Predicate)
-                    .ToList();
-
-                List<Type> instances = typesDefinition.Select(Activator.CreateInstance)
-                    .Cast<IAppDefinition>()
-                    .Where(definition => definition.Enabled && definition.Exported)
-                    .Select(definition => definition.GetType())
-                    .ToList();
-
-                types.AddRange(instances);
-            }
-
-            if (types.Count != 0)
-            {
-                AddDefinitions(builder, types.ToArray());
-            }
-        }
-        catch (Exception exception)
-        {
-            logger.LogError(exception, "Ошибка при добавлении определений. Тип ошибки: {ExceptionType}, сообщение: {Message}, стек вызовов: {StackTrace}",
-                exception.GetType().Name,
-                exception.Message,
-                exception.StackTrace);
-
-            throw;
-        }
-    }
-
     /// <summary>
     ///     Поиск всех определений в проекте и их включение в конвейер.
     ///     <br />
