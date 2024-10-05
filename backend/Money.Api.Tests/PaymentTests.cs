@@ -44,13 +44,13 @@ public class PaymentTests
     }
 
     [Test]
-    public async Task GetByDateTest()
+    public async Task GetByDateFromTest()
     {
         TestCategory category = _user.WithCategory();
 
         TestPayment[] payments =
         [
-            category.WithPayment().SetDate(DateTime.Now.AddMonths(1)),
+            category.WithPayment().SetDate(DateTime.Now.Date.AddMonths(1)),
             category.WithPayment(),
         ];
 
@@ -58,13 +58,58 @@ public class PaymentTests
 
         PaymentClient.PaymentFilterDto filter = new()
         {
-            DateFrom = DateTime.Now.Date,
+            DateFrom = DateTime.Now.Date.AddMonths(1),
+        };
+
+        PaymentClient.Payment[]? apiPayments = await _apiClient.Payment.Get(filter).IsSuccessWithContent();
+        Assert.That(apiPayments, Is.Not.Null);
+        Assert.That(apiPayments, Has.Length.EqualTo(1));
+        Assert.That(apiPayments[0].Date, Is.GreaterThanOrEqualTo(DateTime.Now.Date));
+    }
+
+    [Test]
+    public async Task GetByDateToTest()
+    {
+        TestCategory category = _user.WithCategory();
+
+        TestPayment[] payments =
+        [
+            category.WithPayment().SetDate(DateTime.Now.Date.AddMonths(1)),
+            category.WithPayment().SetDate(DateTime.Now.Date),
+        ];
+
+        _dbClient.Save();
+
+        PaymentClient.PaymentFilterDto filter = new()
+        {
             DateTo = DateTime.Now.Date.AddDays(1),
         };
 
         PaymentClient.Payment[]? apiPayments = await _apiClient.Payment.Get(filter).IsSuccessWithContent();
         Assert.That(apiPayments, Is.Not.Null);
         Assert.That(apiPayments, Has.Length.EqualTo(1));
+        Assert.That(apiPayments[0].Date, Is.GreaterThanOrEqualTo(DateTime.Now.Date));
+        Assert.That(apiPayments[0].Date, Is.LessThan(DateTime.Now.Date.AddDays(1)));
+    }
+
+    [Test]
+    public async Task GetByDateRangeTest()
+    {
+        TestCategory category = _user.WithCategory();
+        category.WithPayment().SetDate(DateTime.Now.Date.AddDays(-1));
+        category.WithPayment().SetDate(DateTime.Now.Date);
+        category.WithPayment().SetDate(DateTime.Now.Date.AddDays(1));
+        _dbClient.Save();
+
+        PaymentClient.PaymentFilterDto filter = new()
+        {
+            DateFrom = DateTime.Now.Date.AddDays(-1),
+            DateTo = DateTime.Now.Date.AddDays(2),
+        };
+
+        PaymentClient.Payment[]? apiPayments = await _apiClient.Payment.Get(filter).IsSuccessWithContent();
+        Assert.That(apiPayments, Is.Not.Null);
+        Assert.That(apiPayments, Has.Length.EqualTo(3));
     }
 
     [Test]
@@ -100,6 +145,7 @@ public class PaymentTests
         PaymentClient.Payment[]? apiPayments = await _apiClient.Payment.Get(filter).IsSuccessWithContent();
         Assert.That(apiPayments, Is.Not.Null);
         Assert.That(apiPayments, Has.Length.EqualTo(1));
+        Assert.That(apiPayments[0].Comment, Is.EqualTo(payment.Comment));
     }
 
     [Test]
@@ -120,5 +166,40 @@ public class PaymentTests
         PaymentClient.Payment[]? apiPayments = await _apiClient.Payment.Get(filter).IsSuccessWithContent();
         Assert.That(apiPayments, Is.Not.Null);
         Assert.That(apiPayments, Has.Length.EqualTo(1));
+        Assert.That(apiPayments[0].Place, Is.EqualTo(place.Name));
+    }
+
+    [Test]
+    public async Task GetByMultipleCategoryIdsTest()
+    {
+        TestCategory category1 = _user.WithCategory();
+        TestCategory category2 = _user.WithCategory();
+        category1.WithPayment();
+        category2.WithPayment();
+        _dbClient.Save();
+
+        PaymentClient.PaymentFilterDto filter = new()
+        {
+            CategoryIds = [category1.Id, category2.Id],
+        };
+
+        PaymentClient.Payment[]? apiPayments = await _apiClient.Payment.Get(filter).IsSuccessWithContent();
+        Assert.That(apiPayments, Is.Not.Null);
+        Assert.That(apiPayments, Has.Length.EqualTo(2));
+    }
+
+    [Test]
+    public async Task GetNoPaymentsTest()
+    {
+        _dbClient.Save();
+
+        PaymentClient.PaymentFilterDto filter = new()
+        {
+            DateFrom = DateTime.Now.AddDays(1),
+        };
+
+        PaymentClient.Payment[]? apiPayments = await _apiClient.Payment.Get(filter).IsSuccessWithContent();
+        Assert.That(apiPayments, Is.Not.Null);
+        Assert.That(apiPayments, Is.Empty);
     }
 }

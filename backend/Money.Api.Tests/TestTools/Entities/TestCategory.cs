@@ -49,11 +49,11 @@ public class TestCategory : TestObject
     {
         if (IsNew)
         {
-            Money.Data.Entities.DomainUser dbUser = Environment.Context.DomainUsers.Single(x => x.Id == User.Id);
+            Data.Entities.DomainUser dbUser = Environment.Context.DomainUsers.Single(x => x.Id == User.Id);
             int categoryId = dbUser.NextCategoryId;
             dbUser.NextCategoryId++; // todo обработать канкаренси
 
-            Money.Data.Entities.Category obj = new()
+            Data.Entities.Category obj = new()
             {
                 Id = categoryId,
                 Name = "",
