@@ -1,25 +1,24 @@
-﻿@using Money.Web.Components
-<CascadingAuthenticationState>
+﻿<CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly">
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
                 <NotAuthorized>
-                    @if (context.User.Identity?.IsAuthenticated != true)
+                    @if (context.User.Identity?.IsAuthenticated == true)
                     {
-                        <RedirectToLogin />
+                        <MudAlert Severity="Severity.Error">Эй, братан, тут тебе не место, так что лучше поищи другую дорожку.</MudAlert>
                     }
                     else
                     {
-                        <p role="alert">You are not authorized to access this resource.</p>
+                        <RedirectToLogin />
                     }
                 </NotAuthorized>
             </AuthorizeRouteView>
             <FocusOnNavigate RouteData="@routeData" Selector="h1" />
         </Found>
         <NotFound>
-            <PageTitle>Not found</PageTitle>
+            <PageTitle>Куда-то пропало</PageTitle>
             <LayoutView Layout="@typeof(MainLayout)">
-                <p role="alert">Sorry, there's nothing at this address.</p>
+                <MudAlert Severity="Severity.Warning">Эй, братан, тут пусто, как в моей голове! Давай поищем другое местечко, где повеселее будет.</MudAlert>
             </LayoutView>
         </NotFound>
     </Router>
