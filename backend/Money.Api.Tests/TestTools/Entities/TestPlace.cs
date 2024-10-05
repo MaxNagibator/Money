@@ -22,11 +22,11 @@ public class TestPlace : TestObject
     {
         if (IsNew)
         {
-            Money.Data.Entities.DomainUser dbUser = Environment.Context.DomainUsers.Single(x => x.Id == User.Id);
+            Data.Entities.DomainUser dbUser = Environment.Context.DomainUsers.Single(x => x.Id == User.Id);
             int id = dbUser.NextPlaceId;
             dbUser.NextPlaceId++; // todo обработать канкаренси
 
-            Money.Data.Entities.Place obj = new()
+            Data.Entities.Place obj = new()
             {
                 Id = id,
                 Name = "",
@@ -41,13 +41,13 @@ public class TestPlace : TestObject
         }
         else
         {
-            Money.Data.Entities.Place obj = Environment.Context.Places.First(x => x.UserId == User.Id && x.Id == Id);
+            Data.Entities.Place obj = Environment.Context.Places.First(x => x.UserId == User.Id && x.Id == Id);
             FillDbProperties(obj);
             Environment.Context.SaveChanges();
         }
     }
 
-    private void FillDbProperties(Money.Data.Entities.Place obj)
+    private void FillDbProperties(Data.Entities.Place obj)
     {
         obj.Name = Name;
     }

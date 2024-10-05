@@ -47,6 +47,7 @@ public class PaymentTests
     public async Task GetByDateTest()
     {
         TestCategory category = _user.WithCategory();
+
         TestPayment[] payments =
         [
             category.WithPayment().SetDate(DateTime.Now.AddMonths(1)),
@@ -55,65 +56,69 @@ public class PaymentTests
 
         _dbClient.Save();
 
-        var filter = new PaymentClient.PaymentFilterDto
+        PaymentClient.PaymentFilterDto filter = new()
         {
             DateFrom = DateTime.Now.Date,
             DateTo = DateTime.Now.Date.AddDays(1),
         };
+
         PaymentClient.Payment[]? apiPayments = await _apiClient.Payment.Get(filter).IsSuccessWithContent();
         Assert.That(apiPayments, Is.Not.Null);
-        Assert.That(apiPayments.Length, Is.EqualTo(1));
+        Assert.That(apiPayments, Has.Length.EqualTo(1));
     }
 
     [Test]
     public async Task GetByCategoryIdsTest()
     {
         _user.WithCategory().WithPayment();
-        var category = _user.WithCategory().WithPayment().Category;
+        TestCategory category = _user.WithCategory().WithPayment().Category;
         _dbClient.Save();
 
-        var filter = new PaymentClient.PaymentFilterDto
+        PaymentClient.PaymentFilterDto filter = new()
         {
-            CategoryIds = new List<int> { category.Id },
+            CategoryIds = [category.Id],
         };
+
         PaymentClient.Payment[]? apiPayments = await _apiClient.Payment.Get(filter).IsSuccessWithContent();
         Assert.That(apiPayments, Is.Not.Null);
-        Assert.That(apiPayments.Length, Is.EqualTo(1));
+        Assert.That(apiPayments, Has.Length.EqualTo(1));
     }
 
     [Test]
     public async Task GetByCommentTest()
     {
-        var category = _user.WithCategory();
-        var payment = category.WithPayment().SetComment("ochen vazhniy platezh");
+        TestCategory category = _user.WithCategory();
+        TestPayment payment = category.WithPayment().SetComment("ochen vazhniy platezh");
         category.WithPayment();
         _dbClient.Save();
 
-        var filter = new PaymentClient.PaymentFilterDto
+        PaymentClient.PaymentFilterDto filter = new()
         {
-            Comment = payment.Comment.Substring(0, 10),
+            Comment = payment.Comment[..10],
         };
+
         PaymentClient.Payment[]? apiPayments = await _apiClient.Payment.Get(filter).IsSuccessWithContent();
         Assert.That(apiPayments, Is.Not.Null);
-        Assert.That(apiPayments.Length, Is.EqualTo(1));
+        Assert.That(apiPayments, Has.Length.EqualTo(1));
     }
 
     [Test]
     public async Task GetByPlaceTest()
     {
-        var place = _user.WithPlace();
-        var category = _user.WithCategory();
-        var payment = category.WithPayment();
+        TestPlace place = _user.WithPlace();
+        TestCategory category = _user.WithCategory();
+        TestPayment payment = category.WithPayment();
         payment.SetPlace(place);
         category.WithPayment();
         _dbClient.Save();
 
-        var filter = new PaymentClient.PaymentFilterDto
+        PaymentClient.PaymentFilterDto filter = new()
         {
             Place = place.Name,
         };
+
         PaymentClient.Payment[]? apiPayments = await _apiClient.Payment.Get(filter).IsSuccessWithContent();
         Assert.That(apiPayments, Is.Not.Null);
-        Assert.That(apiPayments.Length, Is.EqualTo(1));
+        Assert.That(apiPayments, Has.Length.EqualTo(1));
     }
 }

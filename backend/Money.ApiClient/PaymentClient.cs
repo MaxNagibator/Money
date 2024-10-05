@@ -1,4 +1,6 @@
-﻿namespace Money.ApiClient;
+﻿using Microsoft.AspNetCore.WebUtilities;
+
+namespace Money.ApiClient;
 
 public class PaymentClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
 {
@@ -8,51 +10,7 @@ public class PaymentClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
 
     public async Task<ApiClientResponse<Payment[]>> Get(PaymentFilterDto? filter = null)
     {
-        var queryParam = ToUriParameters(filter);
-        return await GetAsync<Payment[]>($"{BaseUri}{queryParam}");
-    }
-
-    private string? ToUriParameters(PaymentFilterDto? filter)
-    {
-        if (filter == null)
-        {
-            return null;
-        }
-        var query = "";
-        if (filter.DateFrom != null)
-        {
-            query = AppendBla(query) + "dateFrom=" + filter.DateFrom.Value.ToString("yyyy.MM.dd");
-        }
-        if (filter.DateTo != null)
-        {
-            query = AppendBla(query) + "dateTo=" + filter.DateTo.Value.ToString("yyyy.MM.dd");
-        }
-        if (filter.Comment != null)
-        {
-            query = AppendBla(query) + "comment=" + filter.Comment;
-        }
-        if (filter.CategoryIds != null)
-        {
-            query = AppendBla(query) + "categoryIds=" + string.Join(",", filter.CategoryIds);
-        }
-        if (filter.Place != null)
-        {
-            query = AppendBla(query) + "place=" + filter.Place;
-        }
-        return query;
-    }
-
-    private string AppendBla(string query)
-    {
-        if (string.IsNullOrEmpty(query))
-        {
-            query = "?";
-        }
-        else
-        {
-            query += "&";
-        }
-        return query;
+        return await GetAsync<Payment[]>(ToUriParameters(filter));
     }
 
     public async Task<ApiClientResponse<Payment>> GetById(int id)
@@ -78,6 +36,29 @@ public class PaymentClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
     public async Task<ApiClientResponse> Restore(int id)
     {
         return await PostAsync($"{BaseUri}/{id}/Restore");
+    }
+
+    private string ToUriParameters(PaymentFilterDto? filter)
+    {
+        if (filter == null)
+        {
+            return BaseUri;
+        }
+
+        Dictionary<string, string?> queryParams = new();
+
+        queryParams.Add("dateFrom", filter.DateFrom?.ToString("yyyy.MM.dd"));
+        queryParams.Add("dateTo", filter.DateTo?.ToString("yyyy.MM.dd"));
+        queryParams.Add("comment", filter.Comment);
+
+        if (filter.CategoryIds != null)
+        {
+            queryParams.Add("categoryIds", string.Join(",", filter.CategoryIds));
+        }
+
+        queryParams.Add("place", filter.Place);
+
+        return QueryHelpers.AddQueryString(BaseUri, queryParams);
     }
 
     public class SaveRequest
