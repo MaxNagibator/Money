@@ -22,13 +22,14 @@
             <MudTreeView ExpandOnClick Hover Items="@InitialTreeItems[paymentType.Id]" ReadOnly Ripple>
                 <ItemTemplate>
                     @{
-                        Category? category = context.Value;
+                        Category category = context.Value!;
+                        List<TreeItemData<Category?>> children = context.Children?.OfType<TreeItemData<Category?>>().ToList() ?? [];
                     }
                     <MudStack Row StretchItems="StretchItems.Start">
-                        <MudTreeViewItem @bind-Expanded="@context.Expanded" Items="@context.Children" Value="@context.Value" Disabled="category.IsDeleted">
+                        <MudTreeViewItem @bind-Expanded="@context.Expanded" Items="@children" Value="@context.Value" Disabled="category.IsDeleted">
                             <Content>
                                 <MudTreeViewItemToggleButton @bind-Expanded="@context.Expanded" Visible="@context.HasChildren" />
-                                <MudText>@category?.Name</MudText>
+                                <MudText>@category.Name</MudText>
                                 <MudSpacer />
                                 @if (category is { Color: not null, IsDeleted: false })
                                 {

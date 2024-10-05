@@ -9,7 +9,7 @@ public class MiddlewareDefinition : AppDefinition
 
     public override void ConfigureApplication(WebApplication app)
     {
-        app.UseMiddleware<ExceptionHandlingMiddleware>();
+        app.UseMiddleware<ExceptionMiddleware>();
         app.UseMiddleware<AuthMiddleware>();
     }
 }

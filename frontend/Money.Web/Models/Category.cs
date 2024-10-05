@@ -12,8 +12,6 @@ public class Category
     /// <summary>
     ///     Наименование категории.
     /// </summary>
-    [Required(ErrorMessage="Обязательно")] // todo подумать как красивее
-    [Display(Name = "Наименование")]
     public string? Name { get; set; }
 
     /// <summary>

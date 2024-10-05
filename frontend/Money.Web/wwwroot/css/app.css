@@ -29,7 +29,7 @@
 
 .loading-progress-text {
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-    font-size: 3rem;
+    font-size: 2.5rem;
     font-weight: bold;
     position: absolute;
     text-align: center;
@@ -38,7 +38,7 @@
 }
 
 .loading-progress-text:after {
-    content: var(--blazor-load-percentage-text, "Ожидайте");
+    content: var(--blazor-load-percentage-text, "Подожди немного");
 }
 
 .loading-bg {

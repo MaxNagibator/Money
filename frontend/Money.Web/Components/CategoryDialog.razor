@@ -1,4 +1,4 @@
-﻿<EditForm Model="@Category" OnValidSubmit="SaveAsync">
+﻿<EditForm Model="@Input" OnValidSubmit="SaveAsync">
     <DataAnnotationsValidator />
     <MudDialog>
         <TitleContent>
@@ -9,23 +9,23 @@
         <DialogContent>
             <MudStack Spacing="3">
                 <MudTextField AutoGrow
-                              @bind-Value="@Category.Name"
+                              @bind-Value="@Input.Name"
                               Clearable
                               HelperText="Наименование категории"
                               Label="Наименование"
                               Required
                               Variant="Variant.Text"
-                              For="@(() => Category.Name)" />
+                              For="@(() => Input.Name)" />
 
-                <MudNumericField @bind-Value="@Category.Order"
+                <MudNumericField @bind-Value="@Input.Order"
                                  DebounceInterval="500"
                                  HelperText="Меньше -> выше"
                                  Label="Значение для сортировки"
-                                 For="@(() => Category.Order)" />
+                                 For="@(() => Input.Order)" />
 
                 <MudStack Spacing="0">
                     <MudText Typo="Typo.subtitle2">Цвет</MudText>
-                    <MudColorPicker @bind-Text="@Category.Color"
+                    <MudColorPicker @bind-Text="@Input.Color"
                                     ColorPickerMode="ColorPickerMode.HEX"
                                     PickerVariant="PickerVariant.Static"
                                     Rounded

@@ -1,70 +1,88 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Money.Business.Enums;
 using Money.Business.Models;
 using Money.Data;
 using Money.Data.Extensions;
 
-namespace Money.Business.Services
+namespace Money.Business.Services;
+
+public class PaymentService(RequestEnvironment environment, ApplicationDbContext context)
 {
-    public class PaymentService(RequestEnvironment environment, ApplicationDbContext context)
+    public async Task<ICollection<Payment>> GetAsync(PaymentFilter filter, CancellationToken cancellationToken = default)
     {
-        public async Task<ICollection<Payment>> GetAsync(
-            DateTime? dateFrom,
-            DateTime? dateTo,
-            List<int>? categoryIds,
-            string? comment,
-            string? place,
-            CancellationToken cancellationToken = default)
-        {
-            IQueryable<Data.Entities.Payment> dbPayments = context.Payments.IsUserEntity(environment.UserId);
+        IQueryable<Data.Entities.Payment> dbPayments = FilterPayments(filter);
 
-            dbPayments = dbPayments.Where(x => x.TaskId == null).AsQueryable();
-            if (dateFrom != null)
-            {
-                dbPayments = dbPayments.Where(x => x.Date >= dateFrom);
-            }
-            if (dateTo != null)
-            {
-                dbPayments = dbPayments.Where(x => x.Date < dateTo);
-            }
-            if (categoryIds != null && categoryIds.Count > 0)
-            {
-                dbPayments = dbPayments.Where(x => categoryIds.Contains(x.CategoryId));
-            }
-            if (!string.IsNullOrEmpty(comment))
-            {
-                dbPayments = dbPayments.Where(x => x.Comment != null && x.Comment.Contains(comment));
-            }
-            if (!string.IsNullOrEmpty(place))
-            {
-                var placesIds = context.Places.Where(x => x.UserId == environment.UserId && x.Name.Contains(place)).Select(x => x.PlaceId);
-                dbPayments = dbPayments.Where(x => x.PlaceId != null && placesIds.Contains(x.PlaceId.Value));
-            }
-            var placeIds = dbPayments.Where(x => x.PlaceId != null).Select(x => x.PlaceId.Value);
-            var dbPlaces =  context.Places.Where(x => x.UserId == environment.UserId && placeIds.Contains(x.PlaceId)).ToListAsync();
-            var dbPaymentList =  dbPayments.OrderByDescending(x => x.Date).ThenBy(x => x.CategoryId).ToListAsync();
-            Task.WaitAll(dbPlaces, dbPaymentList);
-            var payments = new List<Payment>();
-            foreach (var dbPayment in dbPaymentList.Result)
-            {
-                payments.Add(MapTo(dbPayment, dbPlaces.Result));
-            }
-            return payments;
+        List<int> placeIds = await dbPayments
+            .Where(x => x.PlaceId != null)
+            .Select(x => x.PlaceId!.Value)
+            .ToListAsync(cancellationToken);
+
+        List<Data.Entities.Place> dbPlaces = await GetPlacesAsync(placeIds, cancellationToken);
+
+        List<Data.Entities.Payment> dbPaymentList = await dbPayments
+            .OrderByDescending(x => x.Date)
+            .ThenBy(x => x.CategoryId)
+            .ToListAsync(cancellationToken);
+
+        return dbPaymentList.Select(dbPayment => MapTo(dbPayment, dbPlaces)).ToList();
+    }
+
+    private IQueryable<Data.Entities.Payment> FilterPayments(PaymentFilter filter)
+    {
+        IQueryable<Data.Entities.Payment> dbPayments = context.Payments.IsUserEntity(environment.UserId)
+            .Where(x => x.TaskId == null);
+
+        if (filter.DateFrom.HasValue)
+        {
+            dbPayments = dbPayments.Where(x => x.Date >= filter.DateFrom.Value);
         }
 
-        private Payment MapTo(Data.Entities.Payment dbPayment, List<Data.Entities.Place> dbPlaces)
+        if (filter.DateTo.HasValue)
         {
-            var payment = new Payment
-            {
-                CategoryId = dbPayment.CategoryId,
-                Sum = dbPayment.Sum,
-                Comment = dbPayment.Comment,
-                Place = dbPayment.PlaceId != null ? dbPlaces.First(x => x.PlaceId == dbPayment.PlaceId).Name : null,
-                Id = dbPayment.Id,
-                Date = dbPayment.Date,
-                CreatedTaskId = dbPayment.CreatedTaskId
-            };
-            return payment;
+            dbPayments = dbPayments.Where(x => x.Date < filter.DateTo.Value);
         }
+
+        if (filter.CategoryIds is { Count: > 0 })
+        {
+            dbPayments = dbPayments.Where(x => filter.CategoryIds.Contains(x.CategoryId));
+        }
+
+        if (string.IsNullOrEmpty(filter.Comment) == false)
+        {
+            dbPayments = dbPayments.Where(x => x.Comment != null && x.Comment.Contains(filter.Comment));
+        }
+
+        if (string.IsNullOrEmpty(filter.Place) == false)
+        {
+            IQueryable<int> placesIds = context.Places
+                .Where(x => x.UserId == environment.UserId && x.Name.Contains(filter.Place))
+                .Select(x => x.PlaceId);
+
+            dbPayments = dbPayments.Where(x => x.PlaceId != null && placesIds.Contains(x.PlaceId.Value));
+        }
+
+        return dbPayments;
+    }
+
+    private async Task<List<Data.Entities.Place>> GetPlacesAsync(List<int> placeIds, CancellationToken cancellationToken)
+    {
+        return await context.Places
+            .Where(x => x.UserId == environment.UserId && placeIds.Contains(x.PlaceId))
+            .ToListAsync(cancellationToken);
+    }
+
+    private Payment MapTo(Data.Entities.Payment dbPayment, List<Data.Entities.Place> dbPlaces)
+    {
+        return new Payment
+        {
+            CategoryId = dbPayment.CategoryId,
+            Sum = dbPayment.Sum,
+            Comment = dbPayment.Comment,
+            Place = dbPayment.PlaceId.HasValue
+                ? dbPlaces.FirstOrDefault(x => x.PlaceId == dbPayment.PlaceId)?.Name
+                : null,
+            Id = dbPayment.Id,
+            Date = dbPayment.Date,
+            CreatedTaskId = dbPayment.CreatedTaskId,
+        };
     }
 }

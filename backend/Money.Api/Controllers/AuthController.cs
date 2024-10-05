@@ -35,7 +35,17 @@ public class AuthController(UserManager<ApplicationUser> userManager, SignInMana
 
         if (request.IsPasswordGrantType())
         {
-            ApplicationUser? user = await userManager.FindByNameAsync(request.Username ?? string.Empty);
+            if (request.Username == null)
+            {
+                throw new PermissionException("Имя пользователя отсутствует в запросе.");
+            }
+
+            if (request.Password == null)
+            {
+                throw new PermissionException("Пароль отсутствует в запросе.");
+            }
+
+            ApplicationUser? user = await userManager.FindByNameAsync(request.Username);
 
             if (user == null)
             {
@@ -44,7 +54,7 @@ public class AuthController(UserManager<ApplicationUser> userManager, SignInMana
 
             SignInResult result = await signInManager.CheckPasswordSignInAsync(user, request.Password, true);
 
-            if (!result.Succeeded)
+            if (result.Succeeded == false)
             {
                 throw new PermissionException("Пара имя пользователя/пароль недействительна.");
             }
@@ -70,7 +80,14 @@ public class AuthController(UserManager<ApplicationUser> userManager, SignInMana
         {
             AuthenticateResult result = await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
 
-            ApplicationUser? user = await userManager.FindByIdAsync(result.Principal.GetClaim(OpenIddictConstants.Claims.Subject));
+            string? userId = result.Principal?.GetClaim(OpenIddictConstants.Claims.Subject);
+
+            if (userId == null)
+            {
+                throw new PermissionException("Идентификатор пользователя отсутствует в запросе.");
+            }
+
+            ApplicationUser? user = await userManager.FindByIdAsync(userId);
 
             if (user == null)
             {
@@ -82,7 +99,7 @@ public class AuthController(UserManager<ApplicationUser> userManager, SignInMana
                 throw new PermissionException("Пользователю больше не разрешено входить в систему.");
             }
 
-            ClaimsIdentity identity = new(result.Principal.Claims,
+            ClaimsIdentity identity = new(result.Principal?.Claims,
                 TokenValidationParameters.DefaultAuthenticationType,
                 OpenIddictConstants.Claims.Name,
                 OpenIddictConstants.Claims.Role);
