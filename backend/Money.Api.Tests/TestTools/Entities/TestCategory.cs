@@ -67,7 +67,7 @@ public class TestCategory : TestObject
         }
         else
         {
-            Money.Data.Entities.Category obj = Environment.Context.Categories.First(x => x.Id == Id);
+            Money.Data.Entities.Category obj = Environment.Context.Categories.First(x => x.UserId == User.Id && x.Id == Id);
             FillDbProperties(obj);
             Environment.Context.SaveChanges();
         }

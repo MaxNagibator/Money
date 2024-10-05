@@ -18,6 +18,7 @@ public class TestUser : TestObject
     public int Id { get; private set; }
 
     public string Login { get; }
+
     public string Password { get; }
 
     public override void LocalSave()
@@ -46,6 +47,13 @@ public class TestUser : TestObject
     public TestPayment WithPayment()
     {
         TestPayment obj = new(WithCategory());
+        obj.Attach(Environment);
+        return obj;
+    }
+
+    public TestPlace WithPlace()
+    {
+        TestPlace obj = new(this);
         obj.Attach(Environment);
         return obj;
     }

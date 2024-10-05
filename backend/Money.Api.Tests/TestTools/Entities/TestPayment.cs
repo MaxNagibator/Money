@@ -11,6 +11,7 @@ public class TestPayment : TestObject
         Sum = 100;
         Comment = $"P{Guid.NewGuid()}";
         Category = category;
+        Date = DateTime.Now;
     }
 
     /// <summary>
@@ -21,17 +22,22 @@ public class TestPayment : TestObject
     /// <summary>
     ///     Сумма.
     /// </summary>
-    public decimal Sum { get; set; }
+    public decimal Sum { get; }
 
     /// <summary>
     ///     Комментарий.
     /// </summary>
-    public string Comment { get; }
+    public string Comment { get; private set; }
+
+    /// <summary>
+    ///     Дата.
+    /// </summary>
+    public DateTime Date { get; set; }
 
     /// <summary>
     ///     Категория.
     /// </summary>
-    public TestCategory Category { get; set; }
+    public TestCategory Category { get; private set; }
 
     /// <summary>
     ///     Пользователь.
@@ -39,9 +45,38 @@ public class TestPayment : TestObject
     public TestUser User => Category.User;
 
     /// <summary>
+    /// Место.
+    /// </summary>
+    public TestPlace Place { get; private set; }
+
+    /// <summary>
     ///     Удалена.
     /// </summary>
     public bool IsDeleted { get; set; }
+
+    public TestPayment SetIsDeleted()
+    {
+        IsDeleted = true;
+        return this;
+    }
+
+    public TestPayment SetDate(DateTime value)
+    {
+        Date = value;
+        return this;
+    }
+
+    public TestPayment SetPlace(TestPlace value)
+    {
+        Place = value;
+        return this;
+    }
+
+    public TestPayment SetComment(string value)
+    {
+        Comment = value;
+        return this;
+    }
 
     public override void LocalSave()
     {
@@ -64,16 +99,10 @@ public class TestPayment : TestObject
         }
         else
         {
-            Money.Data.Entities.Payment obj = Environment.Context.Payments.First(x => x.Id == Id);
+            Money.Data.Entities.Payment obj = Environment.Context.Payments.First(x => x.UserId == User.Id && x.Id == Id);
             FillDbProperties(obj);
             Environment.Context.SaveChanges();
         }
-    }
-
-    public TestPayment SetIsDeleted()
-    {
-        IsDeleted = true;
-        return this;
     }
 
     private void FillDbProperties(Money.Data.Entities.Payment obj)
@@ -81,7 +110,9 @@ public class TestPayment : TestObject
         obj.Comment = Comment;
         obj.Sum = Sum;
         obj.UserId = User.Id;
-        obj.CategoryId = obj.CategoryId;
+        obj.CategoryId = Category.Id;
         obj.IsDeleted = IsDeleted;
+        obj.Date = Date;
+        obj.PlaceId = Place?.Id;
     }
 }

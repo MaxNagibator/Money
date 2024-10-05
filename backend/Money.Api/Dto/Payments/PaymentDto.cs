@@ -19,11 +19,6 @@ public class PaymentDto
 
     public int? CreatedTaskId { get; set; }
 
-    public static implicit operator PaymentDto(Business.Models.Payment category)
-    {
-        return FromBusinessModel(category);
-    }
-
     /// <summary>
     ///     Фабричный метод для создания DTO платежа на основе бизнес-модели.
     /// </summary>
