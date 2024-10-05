@@ -45,18 +45,14 @@ public class PaymentClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
             return BaseUri;
         }
 
-        Dictionary<string, string?> queryParams = new();
-
-        queryParams.Add("dateFrom", filter.DateFrom?.ToString("yyyy.MM.dd"));
-        queryParams.Add("dateTo", filter.DateTo?.ToString("yyyy.MM.dd"));
-        queryParams.Add("comment", filter.Comment);
-
-        if (filter.CategoryIds != null)
+        Dictionary<string, string?> queryParams = new()
         {
-            queryParams.Add("categoryIds", string.Join(",", filter.CategoryIds));
-        }
-
-        queryParams.Add("place", filter.Place);
+            ["dateFrom"] = filter.DateFrom?.ToString("yyyy.MM.dd"),
+            ["dateTo"] = filter.DateTo?.ToString("yyyy.MM.dd"),
+            ["comment"] = filter.Comment,
+            ["categoryIds"] = filter.CategoryIds == null ? null : string.Join(",", filter.CategoryIds),
+            ["place"] = filter.Place,
+        };
 
         return QueryHelpers.AddQueryString(BaseUri, queryParams);
     }
