@@ -8,53 +8,9 @@ public class PaymentClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
 
     public async Task<ApiClientResponse<Payment[]>> Get(PaymentFilterDto? filter = null)
     {
-        var queryParam = ToUriParameters(filter);
+        var queryParam = HttpExtension.ToUriParameters(filter);
         return await GetAsync<Payment[]>($"{BaseUri}{queryParam}");
     }
-
-    private string? ToUriParameters(PaymentFilterDto? filter)
-    {
-        if (filter == null)
-        {
-            return null;
-        }
-        var query = "";
-        if (filter.DateFrom != null)
-        {
-            query = AppendBla(query) + "dateFrom=" + filter.DateFrom.Value.ToString("yyyy.MM.dd");
-        }
-        if (filter.DateTo != null)
-        {
-            query = AppendBla(query) + "dateTo=" + filter.DateTo.Value.ToString("yyyy.MM.dd");
-        }
-        if (filter.Comment != null)
-        {
-            query = AppendBla(query) + "comment=" + filter.Comment;
-        }
-        if (filter.CategoryIds != null)
-        {
-            query = AppendBla(query) + "categoryIds=" + string.Join(",", filter.CategoryIds);
-        }
-        if (filter.Place != null)
-        {
-            query = AppendBla(query) + "place=" + filter.Place;
-        }
-        return query;
-    }
-
-    private string AppendBla(string query)
-    {
-        if (string.IsNullOrEmpty(query))
-        {
-            query = "?";
-        }
-        else
-        {
-            query += "&";
-        }
-        return query;
-    }
-
     public async Task<ApiClientResponse<Payment>> GetById(int id)
     {
         return await GetAsync<Payment>($"{BaseUri}/{id}");
