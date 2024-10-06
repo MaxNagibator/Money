@@ -10,6 +10,13 @@ public class FileService(IOptionsSnapshot<FilesStorageConfig> config)
 {
     private readonly FilesStorageConfig _config = config.Value;
 
+    private static readonly Dictionary<FileTypes, List<string>> _supportedFilesExtensions =
+        new Dictionary<FileTypes, List<string>>()
+        {
+            { FileTypes.Word, [".doc", ".docx"] },
+            { FileTypes.Excel, [".xls", ".xlsx"] },
+        };
+
     public async Task<File> Upload(IFormFile file, CancellationToken cancellationToken = default)
     {
         var fileExt = Path.GetExtension(file.FileName);
@@ -32,19 +39,14 @@ public class FileService(IOptionsSnapshot<FilesStorageConfig> config)
 
     private static FileTypes GetFileType(string fileName)
     {
-        var fileType = FileTypes.Unknown;
         if (!fileName.Contains('.'))
         {
-            return fileType;
+            throw new IncorrectFileException("Неправильный файл!");
         }
 
-        var fileExt = fileName.Substring(fileName.IndexOf('.')).ToLower();
-        fileType = fileExt switch
-        {
-            ".doc" or ".docx" => FileTypes.Word,
-            ".xls" or ".xlsx" => FileTypes.Excel,
-            _ => fileType
-        };
+        var fileExt = Path.GetExtension(fileName);
+        var fileType = _supportedFilesExtensions.Where(kvp => kvp.Value.Contains(fileExt)).Select(kvp => kvp.Key)
+            .FirstOrDefault();
         return fileType;
     }
 }
