@@ -2,10 +2,12 @@
 
 @attribute [Authorize]
 
-<PageTitle>Аутентификация</PageTitle>
+<PageTitle>Добро пожаловать!</PageTitle>
 
-<MudText Typo="Typo.h3" GutterBottom>Вы авторизованы</MudText>
+<MudText Typo="Typo.h3" GutterBottom>Вы успешно вошли в систему</MudText>
 
 <AuthorizeView>
     <MudText Class="mb-4">Здравствуйте, @context.User.Identity?.Name!</MudText>
 </AuthorizeView>
+
+<MudButton Href="/" Variant="Variant.Filled" Color="Color.Primary">Перейти на главную</MudButton>
