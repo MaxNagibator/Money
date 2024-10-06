@@ -3,6 +3,7 @@ using Money.Business.Configs;
 using Money.Business.Enums;
 using File = Money.Business.Models.File;
 using Microsoft.AspNetCore.Http;
+using Money.Common.Exceptions;
 
 namespace Money.Business.Services;
 
@@ -48,5 +49,14 @@ public class FileService(IOptionsSnapshot<FilesStorageConfig> config)
         var fileType = _supportedFilesExtensions.Where(kvp => kvp.Value.Contains(fileExt)).Select(kvp => kvp.Key)
             .FirstOrDefault();
         return fileType;
+    }
+
+    public void CheckFileType(string filename)
+    {
+        var fileExt = Path.GetExtension(filename);
+        if (!_supportedFilesExtensions.Values.Any(x => x.Contains(fileExt)))
+        {
+            throw new UnsupportedFileExtensionException("Такой тип файла не поддерживается!");
+        }
     }
 }
