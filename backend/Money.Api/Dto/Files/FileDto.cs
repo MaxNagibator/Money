@@ -3,9 +3,19 @@ using Money.Business.Enums;
 
 namespace Money.Api.Dto.Files;
 
+/// <summary>
+///     Файл.
+/// </summary>
 public class FileDto
 {
+    /// <summary>
+    ///     Название файла.
+    /// </summary>
     public string FileName { get; set; } = null!;
+
+    /// <summary>
+    /// Тип файла.
+    /// </summary>
     public FileTypes FileType { get; set; }
 
     /// <summary>

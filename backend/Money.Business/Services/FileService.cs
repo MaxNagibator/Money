@@ -1,15 +1,16 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Money.Business.Configs;
 using Money.Business.Enums;
 using File = Money.Business.Models.File;
+using Microsoft.AspNetCore.Http;
 
 namespace Money.Business.Services;
 
 public class FileService(IOptionsSnapshot<FilesStorageConfig> config)
 {
     private readonly FilesStorageConfig _config = config.Value;
-    public async Task<File> Upload(IFormFile file)
+
+    public async Task<File> Upload(IFormFile file, CancellationToken cancellationToken = default)
     {
         var fileExt = Path.GetExtension(file.FileName);
         var fileName = Guid.NewGuid() + fileExt;
@@ -17,8 +18,9 @@ public class FileService(IOptionsSnapshot<FilesStorageConfig> config)
 
         await using (var fileStream = new FileStream(source, FileMode.Create))
         {
-            await file.CopyToAsync(fileStream);
+            await file.CopyToAsync(fileStream, cancellationToken);
         }
+
         var fileType = GetFileType(fileName);
 
         return new File
