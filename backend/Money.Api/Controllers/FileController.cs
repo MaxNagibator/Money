@@ -14,9 +14,9 @@ public class FileController(FileService fileService) : ControllerBase
     /// <summary>
     ///     Загрузить файл.
     /// </summary>
-    /// <param name="file">Файл для загрузки</param>
+    /// <param name="file">Файл для загрузки.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
-    /// <returns></returns>
+    /// <returns>Информация о файле.</returns>
     [HttpPost]
     public async Task<FileDto> UploadFile(IFormFile file, CancellationToken cancellationToken)
     {

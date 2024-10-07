@@ -1,7 +1,7 @@
-﻿using Microsoft.Extensions.Options;
+﻿using File = Money.Business.Models.File;
+using Microsoft.Extensions.Options;
 using Money.Business.Configs;
 using Money.Business.Enums;
-using File = Money.Business.Models.File;
 using Microsoft.AspNetCore.Http;
 using Money.Common.Exceptions;
 
@@ -20,7 +20,7 @@ public class FileService(IOptionsSnapshot<FilesStorageConfig> config)
 
     public async Task<File> Upload(IFormFile file, CancellationToken cancellationToken = default)
     {
-        var fileExt = Path.GetExtension(file.FileName);
+        var fileExt = Path.GetExtension(file.FileName).ToLower();
         var fileName = Guid.NewGuid() + fileExt;
         var source = Path.Combine(_config.Path, fileName);
 
@@ -42,10 +42,10 @@ public class FileService(IOptionsSnapshot<FilesStorageConfig> config)
     {
         if (!fileName.Contains('.'))
         {
-            throw new IncorrectFileException("Неправильный файл!");
+            throw new IncorrectFileException("Вы выбрали неправильный файл. Попробуйте выбрать другой.");
         }
 
-        var fileExt = Path.GetExtension(fileName);
+        var fileExt = Path.GetExtension(fileName).ToLower();
         var fileType = _supportedFilesExtensions.Where(kvp => kvp.Value.Contains(fileExt)).Select(kvp => kvp.Key)
             .FirstOrDefault();
         return fileType;
@@ -53,10 +53,10 @@ public class FileService(IOptionsSnapshot<FilesStorageConfig> config)
 
     public void CheckFileType(string filename)
     {
-        var fileExt = Path.GetExtension(filename);
+        var fileExt = Path.GetExtension(filename).ToLower();
         if (!_supportedFilesExtensions.Values.Any(x => x.Contains(fileExt)))
         {
-            throw new UnsupportedFileExtensionException("Такой тип файла не поддерживается!");
+            throw new UnsupportedFileExtensionException("К сожалению, такой тип файла не поддерживается. Попробуйте выбрать другой файл.");
         }
     }
 }

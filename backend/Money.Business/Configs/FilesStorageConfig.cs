@@ -2,5 +2,5 @@
 
 public class FilesStorageConfig
 {
-    public string Path { get; set; }
+    public string Path { get; set; } = string.Empty;
 }
