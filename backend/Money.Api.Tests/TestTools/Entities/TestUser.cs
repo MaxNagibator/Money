@@ -17,8 +17,14 @@ public class TestUser : TestObject
     /// </summary>
     public int Id { get; private set; }
 
+    /// <summary>
+    ///     Логин.
+    /// </summary>
     public string Login { get; }
 
+    /// <summary>
+    ///     Пароль.
+    /// </summary>
     public string Password { get; }
 
     public override void LocalSave()

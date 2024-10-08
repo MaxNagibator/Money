@@ -15,7 +15,7 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
 
         if (user != null)
         {
-            throw new EntityExistsException("Пользователь уже зарегистрирован.");
+            throw new EntityExistsException("Извините, но пользователь с таким именем уже зарегистрирован. Пожалуйста, попробуйте другое имя пользователя.");
         }
 
         user = new ApplicationUser

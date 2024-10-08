@@ -18,7 +18,7 @@ public class PaymentFilterDto
     public DateTime? DateTo { get; set; }
 
     /// <summary>
-    ///     Список идентификаторов категорий (цифры через запятую. пример: "1,2,5").
+    ///     Список идентификаторов категорий (цифры через запятую. Пример: "1,2,5").
     /// </summary>
     public string? CategoryIds { get; set; }
 
@@ -36,11 +36,25 @@ public class PaymentFilterDto
     {
         return new PaymentFilter
         {
-            CategoryIds = CategoryIds?.Split(',').Select(int.Parse).ToList(),
+            CategoryIds = ParseCategoryIds(CategoryIds),
             Comment = Comment,
             Place = Place,
             DateFrom = DateFrom,
             DateTo = DateTo,
         };
+    }
+
+    private List<int>? ParseCategoryIds(string? categoryIds)
+    {
+        if (string.IsNullOrWhiteSpace(categoryIds))
+        {
+            return null;
+        }
+
+        return categoryIds.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(id => int.TryParse(id, out int parsedId) ? (int?)parsedId : null)
+            .Where(id => id.HasValue)
+            .Select(id => id!.Value)
+            .ToList();
     }
 }

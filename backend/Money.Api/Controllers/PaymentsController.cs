@@ -23,7 +23,7 @@ public class PaymentsController(PaymentService paymentService) : ControllerBase
     [ProducesResponseType(typeof(PaymentDto[]), StatusCodes.Status200OK)]
     public async Task<PaymentDto[]> Get([FromQuery] PaymentFilterDto filter, CancellationToken cancellationToken)
     {
-        var businessFilter = filter.ToBusinessModel();
+        PaymentFilter businessFilter = filter.ToBusinessModel();
         ICollection<Payment> payments = await paymentService.GetAsync(businessFilter, cancellationToken);
         return payments.Select(PaymentDto.FromBusinessModel).ToArray();
     }

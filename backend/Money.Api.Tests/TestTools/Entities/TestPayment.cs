@@ -22,7 +22,7 @@ public class TestPayment : TestObject
     /// <summary>
     ///     Сумма.
     /// </summary>
-    public decimal Sum { get; }
+    public decimal Sum { get; private set; }
 
     /// <summary>
     ///     Комментарий.
@@ -32,12 +32,12 @@ public class TestPayment : TestObject
     /// <summary>
     ///     Дата.
     /// </summary>
-    public DateTime Date { get; set; }
+    public DateTime Date { get; private set; }
 
     /// <summary>
     ///     Категория.
     /// </summary>
-    public TestCategory Category { get; private set; }
+    public TestCategory Category { get; }
 
     /// <summary>
     ///     Пользователь.
@@ -45,14 +45,41 @@ public class TestPayment : TestObject
     public TestUser User => Category.User;
 
     /// <summary>
-    /// Место.
+    ///     Место.
     /// </summary>
     public TestPlace Place { get; private set; }
 
     /// <summary>
     ///     Удалена.
     /// </summary>
-    public bool IsDeleted { get; set; }
+    public bool IsDeleted { get; private set; }
+
+    public override void LocalSave()
+    {
+        if (IsNew)
+        {
+            Data.Entities.DomainUser dbUser = Environment.Context.DomainUsers.Single(x => x.Id == User.Id);
+            int paymentId = dbUser.NextPaymentId;
+            dbUser.NextPaymentId++; // todo обработать канкаренси
+
+            Data.Entities.Payment obj = new()
+            {
+                Id = paymentId,
+            };
+
+            FillDbProperties(obj);
+            Environment.Context.Payments.Add(obj);
+            IsNew = false;
+            Environment.Context.SaveChanges();
+            Id = obj.Id;
+        }
+        else
+        {
+            Data.Entities.Payment obj = Environment.Context.Payments.First(x => x.UserId == User.Id && x.Id == Id);
+            FillDbProperties(obj);
+            Environment.Context.SaveChanges();
+        }
+    }
 
     public TestPayment SetIsDeleted()
     {
@@ -78,34 +105,13 @@ public class TestPayment : TestObject
         return this;
     }
 
-    public override void LocalSave()
+    public TestPayment SetSum(decimal value)
     {
-        if (IsNew)
-        {
-            Money.Data.Entities.DomainUser dbUser = Environment.Context.DomainUsers.Single(x => x.Id == User.Id);
-            int paymentId = dbUser.NextPaymentId;
-            dbUser.NextPaymentId++; // todo обработать канкаренси
-
-            Money.Data.Entities.Payment obj = new()
-            {
-                Id = paymentId,
-            };
-
-            FillDbProperties(obj);
-            Environment.Context.Payments.Add(obj);
-            IsNew = false;
-            Environment.Context.SaveChanges();
-            Id = obj.Id;
-        }
-        else
-        {
-            Money.Data.Entities.Payment obj = Environment.Context.Payments.First(x => x.UserId == User.Id && x.Id == Id);
-            FillDbProperties(obj);
-            Environment.Context.SaveChanges();
-        }
+        Sum = value;
+        return this;
     }
 
-    private void FillDbProperties(Money.Data.Entities.Payment obj)
+    private void FillDbProperties(Data.Entities.Payment obj)
     {
         obj.Comment = Comment;
         obj.Sum = Sum;

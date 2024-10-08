@@ -48,7 +48,7 @@ public partial class CategoryDialog
         try
         {
             await SaveCategoryAsync();
-            SnackbarService.Add("Сохранено!", Severity.Success);
+            SnackbarService.Add("Категория успешно сохранена!", Severity.Success);
 
             Category.Name = Input.Name;
             Category.Order = Input.Order;
@@ -59,7 +59,7 @@ public partial class CategoryDialog
         catch (Exception)
         {
             // TODO: добавить логирование ошибки
-            SnackbarService.Add("Не удалось сохранить", Severity.Error);
+            SnackbarService.Add("Не удалось сохранить категорию. Пожалуйста, попробуйте еще раз.", Severity.Error);
         }
 
         _isProcessing = false;

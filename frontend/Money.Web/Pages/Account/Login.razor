@@ -2,14 +2,14 @@
 
 <PageTitle>Вход</PageTitle>
 
-<MudText Typo="Typo.h3" GutterBottom="true">Вход</MudText>
+<MudText Typo="Typo.h3" GutterBottom="true">Войти в систему</MudText>
 
 <MudGrid>
     <MudItem md="6">
         <EditForm FormName="login" method="post" Model="Input" OnValidSubmit="LoginUser">
             <DataAnnotationsValidator />
 
-            <MudText GutterBottom Typo="Typo.body1">Используйте локальную учетную запись для входа</MudText>
+            <MudText GutterBottom Typo="Typo.body1">Пожалуйста, введите свои учетные данные</MudText>
 
             <MudGrid>
                 <MudItem md="12">
@@ -31,7 +31,7 @@
         <MudGrid Class="mt-4">
             <MudItem md="12">
                 <MudLink Href="@(NavigationManager.GetUriWithReturnUrl("Account/Register", ReturnUrl))">
-                    Зарегистрироваться как новый пользователь
+                    Нет аккаунта? Зарегистрируйтесь
                 </MudLink>
             </MudItem>
         </MudGrid>

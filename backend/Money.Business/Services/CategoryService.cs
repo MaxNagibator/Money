@@ -39,7 +39,7 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
     private async Task<Data.Entities.Category> GetByIdInternal(int id, CancellationToken cancellationToken)
     {
         Data.Entities.Category dbCategory = await context.Categories.SingleOrDefaultAsync(environment.UserId, id, cancellationToken)
-                                            ?? throw new NotFoundException($"Категория с ID {id} не найдена");
+                                            ?? throw new NotFoundException($"Извините, но категория с ID {id} не найдена. Пожалуйста, проверьте правильность введенного ID.");
 
         return dbCategory;
     }
@@ -62,13 +62,13 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
     {
         if (environment.UserId == null)
         {
-            throw new BusinessException("Не указан идентификатор пользователя");
+            throw new BusinessException("Извините, но идентификатор пользователя не указан.");
         }
 
         await ValidateParentCategoryAsync(category.ParentId, category.PaymentType, cancellationToken);
 
         DomainUser dbUser = await context.DomainUsers.SingleAsync(x => x.Id == environment.UserId, cancellationToken)
-                            ?? throw new BusinessException("Пользователь не найден");
+                            ?? throw new BusinessException("Извините, но пользователь не найден.");
 
         int categoryId = dbUser.NextCategoryId;
         dbUser.NextCategoryId++; // TODO: обработать конкурентные изменения
@@ -103,14 +103,14 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
 
         if (parentExists == false)
         {
-            throw new BusinessException("Родительская категория не найдена");
+            throw new BusinessException("Извините, но родительская категория не найдена. Пожалуйста, проверьте правильность введенных данных.");
         }
     }
 
     public async Task UpdateAsync(Category category, CancellationToken cancellationToken)
     {
         Data.Entities.Category dbCategory = await context.Categories.SingleOrDefaultAsync(environment.UserId, category.Id, cancellationToken)
-                                            ?? throw new BusinessException($"Категория с ID {category.Id} не найдена");
+                                            ?? throw new NotFoundException($"Извините, но категория с ID {category.Id} не найдена. Пожалуйста, проверьте правильность введенного ID.");
 
         await ValidateParentCategoryAsync(category.ParentId, dbCategory.TypeId, cancellationToken);
         await ValidateRecursiveParentingAsync(category.Id, category.ParentId, dbCategory.TypeId, cancellationToken);
@@ -143,7 +143,7 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
 
             if (nextParentId == categoryId)
             {
-                throw new BusinessException("Обнаружена рекурсивная зависимость родительских категорий");
+                throw new BusinessException("Извините, но обнаружена рекурсивная зависимость родительских категорий. Пожалуйста, проверьте структуру категорий и внесите необходимые изменения.");
             }
         }
     }
@@ -154,7 +154,7 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
 
         if (await context.Categories.AnyAsync(x => x.ParentId == id && x.UserId == environment.UserId, cancellationToken))
         {
-            throw new BusinessException("Сначала удалите дочерние категории");
+            throw new BusinessException("Извините, но сначала необходимо удалить дочерние категории. Пожалуйста, выполните это действие и попробуйте снова.");
         }
 
         dbCategory.IsDeleted = true;
@@ -166,7 +166,8 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
         Data.Entities.Category dbCategory = await context.Categories.IgnoreQueryFilters()
                                                 .Where(x => x.IsDeleted)
                                                 .SingleOrDefaultAsync(environment.UserId, id, cancellationToken)
-                                            ?? throw new NotFoundException("Категория не найдена");
+                                            ?? throw new NotFoundException("Извините, но категория не найдена. Пожалуйста, проверьте правильность введенных данных.");
+
 
         if (dbCategory.ParentId != null)
         {
