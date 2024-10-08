@@ -11,6 +11,7 @@ public class DomainUser
 
     public Guid AuthUserId { get; set; }
 
+    // TODO: обработать конкурентные изменения
     public int NextCategoryId { get; set; }
 
     public int NextPaymentId { get; set; }

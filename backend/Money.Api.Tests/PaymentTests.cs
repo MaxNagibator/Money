@@ -1,6 +1,9 @@
 ﻿using Money.Api.Tests.TestTools;
 using Money.Api.Tests.TestTools.Entities;
 using Money.ApiClient;
+using Money.Data;
+using Money.Data.Entities;
+using Money.Data.Extensions;
 
 namespace Money.Api.Tests;
 
@@ -201,5 +204,59 @@ public class PaymentTests
         PaymentClient.Payment[]? apiPayments = await _apiClient.Payment.Get(filter).IsSuccessWithContent();
         Assert.That(apiPayments, Is.Not.Null);
         Assert.That(apiPayments, Is.Empty);
+    }
+
+    [Test]
+    public async Task GetByIdTest()
+    {
+        TestPayment payment = _user.WithPayment().SetPlace(_user.WithPlace());
+        _dbClient.Save();
+
+        PaymentClient.Payment? apiPayemnt = await _apiClient.Payment.GetById(payment.Id).IsSuccessWithContent();
+
+        Assert.That(apiPayemnt, Is.Not.Null);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(apiPayemnt.Id, Is.EqualTo(payment.Id));
+            Assert.That(apiPayemnt.Comment, Is.EqualTo(payment.Comment));
+            Assert.That(apiPayemnt.CategoryId, Is.EqualTo(payment.Category.Id));
+            Assert.That(apiPayemnt.Date, Is.EqualTo(payment.Date));
+            Assert.That(apiPayemnt.Place, Is.EqualTo(payment.Place.Name));
+        });
+    }
+
+    [Test]
+    public async Task CreateTest()
+    {
+        var category = _user.WithCategory();
+        _dbClient.Save();
+
+        TestPayment payment = _user.WithPayment();
+        TestPlace place = _user.WithPlace();
+
+        PaymentClient.SaveRequest request = new()
+        {
+            CategoryId = category.Id,
+            Sum = payment.Sum,
+            Date = payment.Date,
+            Comment = payment.Comment,
+            Place = place.Name,
+        };
+
+        int createdId = await _apiClient.Payment.Create(request).IsSuccessWithContent();
+        Payment? dbCategory = _dbClient.CreateApplicationDbContext().Payments.SingleOrDefault(_user.Id, createdId);
+        Place? dbPlace = _dbClient.CreateApplicationDbContext().Places.FirstOrDefault(x => x.UserId == _user.Id && x.Name == place.Name);
+
+        Assert.That(dbCategory, Is.Not.Null);
+        Assert.That(dbPlace, Is.Not.Null);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(dbCategory.Date, Is.EqualTo(request.Date));
+            Assert.That(dbCategory.Sum, Is.EqualTo(request.Sum));
+            Assert.That(dbCategory.Comment, Is.EqualTo(request.Comment));
+            Assert.That(dbCategory.CategoryId, Is.EqualTo(request.CategoryId));
+        });
     }
 }

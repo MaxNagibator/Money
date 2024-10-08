@@ -59,6 +59,30 @@ public class PaymentClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
 
     public class SaveRequest
     {
+        /// <summary>
+        ///     Идентификатор категории.
+        /// </summary>
+        public required int CategoryId { get; set; }
+
+        /// <summary>
+        ///     Сумма.
+        /// </summary>
+        public decimal Sum { get; set; }
+
+        /// <summary>
+        ///     Комментарий.
+        /// </summary>
+        public string? Comment { get; set; }
+
+        /// <summary>
+        ///     Место.
+        /// </summary>
+        public string? Place { get; set; }
+
+        /// <summary>
+        ///     Дата.
+        /// </summary>
+        public DateTime Date { get; set; }
     }
 
     public class PaymentFilterDto
@@ -103,6 +127,12 @@ public class PaymentClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
 
         public DateTime Date { get; set; }
 
+        /// <summary>
+        ///     Идентификатор родительской регулярной задачи.
+        /// </summary>
+        /// <remarks>
+        ///     Не null, если платеж создан регулярной задачей.
+        /// </remarks>
         public int? CreatedTaskId { get; set; }
     }
 }

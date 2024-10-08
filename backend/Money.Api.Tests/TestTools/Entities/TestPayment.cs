@@ -11,7 +11,7 @@ public class TestPayment : TestObject
         Sum = 100;
         Comment = $"P{Guid.NewGuid()}";
         Category = category;
-        Date = DateTime.Now;
+        Date = DateTime.Now.Date;
     }
 
     /// <summary>

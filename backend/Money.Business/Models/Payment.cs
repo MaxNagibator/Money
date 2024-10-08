@@ -14,5 +14,11 @@ public class Payment
 
     public DateTime Date { get; set; }
 
+    /// <summary>
+    ///     Идентификатор родительской регулярной задачи.
+    /// </summary>
+    /// <remarks>
+    ///     Не null, если платеж создан регулярной задачей.
+    /// </remarks>
     public int? CreatedTaskId { get; set; }
 }

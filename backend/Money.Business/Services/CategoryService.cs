@@ -1,10 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Money.Business.Enums;
+using Money.Business.Models;
 using Money.Common.Exceptions;
 using Money.Data;
-using Money.Data.Entities;
 using Money.Data.Extensions;
-using Category = Money.Business.Models.Category;
 
 namespace Money.Business.Services;
 
@@ -67,11 +66,11 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
 
         await ValidateParentCategoryAsync(category.ParentId, category.PaymentType, cancellationToken);
 
-        DomainUser dbUser = await context.DomainUsers.SingleAsync(x => x.Id == environment.UserId, cancellationToken)
+        Data.Entities.DomainUser dbUser = await context.DomainUsers.SingleAsync(x => x.Id == environment.UserId, cancellationToken)
                             ?? throw new BusinessException("Извините, но пользователь не найден.");
 
         int categoryId = dbUser.NextCategoryId;
-        dbUser.NextCategoryId++; // TODO: обработать конкурентные изменения
+        dbUser.NextCategoryId++;
 
         Data.Entities.Category dbCategory = new()
         {

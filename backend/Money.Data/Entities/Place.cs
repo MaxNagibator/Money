@@ -23,8 +23,6 @@ public class Place : IUserEntity
 
     public DateTime? LastUsedDate { get; set; }
 
-    public int PlaceId { get; set; }
-
     public DomainUser? User { get; set; }
 
     public bool IsDeleted { get; set; }
