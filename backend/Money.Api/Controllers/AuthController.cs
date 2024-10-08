@@ -49,14 +49,14 @@ public class AuthController(UserManager<ApplicationUser> userManager, SignInMana
 
             if (user == null)
             {
-                throw new PermissionException("Пара имя пользователя/пароль недействительна.");
+                throw new PermissionException("Неверное имя пользователя или пароль. Пожалуйста, проверьте введенные данные и попробуйте снова.");
             }
 
             SignInResult result = await signInManager.CheckPasswordSignInAsync(user, request.Password, true);
 
             if (result.Succeeded == false)
             {
-                throw new PermissionException("Пара имя пользователя/пароль недействительна.");
+                throw new PermissionException("Неверное имя пользователя или пароль. Пожалуйста, проверьте введенные данные и попробуйте снова.");
             }
 
             ClaimsIdentity identity = new(TokenValidationParameters.DefaultAuthenticationType,
@@ -84,19 +84,19 @@ public class AuthController(UserManager<ApplicationUser> userManager, SignInMana
 
             if (userId == null)
             {
-                throw new PermissionException("Идентификатор пользователя отсутствует в запросе.");
+                throw new PermissionException("Не удалось получить идентификатор пользователя.");
             }
 
             ApplicationUser? user = await userManager.FindByIdAsync(userId);
 
             if (user == null)
             {
-                throw new PermissionException("Токен обновления больше не действителен.");
+                throw new PermissionException("Токен обновления больше не действителен. Пожалуйста, выполните вход заново.");
             }
 
             if (!await signInManager.CanSignInAsync(user))
             {
-                throw new PermissionException("Пользователю больше не разрешено входить в систему.");
+                throw new PermissionException("Вам больше не разрешено входить в систему.");
             }
 
             ClaimsIdentity identity = new(result.Principal?.Claims,
@@ -133,13 +133,13 @@ public class AuthController(UserManager<ApplicationUser> userManager, SignInMana
     public async Task<IActionResult> Userinfo()
     {
         string userId = User.GetClaim(OpenIddictConstants.Claims.Subject)
-                        ?? throw new InvalidOperationException();
+                        ?? throw new InvalidOperationException("Не удалось получить идентификатор пользователя.");
 
         ApplicationUser? user = await userManager.FindByIdAsync(userId);
 
         if (user == null)
         {
-            throw new PermissionException("Указанный токен доступа привязан к учетной записи, которая больше не существует.");
+            throw new PermissionException("Извините, но учетная запись, связанная с этим токеном доступа, больше не существует.");
         }
 
         Dictionary<string, string> claims = User.Claims.ToDictionary(claim => claim.Type, claim => claim.Value, StringComparer.Ordinal);

@@ -34,7 +34,8 @@ public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddlewa
             ProblemDetails problemDetails = new()
             {
                 Status = StatusCodes.Status500InternalServerError,
-                Title = "Что-то пошло не так",
+                Title = "Извините, произошла непредвиденная ошибка",
+                Detail = "Мы уже работаем над ее устранением. Пожалуйста, попробуйте снова позже.",
             };
 
             context.Response.StatusCode = StatusCodes.Status500InternalServerError;

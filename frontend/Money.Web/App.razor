@@ -5,20 +5,19 @@
                 <NotAuthorized>
                     @if (context.User.Identity?.IsAuthenticated == true)
                     {
-                        <MudAlert Severity="Severity.Error">Эй, братан, тут тебе не место, так что лучше поищи другую дорожку.</MudAlert>
+                        <MudAlert Severity="Severity.Error">Извините, но у вас нет доступа к этой странице. Пожалуйста, свяжитесь с администратором, если вы считаете, что это ошибка.</MudAlert>
                     }
                     else
                     {
                         <RedirectToLogin />
                     }
                 </NotAuthorized>
-            </AuthorizeRouteView>
-            <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+            </AuthorizeRouteView> <FocusOnNavigate RouteData="@routeData" Selector="h1" />
         </Found>
         <NotFound>
-            <PageTitle>Куда-то пропало</PageTitle>
+            <PageTitle>Страница не найдена</PageTitle>
             <LayoutView Layout="@typeof(MainLayout)">
-                <MudAlert Severity="Severity.Warning">Эй, братан, тут пусто, как в моей голове! Давай поищем другое местечко, где повеселее будет.</MudAlert>
+                <MudAlert Severity="Severity.Warning">Извините, но мы не можем найти запрашиваемую страницу. Пожалуйста, проверьте адрес или вернитесь на главную страницу.</MudAlert>
             </LayoutView>
         </NotFound>
     </Router>

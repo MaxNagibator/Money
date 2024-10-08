@@ -1,4 +1,6 @@
-﻿namespace Money.ApiClient;
+﻿using Microsoft.AspNetCore.WebUtilities;
+
+namespace Money.ApiClient;
 
 public class PaymentClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
 {
@@ -8,9 +10,9 @@ public class PaymentClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
 
     public async Task<ApiClientResponse<Payment[]>> Get(PaymentFilterDto? filter = null)
     {
-        var queryParam = HttpExtension.ToUriParameters(filter);
-        return await GetAsync<Payment[]>($"{BaseUri}{queryParam}");
+        return await GetAsync<Payment[]>(ToUriParameters(filter));
     }
+
     public async Task<ApiClientResponse<Payment>> GetById(int id)
     {
         return await GetAsync<Payment>($"{BaseUri}/{id}");
@@ -34,6 +36,25 @@ public class PaymentClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
     public async Task<ApiClientResponse> Restore(int id)
     {
         return await PostAsync($"{BaseUri}/{id}/Restore");
+    }
+
+    private string ToUriParameters(PaymentFilterDto? filter)
+    {
+        if (filter == null)
+        {
+            return BaseUri;
+        }
+
+        Dictionary<string, string?> queryParams = new()
+        {
+            ["dateFrom"] = filter.DateFrom?.ToString("yyyy.MM.dd"),
+            ["dateTo"] = filter.DateTo?.ToString("yyyy.MM.dd"),
+            ["comment"] = filter.Comment,
+            ["categoryIds"] = filter.CategoryIds == null ? null : string.Join(",", filter.CategoryIds),
+            ["place"] = filter.Place,
+        };
+
+        return QueryHelpers.AddQueryString(BaseUri, queryParams);
     }
 
     public class SaveRequest
