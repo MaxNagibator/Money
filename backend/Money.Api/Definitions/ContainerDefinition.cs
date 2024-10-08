@@ -14,5 +14,6 @@ public class ContainerDefinition : AppDefinition
 
         builder.Services.AddScoped<CategoryService>();
         builder.Services.AddScoped<PaymentService>();
+        builder.Services.AddScoped<FileService>();
     }
 }

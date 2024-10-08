@@ -11,5 +11,6 @@ public class MiddlewareDefinition : AppDefinition
     {
         app.UseMiddleware<ExceptionMiddleware>();
         app.UseMiddleware<AuthMiddleware>();
+        app.UseMiddleware<FileUploadMiddleware>();
     }
 }
