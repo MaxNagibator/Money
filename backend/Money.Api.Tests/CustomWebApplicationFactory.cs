@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using NLog.Web;
 
 namespace Money.Api.Tests;
 
@@ -15,6 +17,7 @@ public class CustomWebApplicationFactory<TProgram> : WebApplicationFactory<TProg
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile($"appsettings.{env}.json")
             .Build();
+        builder.UseNLog();
 
         builder.ConfigureServices(services =>
         {

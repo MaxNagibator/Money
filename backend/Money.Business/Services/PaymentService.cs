@@ -118,7 +118,7 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
         Data.Entities.DomainUser dbUser = await context.DomainUsers.SingleAsync(x => x.Id == environment.UserId, cancellationToken)
                             ?? throw new BusinessException("Извините, но пользователь не найден.");
 
-        int paymentId = dbUser.NextCategoryId;
+        int paymentId = dbUser.NextPaymentId;
         dbUser.NextPaymentId++;
 
         int? placeId = GetPlaceId(dbUser, payment.Place);
@@ -129,7 +129,7 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
             CategoryId = payment.CategoryId,
             Sum = payment.Sum,
             Comment = payment.Comment,
-            Date = new DateTime(payment.Date.Year, payment.Date.Month, payment.Date.Day, 0, 0, 0, DateTimeKind.Utc), // todo непонтяная трабла с датой
+            Date = payment.Date,
             PlaceId = placeId,
             CreatedTaskId = payment.CreatedTaskId,
         };

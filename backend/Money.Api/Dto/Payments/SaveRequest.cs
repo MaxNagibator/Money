@@ -6,11 +6,6 @@
 public class SaveRequest
 {
     /// <summary>
-    ///     Идентификатор.
-    /// </summary>
-    public int Id { get; set; }
-
-    /// <summary>
     ///     Идентификатор категории.
     /// </summary>
     public required int CategoryId { get; set; }

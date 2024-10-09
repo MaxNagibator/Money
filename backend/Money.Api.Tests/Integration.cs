@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Money.Api.Tests.TestTools;
 using Money.ApiClient;
 using Money.Data;
+using NLog.Config;
 using System.Collections.Concurrent;
 
 namespace Money.Api.Tests;
@@ -44,6 +45,8 @@ public class Integration
     public void OneTimeSetUp()
     {
         CustomWebApplicationFactory<Program> webHostBuilder = new();
+        webHostBuilder.Server.PreserveExecutionContext = true;
+
         TestServer = webHostBuilder.Server;
     }
 

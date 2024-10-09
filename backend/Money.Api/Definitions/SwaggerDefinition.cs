@@ -19,6 +19,7 @@ public class SwaggerDefinition : AppDefinition
                 Version = "v1",
                 Description = "API для управления финансами",
             });
+            options.CustomSchemaIds(x => x.FullName);
 
             string xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
             string xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);

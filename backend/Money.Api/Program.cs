@@ -21,6 +21,7 @@ try
 
     app.UseDefinitions();
 
+    AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
     app.Run();
 }
 catch (Exception exception)
