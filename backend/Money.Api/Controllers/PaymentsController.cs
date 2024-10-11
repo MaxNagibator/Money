@@ -59,4 +59,48 @@ public class PaymentsController(PaymentService paymentService) : ControllerBase
         int id = await paymentService.CreateAsync(business, cancellationToken);
         return id;
     }
+
+    /// <summary>
+    ///     Обновить существующий платеж.
+    /// </summary>
+    /// <param name="id">Идентификатор платежа.</param>
+    /// <param name="request">Данные для обновления платежа.</param>
+    /// <param name="cancellationToken">Токен отмены запроса.</param>
+    [HttpPut]
+    [Route("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task Update(int id, [FromBody] SaveRequest request, CancellationToken cancellationToken)
+    {
+        Payment business = request.ToBusinessModel();
+        business.Id = id;
+        await paymentService.UpdateAsync(business, cancellationToken);
+    }
+
+    /// <summary>
+    ///     Удалить категорию платежа по идентификатору.
+    /// </summary>
+    /// <param name="id">Идентификатор категории.</param>
+    /// <param name="cancellationToken">Токен отмены запроса.</param>
+    [HttpDelete]
+    [Route("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task Delete(int id, CancellationToken cancellationToken)
+    {
+        await paymentService.DeleteAsync(id, cancellationToken);
+    }
+
+    /// <summary>
+    ///     Восстановить категорию платежа по идентификатору.
+    /// </summary>
+    /// <param name="id">Идентификатор категории.</param>
+    /// <param name="cancellationToken">Токен отмены запроса.</param>
+    [HttpPost]
+    [Route("{id:int}/Restore")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task Restore(int id, CancellationToken cancellationToken)
+    {
+        await paymentService.RestoreAsync(id, cancellationToken);
+    }
 }

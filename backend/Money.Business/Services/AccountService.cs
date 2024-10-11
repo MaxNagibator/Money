@@ -34,6 +34,9 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
         await context.DomainUsers.AddAsync(new DomainUser
         {
             AuthUserId = user.Id,
+            NextCategoryId = 1,
+            NextPaymentId = 1,
+            NextPlaceId = 1,
         }, cancellationToken);
 
         await context.SaveChangesAsync(cancellationToken);
@@ -51,6 +54,9 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
         domainUser = new DomainUser
         {
             AuthUserId = authUserId,
+            NextCategoryId = 1,
+            NextPaymentId = 1,
+            NextPlaceId = 1,
         };
 
         await context.DomainUsers.AddAsync(domainUser, cancellationToken);

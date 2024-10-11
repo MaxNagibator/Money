@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Money.Business.Enums;
 using Money.Business.Models;
 using Money.Common.Exceptions;
 using Money.Data;
@@ -115,8 +116,7 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
 
         Category category = await categoryService.GetByIdAsync(payment.CategoryId, cancellationToken);
 
-        Data.Entities.DomainUser dbUser = await context.DomainUsers.SingleAsync(x => x.Id == environment.UserId, cancellationToken)
-                            ?? throw new BusinessException("Извините, но пользователь не найден.");
+        Data.Entities.DomainUser dbUser = await context.DomainUsers.SingleAsync(x => x.Id == environment.UserId, cancellationToken);
 
         int paymentId = dbUser.NextPaymentId;
         dbUser.NextPaymentId++;
@@ -165,5 +165,114 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
         dbPlace.LastUsedDate = DateTime.Now;
         dbPlace.Name = place;
         return dbPlace.Id;
+    }
+
+
+    public async Task UpdateAsync(Payment payment, CancellationToken cancellationToken)
+    {
+        Data.Entities.Payment dbPayment = await context.Payments.SingleOrDefaultAsync(environment.UserId, payment.Id, cancellationToken)
+                                            ?? throw new NotFoundException($"Извините, но платеж с ID {payment.Id} не найден. Пожалуйста, проверьте правильность введенного ID.");
+
+        Category category = await categoryService.GetByIdAsync(payment.CategoryId, cancellationToken);
+        Data.Entities.DomainUser dbUser = await context.DomainUsers.SingleAsync(x => x.Id == environment.UserId, cancellationToken);
+        int? placeId = GetPlaceId(dbUser, payment.Place, dbPayment);
+
+        dbPayment.Sum = payment.Sum;
+        dbPayment.Comment = payment.Comment;
+        dbPayment.Date = payment.Date;
+        dbPayment.CategoryId = category.Id;
+        dbPayment.PlaceId = placeId;
+
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    public int? GetPlaceId(Data.Entities.DomainUser dbUser, string? place, Data.Entities.Payment dbPayment)
+    {
+        var dbPlace = dbPayment.PlaceId != null ? context.Places.Single(x => x.UserId == dbUser.Id && x.Id == dbPayment.PlaceId) : null;
+        var hasAnyPayments = false;
+        if (dbPlace != null)
+        {
+            hasAnyPayments = IsPlaceBusy(dbPlace.Id, dbUser.Id, dbPayment.Id);
+        }
+
+        int? placeId = null;
+        if (!string.IsNullOrEmpty(place))
+        {
+            var dbNewPlace = context.Places.SingleOrDefault(x => x.UserId == dbUser.Id && x.Name == place);
+            if (dbNewPlace == null)
+            {
+                if (dbPlace != null && !hasAnyPayments)
+                {
+                    dbNewPlace = dbPlace;
+                }
+                else
+                {
+                    var newPlaceId = dbUser.NextPlaceId;
+                    dbUser.NextPlaceId++;
+
+                    dbNewPlace = new Data.Entities.Place
+                    {
+                        Name = "",
+                    };
+                    dbNewPlace.UserId = dbUser.Id;
+                    dbNewPlace.Id = newPlaceId;
+                    context.Places.Add(dbNewPlace);
+                }
+                dbNewPlace.LastUsedDate = DateTime.Now;
+            }
+            else
+            {
+                dbNewPlace.LastUsedDate = DateTime.Now;
+                if (dbPlace != null && !hasAnyPayments && dbPlace.Id != dbNewPlace.Id)
+                {
+                    dbPlace.IsDeleted = true;
+                }
+            }
+
+            dbNewPlace.IsDeleted = false;
+            dbNewPlace.Name = place;
+            placeId = dbNewPlace.Id;
+        }
+        else
+        {
+            placeId = null;
+            if (dbPlace != null && !hasAnyPayments)
+            {
+                dbPlace.IsDeleted = true;
+            }
+        }
+
+        return placeId;
+    }
+
+    public bool IsPlaceBusy(int placeId, int userId, int? paymentId)
+    {
+        var hasAnyPayments = false;
+        if (paymentId != null)
+        {
+            hasAnyPayments = context.Payments.Any(x => x.UserId == userId && x.PlaceId == placeId && x.Id != paymentId);
+        }
+        else
+        {
+            hasAnyPayments = context.Payments.Any(x => x.UserId == userId && x.PlaceId == placeId);
+        }
+        return hasAnyPayments;
+    }
+
+    public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
+    {
+        Data.Entities.Payment dbPayment = await GetByIdInternal(id, cancellationToken);
+        dbPayment.IsDeleted = true;
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task RestoreAsync(int id, CancellationToken cancellationToken = default)
+    {
+        Data.Entities.Payment dbPayment = await context.Payments.IgnoreQueryFilters()
+                                                .Where(x => x.IsDeleted)
+                                                .SingleOrDefaultAsync(environment.UserId, id, cancellationToken)
+                                            ?? throw new NotFoundException("Извините, но платеж не найден. Пожалуйста, проверьте правильность введенных данных.");
+        dbPayment.IsDeleted = false;
+        await context.SaveChangesAsync(cancellationToken);
     }
 }
