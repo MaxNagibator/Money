@@ -5,7 +5,7 @@ using Money.ApiClient;
 using Money.Data.Entities;
 using Money.Data.Extensions;
 
-namespace Money.Api.Tests.Tests.Payments;
+namespace Money.Api.Tests.Payments;
 
 public class PaymentPlaceTests
 {
@@ -59,8 +59,6 @@ public class PaymentPlaceTests
     /// <summary>
     ///     Занулили место у единственного платежа, место удалилось.
     /// </summary>
-    /// <param name="updatedPlace"></param>
-    /// <returns></returns>
     [Test]
     [TestCase("")]
     [TestCase(null)]
@@ -93,7 +91,6 @@ public class PaymentPlaceTests
     /// <summary>
     ///     Два платежа имеют одно место, и если место занулить у одного из платежей, оно не удалится.
     /// </summary>
-    /// <returns></returns>
     [Test]
     public async Task DontRemovePlaceAfterSetPaymentZeroPlaceTest()
     {

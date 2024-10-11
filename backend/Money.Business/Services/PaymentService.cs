@@ -114,7 +114,10 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
             throw new BusinessException("Извините, но идентификатор пользователя не указан.");
         }
 
-        Data.Entities.DomainUser dbUser = await context.DomainUsers.SingleAsync(x => x.Id == environment.UserId, cancellationToken);
+        Data.Entities.DomainUser dbUser = await context.DomainUsers.SingleOrDefaultAsync(x => x.Id == environment.UserId, cancellationToken)
+                                          ?? throw new BusinessException("Извините, но пользователь не найден.");
+
+        Category category = await categoryService.GetByIdAsync(payment.CategoryId, cancellationToken);
 
         int paymentId = dbUser.NextPaymentId;
         dbUser.NextPaymentId++;
@@ -125,7 +128,7 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
         {
             Id = paymentId,
             UserId = environment.UserId.Value,
-            CategoryId = payment.CategoryId,
+            CategoryId = category.Id,
             Sum = payment.Sum,
             Comment = payment.Comment,
             Date = payment.Date,
@@ -142,7 +145,7 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
     {
         place = place?.Trim(' ');
 
-        if (string.IsNullOrEmpty(place))
+        if (string.IsNullOrWhiteSpace(place))
         {
             return null;
         }
@@ -192,86 +195,79 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
     public async Task<int?> GetPlaceId(Data.Entities.DomainUser dbUser, string? place, Data.Entities.Payment dbPayment, CancellationToken cancellationToken = default)
     {
         Data.Entities.Place? dbPlace = dbPayment.PlaceId != null
-            ? context.Places.Single(x => x.UserId == dbUser.Id && x.Id == dbPayment.PlaceId)
+            ? await context.Places.SingleOrDefaultAsync(dbUser.Id, dbPayment.PlaceId, cancellationToken)
             : null;
 
-        bool hasAnyPayments = false;
+        bool hasAnyPayments = await IsPlaceBusy(dbPlace, dbPayment.Id, cancellationToken);
 
-        if (dbPlace != null)
+        if (string.IsNullOrWhiteSpace(place))
         {
-            hasAnyPayments = await IsPlaceBusy(dbPlace.Id, dbUser.Id, dbPayment.Id, cancellationToken);
-        }
-
-        int? placeId;
-
-        if (!string.IsNullOrEmpty(place))
-        {
-            Data.Entities.Place? dbNewPlace = await context.Places
-                .IsUserEntity(dbUser.Id)
-                .SingleOrDefaultAsync(x =>  x.Name == place, cancellationToken);
-
-            if (dbNewPlace == null)
+            if (dbPlace != null && hasAnyPayments == false)
             {
-                if (dbPlace != null && !hasAnyPayments)
-                {
-                    dbNewPlace = dbPlace;
-                }
-                else
-                {
-                    int newPlaceId = dbUser.NextPlaceId;
-                    dbUser.NextPlaceId++;
-
-                    dbNewPlace = new Data.Entities.Place
-                    {
-                        Name = "",
-                        UserId = dbUser.Id,
-                        Id = newPlaceId,
-                    };
-
-                    await context.Places.AddAsync(dbNewPlace, cancellationToken);
-                }
-
-                dbNewPlace.LastUsedDate = DateTime.Now;
-            }
-            else
-            {
-                dbNewPlace.LastUsedDate = DateTime.Now;
-
-                if (dbPlace != null && !hasAnyPayments && dbPlace.Id != dbNewPlace.Id)
-                {
-                    dbPlace.IsDeleted = true;
-                }
+                dbPlace.IsDeleted = true;
             }
 
-            dbNewPlace.IsDeleted = false;
-            dbNewPlace.Name = place;
-            placeId = dbNewPlace.Id;
+            return null;
         }
-        else
-        {
-            placeId = null;
 
-            if (dbPlace != null && !hasAnyPayments)
+        Data.Entities.Place? dbNewPlace = await context.Places
+            .IsUserEntity(dbUser.Id)
+            .SingleOrDefaultAsync(x => x.Name == place, cancellationToken);
+
+        if (dbNewPlace != null)
+        {
+            if (dbPlace != null && hasAnyPayments == false && dbPlace.Id != dbNewPlace.Id)
             {
                 dbPlace.IsDeleted = true;
             }
         }
+        else
+        {
+            if (dbPlace != null && hasAnyPayments == false)
+            {
+                dbNewPlace = dbPlace;
+            }
+            else
+            {
+                int newPlaceId = dbUser.NextPlaceId;
+                dbUser.NextPlaceId++;
 
-        return placeId;
+                dbNewPlace = new Data.Entities.Place
+                {
+                    Name = "",
+                    UserId = dbUser.Id,
+                    Id = newPlaceId,
+                };
+
+                await context.Places.AddAsync(dbNewPlace, cancellationToken);
+            }
+        }
+
+        dbNewPlace.LastUsedDate = DateTime.Now;
+        dbNewPlace.IsDeleted = false;
+        dbNewPlace.Name = place;
+
+        return dbNewPlace.Id;
     }
 
-    public Task<bool> IsPlaceBusy(int placeId, int userId, int? paymentId, CancellationToken cancellationToken = default)
+    private Task<bool> IsPlaceBusy(Data.Entities.Place? place, int? paymentId, CancellationToken cancellationToken = default)
     {
-        IQueryable<Data.Entities.Payment> payments = context.Payments.Where(x => x.UserId == userId && x.PlaceId == placeId);
+        if (place == null)
+        {
+            return Task.FromResult(false);
+        }
 
-        if (paymentId.HasValue)
+        IQueryable<Data.Entities.Payment> payments = context.Payments
+            .IsUserEntity(place.UserId)
+            .Where(x => x.PlaceId == place.Id);
+
+        if (paymentId != null)
         {
             payments = payments.Where(x => x.Id != paymentId.Value);
         }
 
         return payments.AnyAsync(cancellationToken);
     }
-
 
     public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
     {

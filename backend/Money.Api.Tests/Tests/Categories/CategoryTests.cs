@@ -6,7 +6,7 @@ using Money.Data;
 using Money.Data.Entities;
 using Money.Data.Extensions;
 
-namespace Money.Api.Tests.Tests.Categories;
+namespace Money.Api.Tests.Categories;
 
 public class CategoryTests
 {

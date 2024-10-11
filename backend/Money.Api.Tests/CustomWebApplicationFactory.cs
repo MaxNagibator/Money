@@ -17,7 +17,6 @@ public class CustomWebApplicationFactory<TProgram> : WebApplicationFactory<TProg
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile($"appsettings.{env}.json")
             .Build();
-        builder.UseNLog();
 
         builder.ConfigureServices(services =>
         {
