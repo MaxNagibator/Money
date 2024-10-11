@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Money.Business.Enums;
 using Money.Business.Models;
 using Money.Common.Exceptions;
 using Money.Data;
@@ -31,10 +30,11 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
     public async Task<Payment> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
         Data.Entities.Payment dbPayment = await GetByIdInternal(id, cancellationToken);
-        List<Data.Entities.Place> dbPlaces = (dbPayment.PlaceId == null ?
-            null :
-            await GetPlacesAsync(new List<int> { dbPayment.PlaceId.Value }, cancellationToken))
-            ?? new List<Data.Entities.Place>();
+
+        List<Data.Entities.Place> dbPlaces = dbPayment.PlaceId != null
+            ? await GetPlacesAsync([dbPayment.PlaceId.Value], cancellationToken)
+            : [];
+
         Payment payment = MapTo(dbPayment, dbPlaces);
         return payment;
     }
@@ -42,7 +42,7 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
     private async Task<Data.Entities.Payment> GetByIdInternal(int id, CancellationToken cancellationToken)
     {
         Data.Entities.Payment dbCategory = await context.Payments.SingleOrDefaultAsync(environment.UserId, id, cancellationToken)
-                                            ?? throw new NotFoundException($"Извините, но платеж с ID {id} не найден. Пожалуйста, проверьте правильность введенного ID.");
+                                           ?? throw new NotFoundException("платеж", id);
 
         return dbCategory;
     }
@@ -114,14 +114,13 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
             throw new BusinessException("Извините, но идентификатор пользователя не указан.");
         }
 
-        Category category = await categoryService.GetByIdAsync(payment.CategoryId, cancellationToken);
-
         Data.Entities.DomainUser dbUser = await context.DomainUsers.SingleAsync(x => x.Id == environment.UserId, cancellationToken);
 
         int paymentId = dbUser.NextPaymentId;
         dbUser.NextPaymentId++;
 
-        int? placeId = GetPlaceId(dbUser, payment.Place);
+        int? placeId = await GetPlaceId(dbUser, payment.Place, cancellationToken);
+
         Data.Entities.Payment dbPayment = new()
         {
             Id = paymentId,
@@ -139,27 +138,32 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
         return paymentId;
     }
 
-    public int? GetPlaceId(Data.Entities.DomainUser dbUser, string? place)
+    public async Task<int?> GetPlaceId(Data.Entities.DomainUser dbUser, string? place, CancellationToken cancellationToken = default)
     {
         place = place?.Trim(' ');
+
         if (string.IsNullOrEmpty(place))
         {
             return null;
         }
 
-        var dbPlace = context.Places.FirstOrDefault(x => x.UserId == environment.UserId && x.Name == place);
+        Data.Entities.Place? dbPlace = await context.Places
+            .IsUserEntity(environment.UserId)
+            .FirstOrDefaultAsync(x => x.Name == place, cancellationToken);
+
         if (dbPlace == null)
         {
-            var newPlaceId = dbUser.NextPlaceId;
+            int newPlaceId = dbUser.NextPlaceId;
             dbUser.NextPlaceId++;
 
-            dbPlace = new Data.Entities.Place()
+            dbPlace = new Data.Entities.Place
             {
                 UserId = dbUser.Id,
                 Id = newPlaceId,
                 Name = place,
             };
-            context.Places.Add(dbPlace);
+
+            await context.Places.AddAsync(dbPlace, cancellationToken);
         }
 
         dbPlace.LastUsedDate = DateTime.Now;
@@ -167,15 +171,14 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
         return dbPlace.Id;
     }
 
-
     public async Task UpdateAsync(Payment payment, CancellationToken cancellationToken)
     {
         Data.Entities.Payment dbPayment = await context.Payments.SingleOrDefaultAsync(environment.UserId, payment.Id, cancellationToken)
-                                            ?? throw new NotFoundException($"Извините, но платеж с ID {payment.Id} не найден. Пожалуйста, проверьте правильность введенного ID.");
+                                          ?? throw new NotFoundException("платеж", payment.Id);
 
         Category category = await categoryService.GetByIdAsync(payment.CategoryId, cancellationToken);
         Data.Entities.DomainUser dbUser = await context.DomainUsers.SingleAsync(x => x.Id == environment.UserId, cancellationToken);
-        int? placeId = GetPlaceId(dbUser, payment.Place, dbPayment);
+        int? placeId = await GetPlaceId(dbUser, payment.Place, dbPayment, cancellationToken);
 
         dbPayment.Sum = payment.Sum;
         dbPayment.Comment = payment.Comment;
@@ -186,19 +189,27 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public int? GetPlaceId(Data.Entities.DomainUser dbUser, string? place, Data.Entities.Payment dbPayment)
+    public async Task<int?> GetPlaceId(Data.Entities.DomainUser dbUser, string? place, Data.Entities.Payment dbPayment, CancellationToken cancellationToken = default)
     {
-        var dbPlace = dbPayment.PlaceId != null ? context.Places.Single(x => x.UserId == dbUser.Id && x.Id == dbPayment.PlaceId) : null;
-        var hasAnyPayments = false;
+        Data.Entities.Place? dbPlace = dbPayment.PlaceId != null
+            ? context.Places.Single(x => x.UserId == dbUser.Id && x.Id == dbPayment.PlaceId)
+            : null;
+
+        bool hasAnyPayments = false;
+
         if (dbPlace != null)
         {
-            hasAnyPayments = IsPlaceBusy(dbPlace.Id, dbUser.Id, dbPayment.Id);
+            hasAnyPayments = await IsPlaceBusy(dbPlace.Id, dbUser.Id, dbPayment.Id, cancellationToken);
         }
 
-        int? placeId = null;
+        int? placeId;
+
         if (!string.IsNullOrEmpty(place))
         {
-            var dbNewPlace = context.Places.SingleOrDefault(x => x.UserId == dbUser.Id && x.Name == place);
+            Data.Entities.Place? dbNewPlace = await context.Places
+                .IsUserEntity(dbUser.Id)
+                .SingleOrDefaultAsync(x =>  x.Name == place, cancellationToken);
+
             if (dbNewPlace == null)
             {
                 if (dbPlace != null && !hasAnyPayments)
@@ -207,22 +218,25 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
                 }
                 else
                 {
-                    var newPlaceId = dbUser.NextPlaceId;
+                    int newPlaceId = dbUser.NextPlaceId;
                     dbUser.NextPlaceId++;
 
                     dbNewPlace = new Data.Entities.Place
                     {
                         Name = "",
+                        UserId = dbUser.Id,
+                        Id = newPlaceId,
                     };
-                    dbNewPlace.UserId = dbUser.Id;
-                    dbNewPlace.Id = newPlaceId;
-                    context.Places.Add(dbNewPlace);
+
+                    await context.Places.AddAsync(dbNewPlace, cancellationToken);
                 }
+
                 dbNewPlace.LastUsedDate = DateTime.Now;
             }
             else
             {
                 dbNewPlace.LastUsedDate = DateTime.Now;
+
                 if (dbPlace != null && !hasAnyPayments && dbPlace.Id != dbNewPlace.Id)
                 {
                     dbPlace.IsDeleted = true;
@@ -236,6 +250,7 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
         else
         {
             placeId = null;
+
             if (dbPlace != null && !hasAnyPayments)
             {
                 dbPlace.IsDeleted = true;
@@ -245,19 +260,18 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
         return placeId;
     }
 
-    public bool IsPlaceBusy(int placeId, int userId, int? paymentId)
+    public Task<bool> IsPlaceBusy(int placeId, int userId, int? paymentId, CancellationToken cancellationToken = default)
     {
-        var hasAnyPayments = false;
-        if (paymentId != null)
+        IQueryable<Data.Entities.Payment> payments = context.Payments.Where(x => x.UserId == userId && x.PlaceId == placeId);
+
+        if (paymentId.HasValue)
         {
-            hasAnyPayments = context.Payments.Any(x => x.UserId == userId && x.PlaceId == placeId && x.Id != paymentId);
+            payments = payments.Where(x => x.Id != paymentId.Value);
         }
-        else
-        {
-            hasAnyPayments = context.Payments.Any(x => x.UserId == userId && x.PlaceId == placeId);
-        }
-        return hasAnyPayments;
+
+        return payments.AnyAsync(cancellationToken);
     }
+
 
     public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
@@ -268,10 +282,12 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
 
     public async Task RestoreAsync(int id, CancellationToken cancellationToken = default)
     {
-        Data.Entities.Payment dbPayment = await context.Payments.IgnoreQueryFilters()
-                                                .Where(x => x.IsDeleted)
-                                                .SingleOrDefaultAsync(environment.UserId, id, cancellationToken)
-                                            ?? throw new NotFoundException("Извините, но платеж не найден. Пожалуйста, проверьте правильность введенных данных.");
+        Data.Entities.Payment dbPayment = await context.Payments
+                                              .IgnoreQueryFilters()
+                                              .Where(x => x.IsDeleted)
+                                              .SingleOrDefaultAsync(environment.UserId, id, cancellationToken)
+                                          ?? throw new NotFoundException("платеж", id);
+
         dbPayment.IsDeleted = false;
         await context.SaveChangesAsync(cancellationToken);
     }

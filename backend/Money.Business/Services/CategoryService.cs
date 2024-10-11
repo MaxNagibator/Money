@@ -38,7 +38,7 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
     private async Task<Data.Entities.Category> GetByIdInternal(int id, CancellationToken cancellationToken)
     {
         Data.Entities.Category dbCategory = await context.Categories.SingleOrDefaultAsync(environment.UserId, id, cancellationToken)
-                                            ?? throw new NotFoundException($"Извините, но категория с ID {id} не найдена. Пожалуйста, проверьте правильность введенного ID.");
+                                            ?? throw new NotFoundException("категория", id);
 
         return dbCategory;
     }
@@ -109,7 +109,7 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
     public async Task UpdateAsync(Category category, CancellationToken cancellationToken)
     {
         Data.Entities.Category dbCategory = await context.Categories.SingleOrDefaultAsync(environment.UserId, category.Id, cancellationToken)
-                                            ?? throw new NotFoundException($"Извините, но категория с ID {category.Id} не найдена. Пожалуйста, проверьте правильность введенного ID.");
+                                            ?? throw new NotFoundException("категория", category.Id);
 
         await ValidateParentCategoryAsync(category.ParentId, dbCategory.TypeId, cancellationToken);
         await ValidateRecursiveParentingAsync(category.Id, category.ParentId, dbCategory.TypeId, cancellationToken);
@@ -165,7 +165,7 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
         Data.Entities.Category dbCategory = await context.Categories.IgnoreQueryFilters()
                                                 .Where(x => x.IsDeleted)
                                                 .SingleOrDefaultAsync(environment.UserId, id, cancellationToken)
-                                            ?? throw new NotFoundException("Извините, но категория не найдена. Пожалуйста, проверьте правильность введенных данных.");
+                                            ?? throw new NotFoundException("категория", id);
 
 
         if (dbCategory.ParentId != null)
