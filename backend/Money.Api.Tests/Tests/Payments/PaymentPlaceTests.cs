@@ -3,6 +3,7 @@ using Money.Api.Tests.TestTools;
 using Money.Api.Tests.TestTools.Entities;
 using Money.ApiClient;
 using Money.Data.Entities;
+using Money.Data.Extensions;
 
 namespace Money.Api.Tests.Payments;
 
@@ -40,8 +41,13 @@ public class PaymentPlaceTests
 
         await _apiClient.Payment.Create(request).IsSuccess();
 
-        Place[] dbPlaces = _dbClient.CreateApplicationDbContext().Places.IgnoreQueryFilters().Where(x => x.UserId == _user.Id).ToArray();
-        Assert.That(dbPlaces.Length, Is.EqualTo(1));
+        Place[] dbPlaces = _dbClient.CreateApplicationDbContext().Places
+            .IgnoreQueryFilters()
+            .IsUserEntity(_user.Id)
+            .ToArray();
+
+        Assert.That(dbPlaces, Has.Length.EqualTo(1));
+
         Assert.Multiple(() =>
         {
             Assert.That(dbPlaces[0].Name, Is.EqualTo(request.Place));
@@ -53,8 +59,6 @@ public class PaymentPlaceTests
     /// <summary>
     ///     Занулили место у единственного платежа, место удалилось.
     /// </summary>
-    /// <param name="updatedPlace"></param>
-    /// <returns></returns>
     [Test]
     [TestCase("")]
     [TestCase(null)]
@@ -76,9 +80,10 @@ public class PaymentPlaceTests
         await _apiClient.Payment.Update(paymentId, request).IsSuccess();
 
         Place[] dbPlaces = _dbClient.CreateApplicationDbContext().Places.IgnoreQueryFilters().Where(x => x.UserId == _user.Id).ToArray();
+
         Assert.Multiple(() =>
         {
-            Assert.That(dbPlaces.Length, Is.EqualTo(1));
+            Assert.That(dbPlaces, Has.Length.EqualTo(1));
             Assert.That(dbPlaces[0].IsDeleted, Is.True);
         });
     }
@@ -86,7 +91,6 @@ public class PaymentPlaceTests
     /// <summary>
     ///     Два платежа имеют одно место, и если место занулить у одного из платежей, оно не удалится.
     /// </summary>
-    /// <returns></returns>
     [Test]
     public async Task DontRemovePlaceAfterSetPaymentZeroPlaceTest()
     {
@@ -108,9 +112,10 @@ public class PaymentPlaceTests
         await _apiClient.Payment.Update(paymentId2, request).IsSuccess();
 
         Place[] dbPlaces = _dbClient.CreateApplicationDbContext().Places.IgnoreQueryFilters().Where(x => x.UserId == _user.Id).ToArray();
+
         Assert.Multiple(() =>
         {
-            Assert.That(dbPlaces.Length, Is.EqualTo(1));
+            Assert.That(dbPlaces, Has.Length.EqualTo(1));
             Assert.That(dbPlaces[0].IsDeleted, Is.False);
         });
     }
@@ -141,12 +146,13 @@ public class PaymentPlaceTests
         await _apiClient.Payment.Update(paymentId2, request).IsSuccess();
 
         Place[] dbPlaces = _dbClient.CreateApplicationDbContext().Places.IgnoreQueryFilters().Where(x => x.UserId == _user.Id).ToArray();
+
         Assert.Multiple(() =>
         {
-            Assert.That(dbPlaces.Length, Is.EqualTo(1));
+            Assert.That(dbPlaces, Has.Length.EqualTo(1));
             Assert.That(dbPlaces[0].IsDeleted, Is.True);
         });
     }
 
-    // todo создать платёж с местом, удалить платёж, востановить платёж, проверить, что место востановилось
+    // todo создать платёж с местом, удалить платёж, восстановить платёж, проверить, что место восстановилось
 }

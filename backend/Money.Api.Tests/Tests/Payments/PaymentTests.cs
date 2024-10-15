@@ -26,7 +26,6 @@ public class PaymentTests
     [Test]
     public async Task GetTest()
     {
-        // todo айди платежа начинается не с единицы
         TestCategory category = _user.WithCategory();
 
         TestPayment[] payments =
@@ -214,24 +213,24 @@ public class PaymentTests
         TestPayment payment = _user.WithPayment().SetPlace(place);
         _dbClient.Save();
 
-        PaymentClient.Payment? apiPayemnt = await _apiClient.Payment.GetById(payment.Id).IsSuccessWithContent();
+        PaymentClient.Payment? apiPayment = await _apiClient.Payment.GetById(payment.Id).IsSuccessWithContent();
 
-        Assert.That(apiPayemnt, Is.Not.Null);
+        Assert.That(apiPayment, Is.Not.Null);
 
         Assert.Multiple(() =>
         {
-            Assert.That(apiPayemnt.Id, Is.EqualTo(payment.Id));
-            Assert.That(apiPayemnt.Comment, Is.EqualTo(payment.Comment));
-            Assert.That(apiPayemnt.CategoryId, Is.EqualTo(payment.Category.Id));
-            Assert.That(apiPayemnt.Date, Is.EqualTo(payment.Date));
-            Assert.That(apiPayemnt.Place, Is.EqualTo(payment.Place.Name));
+            Assert.That(apiPayment.Id, Is.EqualTo(payment.Id));
+            Assert.That(apiPayment.Comment, Is.EqualTo(payment.Comment));
+            Assert.That(apiPayment.CategoryId, Is.EqualTo(payment.Category.Id));
+            Assert.That(apiPayment.Date, Is.EqualTo(payment.Date));
+            Assert.That(apiPayment.Place, Is.EqualTo(payment.Place.Name));
         });
     }
 
     [Test]
     public async Task CreateTest()
     {
-        var category = _user.WithCategory();
+        TestCategory category = _user.WithCategory();
         _dbClient.Save();
 
         TestPayment payment = _user.WithPayment();
@@ -250,8 +249,11 @@ public class PaymentTests
         Payment? dbPayment = _dbClient.CreateApplicationDbContext().Payments.SingleOrDefault(_user.Id, createdId);
         Place? dbPlace = _dbClient.CreateApplicationDbContext().Places.FirstOrDefault(x => x.UserId == _user.Id && x.Name == place.Name);
 
-        Assert.That(dbPayment, Is.Not.Null);
-        Assert.That(dbPlace, Is.Not.Null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(dbPayment, Is.Not.Null);
+            Assert.That(dbPlace, Is.Not.Null);
+        });
 
         Assert.Multiple(() =>
         {
@@ -286,8 +288,11 @@ public class PaymentTests
         Payment? dbPayment = _dbClient.CreateApplicationDbContext().Payments.SingleOrDefault(_user.Id, payment.Id);
         Place? dbPlace = _dbClient.CreateApplicationDbContext().Places.FirstOrDefault(x => x.UserId == _user.Id && x.Name == place.Name);
 
-        Assert.That(dbPayment, Is.Not.Null);
-        Assert.That(dbPlace, Is.Not.Null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(dbPayment, Is.Not.Null);
+            Assert.That(dbPlace, Is.Not.Null);
+        });
 
         Assert.Multiple(() =>
         {
@@ -302,20 +307,20 @@ public class PaymentTests
     [Test]
     public async Task DeleteTest()
     {
-        TestPayment Payment = _user.WithPayment();
+        TestPayment payment = _user.WithPayment();
         _dbClient.Save();
 
-        await _apiClient.Payment.Delete(Payment.Id).IsSuccess();
+        await _apiClient.Payment.Delete(payment.Id).IsSuccess();
 
         await using ApplicationDbContext context = _dbClient.CreateApplicationDbContext();
 
-        Payment? dbPayment = context.Payments.SingleOrDefault(_user.Id, Payment.Id);
+        Payment? dbPayment = context.Payments.SingleOrDefault(_user.Id, payment.Id);
 
         Assert.That(dbPayment, Is.Null);
 
         dbPayment = context.Payments
             .IgnoreQueryFilters()
-            .SingleOrDefault(_user.Id, Payment.Id);
+            .SingleOrDefault(_user.Id, payment.Id);
 
         Assert.That(dbPayment, Is.Not.Null);
         Assert.That(dbPayment.IsDeleted, Is.EqualTo(true));
@@ -324,14 +329,14 @@ public class PaymentTests
     [Test]
     public async Task RestoreTest()
     {
-        TestPayment Payment = _user.WithPayment().SetIsDeleted();
+        TestPayment payment = _user.WithPayment().SetIsDeleted();
         _dbClient.Save();
 
-        await _apiClient.Payment.Restore(Payment.Id).IsSuccess();
+        await _apiClient.Payment.Restore(payment.Id).IsSuccess();
 
         await using ApplicationDbContext context = _dbClient.CreateApplicationDbContext();
 
-        Payment? dbPayment = context.Payments.SingleOrDefault(_user.Id, Payment.Id);
+        Payment? dbPayment = context.Payments.SingleOrDefault(_user.Id, payment.Id);
         Assert.That(dbPayment, Is.Not.Null);
         Assert.That(dbPayment.IsDeleted, Is.EqualTo(false));
     }
