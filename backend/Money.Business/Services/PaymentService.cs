@@ -171,6 +171,7 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
 
         dbPlace.LastUsedDate = DateTime.Now;
         dbPlace.Name = place;
+        dbPlace.IsDeleted = false;
         return dbPlace.Id;
     }
 
@@ -194,10 +195,7 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
 
     public async Task<int?> GetPlaceId(Data.Entities.DomainUser dbUser, string? place, Data.Entities.Payment dbPayment, CancellationToken cancellationToken = default)
     {
-        Data.Entities.Place? dbPlace = dbPayment.PlaceId != null
-            ? await context.Places.SingleOrDefaultAsync(dbUser.Id, dbPayment.PlaceId, cancellationToken)
-            : null;
-
+        Data.Entities.Place? dbPlace = await GetPlaceById(dbPayment.PlaceId, cancellationToken);
         bool hasAnyPayments = await IsPlaceBusy(dbPlace, dbPayment.Id, cancellationToken);
 
         if (string.IsNullOrWhiteSpace(place))
@@ -273,7 +271,21 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
     {
         Data.Entities.Payment dbPayment = await GetByIdInternal(id, cancellationToken);
         dbPayment.IsDeleted = true;
+        await CheckRemovePlace(dbPayment.PlaceId, dbPayment.Id, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task CheckRemovePlace(int? placeId, int? paymentId, CancellationToken cancellationToken = default)
+    {
+        Data.Entities.Place? dbPlace = await GetPlaceById(placeId, cancellationToken);
+        if (dbPlace != null)
+        {
+            var hasAnyPayments = await IsPlaceBusy(dbPlace, paymentId, cancellationToken);
+            if (!hasAnyPayments)
+            {
+                dbPlace.IsDeleted = true;
+            }
+        }
     }
 
     public async Task RestoreAsync(int id, CancellationToken cancellationToken = default)
@@ -283,8 +295,24 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
                                               .Where(x => x.IsDeleted)
                                               .SingleOrDefaultAsync(environment.UserId, id, cancellationToken)
                                           ?? throw new NotFoundException("платеж", id);
-
         dbPayment.IsDeleted = false;
+        await CheckRestorePlace(dbPayment.PlaceId, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task CheckRestorePlace(int? placeId, CancellationToken cancellationToken = default)
+    {
+        Data.Entities.Place? dbPlace = await GetPlaceById(placeId, cancellationToken);
+        if (dbPlace != null)
+        {
+            dbPlace.IsDeleted = false;
+        }
+    }
+
+    private async Task<Data.Entities.Place?> GetPlaceById(int? placeId, CancellationToken cancellationToken = default)
+    {
+        return placeId != null
+            ? await context.Places.SingleOrDefaultAsync(environment.UserId, placeId, cancellationToken)
+            : null;
     }
 }

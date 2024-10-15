@@ -154,5 +154,95 @@ public class PaymentPlaceTests
         });
     }
 
-    // todo создать платёж с местом, удалить платёж, восстановить платёж, проверить, что место восстановилось
+    /// <summary>
+    ///     Один платёж имеет уникальное место. После удаления платежа, оно удалится.
+    /// </summary>
+    /// <returns></returns>
+    [Test]
+    public async Task DeletePlaceAfterDeletePaymentTest()
+    {
+        TestCategory category = _user.WithCategory();
+        _dbClient.Save();
+
+        PaymentClient.SaveRequest request = new()
+        {
+            CategoryId = category.Id,
+            Sum = 1,
+            Date = DateTime.Now,
+            Place = "place1",
+        };
+
+        int paymentId = await _apiClient.Payment.Create(request).IsSuccessWithContent();
+        await _apiClient.Payment.Delete(paymentId).IsSuccess();
+
+        Place[] dbPlaces = _dbClient.CreateApplicationDbContext().Places.IgnoreQueryFilters().Where(x => x.UserId == _user.Id).ToArray();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(dbPlaces, Has.Length.EqualTo(1));
+            Assert.That(dbPlaces[0].IsDeleted, Is.True);
+        });
+    }
+
+    /// <summary>
+    ///     Один платёж имеет уникальное место. После удаления платежа, оно удалится. После воставновления платежа должно восстановиться.
+    /// </summary>
+    /// <returns></returns>
+    [Test]
+    public async Task RestorePlaceAfterRestorePaymentTest()
+    {
+        TestCategory category = _user.WithCategory();
+        _dbClient.Save();
+
+        PaymentClient.SaveRequest request = new()
+        {
+            CategoryId = category.Id,
+            Sum = 1,
+            Date = DateTime.Now,
+            Place = "place1",
+        };
+
+        int paymentId = await _apiClient.Payment.Create(request).IsSuccessWithContent();
+        await _apiClient.Payment.Delete(paymentId).IsSuccess();
+        await _apiClient.Payment.Restore(paymentId).IsSuccess();
+
+        Place[] dbPlaces = _dbClient.CreateApplicationDbContext().Places.IgnoreQueryFilters().Where(x => x.UserId == _user.Id).ToArray();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(dbPlaces, Has.Length.EqualTo(1));
+            Assert.That(dbPlaces[0].IsDeleted, Is.False);
+        });
+    }
+
+    /// <summary>
+    ///     Один платёж имеет уникальное место. После удаления платежа, оно удалится. После воставновления платежа должно восстановиться.
+    /// </summary>
+    /// <returns></returns>
+    [Test]
+    public async Task RestorePlaceAfterCreatePayemntWithDeletedPlaceTest()
+    {
+        TestCategory category = _user.WithCategory();
+        _dbClient.Save();
+
+        PaymentClient.SaveRequest request = new()
+        {
+            CategoryId = category.Id,
+            Sum = 1,
+            Date = DateTime.Now,
+            Place = "place1",
+        };
+
+        int paymentId1 = await _apiClient.Payment.Create(request).IsSuccessWithContent();
+        await _apiClient.Payment.Delete(paymentId1).IsSuccess();
+        int paymentId2 = await _apiClient.Payment.Create(request).IsSuccessWithContent();
+
+        Place[] dbPlaces = _dbClient.CreateApplicationDbContext().Places.IgnoreQueryFilters().Where(x => x.UserId == _user.Id).ToArray();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(dbPlaces, Has.Length.EqualTo(1));
+            Assert.That(dbPlaces[0].IsDeleted, Is.False);
+        });
+    }
 }
