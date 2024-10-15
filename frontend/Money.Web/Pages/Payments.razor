@@ -1,0 +1,32 @@
+@page "/payments"
+@attribute [Authorize]
+
+<PageTitle>Операции</PageTitle>
+
+<MudText GutterBottom Typo="Typo.h3">Операции</MudText>
+
+@if (_init == false)
+{
+    <MudStack AlignItems="AlignItems.Center" Row>
+        <MudProgressCircular Indeterminate />
+        <MudText Typo="Typo.body1">Загрузка..</MudText>
+    </MudStack>
+
+    return;
+}
+
+<MudTabs Elevation="4" Color="@Color.Primary">
+    <MudTabPanel Text="Список операций" ID='1'>
+            <MudButton EndIcon="@Icons.Material.TwoTone.Add"
+                       OnClick="() => Create(DateTime.Now)"
+                       Variant="Variant.Filled">
+                Создать
+            </MudButton>
+    </MudTabPanel>
+    <MudTabPanel Text="Регулярные операции" ID='2'>
+        =)
+    </MudTabPanel>
+    <MudTabPanel Text="Быстрые операции" ID='3'>
+        =)
+    </MudTabPanel>
+</MudTabs>

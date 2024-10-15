@@ -2,15 +2,18 @@
 
 namespace Money.Web.Models;
 
+/// <summary>
+/// Категория платежа.
+/// </summary>
 public class Category
 {
     /// <summary>
-    ///     Идентификатор категории (может быть null при создании новой категории).
+    ///     Идентификатор (может быть null при создании новой категории).
     /// </summary>
     public int? Id { get; set; }
 
     /// <summary>
-    ///     Наименование категории.
+    ///     Наименование.
     /// </summary>
     public string? Name { get; set; }
 
@@ -20,12 +23,12 @@ public class Category
     public int? ParentId { get; set; }
 
     /// <summary>
-    ///     Порядок отображения категории в списке.
+    ///     Порядок отображения в списке.
     /// </summary>
     public int? Order { get; set; }
 
     /// <summary>
-    ///     Цвет категории, представленный в виде строки (например, код цвета HEX).
+    ///     Цвет, представленный в виде строки (например, код цвета HEX).
     /// </summary>
     public string? Color { get; set; }
 
@@ -35,7 +38,7 @@ public class Category
     public required int PaymentTypeId { get; set; }
 
     /// <summary>
-    ///     Была ли категория удалена.
+    ///     Удалён.
     /// </summary>
     public bool IsDeleted { get; set; }
 }
