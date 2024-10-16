@@ -47,7 +47,7 @@ public class TestPayment : TestObject
     /// <summary>
     ///     Место.
     /// </summary>
-    public TestPlace Place { get; private set; }
+    public TestPlace Place { get; private set; } = null!;
 
     /// <summary>
     ///     Удалена.
