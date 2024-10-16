@@ -24,6 +24,8 @@ builder.Services.AddScoped<AuthenticationStateProvider, AuthStateProvider>();
 builder.Services.AddScoped<AuthenticationService>();
 builder.Services.AddScoped<JwtParser>();
 builder.Services.AddScoped<RefreshTokenService>();
+builder.Services.AddScoped<RefreshTokenService>();
+builder.Services.AddScoped<CategoryService>();
 builder.Services.AddTransient<RefreshTokenHandler>();
 
 builder.Services.AddHttpClient("api")

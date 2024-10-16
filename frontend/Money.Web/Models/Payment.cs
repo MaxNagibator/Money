@@ -4,7 +4,7 @@ public class Payment
 {
     public int? Id { get; set; }
 
-    public required int CategoryId { get; set; }
+    public required Category Category { get; set; }
 
     public decimal Sum { get; set; }
 

@@ -14,6 +14,9 @@ public partial class Categories
     private MoneyClient MoneyClient { get; set; } = default!;
 
     [Inject]
+    private CategoryService CategoryService { get; set; } = default!;
+
+    [Inject]
     private IDialogService DialogService { get; set; } = default!;
 
     [Inject]
@@ -21,24 +24,11 @@ public partial class Categories
 
     protected override async Task OnInitializedAsync()
     {
-        ApiClientResponse<CategoryClient.Category[]> apiCategories = await MoneyClient.Category.Get();
-
-        if (apiCategories.Content == null)
+        List<Category>? categories = await CategoryService.GetCategories();
+        if (categories == null)
         {
             return;
         }
-
-        List<Category> categories = apiCategories.Content
-            .Select(apiCategory => new Category
-            {
-                Id = apiCategory.Id,
-                ParentId = apiCategory.ParentId,
-                Name = apiCategory.Name,
-                PaymentTypeId = apiCategory.PaymentTypeId,
-                Color = apiCategory.Color,
-                Order = apiCategory.Order,
-            })
-            .ToList();
 
         foreach (PaymentTypes.Value paymentType in PaymentTypes.Values)
         {

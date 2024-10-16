@@ -11,10 +11,15 @@ public partial class Payments
     private MoneyClient MoneyClient { get; set; } = default!;
 
     [Inject]
+    private CategoryService CategoryService { get; set; } = default!;
+
+    [Inject]
     private IDialogService DialogService { get; set; } = default!;
 
     [Inject]
     private ISnackbar SnackbarService { get; set; } = default!;
+
+    private List<PaymentsDay> PaymentsDays { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -25,19 +30,31 @@ public partial class Payments
             return;
         }
 
-        List<Payment> categories = apiPayments.Content
+        List<Category>? categories = await CategoryService.GetCategories();
+        if (categories == null)
+        {
+            return;
+        }
+
+        Dictionary<int, Category> categoriesDict = categories.ToDictionary(x => x.Id!.Value, x => x);
+
+        List<Payment> payments = apiPayments.Content
             .Select(apiPayment => new Payment
             {
                 Id = apiPayment.Id,
                 Sum = apiPayment.Sum,
-                CategoryId = apiPayment.CategoryId,
-                //ParentId = apiPayment.ParentId,
-                //Name = apiPayment.Name,
-                //PaymentTypeId = apiPayment.PaymentTypeId,
-                //Color = apiPayment.Color,
-                //Order = apiPayment.Order,
+                Category = categoriesDict[apiPayment.CategoryId],
+                Comment = apiPayment.Comment,
+                Date = apiPayment.Date,
+                CreatedTaskId = apiPayment.CreatedTaskId,
+                Place = apiPayment.Place,
             })
             .ToList();
+        PaymentsDays = payments.GroupBy(x => x.Date).Select(x => new PaymentsDay
+        {
+            Date = x.Key,
+            Payments = x.ToList()
+        }).ToList();
 
         _init = true;
     }
