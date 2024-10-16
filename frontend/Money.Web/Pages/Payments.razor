@@ -1,28 +1,28 @@
-@page "/payments"
+п»ї@page "/payments"
 @attribute [Authorize]
 
-<PageTitle>Операции</PageTitle>
+<PageTitle>РћРїРµСЂР°С†РёРё</PageTitle>
 
-<MudText GutterBottom Typo="Typo.h3">Операции</MudText>
+<MudText GutterBottom Typo="Typo.h3">РћРїРµСЂР°С†РёРё</MudText>
 
 @if (_init == false)
 {
     <MudStack AlignItems="AlignItems.Center" Row>
         <MudProgressCircular Indeterminate />
-        <MudText Typo="Typo.body1">Загрузка..</MudText>
+        <MudText Typo="Typo.body1">Р—Р°РіСЂСѓР·РєР°..</MudText>
     </MudStack>
 
     return;
 }
 
 <MudTabs Elevation="4" Color="@Color.Primary">
-    <MudTabPanel Text="Список операций" ID='1'>
+    <MudTabPanel Text="РЎРїРёСЃРѕРє РѕРїРµСЂР°С†РёР№" ID="1">
         <MudButton EndIcon="@Icons.Material.TwoTone.Add"
                    OnClick="() => Create(DateTime.Now)"
                    Variant="Variant.Filled">
-            Создать
+            РЎРѕР·РґР°С‚СЊ
         </MudButton>
-        @foreach (var paymentsDay in PaymentsDays)
+        @foreach (PaymentsDay paymentsDay in PaymentsDays)
         {
             <div class="payment-day">
                 <div class="payment-day-head">
@@ -30,7 +30,7 @@
                         <i class="fa fa-calendar"></i>
                         <span class="payment-day-title-date">@paymentsDay.Date.ToShortDateString()</span>
                     </span>
-                    @foreach(var paymentType in PaymentTypes.Values)
+                    @foreach (PaymentTypes.Value paymentType in PaymentTypes.Values)
                     {
                         <span style="min-width: 100px; display: inline-block;">
                             <i class="fa fa-arrow-circle-o-down payment-costs"></i>
@@ -39,29 +39,28 @@
                             </span>
                         </span>
                     }
-                    <i id="addPaymentBtn" class="fa fa-plus-circle payment-costs" title="Добавить расходы"></i>
-                    <i id="addPaymentBtn" class="fa fa-plus-circle payment-income" title="Добавить доходы"></i>
-                    <i id="addPaymentBtn" class="fa fa-plus-circle payment-fast" title="Быстрое добавление"></i>
+                    <i id="addPaymentBtn" class="fa fa-plus-circle payment-costs" title="Р”РѕР±Р°РІРёС‚СЊ СЂР°СЃС…РѕРґС‹"></i>
+                    <i id="addPaymentBtn" class="fa fa-plus-circle payment-income" title="Р”РѕР±Р°РІРёС‚СЊ РґРѕС…РѕРґС‹"></i>
+                    <i id="addPaymentBtn" class="fa fa-plus-circle payment-fast" title="Р‘С‹СЃС‚СЂРѕРµ РґРѕР±Р°РІР»РµРЅРёРµ"></i>
                 </div>
                 <div class="payment-day-body">
-                    @foreach (var payment in paymentsDay.Payments)
+                    @foreach (Payment payment in paymentsDay.Payments)
                     {
                         <div id="payment_@payment.Id" class="payment-row" data-payment-id="@payment.Id">
-                      @*       <i class="@pClass"></i> *@
-                            <i class="start-edit fa fa-edit" onclick="EditPayment2('@payment.Id')" title="Редактировать"></i>
-
+                            @*       <i class="@pClass"></i> *@
+                            <i class="fa fa-edit start-edit" onclick="EditPayment2('@payment.Id')" title="Р РµРґР°РєС‚РёСЂРѕРІР°С‚СЊ"></i>
 
                             <span class="show-sum" style="width: 100px;display: inline-block;">@payment.Sum</span>
                             <span class="show-catname" style="width: 200px;display: inline-block;" title="@payment.Category.Name">@payment.Category.Name</span>
                             <span class="show-place" style="width: 100px;display: inline-block;" title="@payment.Place">@payment.Place</span>
                             @if (payment.CreatedTaskId != null)
                             {
-                                <span class="fa fa-calendar-check-o" title="Создано регулярной задачей"></span>
+                                <span class="fa fa-calendar-check-o" title="РЎРѕР·РґР°РЅРѕ СЂРµРіСѓР»СЏСЂРЅРѕР№ Р·Р°РґР°С‡РµР№"></span>
                             }
                             <span class="show-comment" style="display: inline-block;">@payment.Comment</span>
 
                             <span class="pull-right">
-                                <i class="start-delete fa fa-trash" onclick="DeletePayment('@payment.Id')" title="Удалить"></i>
+                                <i class="fa fa-trash start-delete" onclick="DeletePayment('@payment.Id')" title="РЈРґР°Р»РёС‚СЊ"></i>
                             </span>
                         </div>
                     }
@@ -70,10 +69,10 @@
         }
 
     </MudTabPanel>
-    <MudTabPanel Text="Регулярные операции" ID='2'>
+    <MudTabPanel Text="Р РµРіСѓР»СЏСЂРЅС‹Рµ РѕРїРµСЂР°С†РёРё" ID="2">
         =)
     </MudTabPanel>
-    <MudTabPanel Text="Быстрые операции" ID='3'>
+    <MudTabPanel Text="Р‘С‹СЃС‚СЂС‹Рµ РѕРїРµСЂР°С†РёРё" ID="3">
         =)
     </MudTabPanel>
 </MudTabs>

@@ -31,6 +31,7 @@ public partial class Payments
         }
 
         List<Category>? categories = await CategoryService.GetCategories();
+
         if (categories == null)
         {
             return;
@@ -50,11 +51,14 @@ public partial class Payments
                 Place = apiPayment.Place,
             })
             .ToList();
-        PaymentsDays = payments.GroupBy(x => x.Date).Select(x => new PaymentsDay
-        {
-            Date = x.Key,
-            Payments = x.ToList()
-        }).ToList();
+
+        PaymentsDays = payments.GroupBy(x => x.Date)
+            .Select(x => new PaymentsDay
+            {
+                Date = x.Key,
+                Payments = x.ToList(),
+            })
+            .ToList();
 
         _init = true;
     }

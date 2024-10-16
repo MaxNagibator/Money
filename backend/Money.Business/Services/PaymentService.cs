@@ -141,7 +141,7 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
         return paymentId;
     }
 
-    public async Task<int?> GetPlaceId(Data.Entities.DomainUser dbUser, string? place, CancellationToken cancellationToken = default)
+    private async Task<int?> GetPlaceId(Data.Entities.DomainUser dbUser, string? place, CancellationToken cancellationToken = default)
     {
         place = place?.Trim(' ');
 
@@ -193,7 +193,7 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<int?> GetPlaceId(Data.Entities.DomainUser dbUser, string? place, Data.Entities.Payment dbPayment, CancellationToken cancellationToken = default)
+    private async Task<int?> GetPlaceId(Data.Entities.DomainUser dbUser, string? place, Data.Entities.Payment dbPayment, CancellationToken cancellationToken = default)
     {
         Data.Entities.Place? dbPlace = await GetPlaceById(dbPayment.PlaceId, cancellationToken);
         bool hasAnyPayments = await IsPlaceBusy(dbPlace, dbPayment.Id, cancellationToken);
@@ -278,13 +278,17 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
     private async Task CheckRemovePlace(int? placeId, int? paymentId, CancellationToken cancellationToken = default)
     {
         Data.Entities.Place? dbPlace = await GetPlaceById(placeId, cancellationToken);
-        if (dbPlace != null)
+
+        if (dbPlace == null)
         {
-            var hasAnyPayments = await IsPlaceBusy(dbPlace, paymentId, cancellationToken);
-            if (!hasAnyPayments)
-            {
-                dbPlace.IsDeleted = true;
-            }
+            return;
+        }
+
+        bool hasAnyPayments = await IsPlaceBusy(dbPlace, paymentId, cancellationToken);
+
+        if (hasAnyPayments == false)
+        {
+            dbPlace.IsDeleted = true;
         }
     }
 
@@ -295,6 +299,7 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
                                               .Where(x => x.IsDeleted)
                                               .SingleOrDefaultAsync(environment.UserId, id, cancellationToken)
                                           ?? throw new NotFoundException("платеж", id);
+
         dbPayment.IsDeleted = false;
         await CheckRestorePlace(dbPayment.PlaceId, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
@@ -303,10 +308,13 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
     private async Task CheckRestorePlace(int? placeId, CancellationToken cancellationToken = default)
     {
         Data.Entities.Place? dbPlace = await GetPlaceById(placeId, cancellationToken);
-        if (dbPlace != null)
+
+        if (dbPlace == null)
         {
-            dbPlace.IsDeleted = false;
+            return;
         }
+
+        dbPlace.IsDeleted = false;
     }
 
     private async Task<Data.Entities.Place?> GetPlaceById(int? placeId, CancellationToken cancellationToken = default)
