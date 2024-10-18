@@ -3,11 +3,11 @@
 }
 
 .payment-day-head {
-    background-color: var(--mud-palette-primary-darken);
     padding: 5px;
+    background-color: var(--mud-palette-primary-darken);
 }
 
 .payment-day-body {
-    background-color: var(--mud-palette-primary-lighten);
     padding: 5px;
+    background-color: var(--mud-palette-primary-lighten);
 }

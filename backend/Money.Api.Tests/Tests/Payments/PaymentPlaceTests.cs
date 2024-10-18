@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Money.Api.Tests.TestTools;
+﻿using Money.Api.Tests.TestTools;
 using Money.Api.Tests.TestTools.Entities;
 using Money.ApiClient;
 using Money.Data.Entities;
@@ -41,8 +40,8 @@ public class PaymentPlaceTests
 
         await _apiClient.Payment.Create(request).IsSuccess();
 
-        Place[] dbPlaces = _dbClient.CreateApplicationDbContext().Places
-            .IgnoreQueryFilters()
+        Place[] dbPlaces = _dbClient.CreateApplicationDbContext()
+            .Places
             .IsUserEntity(_user.Id)
             .ToArray();
 
@@ -79,7 +78,10 @@ public class PaymentPlaceTests
         request.Place = updatedPlace;
         await _apiClient.Payment.Update(paymentId, request).IsSuccess();
 
-        Place[] dbPlaces = _dbClient.CreateApplicationDbContext().Places.IgnoreQueryFilters().Where(x => x.UserId == _user.Id).ToArray();
+        Place[] dbPlaces = _dbClient.CreateApplicationDbContext()
+            .Places
+            .Where(x => x.UserId == _user.Id)
+            .ToArray();
 
         Assert.Multiple(() =>
         {
@@ -111,7 +113,10 @@ public class PaymentPlaceTests
         request.Place = null;
         await _apiClient.Payment.Update(paymentId2, request).IsSuccess();
 
-        Place[] dbPlaces = _dbClient.CreateApplicationDbContext().Places.IgnoreQueryFilters().Where(x => x.UserId == _user.Id).ToArray();
+        Place[] dbPlaces = _dbClient.CreateApplicationDbContext()
+            .Places
+            .Where(x => x.UserId == _user.Id)
+            .ToArray();
 
         Assert.Multiple(() =>
         {
@@ -123,7 +128,6 @@ public class PaymentPlaceTests
     /// <summary>
     ///     Два платежа имеют одно место, после зануления места всех платежей, место исчезло.
     /// </summary>
-    /// <returns></returns>
     [Test]
     public async Task RemovePlaceAfterSetAllPaymentsZeroPlaceTest()
     {
@@ -145,7 +149,10 @@ public class PaymentPlaceTests
         await _apiClient.Payment.Update(paymentId1, request).IsSuccess();
         await _apiClient.Payment.Update(paymentId2, request).IsSuccess();
 
-        Place[] dbPlaces = _dbClient.CreateApplicationDbContext().Places.IgnoreQueryFilters().Where(x => x.UserId == _user.Id).ToArray();
+        Place[] dbPlaces = _dbClient.CreateApplicationDbContext()
+            .Places
+            .Where(x => x.UserId == _user.Id)
+            .ToArray();
 
         Assert.Multiple(() =>
         {
@@ -155,9 +162,9 @@ public class PaymentPlaceTests
     }
 
     /// <summary>
-    ///     Один платёж имеет уникальное место. После удаления платежа, оно удалится.
+    ///     Один платёж имеет уникальное место.
+    ///     После удаления платежа, оно удалится.
     /// </summary>
-    /// <returns></returns>
     [Test]
     public async Task DeletePlaceAfterDeletePaymentTest()
     {
@@ -175,7 +182,10 @@ public class PaymentPlaceTests
         int paymentId = await _apiClient.Payment.Create(request).IsSuccessWithContent();
         await _apiClient.Payment.Delete(paymentId).IsSuccess();
 
-        Place[] dbPlaces = _dbClient.CreateApplicationDbContext().Places.IgnoreQueryFilters().Where(x => x.UserId == _user.Id).ToArray();
+        Place[] dbPlaces = _dbClient.CreateApplicationDbContext()
+            .Places
+            .Where(x => x.UserId == _user.Id)
+            .ToArray();
 
         Assert.Multiple(() =>
         {
@@ -185,9 +195,10 @@ public class PaymentPlaceTests
     }
 
     /// <summary>
-    ///     Один платёж имеет уникальное место. После удаления платежа, оно удалится. После воставновления платежа должно восстановиться.
+    ///     Один платёж имеет уникальное место.
+    ///     После удаления платежа, оно удалится.
+    ///     После восстановления платежа должно восстановиться.
     /// </summary>
-    /// <returns></returns>
     [Test]
     public async Task RestorePlaceAfterRestorePaymentTest()
     {
@@ -206,7 +217,10 @@ public class PaymentPlaceTests
         await _apiClient.Payment.Delete(paymentId).IsSuccess();
         await _apiClient.Payment.Restore(paymentId).IsSuccess();
 
-        Place[] dbPlaces = _dbClient.CreateApplicationDbContext().Places.IgnoreQueryFilters().Where(x => x.UserId == _user.Id).ToArray();
+        Place[] dbPlaces = _dbClient.CreateApplicationDbContext()
+            .Places
+            .Where(x => x.UserId == _user.Id)
+            .ToArray();
 
         Assert.Multiple(() =>
         {
@@ -216,11 +230,13 @@ public class PaymentPlaceTests
     }
 
     /// <summary>
-    ///     Один платёж имеет уникальное место. После удаления платежа, оно удалится. После воставновления платежа должно восстановиться.
+    ///     Один платёж имеет уникальное место.
+    ///     После удаления платежа, оно удалится.
+    ///     После восстановления платежа должно
+    ///     восстановиться.
     /// </summary>
-    /// <returns></returns>
     [Test]
-    public async Task RestorePlaceAfterCreatePayemntWithDeletedPlaceTest()
+    public async Task RestorePlaceAfterCreatePaymentWithDeletedPlaceTest()
     {
         TestCategory category = _user.WithCategory();
         _dbClient.Save();
@@ -237,7 +253,10 @@ public class PaymentPlaceTests
         await _apiClient.Payment.Delete(paymentId1).IsSuccess();
         int paymentId2 = await _apiClient.Payment.Create(request).IsSuccessWithContent();
 
-        Place[] dbPlaces = _dbClient.CreateApplicationDbContext().Places.IgnoreQueryFilters().Where(x => x.UserId == _user.Id).ToArray();
+        Place[] dbPlaces = _dbClient.CreateApplicationDbContext()
+            .Places
+            .Where(x => x.UserId == _user.Id)
+            .ToArray();
 
         Assert.Multiple(() =>
         {

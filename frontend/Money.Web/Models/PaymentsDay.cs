@@ -4,5 +4,5 @@ public class PaymentsDay
 {
     public DateTime Date { get; set; }
 
-    public List<Payment> Payments { get; set; }
+    public List<Payment> Payments { get; set; } = [];
 }

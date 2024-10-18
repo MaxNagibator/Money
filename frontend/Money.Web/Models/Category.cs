@@ -1,9 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace Money.Web.Models;
+﻿namespace Money.Web.Models;
 
 /// <summary>
-/// Категория платежа.
+///     Категория платежа.
 /// </summary>
 public class Category
 {
