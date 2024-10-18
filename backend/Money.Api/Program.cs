@@ -1,4 +1,3 @@
-using Money.Api.Definitions.Base;
 using NLog;
 using NLog.Web;
 

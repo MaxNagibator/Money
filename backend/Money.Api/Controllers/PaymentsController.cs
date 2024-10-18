@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Money.Api.Dto.Payments;
-using Money.Business.Models;
-using Money.Business.Services;
 using OpenIddict.Validation.AspNetCore;
 
 namespace Money.Api.Controllers;
@@ -52,7 +50,7 @@ public class PaymentsController(PaymentService paymentService) : ControllerBase
     /// <returns>Идентификатор созданного платежа.</returns>
     [HttpPost]
     [Route("")]
-    [ProducesResponseType(typeof(int), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
     public async Task<int> CreateAsync([FromBody] SaveRequest request, CancellationToken cancellationToken)
     {
         Payment business = request.ToBusinessModel();
@@ -68,7 +66,7 @@ public class PaymentsController(PaymentService paymentService) : ControllerBase
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     [HttpPut]
     [Route("{id:int}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task Update(int id, [FromBody] SaveRequest request, CancellationToken cancellationToken)
     {
         Payment business = request.ToBusinessModel();
@@ -83,7 +81,6 @@ public class PaymentsController(PaymentService paymentService) : ControllerBase
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     [HttpDelete]
     [Route("{id:int}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task Delete(int id, CancellationToken cancellationToken)
     {
@@ -97,7 +94,6 @@ public class PaymentsController(PaymentService paymentService) : ControllerBase
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     [HttpPost]
     [Route("{id:int}/Restore")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task Restore(int id, CancellationToken cancellationToken)
     {

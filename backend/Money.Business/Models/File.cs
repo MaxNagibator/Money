@@ -1,6 +1,4 @@
-﻿using Money.Business.Enums;
-
-namespace Money.Business.Models;
+﻿namespace Money.Business.Models;
 
 public class File
 {

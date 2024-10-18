@@ -1,26 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace Money.Data.Entities;
+﻿namespace Money.Data.Entities;
 
 [PrimaryKey(nameof(UserId), nameof(Id))]
-public class Payment : IUserEntity
+public class DomainPayment : UserEntity
 {
-    /// <summary>
-    ///     Идентификатор пользователя.
-    /// </summary>
-    [Key]
-    [Column(Order = 1)]
-    public int UserId { get; set; }
-
-    /// <summary>
-    ///     Идентификатор.
-    /// </summary>
-    [Key]
-    [Column(Order = 2)]
-    public int Id { get; set; }
-
     /// <summary>
     ///     Сумма.
     /// </summary>
@@ -62,11 +44,6 @@ public class Payment : IUserEntity
     ///     Идентификатор места.
     /// </summary>
     public int? PlaceId { get; set; }
-
-    /// <summary>
-    ///     Пользователь, которому принадлежит платеж.
-    /// </summary>
-    public DomainUser? User { get; set; }
 
     /// <summary>
     ///     Флаг, указывающий, что платеж был удален.

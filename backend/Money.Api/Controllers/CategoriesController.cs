@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Money.Api.Dto.Categories;
-using Money.Business.Services;
 using OpenIddict.Validation.AspNetCore;
 
 namespace Money.Api.Controllers;
@@ -22,7 +21,7 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     [ProducesResponseType(typeof(CategoryDto[]), StatusCodes.Status200OK)]
     public async Task<CategoryDto[]> Get([FromQuery] int? type, CancellationToken cancellationToken)
     {
-        ICollection<Business.Models.Category> categories = await categoryService.GetAsync(type, cancellationToken);
+        ICollection<Category> categories = await categoryService.GetAsync(type, cancellationToken);
         return categories.Select(CategoryDto.FromBusinessModel).ToArray();
     }
 
@@ -38,7 +37,7 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<CategoryDto> GetById(int id, CancellationToken cancellationToken)
     {
-        Business.Models.Category category = await categoryService.GetByIdAsync(id, cancellationToken);
+        Category category = await categoryService.GetByIdAsync(id, cancellationToken);
         return CategoryDto.FromBusinessModel(category);
     }
 
@@ -50,12 +49,12 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     /// <returns>Идентификатор созданной категории.</returns>
     [HttpPost]
     [Route("")]
-    [ProducesResponseType(typeof(int), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<int> CreateAsync([FromBody] SaveRequest request, CancellationToken cancellationToken)
     {
-        Business.Models.Category business = request.ToBusinessModel();
-        int id = await categoryService.CreateAsync(business, cancellationToken);
-        return id;
+        Category business = request.ToBusinessModel();
+        return await categoryService.CreateAsync(business, cancellationToken);
     }
 
     /// <summary>
@@ -66,10 +65,10 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     [HttpPut]
     [Route("{id:int}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task Update(int id, [FromBody] SaveRequest request, CancellationToken cancellationToken)
     {
-        Business.Models.Category business = request.ToBusinessModel();
+        Category business = request.ToBusinessModel();
         business.Id = id;
         await categoryService.UpdateAsync(business, cancellationToken);
     }
@@ -81,7 +80,6 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     [HttpDelete]
     [Route("{id:int}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task Delete(int id, CancellationToken cancellationToken)
     {
@@ -95,7 +93,6 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     [HttpPost]
     [Route("{id:int}/Restore")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task Restore(int id, CancellationToken cancellationToken)
     {

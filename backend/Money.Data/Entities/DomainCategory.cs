@@ -1,20 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace Money.Data.Entities;
+﻿namespace Money.Data.Entities;
 
 [PrimaryKey(nameof(UserId), nameof(Id))]
-public class Category : IUserEntity
+public class DomainCategory : UserEntity
 {
-    [Key]
-    [Column(Order = 1)]
-    public int UserId { get; set; }
-
-    [Key]
-    [Column(Order = 2)]
-    public int Id { get; set; }
-
     [Required]
     [StringLength(500)]
     public required string Name { get; set; }
@@ -30,8 +18,6 @@ public class Category : IUserEntity
     public int TypeId { get; set; }
 
     public int? Order { get; set; }
-
-    public DomainUser? User { get; set; }
 
     public bool IsDeleted { get; set; }
 }

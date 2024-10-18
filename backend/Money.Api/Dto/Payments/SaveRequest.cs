@@ -36,9 +36,9 @@ public class SaveRequest
     /// <returns>
     ///     Экземпляр <see cref="Business.Models.Payment" />, который представляет бизнес-модель платежа.
     /// </returns>
-    public Business.Models.Payment ToBusinessModel()
+    public Payment ToBusinessModel()
     {
-        return new Business.Models.Payment
+        return new Payment
         {
             CategoryId = CategoryId,
             Sum = Sum,

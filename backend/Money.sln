@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Money.Api", "Money.Api\Mone
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Money.Common", "Money.Common\Money.Common.csproj", "{D451D1FD-BA3E-4C0A-AD02-FF89EBE9FC95}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Money.Business", "Money.Business\Money.Business.csproj", "{57659065-897F-479D-B635-3AA37BA167FB}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Money.Data", "Money.Data\Money.Data.csproj", "{1A0720C5-82DA-450B-A944-7FBFBA85AE99}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Money.Api.Tests", "Money.Api.Tests\Money.Api.Tests.csproj", "{43C1ECF1-FE0E-4431-BF47-A5A668566114}"
@@ -16,6 +14,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{C048BFE0-0921-416E-999C-2DDE4D278C93}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Money.ApiClient", "Money.ApiClient\Money.ApiClient.csproj", "{6412D321-7428-4A0F-946B-1C88E2ED524D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Money.Business", "Money.Business\Money.Business.csproj", "{337534D0-110A-48F0-8CF8-3A7E6DDCA9C3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,10 +31,6 @@ Global
 		{D451D1FD-BA3E-4C0A-AD02-FF89EBE9FC95}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D451D1FD-BA3E-4C0A-AD02-FF89EBE9FC95}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D451D1FD-BA3E-4C0A-AD02-FF89EBE9FC95}.Release|Any CPU.Build.0 = Release|Any CPU
-		{57659065-897F-479D-B635-3AA37BA167FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{57659065-897F-479D-B635-3AA37BA167FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{57659065-897F-479D-B635-3AA37BA167FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{57659065-897F-479D-B635-3AA37BA167FB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1A0720C5-82DA-450B-A944-7FBFBA85AE99}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1A0720C5-82DA-450B-A944-7FBFBA85AE99}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1A0720C5-82DA-450B-A944-7FBFBA85AE99}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -47,6 +43,10 @@ Global
 		{6412D321-7428-4A0F-946B-1C88E2ED524D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6412D321-7428-4A0F-946B-1C88E2ED524D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6412D321-7428-4A0F-946B-1C88E2ED524D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{337534D0-110A-48F0-8CF8-3A7E6DDCA9C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{337534D0-110A-48F0-8CF8-3A7E6DDCA9C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{337534D0-110A-48F0-8CF8-3A7E6DDCA9C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{337534D0-110A-48F0-8CF8-3A7E6DDCA9C3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,6 +1,5 @@
 ﻿using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
-using Money.Api.Definitions.Base;
 using System.Reflection;
 
 namespace Money.Api.Definitions;
@@ -19,6 +18,7 @@ public class SwaggerDefinition : AppDefinition
                 Version = "v1",
                 Description = "API для управления финансами",
             });
+
             options.CustomSchemaIds(x => x.FullName);
 
             string xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
