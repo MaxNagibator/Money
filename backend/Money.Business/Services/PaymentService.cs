@@ -1,7 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Money.Business.Models;
-using Money.Common.Exceptions;
-using Money.Data;
+﻿using Money.Business.Mappers;
 using Money.Data.Extensions;
 
 namespace Money.Business.Services;
@@ -10,46 +7,46 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
 {
     public async Task<ICollection<Payment>> GetAsync(PaymentFilter filter, CancellationToken cancellationToken = default)
     {
-        IQueryable<Data.Entities.Payment> dbPayments = FilterPayments(filter);
+        IQueryable<DomainPayment> dbPayments = FilterPayments(filter);
 
         List<int> placeIds = await dbPayments
             .Where(x => x.PlaceId != null)
             .Select(x => x.PlaceId!.Value)
             .ToListAsync(cancellationToken);
 
-        List<Data.Entities.Place> dbPlaces = await GetPlacesAsync(placeIds, cancellationToken);
+        List<DomainPlace> dbPlaces = await GetPlacesAsync(placeIds, cancellationToken);
 
-        List<Data.Entities.Payment> dbPaymentList = await dbPayments
+        List<DomainPayment> dbPaymentList = await dbPayments
             .OrderByDescending(x => x.Date)
             .ThenBy(x => x.CategoryId)
             .ToListAsync(cancellationToken);
 
-        return dbPaymentList.Select(dbPayment => MapTo(dbPayment, dbPlaces)).ToList();
+        return dbPaymentList.Select(x => x.Adapt(dbPlaces)).ToList();
     }
 
     public async Task<Payment> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
-        Data.Entities.Payment dbPayment = await GetByIdInternal(id, cancellationToken);
+        DomainPayment dbPayment = await GetByIdInternal(id, cancellationToken);
 
-        List<Data.Entities.Place> dbPlaces = dbPayment.PlaceId != null
+        List<DomainPlace> dbPlaces = dbPayment.PlaceId != null
             ? await GetPlacesAsync([dbPayment.PlaceId.Value], cancellationToken)
             : [];
 
-        Payment payment = MapTo(dbPayment, dbPlaces);
+        Payment payment = dbPayment.Adapt(dbPlaces);
         return payment;
     }
 
-    private async Task<Data.Entities.Payment> GetByIdInternal(int id, CancellationToken cancellationToken)
+    private async Task<DomainPayment> GetByIdInternal(int id, CancellationToken cancellationToken)
     {
-        Data.Entities.Payment dbCategory = await context.Payments.SingleOrDefaultAsync(environment.UserId, id, cancellationToken)
-                                           ?? throw new NotFoundException("платеж", id);
+        DomainPayment dbCategory = await context.Payments.SingleOrDefaultAsync(environment.UserId, id, cancellationToken)
+                                   ?? throw new NotFoundException("платеж", id);
 
         return dbCategory;
     }
 
-    private IQueryable<Data.Entities.Payment> FilterPayments(PaymentFilter filter)
+    private IQueryable<DomainPayment> FilterPayments(PaymentFilter filter)
     {
-        IQueryable<Data.Entities.Payment> dbPayments = context.Payments.IsUserEntity(environment.UserId)
+        IQueryable<DomainPayment> dbPayments = context.Payments.IsUserEntity(environment.UserId)
             .Where(x => x.TaskId == null);
 
         if (filter.DateFrom.HasValue)
@@ -84,27 +81,11 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
         return dbPayments;
     }
 
-    private async Task<List<Data.Entities.Place>> GetPlacesAsync(List<int> placeIds, CancellationToken cancellationToken)
+    private async Task<List<DomainPlace>> GetPlacesAsync(List<int> placeIds, CancellationToken cancellationToken)
     {
         return await context.Places
             .Where(x => x.UserId == environment.UserId && placeIds.Contains(x.Id))
             .ToListAsync(cancellationToken);
-    }
-
-    private Payment MapTo(Data.Entities.Payment dbPayment, List<Data.Entities.Place> dbPlaces)
-    {
-        return new Payment
-        {
-            CategoryId = dbPayment.CategoryId,
-            Sum = dbPayment.Sum,
-            Comment = dbPayment.Comment,
-            Place = dbPayment.PlaceId.HasValue
-                ? dbPlaces.FirstOrDefault(x => x.Id == dbPayment.PlaceId)?.Name
-                : null,
-            Id = dbPayment.Id,
-            Date = dbPayment.Date,
-            CreatedTaskId = dbPayment.CreatedTaskId,
-        };
     }
 
     public async Task<int> CreateAsync(Payment payment, CancellationToken cancellationToken = default)
@@ -114,8 +95,8 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
             throw new BusinessException("Извините, но идентификатор пользователя не указан.");
         }
 
-        Data.Entities.DomainUser dbUser = await context.DomainUsers.SingleOrDefaultAsync(x => x.Id == environment.UserId, cancellationToken)
-                                          ?? throw new BusinessException("Извините, но пользователь не найден.");
+        DomainUser dbUser = await context.DomainUsers.SingleOrDefaultAsync(x => x.Id == environment.UserId, cancellationToken)
+                            ?? throw new BusinessException("Извините, но пользователь не найден.");
 
         Category category = await categoryService.GetByIdAsync(payment.CategoryId, cancellationToken);
 
@@ -124,7 +105,7 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
 
         int? placeId = await GetPlaceId(dbUser, payment.Place, cancellationToken);
 
-        Data.Entities.Payment dbPayment = new()
+        DomainPayment dbPayment = new()
         {
             Id = paymentId,
             UserId = environment.UserId.Value,
@@ -141,7 +122,7 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
         return paymentId;
     }
 
-    private async Task<int?> GetPlaceId(Data.Entities.DomainUser dbUser, string? place, CancellationToken cancellationToken = default)
+    private async Task<int?> GetPlaceId(DomainUser dbUser, string? place, CancellationToken cancellationToken = default)
     {
         place = place?.Trim(' ');
 
@@ -150,7 +131,7 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
             return null;
         }
 
-        Data.Entities.Place? dbPlace = await context.Places
+        DomainPlace? dbPlace = await context.Places
             .IsUserEntity(environment.UserId)
             .FirstOrDefaultAsync(x => x.Name == place, cancellationToken);
 
@@ -159,7 +140,7 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
             int newPlaceId = dbUser.NextPlaceId;
             dbUser.NextPlaceId++;
 
-            dbPlace = new Data.Entities.Place
+            dbPlace = new DomainPlace
             {
                 UserId = dbUser.Id,
                 Id = newPlaceId,
@@ -177,11 +158,11 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
 
     public async Task UpdateAsync(Payment payment, CancellationToken cancellationToken)
     {
-        Data.Entities.Payment dbPayment = await context.Payments.SingleOrDefaultAsync(environment.UserId, payment.Id, cancellationToken)
-                                          ?? throw new NotFoundException("платеж", payment.Id);
+        DomainPayment dbPayment = await context.Payments.SingleOrDefaultAsync(environment.UserId, payment.Id, cancellationToken)
+                                  ?? throw new NotFoundException("платеж", payment.Id);
 
         Category category = await categoryService.GetByIdAsync(payment.CategoryId, cancellationToken);
-        Data.Entities.DomainUser dbUser = await context.DomainUsers.SingleAsync(x => x.Id == environment.UserId, cancellationToken);
+        DomainUser dbUser = await context.DomainUsers.SingleAsync(x => x.Id == environment.UserId, cancellationToken);
         int? placeId = await GetPlaceId(dbUser, payment.Place, dbPayment, cancellationToken);
 
         dbPayment.Sum = payment.Sum;
@@ -193,9 +174,9 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task<int?> GetPlaceId(Data.Entities.DomainUser dbUser, string? place, Data.Entities.Payment dbPayment, CancellationToken cancellationToken = default)
+    private async Task<int?> GetPlaceId(DomainUser dbUser, string? place, DomainPayment dbPayment, CancellationToken cancellationToken = default)
     {
-        Data.Entities.Place? dbPlace = await GetPlaceById(dbPayment.PlaceId, cancellationToken);
+        DomainPlace? dbPlace = await GetPlaceById(dbPayment.PlaceId, cancellationToken);
         bool hasAnyPayments = await IsPlaceBusy(dbPlace, dbPayment.Id, cancellationToken);
 
         if (string.IsNullOrWhiteSpace(place))
@@ -208,7 +189,7 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
             return null;
         }
 
-        Data.Entities.Place? dbNewPlace = await context.Places
+        DomainPlace? dbNewPlace = await context.Places
             .IsUserEntity(dbUser.Id)
             .SingleOrDefaultAsync(x => x.Name == place, cancellationToken);
 
@@ -230,7 +211,7 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
                 int newPlaceId = dbUser.NextPlaceId;
                 dbUser.NextPlaceId++;
 
-                dbNewPlace = new Data.Entities.Place
+                dbNewPlace = new DomainPlace
                 {
                     Name = "",
                     UserId = dbUser.Id,
@@ -248,14 +229,14 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
         return dbNewPlace.Id;
     }
 
-    private Task<bool> IsPlaceBusy(Data.Entities.Place? place, int? paymentId, CancellationToken cancellationToken = default)
+    private Task<bool> IsPlaceBusy(DomainPlace? place, int? paymentId, CancellationToken cancellationToken = default)
     {
         if (place == null)
         {
             return Task.FromResult(false);
         }
 
-        IQueryable<Data.Entities.Payment> payments = context.Payments
+        IQueryable<DomainPayment> payments = context.Payments
             .IsUserEntity(place.UserId)
             .Where(x => x.PlaceId == place.Id);
 
@@ -269,7 +250,7 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
 
     public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
-        Data.Entities.Payment dbPayment = await GetByIdInternal(id, cancellationToken);
+        DomainPayment dbPayment = await GetByIdInternal(id, cancellationToken);
         dbPayment.IsDeleted = true;
         await CheckRemovePlace(dbPayment.PlaceId, dbPayment.Id, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
@@ -277,7 +258,7 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
 
     private async Task CheckRemovePlace(int? placeId, int? paymentId, CancellationToken cancellationToken = default)
     {
-        Data.Entities.Place? dbPlace = await GetPlaceById(placeId, cancellationToken);
+        DomainPlace? dbPlace = await GetPlaceById(placeId, cancellationToken);
 
         if (dbPlace == null)
         {
@@ -294,11 +275,11 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
 
     public async Task RestoreAsync(int id, CancellationToken cancellationToken = default)
     {
-        Data.Entities.Payment dbPayment = await context.Payments
-                                              .IgnoreQueryFilters()
-                                              .Where(x => x.IsDeleted)
-                                              .SingleOrDefaultAsync(environment.UserId, id, cancellationToken)
-                                          ?? throw new NotFoundException("платеж", id);
+        DomainPayment dbPayment = await context.Payments
+                                      .IgnoreQueryFilters()
+                                      .Where(x => x.IsDeleted)
+                                      .SingleOrDefaultAsync(environment.UserId, id, cancellationToken)
+                                  ?? throw new NotFoundException("платеж", id);
 
         dbPayment.IsDeleted = false;
         await CheckRestorePlace(dbPayment.PlaceId, cancellationToken);
@@ -307,7 +288,7 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
 
     private async Task CheckRestorePlace(int? placeId, CancellationToken cancellationToken = default)
     {
-        Data.Entities.Place? dbPlace = await GetPlaceById(placeId, cancellationToken);
+        DomainPlace? dbPlace = await GetPlaceById(placeId, cancellationToken);
 
         if (dbPlace == null)
         {
@@ -317,7 +298,7 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
         dbPlace.IsDeleted = false;
     }
 
-    private async Task<Data.Entities.Place?> GetPlaceById(int? placeId, CancellationToken cancellationToken = default)
+    private async Task<DomainPlace?> GetPlaceById(int? placeId, CancellationToken cancellationToken = default)
     {
         return placeId != null
             ? await context.Places.SingleOrDefaultAsync(environment.UserId, placeId, cancellationToken)

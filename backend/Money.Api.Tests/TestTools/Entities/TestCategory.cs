@@ -1,4 +1,5 @@
 ﻿using Money.Business.Enums;
+using Money.Data.Entities;
 
 namespace Money.Api.Tests.TestTools.Entities;
 
@@ -45,34 +46,6 @@ public class TestCategory : TestObject
     /// </summary>
     public bool IsDeleted { get; set; }
 
-    public override void LocalSave()
-    {
-        if (IsNew)
-        {
-            Data.Entities.DomainUser dbUser = Environment.Context.DomainUsers.Single(x => x.Id == User.Id);
-            int categoryId = dbUser.NextCategoryId;
-            dbUser.NextCategoryId++; // todo обработать канкаренси
-
-            Data.Entities.Category obj = new()
-            {
-                Id = categoryId,
-                Name = "",
-            };
-
-            FillDbProperties(obj);
-            Environment.Context.Categories.Add(obj);
-            IsNew = false;
-            Environment.Context.SaveChanges();
-            Id = obj.Id;
-        }
-        else
-        {
-            Money.Data.Entities.Category obj = Environment.Context.Categories.First(x => x.UserId == User.Id && x.Id == Id);
-            FillDbProperties(obj);
-            Environment.Context.SaveChanges();
-        }
-    }
-
     public TestCategory SetParent(TestCategory category)
     {
         Parent = category;
@@ -92,12 +65,40 @@ public class TestCategory : TestObject
         return obj;
     }
 
-    private void FillDbProperties(Money.Data.Entities.Category obj)
+    private void FillDbProperties(DomainCategory obj)
     {
         obj.Name = Name;
         obj.TypeId = PaymentType;
         obj.UserId = User.Id;
         obj.ParentId = Parent?.Id;
         obj.IsDeleted = IsDeleted;
+    }
+
+    public override void LocalSave()
+    {
+        if (IsNew)
+        {
+            DomainUser dbUser = Environment.Context.DomainUsers.Single(x => x.Id == User.Id);
+            int categoryId = dbUser.NextCategoryId;
+            dbUser.NextCategoryId++; // todo обработать канкаренси
+
+            DomainCategory obj = new()
+            {
+                Id = categoryId,
+                Name = "",
+            };
+
+            FillDbProperties(obj);
+            Environment.Context.Categories.Add(obj);
+            IsNew = false;
+            Environment.Context.SaveChanges();
+            Id = obj.Id;
+        }
+        else
+        {
+            DomainCategory obj = Environment.Context.Categories.First(x => x.UserId == User.Id && x.Id == Id);
+            FillDbProperties(obj);
+            Environment.Context.SaveChanges();
+        }
     }
 }

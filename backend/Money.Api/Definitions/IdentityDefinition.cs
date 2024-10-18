@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Identity;
-using Money.Api.Definitions.Base;
 using Money.Data;
 using Money.Data.Entities;
 using OpenIddict.Abstractions;

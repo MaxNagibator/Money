@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Money.Data.Entities;
 
@@ -17,6 +16,4 @@ public class DomainUser
     public int NextPaymentId { get; set; }
 
     public int NextPlaceId { get; set; }
-
-    public List<Category>? Categories { get; set; }
 }

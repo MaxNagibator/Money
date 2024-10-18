@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Money.Api.Dto.Files;
-using Money.Business.Services;
 using OpenIddict.Validation.AspNetCore;
+using File = Money.Business.Models.File;
 
 namespace Money.Api.Controllers;
 
@@ -20,7 +20,7 @@ public class FileController(FileService fileService) : ControllerBase
     [HttpPost]
     public async Task<FileDto> UploadFile(IFormFile file, CancellationToken cancellationToken)
     {
-        var uploadedFile = await fileService.Upload(file, cancellationToken);
+        File uploadedFile = await fileService.Upload(file, cancellationToken);
         return FileDto.FromBusinessModel(uploadedFile);
     }
 }

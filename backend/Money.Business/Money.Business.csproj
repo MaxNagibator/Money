@@ -1,21 +1,19 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <OutputType>Library</OutputType>
     </PropertyGroup>
-
-    <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="6.0.0-preview.4.21253.5" />
-        <PackageReference Include="Microsoft.Extensions.Features" Version="8.0.8" />
-        <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.1.0" />
-        <PackageReference Include="OpenIddict.Abstractions" Version="5.8.0" />
-    </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\Money.Common\Money.Common.csproj" />
         <ProjectReference Include="..\Money.Data\Money.Data.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="OpenIddict.Server.AspNetCore" Version="5.8.0" />
     </ItemGroup>
 
 </Project>

@@ -1,5 +1,5 @@
-﻿using Money.Api.Dto.Payments;
-using Money.Business.Enums;
+﻿using Money.Business.Enums;
+using File = Money.Business.Models.File;
 
 namespace Money.Api.Dto.Files;
 
@@ -14,7 +14,7 @@ public class FileDto
     public string FileName { get; set; } = null!;
 
     /// <summary>
-    /// Тип файла.
+    ///     Тип файла.
     /// </summary>
     public FileTypes FileType { get; set; }
 
@@ -23,12 +23,12 @@ public class FileDto
     /// </summary>
     /// <param name="file">Бизнес-модель файла.</param>
     /// <returns>Новый объект <see cref="FileDto" />.</returns>
-    public static FileDto FromBusinessModel(Money.Business.Models.File file)
+    public static FileDto FromBusinessModel(File file)
     {
         return new FileDto
         {
             FileName = file.FileName,
-            FileType = file.FileType
+            FileType = file.FileType,
         };
     }
 }

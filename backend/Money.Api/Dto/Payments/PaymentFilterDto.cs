@@ -1,6 +1,4 @@
-﻿using Money.Business.Models;
-
-namespace Money.Api.Dto.Payments;
+﻿namespace Money.Api.Dto.Payments;
 
 /// <summary>
 ///     Фильтр для платежей.
@@ -44,7 +42,7 @@ public class PaymentFilterDto
         };
     }
 
-    private List<int>? ParseCategoryIds(string? categoryIds)
+    private static List<int>? ParseCategoryIds(string? categoryIds)
     {
         if (string.IsNullOrWhiteSpace(categoryIds))
         {

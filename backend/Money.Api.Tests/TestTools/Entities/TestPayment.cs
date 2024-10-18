@@ -1,4 +1,6 @@
-﻿namespace Money.Api.Tests.TestTools.Entities;
+﻿using Money.Data.Entities;
+
+namespace Money.Api.Tests.TestTools.Entities;
 
 /// <summary>
 ///     Платеж.
@@ -54,33 +56,6 @@ public class TestPayment : TestObject
     /// </summary>
     public bool IsDeleted { get; private set; }
 
-    public override void LocalSave()
-    {
-        if (IsNew)
-        {
-            Data.Entities.DomainUser dbUser = Environment.Context.DomainUsers.Single(x => x.Id == User.Id);
-            int paymentId = dbUser.NextPaymentId;
-            dbUser.NextPaymentId++; // todo обработать канкаренси
-
-            Data.Entities.Payment obj = new()
-            {
-                Id = paymentId,
-            };
-
-            FillDbProperties(obj);
-            Environment.Context.Payments.Add(obj);
-            IsNew = false;
-            Environment.Context.SaveChanges();
-            Id = obj.Id;
-        }
-        else
-        {
-            Data.Entities.Payment obj = Environment.Context.Payments.First(x => x.UserId == User.Id && x.Id == Id);
-            FillDbProperties(obj);
-            Environment.Context.SaveChanges();
-        }
-    }
-
     public TestPayment SetIsDeleted()
     {
         IsDeleted = true;
@@ -111,7 +86,7 @@ public class TestPayment : TestObject
         return this;
     }
 
-    private void FillDbProperties(Data.Entities.Payment obj)
+    private void FillDbProperties(DomainPayment obj)
     {
         obj.Comment = Comment;
         obj.Sum = Sum;
@@ -120,5 +95,32 @@ public class TestPayment : TestObject
         obj.IsDeleted = IsDeleted;
         obj.Date = Date;
         obj.PlaceId = Place?.Id;
+    }
+
+    public override void LocalSave()
+    {
+        if (IsNew)
+        {
+            DomainUser dbUser = Environment.Context.DomainUsers.Single(x => x.Id == User.Id);
+            int paymentId = dbUser.NextPaymentId;
+            dbUser.NextPaymentId++; // todo обработать канкаренси
+
+            DomainPayment obj = new()
+            {
+                Id = paymentId,
+            };
+
+            FillDbProperties(obj);
+            Environment.Context.Payments.Add(obj);
+            IsNew = false;
+            Environment.Context.SaveChanges();
+            Id = obj.Id;
+        }
+        else
+        {
+            DomainPayment obj = Environment.Context.Payments.First(x => x.UserId == User.Id && x.Id == Id);
+            FillDbProperties(obj);
+            Environment.Context.SaveChanges();
+        }
     }
 }

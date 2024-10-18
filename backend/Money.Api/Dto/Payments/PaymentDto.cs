@@ -48,7 +48,7 @@ public class PaymentDto
     /// </summary>
     /// <param name="business">Бизнес-модель.</param>
     /// <returns>Новый объект <see cref="PaymentDto" />.</returns>
-    public static PaymentDto FromBusinessModel(Business.Models.Payment business)
+    public static PaymentDto FromBusinessModel(Payment business)
     {
         return new PaymentDto
         {

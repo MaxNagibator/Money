@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Money.Api.Tests.TestTools;
 using Money.ApiClient;
 using Money.Data;
-using NLog.Config;
 using System.Collections.Concurrent;
 
 namespace Money.Api.Tests;

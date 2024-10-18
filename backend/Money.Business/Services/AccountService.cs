@@ -1,15 +1,10 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Money.Business.Models;
-using Money.Common.Exceptions;
-using Money.Data;
-using Money.Data.Entities;
 
 namespace Money.Business.Services;
 
 public class AccountService(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
 {
-    public async Task RegisterAsync(RegisterViewModel model, CancellationToken cancellationToken = default)
+    public async Task RegisterAsync(RegisterModel model, CancellationToken cancellationToken = default)
     {
         ApplicationUser? user = await userManager.FindByNameAsync(model.Email);
 

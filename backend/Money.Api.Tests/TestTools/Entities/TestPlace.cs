@@ -1,4 +1,6 @@
-﻿namespace Money.Api.Tests.TestTools.Entities;
+﻿using Money.Data.Entities;
+
+namespace Money.Api.Tests.TestTools.Entities;
 
 public class TestPlace : TestObject
 {
@@ -18,15 +20,20 @@ public class TestPlace : TestObject
     /// </summary>
     public TestUser User { get; }
 
+    private void FillDbProperties(DomainPlace obj)
+    {
+        obj.Name = Name;
+    }
+
     public override void LocalSave()
     {
         if (IsNew)
         {
-            Data.Entities.DomainUser dbUser = Environment.Context.DomainUsers.Single(x => x.Id == User.Id);
+            DomainUser dbUser = Environment.Context.DomainUsers.Single(x => x.Id == User.Id);
             int id = dbUser.NextPlaceId;
             dbUser.NextPlaceId++; // todo обработать канкаренси
 
-            Data.Entities.Place obj = new()
+            DomainPlace obj = new()
             {
                 Id = id,
                 Name = "",
@@ -41,14 +48,9 @@ public class TestPlace : TestObject
         }
         else
         {
-            Data.Entities.Place obj = Environment.Context.Places.First(x => x.UserId == User.Id && x.Id == Id);
+            DomainPlace obj = Environment.Context.Places.First(x => x.UserId == User.Id && x.Id == Id);
             FillDbProperties(obj);
             Environment.Context.SaveChanges();
         }
-    }
-
-    private void FillDbProperties(Data.Entities.Place obj)
-    {
-        obj.Name = Name;
     }
 }

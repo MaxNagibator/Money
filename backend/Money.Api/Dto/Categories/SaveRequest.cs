@@ -41,9 +41,9 @@ public class SaveRequest
     /// <returns>
     ///     Экземпляр <see cref="Business.Models.Category" />, который представляет бизнес-модель категории платежа.
     /// </returns>
-    public Business.Models.Category ToBusinessModel()
+    public Category ToBusinessModel()
     {
-        return new Business.Models.Category
+        return new Category
         {
             Color = Color,
             Name = Name,

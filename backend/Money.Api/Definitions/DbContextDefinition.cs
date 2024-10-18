@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Money.Api.Definitions.Base;
 using Money.Data;
 
 namespace Money.Api.Definitions;

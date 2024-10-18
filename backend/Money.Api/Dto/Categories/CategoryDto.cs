@@ -40,7 +40,7 @@ public class CategoryDto
     /// </summary>
     /// <param name="category">Бизнес-модель категории.</param>
     /// <returns>Новый объект <see cref="CategoryDto" />.</returns>
-    public static CategoryDto FromBusinessModel(Business.Models.Category category)
+    public static CategoryDto FromBusinessModel(Category category)
     {
         return new CategoryDto
         {

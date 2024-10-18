@@ -1,6 +1,4 @@
-﻿using Money.Business.Services;
-
-namespace Money.Api.Middlewares;
+﻿namespace Money.Api.Middlewares;
 
 public class FileUploadMiddleware(RequestDelegate next)
 {
@@ -8,10 +6,9 @@ public class FileUploadMiddleware(RequestDelegate next)
     {
         if (context.Request.HasFormContentType && context.Request.Form.Files.Any())
         {
-            var form = await context.Request.ReadFormAsync();
-            var files = form.Files;
+            IFormCollection form = await context.Request.ReadFormAsync();
 
-            foreach (var file in files)
+            foreach (IFormFile file in form.Files)
             {
                 fileService.CheckFileType(file.FileName);
             }
