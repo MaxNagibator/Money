@@ -1,6 +1,5 @@
 namespace Money.Data.Entities;
 
-[PrimaryKey(nameof(UserId), nameof(Id))]
 public class DomainPlace : UserEntity
 {
     [StringLength(500)]

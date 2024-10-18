@@ -98,4 +98,21 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     {
         await categoryService.RestoreAsync(id, cancellationToken);
     }
+
+    /// <summary>
+    ///     Восстановить категории по умолчанию.
+    /// </summary>
+    /// <param name="isAdd">
+    ///     Флаг, указывающий, добавлять ли категории по умолчанию (по умолчанию true).
+    ///     <c>
+    ///         Если значение false, все добавленные пользователем категории будут удалены без возможности восстановления!
+    ///     </c>
+    /// </param>
+    /// <param name="cancellationToken">Токен отмены запроса.</param>
+    [HttpPost]
+    [Route("/Restore/{isAdd:bool?}")]
+    public async Task RestoreDefault(bool? isAdd, CancellationToken cancellationToken)
+    {
+        await categoryService.RestoreDefaultAsync(isAdd ?? true, cancellationToken);
+    }
 }

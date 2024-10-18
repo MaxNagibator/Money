@@ -157,4 +157,34 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
         dbCategory.IsDeleted = false;
         await context.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task RestoreDefaultAsync(bool isAdd = true, CancellationToken cancellationToken = default)
+    {
+        if (environment.UserId == null)
+        {
+            throw new BusinessException("Извините, но идентификатор пользователя не указан.");
+        }
+
+        int categoryId = 1;
+
+        DomainUser dbUser = await context.DomainUsers.SingleAsync(x => x.Id == environment.UserId, cancellationToken)
+                            ?? throw new BusinessException("Извините, но пользователь не найден.");
+
+        if (isAdd)
+        {
+            categoryId = dbUser.NextCategoryId;
+        }
+        else
+        {
+            // TODO: Возможно нужно использовать мягкое удаление, но для разработки сделано жесткое.
+            // В дальнейшем возможем лучше вообще убрать эту ветку.
+            context.Categories.RemoveRange(context.Categories.IsUserEntity(environment.UserId));
+        }
+
+        List<DomainCategory> categories = DatabaseSeeder.SeedCategories(environment.UserId.Value, categoryId);
+        dbUser.NextCategoryId = categories.Last().Id + 1;
+
+        await context.Categories.AddRangeAsync(categories, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+    }
 }

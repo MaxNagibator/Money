@@ -2,6 +2,7 @@
 
 namespace Money.Data.Entities.Base;
 
+[PrimaryKey(nameof(UserId), nameof(Id))]
 public abstract class UserEntity
 {
     [Key]
@@ -13,7 +14,7 @@ public abstract class UserEntity
     public int Id { get; set; }
 
     /// <summary>
-    ///     Пользователь, которому принадлежит платеж.
+    ///     Пользователь, которому принадлежит.
     /// </summary>
     public DomainUser? User { get; set; }
 }
