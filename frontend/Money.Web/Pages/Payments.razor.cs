@@ -63,29 +63,24 @@ public partial class Payments
         _init = true;
     }
 
-    private async Task Create(DateTime date)
+    private Task Create(DateTime date)
     {
-        throw new Exception();
+        return Task.CompletedTask;
     }
 
-    private async Task Update(Payment category)
+    private Task Update(Payment payment)
     {
-        await ShowPaymentDialog("Обновить", category);
+        return Task.CompletedTask;
     }
 
-    private async Task Delete(Payment category)
+    private async Task Delete(Payment payment)
     {
-        await ModifyPayment(category, MoneyClient.Payment.Delete, true);
+        await ModifyPayment(payment, MoneyClient.Payment.Delete, true);
     }
 
-    private async Task Restore(Payment category)
+    private async Task Restore(Payment payment)
     {
-        await ModifyPayment(category, MoneyClient.Payment.Restore, false);
-    }
-
-    private async Task<Payment?> ShowPaymentDialog(string title, Payment category)
-    {
-        throw new Exception();
+        await ModifyPayment(payment, MoneyClient.Payment.Restore, false);
     }
 
     private async Task ModifyPayment(Payment payment, Func<int, Task<ApiClientResponse>> action, bool isDeleted)
@@ -103,10 +98,5 @@ public partial class Payments
         }
 
         payment.IsDeleted = isDeleted;
-    }
-
-    private Task EditPayment2(int? paymentId)
-    {
-        throw new NotImplementedException();
     }
 }

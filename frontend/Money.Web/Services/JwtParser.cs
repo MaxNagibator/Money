@@ -10,16 +10,7 @@ public class JwtParser(IHttpClientFactory clientFactory)
 
     public async Task<ClaimsPrincipal?> ValidateJwt(string token)
     {
-        Dictionary<string, object>? claimsDictionary = null;
-
-        try
-        {
-            claimsDictionary = await GetUserInfo(token);
-        }
-        catch (Exception)
-        {
-            //TODO: Логирование
-        }
+        Dictionary<string, object>? claimsDictionary = await GetUserInfo(token);
 
         if (claimsDictionary == null)
         {
@@ -57,9 +48,6 @@ public class JwtParser(IHttpClientFactory clientFactory)
         {
             return null;
         }
-
-        // todo если тут вернулся 401 Unauthorized, нужно разлогинить человечка.
-        response.EnsureSuccessStatusCode();
 
         Dictionary<string, object>? userInfo = await response.Content.ReadFromJsonAsync<Dictionary<string, object>>();
         return userInfo ?? throw new InvalidOperationException();
