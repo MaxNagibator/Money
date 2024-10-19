@@ -10,7 +10,16 @@ public class JwtParser(IHttpClientFactory clientFactory)
 
     public async Task<ClaimsPrincipal?> ValidateJwt(string token)
     {
-        Dictionary<string, object>? claimsDictionary = await GetUserInfo(token);
+        Dictionary<string, object>? claimsDictionary = null;
+
+        try
+        {
+            claimsDictionary = await GetUserInfo(token);
+        }
+        catch (Exception)
+        {
+            //TODO: Логирование
+        }
 
         if (claimsDictionary == null)
         {

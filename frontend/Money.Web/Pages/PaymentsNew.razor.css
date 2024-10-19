@@ -1,0 +1,13 @@
+.payment-day {
+    margin-top: 10px;
+}
+
+.payment-day-head {
+    padding: 5px;
+    background-color: var(--mud-palette-primary-darken);
+}
+
+.payment-day-body {
+    padding: 5px;
+    background-color: var(--mud-palette-primary-lighten);
+}

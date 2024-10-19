@@ -9,8 +9,20 @@ public static class PaymentTypes
     {
         return
         [
-            new Value { Id = 1, Name = "Расходы" },
-            new Value { Id = 2, Name = "Доходы" },
+            new Value
+            {
+                Id = 1,
+                Name = "Расходы",
+                Icon = Icons.Material.Rounded.ArrowCircleDown,
+                Color = Color.Warning,
+            },
+            new Value
+            {
+                Id = 2,
+                Name = "Доходы",
+                Icon = Icons.Material.Rounded.ArrowCircleUp,
+                Color = Color.Success,
+            },
         ];
     }
 
@@ -18,5 +30,7 @@ public static class PaymentTypes
     {
         public required int Id { get; init; }
         public required string Name { get; init; }
+        public required string Icon { get; set; }
+        public required Color Color { get; set; }
     }
 }

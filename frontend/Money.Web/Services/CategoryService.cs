@@ -16,6 +16,7 @@ public class CategoryService(MoneyClient moneyClient)
                 PaymentTypeId = apiCategory.PaymentTypeId,
                 Color = apiCategory.Color,
                 Order = apiCategory.Order,
+                PaymentType = PaymentTypes.Values.First(x => x.Id == apiCategory.PaymentTypeId),
             })
             .ToList();
     }
