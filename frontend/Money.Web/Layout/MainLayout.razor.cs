@@ -1,4 +1,7 @@
-﻿namespace Money.Web.Layout;
+﻿using Blazored.LocalStorage;
+using Microsoft.AspNetCore.Components;
+
+namespace Money.Web.Layout;
 
 public partial class MainLayout
 {
@@ -10,7 +13,7 @@ public partial class MainLayout
             HoverOpacity = 0.10,
             TableHover = "#66a1fa4d",
             Background = "#f5f5f5",
-            DrawerBackground = "#f5f5f5"
+            DrawerBackground = "#f5f5f5",
         },
         PaletteDark = new PaletteDark
         {
@@ -45,27 +48,78 @@ public partial class MainLayout
             Success = "#3dcb6cff",
             Warning = "#ffb545ff",
             Error = "#ff3f5fff",
-            Dark = "#424242ff"
-        }
+            Dark = "#424242ff",
+        },
     };
 
-    public bool DrawerOpen { get; set; } = true;
+    private MudThemeProvider _mudThemeProvider = default!;
+
+    [Inject]
+    private ILocalStorageService StorageService { get; set; } = default!;
+
+    private bool DrawerOpen { get; set; } = true;
     private bool IsDarkMod { get; set; } = true;
+    private bool IsManualMode { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        bool? isDarkMod = await LocalStorage.GetItemAsync<bool?>(nameof(IsDarkMod));
+        bool? isDarkMod = await StorageService.GetItemAsync<bool?>(nameof(IsDarkMod));
         IsDarkMod = isDarkMod ?? true;
+
+        bool? isManualMode = await StorageService.GetItemAsync<bool?>(nameof(IsManualMode));
+        IsManualMode = isManualMode ?? false;
     }
 
-    private void DrawerToggle()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await _mudThemeProvider.WatchSystemPreference(OnSystemPreferenceChanged);
+            StateHasChanged();
+        }
+    }
+
+    private Task OnSystemPreferenceChanged(bool newValue)
+    {
+        if (IsManualMode)
+        {
+            return Task.CompletedTask;
+        }
+
+        IsDarkMod = newValue;
+        StateHasChanged();
+
+        return Task.CompletedTask;
+    }
+
+    private void ToggleDrawer()
     {
         DrawerOpen = !DrawerOpen;
     }
 
-    private async Task DarkMode()
+    private async Task ToggleDarkMode()
     {
+        if (IsManualMode == false)
+        {
+            await ToggleManualMode();
+        }
+
         IsDarkMod = !IsDarkMod;
-        await LocalStorage.SetItemAsync(nameof(IsDarkMod), IsDarkMod);
+        await StorageService.SetItemAsync(nameof(IsDarkMod), IsDarkMod);
+    }
+
+    private async Task ToggleManualMode()
+    {
+        IsManualMode = !IsManualMode;
+        await StorageService.SetItemAsync(nameof(IsManualMode), IsManualMode);
+
+        if (IsManualMode == false)
+        {
+            bool systemPreference = await _mudThemeProvider.GetSystemPreference();
+            IsDarkMod = systemPreference;
+            await StorageService.SetItemAsync(nameof(IsDarkMod), IsDarkMod);
+        }
+
+        StateHasChanged();
     }
 }

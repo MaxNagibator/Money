@@ -1,17 +1,25 @@
-﻿@using Blazored.LocalStorage
-@inherits LayoutComponentBase
-@inject ILocalStorageService LocalStorage
+﻿@inherits LayoutComponentBase
 
-<MudThemeProvider IsDarkMode="@IsDarkMod" Theme="_defaultTheme" />
+<MudThemeProvider IsDarkMode="@IsDarkMod" @ref="@_mudThemeProvider" Theme="_defaultTheme" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
 <MudLayout>
     <MudAppBar Elevation="0" Class="docs-appbar-filter mud-appbar mud-appbar-fixed-top mud-elevation-0 mud-theme-transparent">
-        <MudIconButton Color="Color.Inherit" Edge="Edge.Start" Icon="@Icons.Material.Filled.Menu" OnClick="DrawerToggle" />
+        <MudIconButton Color="Color.Inherit" Edge="Edge.Start" Icon="@Icons.Material.Filled.Menu" OnClick="ToggleDrawer" />
         <MudSpacer />
-        <MudIconButton Color="Color.Inherit" Icon="@Icons.Material.Rounded.Brightness4" OnClick="@DarkMode" Size="Size.Medium" />
+        <MudBadge Class="cursor-pointer"
+                  Color="@(IsManualMode ? Color.Primary : Color.Secondary)"
+                  Icon="@(IsManualMode ? Icons.Material.Filled.Check : Icons.Material.Filled.SwapHoriz)"
+                  OnClick="ToggleManualMode"
+                  Overlap>
+            <MudIconButton Color="Color.Inherit"
+                           Icon="@Icons.Material.Rounded.Brightness4"
+                           OnClick="ToggleDarkMode"
+                           Size="Size.Medium"
+                           title="@(IsManualMode ? "Manual" : "Auto")" />
+        </MudBadge>
     </MudAppBar>
     <MudDrawer @bind-Open="DrawerOpen" Elevation="2">
         <MudDrawerHeader>

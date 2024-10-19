@@ -13,7 +13,6 @@ public static class PaymentTypes
                 Id = 1,
                 Name = "Расходы",
                 Icon = Icons.Material.Rounded.ArrowCircleDown,
-                Class = "payment-type-color-1",
                 Color = Color.Warning,
             },
             new Value
@@ -22,7 +21,6 @@ public static class PaymentTypes
                 Name = "Доходы",
                 Icon = Icons.Material.Rounded.ArrowCircleUp,
                 Color = Color.Success,
-                Class = "payment-type-color-2",
             },
         ];
     }
@@ -32,7 +30,6 @@ public static class PaymentTypes
         public required int Id { get; init; }
         public required string Name { get; init; }
         public required string Icon { get; init; }
-        public required string Class { get; init; }
         public required Color Color { get; init; }
     }
 }

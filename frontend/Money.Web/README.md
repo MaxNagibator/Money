@@ -1,1 +1,1 @@
-﻿https://mui.com/material-ui/material-icons/ - иконки муд айкона
+﻿https://www.mudblazor.com/features/icons#icons - иконки муд айкона

@@ -29,6 +29,17 @@
                             </MudStack>
                         </MudItem>
 
+                        @*
+                        <MudItem md="2" xs="3">
+                            <PaymentDialog Payment="@(new Payment { Date = paymentsDay.Date })" OnSubmit="x => paymentsDay.Add(x)">
+                                <MudStack AlignItems="AlignItems.Center" Row>
+                                    <MudIconButton OnClick="() => dialog?.ToggleOpen()" Size="Size.Small" Color="Color.Warning" Icon="@Icons.Material.Rounded.Add" Title="Добавить расходы" />
+                                    <MudIconButton OnClick="() => dialog?.ToggleOpen()" Size="Size.Small" Color="Color.Success" Icon="@Icons.Material.Rounded.Add" Title="Добавить доходы" />
+                                    <MudIconButton OnClick="() => dialog?.ToggleOpen()" Size="Size.Small" Color="Color.Info" Icon="@Icons.Material.Rounded.Add" Title="Быстрое добавление" />
+                                </MudStack>
+                            </PaymentDialog>
+                        </MudItem>   *@
+
                         <MudItem md="2" xs="3">
                             <MudStack AlignItems="AlignItems.Center" Row>
                                 <MudIconButton Size="Size.Small" Color="Color.Warning" Icon="@Icons.Material.Rounded.Add" Title="Добавить расходы" />
@@ -43,7 +54,7 @@
                                 <MudStack AlignItems="AlignItems.Center" Justify="Justify.FlexEnd" Row StretchItems="StretchItems.End">
                                     <MudIcon Color="@paymentType.Color" Icon="@paymentType.Icon" Size="Size.Small" />
                                     <MudText>
-                                        @paymentsDay.Payments.Where(x => x.IsDeleted == false && x.Category.PaymentTypeId == paymentType.Id).Sum(x => x.Sum).ToString("N2")
+                                        @paymentsDay.CalculateSum(paymentType.Id).ToString("N2")
                                     </MudText>
                                 </MudStack>
                             </MudItem>
@@ -61,10 +72,7 @@
                                             @payment.Sum.ToString("N2") - @payment.Category.Name - @payment.Comment
                                         </MudText>
                                         <MudSpacer />
-                                        <MudButton Color="Color.Info"
-                                                   EndIcon="@Icons.Material.Sharp.Cancel"
-                                                   OnClick="() => Restore(payment)"
-                                                   Size="Size.Large">
+                                        <MudButton Color="Color.Info" EndIcon="@Icons.Material.TwoTone.Cancel" OnClick="() => Restore(payment)">
                                             Восстановить
                                         </MudButton>
                                     </MudStack>
@@ -73,7 +81,9 @@
                                 {
                                     <MudStack AlignItems="AlignItems.Center" Row>
                                         <MudIcon Color="@payment.Category.PaymentType.Color" Icon="@payment.Category.PaymentType.Icon" Size="Size.Small" />
-                                        <MudIconButton Icon="@Icons.Material.Rounded.ModeEdit" OnClick="() => Update(payment)" Size="Size.Small" Title="Редактировать" />
+                                        @*TODO: Вынести из цикла*@
+                                        <PaymentDialog Payment="@payment" OnSubmit="() => StateHasChanged()" />
+
                                         <MudItem xs="2">
                                             <MudText Align="Align.Left" Inline>@payment.Sum.ToString("N2")</MudText>
                                         </MudItem>
@@ -93,7 +103,7 @@
                                             <MudText Align="Align.Left" Inline Typo="Typo.body2">@payment.Comment</MudText>
                                         </MudItem>
                                         <MudSpacer />
-                                        <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => Delete(payment)" Size="Size.Small" Title="Удалить" />
+                                        <MudIconButton Color="Color.Error" Icon="@Icons.Material.TwoTone.Delete" OnClick="() => Delete(payment)" Size="Size.Small" Title="Удалить" />
                                     </MudStack>
                                 }
 

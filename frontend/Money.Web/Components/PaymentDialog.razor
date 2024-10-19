@@ -1,0 +1,26 @@
+﻿@if (ChildContent != null)
+{
+    @ChildContent
+}
+else
+{
+    <MudIconButton Class="mx-n3" Icon="@Icons.Material.TwoTone.ModeEdit" OnClick="() => ToggleOpen()" Size="Size.Small" Title="Редактировать" />
+}
+
+<MudPopover AnchorOrigin="Origin.BottomLeft" Class="mt-4 mx-4 pa-4" Open="_open" TransformOrigin="Origin.TopLeft">
+    <EditForm Model="@Input" OnValidSubmit="SubmitAsync">
+        <MudStack Spacing="3" AlignItems="AlignItems.Stretch">
+            <MudNumericField @bind-Value="Input.Sum" Label="Сумма" Required Format="N2" />
+            <MudTextField @bind-Value="Input.Comment" Label="Комментарий" />
+            <MudTextField @bind-Value="Input.Place" Label="Место" />
+            <MudDatePicker @bind-Date="Input.Date" Label="Дата" Required />
+            <MudSelect @bind-Value="Input.Category" ToStringFunc="@(arg => arg.Name)" Label="Категория" Required>
+            </MudSelect>
+        </MudStack>
+
+        <MudStack Class="mt-3" Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+            <MudButton Color="Color.Error" OnClick="@ToggleOpen">Закрыть</MudButton>
+            <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled">Сохранить</MudButton>
+        </MudStack>
+    </EditForm>
+</MudPopover>

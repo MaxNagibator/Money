@@ -41,13 +41,13 @@ public partial class CategoryDialog
         MudDialog.SetOptions(_dialogOptions);
     }
 
-    private async Task SaveAsync()
+    private async Task SubmitAsync()
     {
         _isProcessing = true;
 
         try
         {
-            await SaveCategoryAsync();
+            await SaveAsync();
             SnackbarService.Add("Категория успешно сохранена!", Severity.Success);
 
             Category.Name = Input.Name;
@@ -65,7 +65,7 @@ public partial class CategoryDialog
         _isProcessing = false;
     }
 
-    private async Task SaveCategoryAsync()
+    private async Task SaveAsync()
     {
         CategoryClient.SaveRequest clientCategory = CreateSaveRequest();
 
