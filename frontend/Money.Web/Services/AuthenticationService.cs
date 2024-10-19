@@ -1,6 +1,7 @@
 ﻿using Blazored.LocalStorage;
 using CSharpFunctionalExtensions;
 using Money.ApiClient;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using AuthData = Money.Web.Models.AuthData;
@@ -66,7 +67,7 @@ public class AuthenticationService(
             new KeyValuePair<string, string>("refresh_token", refreshToken),
         ]);
 
-        requestContent.Headers.Add("Authorization", $"Bearer {token}");
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         Result<AuthData> result = await AuthenticateAsync(requestContent);
         return result.Map(data => data.AccessToken);
     }
@@ -74,6 +75,7 @@ public class AuthenticationService(
     private async Task<Result<AuthData>> AuthenticateAsync(FormUrlEncodedContent requestContent)
     {
         HttpResponseMessage response = await _client.PostAsync("connect/token", requestContent);
+        _client.DefaultRequestHeaders.Clear();
 
         if (response.IsSuccessStatusCode == false)
         {

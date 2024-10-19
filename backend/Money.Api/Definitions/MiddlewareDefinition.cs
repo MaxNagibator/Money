@@ -1,4 +1,3 @@
-using Money.Api.Definitions.Base;
 using Money.Api.Middlewares;
 
 namespace Money.Api.Definitions;

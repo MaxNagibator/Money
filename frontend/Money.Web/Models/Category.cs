@@ -36,6 +36,11 @@ public class Category
     public required int PaymentTypeId { get; set; }
 
     /// <summary>
+    ///     Типа платежа, связанного с категорией.
+    /// </summary>
+    public required PaymentTypes.Value PaymentType { get; set; }
+
+    /// <summary>
     ///     Удалён.
     /// </summary>
     public bool IsDeleted { get; set; }

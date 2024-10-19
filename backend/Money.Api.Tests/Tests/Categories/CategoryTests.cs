@@ -79,7 +79,7 @@ public class CategoryTests
         };
 
         int createdCategoryId = await _apiClient.Category.Create(request).IsSuccessWithContent();
-        Category? dbCategory = _dbClient.CreateApplicationDbContext().Categories.SingleOrDefault(_user.Id, createdCategoryId);
+        DomainCategory? dbCategory = _dbClient.CreateApplicationDbContext().Categories.SingleOrDefault(_user.Id, createdCategoryId);
 
         Assert.That(dbCategory, Is.Not.Null);
 
@@ -109,7 +109,7 @@ public class CategoryTests
         };
 
         await _apiClient.Category.Update(category.Id, request).IsSuccess();
-        Category? dbCategory = _dbClient.CreateApplicationDbContext().Categories.SingleOrDefault(_user.Id, category.Id);
+        DomainCategory? dbCategory = _dbClient.CreateApplicationDbContext().Categories.SingleOrDefault(_user.Id, category.Id);
 
         Assert.That(dbCategory, Is.Not.Null);
 
@@ -162,7 +162,7 @@ public class CategoryTests
 
         await using ApplicationDbContext context = _dbClient.CreateApplicationDbContext();
 
-        Category? dbCategory = context.Categories
+        DomainCategory? dbCategory = context.Categories
             .SingleOrDefault(_user.Id, category.Id);
 
         Assert.That(dbCategory, Is.Null);
@@ -185,7 +185,7 @@ public class CategoryTests
 
         await using ApplicationDbContext context = _dbClient.CreateApplicationDbContext();
 
-        Category? dbCategory = context.Categories.SingleOrDefault(_user.Id, category.Id);
+        DomainCategory? dbCategory = context.Categories.SingleOrDefault(_user.Id, category.Id);
         Assert.That(dbCategory, Is.Not.Null);
         Assert.That(dbCategory.IsDeleted, Is.EqualTo(false));
     }

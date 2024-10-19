@@ -25,6 +25,7 @@ public partial class Categories
     protected override async Task OnInitializedAsync()
     {
         List<Category>? categories = await CategoryService.GetCategories();
+
         if (categories == null)
         {
             return;
@@ -42,6 +43,7 @@ public partial class Categories
     {
         Category category = new()
         {
+            PaymentType = paymentType,
             PaymentTypeId = paymentType.Id,
             ParentId = parentId,
             Color = "#9b9b9bff",

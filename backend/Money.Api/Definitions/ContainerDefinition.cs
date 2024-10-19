@@ -1,6 +1,4 @@
-﻿using Money.Api.Definitions.Base;
-using Money.Business;
-using Money.Business.Services;
+﻿using Money.Business;
 
 namespace Money.Api.Definitions;
 
@@ -11,6 +9,7 @@ public class ContainerDefinition : AppDefinition
         builder.Services.AddScoped<RequestEnvironment>();
 
         builder.Services.AddScoped<AccountService>();
+        builder.Services.AddScoped<AuthService>();
 
         builder.Services.AddScoped<CategoryService>();
         builder.Services.AddScoped<PaymentService>();

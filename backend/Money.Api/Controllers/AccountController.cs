@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Money.Business.Models;
-using Money.Business.Services;
 
 namespace Money.Api.Controllers;
 
@@ -22,13 +20,8 @@ public class AccountController(AccountService accountService) : ControllerBase
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Register([FromBody] RegisterViewModel model, CancellationToken cancellationToken)
+    public async Task<IActionResult> Register([FromBody] RegisterModel model, CancellationToken cancellationToken)
     {
-        if (ModelState.IsValid == false)
-        {
-            return BadRequest(ModelState);
-        }
-
         await accountService.RegisterAsync(model, cancellationToken);
         return Ok();
     }

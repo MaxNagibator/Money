@@ -1,6 +1,4 @@
-﻿using Money.Api.Definitions.Base;
-
-namespace Money.Api.Definitions;
+﻿namespace Money.Api.Definitions;
 
 public class AuthorizationDefinition : AppDefinition
 {
