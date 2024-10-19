@@ -58,30 +58,43 @@
                         <MudStack StretchItems="StretchItems.All">
                             @foreach (Payment payment in paymentsDay.Payments)
                             {
-                                <MudStack AlignItems="AlignItems.Center" Justify="Justify.FlexStart" Row>
-                                    <MudIcon Color="@payment.Category.PaymentType.Color" Icon="@payment.Category.PaymentType.Icon" Size="Size.Small" />
-                                    <MudIconButton Icon="@Icons.Material.Rounded.ModeEdit" OnClick="() => EditPayment2(payment.Id)" Size="Size.Small" Title="Редактировать" />
-                                    <MudItem xs="1">
-                                        <MudText Align="Align.Left" Inline>@payment.Sum</MudText>
-                                    </MudItem>
-                                    <MudItem xs="3">
-                                        <MudText Align="Align.Left" Inline title="@payment.Category.Name">@payment.Category.Name</MudText>
-                                    </MudItem>
-                                    <MudItem xs="3">
-                                        <MudText Align="Align.Left" Inline title="@payment.Place">@payment.Place</MudText>
-                                    </MudItem>
-                                    @if (payment.CreatedTaskId != null)
-                                    {
+                                if (payment.IsDeleted == false)
+                                {
+                                    <MudStack AlignItems="AlignItems.Center" Justify="Justify.FlexStart" Row>
+
+                                        <MudIcon Color="@payment.Category.PaymentType.Color" Icon="@payment.Category.PaymentType.Icon" Size="Size.Small" />
+                                        <MudIconButton Icon="@Icons.Material.Rounded.ModeEdit" OnClick="() => EditPayment2(payment.Id)" Size="Size.Small" Title="Редактировать" />
                                         <MudItem xs="1">
-                                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Title="Создано регулярной задачей" />
+                                            <MudText Align="Align.Left" Inline>@payment.Sum</MudText>
                                         </MudItem>
-                                    }
-                                    <MudItem xs="4">
-                                        <MudText Align="Align.Left" Inline Typo="Typo.body2">@payment.Comment</MudText>
-                                    </MudItem>
-                                    <MudSpacer />
-                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => DeletePayment(payment.Id)" Size="Size.Small" Title="Удалить" />
-                                </MudStack>
+                                        <MudItem xs="3">
+                                            <MudText Align="Align.Left" Inline title="@payment.Category.Name">@payment.Category.Name</MudText>
+                                        </MudItem>
+                                        <MudItem xs="3">
+                                            <MudText Align="Align.Left" Inline title="@payment.Place">@payment.Place</MudText>
+                                        </MudItem>
+                                        @if (payment.CreatedTaskId != null)
+                                        {
+                                            <MudItem xs="1">
+                                                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Title="Создано регулярной задачей" />
+                                            </MudItem>
+                                        }
+                                        <MudItem xs="4">
+                                            <MudText Align="Align.Left" Inline Typo="Typo.body2">@payment.Comment</MudText>
+                                        </MudItem>
+                                        <MudSpacer />
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => Delete(payment)" Size="Size.Small" Title="Удалить" />
+                                    </MudStack>
+                                }
+                                else
+                                {
+                                    <MudButton Color="Color.Info"
+                                               EndIcon="@Icons.Material.Sharp.Cancel"
+                                               OnClick="() => Restore(payment)"
+                                               Size="Size.Large">
+                                        Восстановить
+                                    </MudButton>
+                                }
                             }
                         </MudStack>
                     </MudCardContent>

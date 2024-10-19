@@ -109,9 +109,4 @@ public partial class Payments
     {
         throw new NotImplementedException();
     }
-
-    private Task DeletePayment(int? paymentId)
-    {
-        throw new NotImplementedException();
-    }
 }

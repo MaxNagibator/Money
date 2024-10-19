@@ -37,8 +37,8 @@ public class DevelopmentController(RequestEnvironment environment, ApplicationDb
         DomainUser dbUser = await context.DomainUsers.SingleAsync(x => x.Id == environment.UserId, cancellationToken)
                             ?? throw new BusinessException("Извините, но пользователь не найден.");
 
-        context.Categories.RemoveRange(context.Categories.IsUserEntity(environment.UserId));
-        context.Payments.RemoveRange(context.Payments.IsUserEntity(environment.UserId));
+        context.Categories.RemoveRange(context.Categories.IgnoreQueryFilters().IsUserEntity(environment.UserId));
+        context.Payments.RemoveRange(context.Payments.IgnoreQueryFilters().IsUserEntity(environment.UserId));
         context.Places.RemoveRange(context.Places.IsUserEntity(environment.UserId));
 
         List<DomainCategory> categories = DatabaseSeeder.SeedCategories(environment.UserId.Value);
