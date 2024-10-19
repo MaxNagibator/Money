@@ -4,10 +4,21 @@
 
 .payment-day-head {
     padding: 5px;
-    background-color: var(--mud-palette-primary-darken);
+    background-color: #dddddd;
 }
 
 .payment-day-body {
     padding: 5px;
-    background-color: var(--mud-palette-primary-lighten);
+    background-color: #ffffff;
+}
+
+.payment-day span {
+    color: #000000;
+}
+
+.payment-day .title {
+    color: #000000;
+    font-size: 15px;
+    vertical-align: top;
+    line-height: 21px;
 }

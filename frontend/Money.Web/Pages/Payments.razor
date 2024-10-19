@@ -26,15 +26,15 @@
         {
             <div class="payment-day">
                 <div class="payment-day-head">
-                    <span style="width: 100px; display: inline-block;">
-                        <i class="fa fa-calendar"></i>
-                        <span class="payment-day-title-date">@paymentsDay.Date.ToShortDateString()</span>
+                    <span style="width: 120px; display: inline-block;">
+                        <MudIcon Class="title" Icon="@Icons.Material.TwoTone.CalendarMonth" Size="Size.Small"></MudIcon>
+                        <span class="title">@paymentsDay.Date.ToShortDateString()</span>
                     </span>
                     @foreach (PaymentTypes.Value paymentType in PaymentTypes.Values)
                     {
                         <span style="min-width: 100px; display: inline-block;">
-                            <i class="fa fa-arrow-circle-o-down payment-costs"></i>
-                            <span class="payment-day-title-sum-@(paymentType.Id)">
+                            <MudIcon Class="@(paymentType.Class + " title")" Icon="@paymentType.Icon" Size="Size.Small"></MudIcon>
+                            <span class="title">
                                 @paymentsDay.Payments.Where(x => x.Category.PaymentTypeId == paymentType.Id).Sum(x => x.Sum)
                             </span>
                         </span>
