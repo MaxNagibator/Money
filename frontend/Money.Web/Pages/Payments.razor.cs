@@ -104,4 +104,14 @@ public partial class Payments
 
         payment.IsDeleted = isDeleted;
     }
+
+    private Task EditPayment2(int? paymentId)
+    {
+        throw new NotImplementedException();
+    }
+
+    private Task DeletePayment(int? paymentId)
+    {
+        throw new NotImplementedException();
+    }
 }

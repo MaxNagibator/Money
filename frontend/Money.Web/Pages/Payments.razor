@@ -15,59 +15,79 @@
     return;
 }
 
-<MudTabs Elevation="4" Color="@Color.Primary">
-    <MudTabPanel Text="Список операций" ID="1">
-        <MudButton EndIcon="@Icons.Material.TwoTone.Add"
-                   OnClick="() => Create(DateTime.Now)"
-                   Variant="Variant.Filled">
-            Создать
-        </MudButton>
-        @foreach (PaymentsDay paymentsDay in PaymentsDays)
-        {
-            <div class="payment-day">
-                <div class="payment-day-head">
-                    <span style="width: 120px; display: inline-block;">
-                        <MudIcon Class="title" Icon="@Icons.Material.TwoTone.CalendarMonth" Size="Size.Small"></MudIcon>
-                        <span class="title">@paymentsDay.Date.ToShortDateString()</span>
-                    </span>
-                    @foreach (PaymentTypes.Value paymentType in PaymentTypes.Values)
-                    {
-                        <span style="min-width: 100px; display: inline-block;">
-                            <MudIcon Class="@(paymentType.Class + " title")" Icon="@paymentType.Icon" Size="Size.Small"></MudIcon>
-                            <span class="title">
-                                @paymentsDay.Payments.Where(x => x.Category.PaymentTypeId == paymentType.Id).Sum(x => x.Sum)
-                            </span>
-                        </span>
-                    }
-                    <i id="addPaymentBtn" class="fa fa-plus-circle payment-costs" title="Добавить расходы"></i>
-                    <i id="addPaymentBtn" class="fa fa-plus-circle payment-income" title="Добавить доходы"></i>
-                    <i id="addPaymentBtn" class="fa fa-plus-circle payment-fast" title="Быстрое добавление"></i>
-                </div>
-                <div class="payment-day-body">
-                    @foreach (Payment payment in paymentsDay.Payments)
-                    {
-                        <div id="payment_@payment.Id" class="payment-row" data-payment-id="@payment.Id">
-                            @*       <i class="@pClass"></i> *@
-                            <i class="fa fa-edit start-edit" onclick="EditPayment2('@payment.Id')" title="Редактировать"></i>
-
-                            <span class="show-sum" style="width: 100px;display: inline-block;">@payment.Sum</span>
-                            <span class="show-catname" style="width: 200px;display: inline-block;" title="@payment.Category.Name">@payment.Category.Name</span>
-                            <span class="show-place" style="width: 100px;display: inline-block;" title="@payment.Place">@payment.Place</span>
-                            @if (payment.CreatedTaskId != null)
+<MudTabs Elevation="4" Outlined>
+    <MudTabPanel ID="1" Text="Список операций">
+        <MudStack Class="mt-3" Spacing="3">
+            @foreach (PaymentsDay paymentsDay in PaymentsDays)
+            {
+                <MudCard Elevation="3">
+                    <MudCardHeader Class="border-b-4 border-solid mud-border-tertiary">
+                        <CardHeaderContent>
+                            <MudStack AlignItems="AlignItems.Center" Justify="Justify.FlexStart" Row>
+                                <MudItem xs="2">
+                                    <MudStack Justify="Justify.FlexStart" Row StretchItems="StretchItems.End">
+                                        <MudIcon Icon="@Icons.Material.Rounded.CalendarToday" Size="Size.Small" />
+                                        <MudText>
+                                            @paymentsDay.Date.ToShortDateString()
+                                        </MudText>
+                                    </MudStack>
+                                </MudItem>
+                                @foreach (PaymentTypes.Value paymentType in PaymentTypes.Values)
+                                {
+                                    <MudItem xs="2">
+                                        <MudStack AlignItems="AlignItems.Center" Justify="Justify.FlexEnd" Row StretchItems="StretchItems.End">
+                                            <MudIcon Color="@paymentType.Color" Icon="@paymentType.Icon" Size="Size.Small" />
+                                            <MudText>
+                                                @paymentsDay.Payments.Where(x => x.Category.PaymentTypeId == paymentType.Id).Sum(x => x.Sum)
+                                            </MudText>
+                                        </MudStack>
+                                    </MudItem>
+                                }
+                            </MudStack>
+                            <MudSpacer />
+                        </CardHeaderContent>
+                        <CardHeaderActions>
+                            <MudStack AlignItems="AlignItems.Center" Row>
+                                <MudIconButton Color="Color.Warning" Icon="@Icons.Material.Rounded.Add" Title="Добавить расходы" />
+                                <MudIconButton Color="Color.Success" Icon="@Icons.Material.Rounded.Add" Title="Добавить доходы" />
+                                <MudIconButton Color="Color.Info" Icon="@Icons.Material.Rounded.Add" Title="Быстрое добавление" />
+                            </MudStack>
+                        </CardHeaderActions>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudStack StretchItems="StretchItems.All">
+                            @foreach (Payment payment in paymentsDay.Payments)
                             {
-                                <span class="fa fa-calendar-check-o" title="Создано регулярной задачей"></span>
+                                <MudStack AlignItems="AlignItems.Center" Justify="Justify.FlexStart" Row>
+                                    <MudIcon Color="@payment.Category.PaymentType.Color" Icon="@payment.Category.PaymentType.Icon" Size="Size.Small" />
+                                    <MudIconButton Icon="@Icons.Material.Rounded.ModeEdit" OnClick="() => EditPayment2(payment.Id)" Size="Size.Small" Title="Редактировать" />
+                                    <MudItem xs="1">
+                                        <MudText Align="Align.Left" Inline>@payment.Sum</MudText>
+                                    </MudItem>
+                                    <MudItem xs="3">
+                                        <MudText Align="Align.Left" Inline title="@payment.Category.Name">@payment.Category.Name</MudText>
+                                    </MudItem>
+                                    <MudItem xs="3">
+                                        <MudText Align="Align.Left" Inline title="@payment.Place">@payment.Place</MudText>
+                                    </MudItem>
+                                    @if (payment.CreatedTaskId != null)
+                                    {
+                                        <MudItem xs="1">
+                                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Title="Создано регулярной задачей" />
+                                        </MudItem>
+                                    }
+                                    <MudItem xs="4">
+                                        <MudText Align="Align.Left" Inline Typo="Typo.body2">@payment.Comment</MudText>
+                                    </MudItem>
+                                    <MudSpacer />
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => DeletePayment(payment.Id)" Size="Size.Small" Title="Удалить" />
+                                </MudStack>
                             }
-                            <span class="show-comment" style="display: inline-block;">@payment.Comment</span>
-
-                            <span class="pull-right">
-                                <i class="fa fa-trash start-delete" onclick="DeletePayment('@payment.Id')" title="Удалить"></i>
-                            </span>
-                        </div>
-                    }
-                </div>
-            </div>
-        }
-
+                        </MudStack>
+                    </MudCardContent>
+                </MudCard>
+            }
+        </MudStack>
     </MudTabPanel>
     <MudTabPanel Text="Регулярные операции" ID="2">
         =)
