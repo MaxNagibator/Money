@@ -19,6 +19,11 @@ public class ApplicationDbContext(DbContextOptions options) : IdentityDbContext<
             .HasConversion(time => time.Date, time => time.Date)
             .HasColumnType("date");
 
+        builder.Entity<DomainCategory>()
+            .HasMany(c => c.SubCategories)
+            .WithOne(c => c.ParentCategory)
+            .HasForeignKey(nameof(DomainCategory.UserId), nameof(DomainCategory.ParentId));
+
         builder.Entity<DomainCategory>().HasQueryFilter(x => x.IsDeleted == false);
         builder.Entity<DomainPayment>().HasQueryFilter(x => x.IsDeleted == false);
     }

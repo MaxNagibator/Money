@@ -3,8 +3,6 @@
 
 <PageTitle>Операции</PageTitle>
 
-<MudText GutterBottom Typo="Typo.h3">Операции</MudText>
-
 @if (_init == false)
 {
     <MudStack AlignItems="AlignItems.Center" Row>
@@ -17,55 +15,77 @@
 
 <MudTabs Elevation="4" Outlined>
     <MudTabPanel ID="1" Text="Список операций">
-        <MudStack Class="mt-3" Spacing="3">
+        <MudStack Class="mt-3" Spacing="2">
             @foreach (PaymentsDay paymentsDay in PaymentsDays)
             {
                 <MudCard Elevation="3">
-                    <MudCardHeader Class="border-b-4 border-solid mud-border-tertiary">
-                        <CardHeaderContent>
-                            <MudStack AlignItems="AlignItems.Center" Justify="Justify.FlexStart" Row>
-                                <MudItem xs="2">
-                                    <MudStack Justify="Justify.FlexStart" Row StretchItems="StretchItems.End">
-                                        <MudIcon Icon="@Icons.Material.Rounded.CalendarToday" Size="Size.Small" />
-                                        <MudText>
-                                            @paymentsDay.Date.ToShortDateString()
-                                        </MudText>
-                                    </MudStack>
-                                </MudItem>
-                                @foreach (PaymentTypes.Value paymentType in PaymentTypes.Values)
-                                {
-                                    <MudItem xs="2">
-                                        <MudStack AlignItems="AlignItems.Center" Justify="Justify.FlexEnd" Row StretchItems="StretchItems.End">
-                                            <MudIcon Color="@paymentType.Color" Icon="@paymentType.Icon" Size="Size.Small" />
-                                            <MudText>
-                                                @paymentsDay.Payments.Where(x => x.Category.PaymentTypeId == paymentType.Id).Sum(x => x.Sum)
-                                            </MudText>
-                                        </MudStack>
-                                    </MudItem>
-                                }
+                    <MudCardHeader Class="border-b-4 border-solid mud-border-tertiary" Style="padding: 8px 8px;">
+                        <MudItem md="2" xs="3">
+                            <MudStack Justify="Justify.FlexStart" Row StretchItems="StretchItems.End">
+                                <MudIcon Icon="@Icons.Material.Rounded.CalendarToday" Size="Size.Small" />
+                                <MudText>
+                                    @paymentsDay.Date.ToShortDateString()
+                                </MudText>
                             </MudStack>
-                            <MudSpacer />
-                        </CardHeaderContent>
-                        <CardHeaderActions>
+                        </MudItem>
+
+                        @*
+                        <MudItem md="2" xs="3">
+                            <PaymentDialog Payment="@(new Payment { Date = paymentsDay.Date })" OnSubmit="x => paymentsDay.Add(x)">
+                                <MudStack AlignItems="AlignItems.Center" Row>
+                                    <MudIconButton OnClick="() => dialog?.ToggleOpen()" Size="Size.Small" Color="Color.Warning" Icon="@Icons.Material.Rounded.Add" Title="Добавить расходы" />
+                                    <MudIconButton OnClick="() => dialog?.ToggleOpen()" Size="Size.Small" Color="Color.Success" Icon="@Icons.Material.Rounded.Add" Title="Добавить доходы" />
+                                    <MudIconButton OnClick="() => dialog?.ToggleOpen()" Size="Size.Small" Color="Color.Info" Icon="@Icons.Material.Rounded.Add" Title="Быстрое добавление" />
+                                </MudStack>
+                            </PaymentDialog>
+                        </MudItem>   *@
+
+                        <MudItem md="2" xs="3">
                             <MudStack AlignItems="AlignItems.Center" Row>
-                                <MudIconButton Color="Color.Warning" Icon="@Icons.Material.Rounded.Add" Title="Добавить расходы" />
-                                <MudIconButton Color="Color.Success" Icon="@Icons.Material.Rounded.Add" Title="Добавить доходы" />
-                                <MudIconButton Color="Color.Info" Icon="@Icons.Material.Rounded.Add" Title="Быстрое добавление" />
+                                <MudIconButton Size="Size.Small" Color="Color.Warning" Icon="@Icons.Material.Rounded.Add" Title="Добавить расходы" />
+                                <MudIconButton Size="Size.Small" Color="Color.Success" Icon="@Icons.Material.Rounded.Add" Title="Добавить доходы" />
+                                <MudIconButton Size="Size.Small" Color="Color.Info" Icon="@Icons.Material.Rounded.Add" Title="Быстрое добавление" />
                             </MudStack>
-                        </CardHeaderActions>
+                        </MudItem>
+
+                        @foreach (PaymentTypes.Value paymentType in PaymentTypes.Values)
+                        {
+                            <MudItem md="2" xs="3">
+                                <MudStack AlignItems="AlignItems.Center" Justify="Justify.FlexEnd" Row StretchItems="StretchItems.End">
+                                    <MudIcon Color="@paymentType.Color" Icon="@paymentType.Icon" Size="Size.Small" />
+                                    <MudText>
+                                        @paymentsDay.CalculateSum(paymentType.Id).ToString("N2")
+                                    </MudText>
+                                </MudStack>
+                            </MudItem>
+                        }
+                        <MudSpacer />
                     </MudCardHeader>
-                    <MudCardContent>
-                        <MudStack StretchItems="StretchItems.All">
+                    <MudCardContent Style="padding: 8px 8px;">
+                        <MudStack Spacing="0">
                             @foreach (Payment payment in paymentsDay.Payments)
                             {
-                                if (payment.IsDeleted == false)
+                                if (payment.IsDeleted)
                                 {
-                                    <MudStack AlignItems="AlignItems.Center" Justify="Justify.FlexStart" Row>
-
+                                    <MudStack AlignItems="AlignItems.Center" Row>
+                                        <MudText Style="text-decoration: line-through;">
+                                            @payment.Sum.ToString("N2") - @payment.Category.Name - @payment.Comment
+                                        </MudText>
+                                        <MudSpacer />
+                                        <MudButton Color="Color.Info" EndIcon="@Icons.Material.TwoTone.Cancel" OnClick="() => Restore(payment)">
+                                            Восстановить
+                                        </MudButton>
+                                    </MudStack>
+                                }
+                                else
+                                {
+                                    <MudStack AlignItems="AlignItems.Center" Row>
                                         <MudIcon Color="@payment.Category.PaymentType.Color" Icon="@payment.Category.PaymentType.Icon" Size="Size.Small" />
-                                        <MudIconButton Icon="@Icons.Material.Rounded.ModeEdit" OnClick="() => EditPayment2(payment.Id)" Size="Size.Small" Title="Редактировать" />
-                                        <MudItem xs="1">
-                                            <MudText Align="Align.Left" Inline>@payment.Sum</MudText>
+                                        @*TODO: Вынести из цикла*@
+                                        <PaymentDialog Payment="@payment" OnSubmit="() => StateHasChanged()" />
+
+                                        <MudItem xs="2">
+                                            <MudText Align="Align.Left" Inline>@payment.Sum.ToString("N2")</MudText>
                                         </MudItem>
                                         <MudItem xs="3">
                                             <MudText Align="Align.Left" Inline title="@payment.Category.Name">@payment.Category.Name</MudText>
@@ -83,18 +103,11 @@
                                             <MudText Align="Align.Left" Inline Typo="Typo.body2">@payment.Comment</MudText>
                                         </MudItem>
                                         <MudSpacer />
-                                        <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => Delete(payment)" Size="Size.Small" Title="Удалить" />
+                                        <MudIconButton Color="Color.Error" Icon="@Icons.Material.TwoTone.Delete" OnClick="() => Delete(payment)" Size="Size.Small" Title="Удалить" />
                                     </MudStack>
                                 }
-                                else
-                                {
-                                    <MudButton Color="Color.Info"
-                                               EndIcon="@Icons.Material.Sharp.Cancel"
-                                               OnClick="() => Restore(payment)"
-                                               Size="Size.Large">
-                                        Восстановить
-                                    </MudButton>
-                                }
+
+                                <MudDivider DividerType="DividerType.FullWidth" />
                             }
                         </MudStack>
                     </MudCardContent>

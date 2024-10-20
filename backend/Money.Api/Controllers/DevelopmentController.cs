@@ -27,24 +27,24 @@ public class DevelopmentController(RequestEnvironment environment, ApplicationDb
     /// <param name="cancellationToken">Токен отмены операции.</param>
     [HttpPost]
     [Route("/Restore")]
-    public async Task RestoreAllAsync(CancellationToken cancellationToken = default)
+    public async Task LoadTestData(CancellationToken cancellationToken = default)
     {
         if (environment.UserId == null)
         {
             throw new BusinessException("Извините, но идентификатор пользователя не указан.");
         }
 
-        DomainUser dbUser = await context.DomainUsers.SingleAsync(x => x.Id == environment.UserId, cancellationToken)
+        DomainUser dbUser = await context.DomainUsers.SingleOrDefaultAsync(x => x.Id == environment.UserId, cancellationToken)
                             ?? throw new BusinessException("Извините, но пользователь не найден.");
 
         context.Categories.RemoveRange(context.Categories.IgnoreQueryFilters().IsUserEntity(environment.UserId));
         context.Payments.RemoveRange(context.Payments.IgnoreQueryFilters().IsUserEntity(environment.UserId));
         context.Places.RemoveRange(context.Places.IsUserEntity(environment.UserId));
 
-        List<DomainCategory> categories = DatabaseSeeder.SeedCategories(environment.UserId.Value);
-        (List<DomainPayment> payments, List<DomainPlace> places) = DatabaseSeeder.SeedPayments(environment.UserId.Value);
+        List<DomainCategory> categories = DatabaseSeeder.SeedCategories(environment.UserId.Value, out int lastIndex);
+        (List<DomainPayment> payments, List<DomainPlace> places) = DatabaseSeeder.SeedPayments(environment.UserId.Value, categories);
 
-        dbUser.NextCategoryId = categories.Last().Id + 1;
+        dbUser.NextCategoryId = lastIndex + 1;
         dbUser.NextPlaceId = places.Last().Id + 1;
         dbUser.NextPaymentId = payments.Last().Id + 1;
 

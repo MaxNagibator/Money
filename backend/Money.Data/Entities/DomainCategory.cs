@@ -19,4 +19,7 @@ public class DomainCategory : UserEntity
     public int? Order { get; set; }
 
     public bool IsDeleted { get; set; }
+
+    public virtual DomainCategory? ParentCategory { get; set; }
+    public virtual List<DomainCategory>? SubCategories { get; set; }
 }
