@@ -158,7 +158,7 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task RestoreDefaultAsync(bool isAdd = true, CancellationToken cancellationToken = default)
+    public async Task LoadDefaultAsync(bool isAdd = true, CancellationToken cancellationToken = default)
     {
         if (environment.UserId == null)
         {
@@ -178,11 +178,11 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
         {
             // TODO: Возможно нужно использовать мягкое удаление, но для разработки сделано жесткое.
             // В дальнейшем возможем лучше вообще убрать эту ветку.
-            context.Categories.RemoveRange(context.Categories.IsUserEntity(environment.UserId));
+            context.Categories.RemoveRange(context.Categories.IgnoreQueryFilters().IsUserEntity(environment.UserId));
         }
 
-        List<DomainCategory> categories = DatabaseSeeder.SeedCategories(environment.UserId.Value, categoryId);
-        dbUser.NextCategoryId = categories.Last().Id + 1;
+        List<DomainCategory> categories = DatabaseSeeder.SeedCategories(environment.UserId.Value, out int lastIndex, categoryId);
+        dbUser.NextCategoryId = lastIndex + 1;
 
         await context.Categories.AddRangeAsync(categories, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
