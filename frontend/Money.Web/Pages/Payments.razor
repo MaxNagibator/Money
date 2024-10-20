@@ -54,7 +54,7 @@
                                 <MudStack AlignItems="AlignItems.Center" Justify="Justify.FlexEnd" Row StretchItems="StretchItems.End">
                                     <MudIcon Color="@paymentType.Color" Icon="@paymentType.Icon" Size="Size.Small" />
                                     <MudText>
-                                        @paymentsDay.CalculateSum(paymentType.Id).ToString("N2")
+                                        @paymentsDay.CalculateSum(paymentType).ToString("N2")
                                     </MudText>
                                 </MudStack>
                             </MudItem>
@@ -63,8 +63,10 @@
                     </MudCardHeader>
                     <MudCardContent Style="padding: 8px 8px;">
                         <MudStack Spacing="0">
-                            @foreach (Payment payment in paymentsDay.Payments)
+                            @for (int i = 0; i < paymentsDay.Payments.Count; i++)
                             {
+                                Payment payment = paymentsDay.Payments[i];
+
                                 if (payment.IsDeleted)
                                 {
                                     <MudStack AlignItems="AlignItems.Center" Row>
@@ -107,7 +109,10 @@
                                     </MudStack>
                                 }
 
-                                <MudDivider DividerType="DividerType.FullWidth" />
+                                if (i != paymentsDay.Payments.Count - 1)
+                                {
+                                    <MudDivider FlexItem DividerType="DividerType.FullWidth" />
+                                }
                             }
                         </MudStack>
                     </MudCardContent>

@@ -110,8 +110,8 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     /// </param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     [HttpPost]
-    [Route("/Restore/{isAdd:bool?}")]
-    public async Task LoadDefaultAsync(bool? isAdd, CancellationToken cancellationToken)
+    [Route("/LoadDefault/{isAdd:bool?}")]
+    public async Task LoadDefault(bool? isAdd, CancellationToken cancellationToken)
     {
         await categoryService.LoadDefaultAsync(isAdd ?? true, cancellationToken);
     }

@@ -26,7 +26,7 @@ public class DevelopmentController(RequestEnvironment environment, ApplicationDb
     /// </summary>
     /// <param name="cancellationToken">Токен отмены операции.</param>
     [HttpPost]
-    [Route("/Restore")]
+    [Route("/LoadTestData")]
     public async Task LoadTestData(CancellationToken cancellationToken = default)
     {
         if (environment.UserId == null)

@@ -63,16 +63,6 @@ public partial class Payments
         _init = true;
     }
 
-    private Task Create(DateTime date)
-    {
-        return Task.CompletedTask;
-    }
-
-    private Task Update(Payment payment)
-    {
-        return Task.CompletedTask;
-    }
-
     private async Task Delete(Payment payment)
     {
         await ModifyPayment(payment, MoneyClient.Payment.Delete, true);
