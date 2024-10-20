@@ -25,14 +25,18 @@ public partial class PaymentDialog
     private MoneyClient MoneyClient { get; set; } = default!;
 
     [Inject]
+    private CategoryService CategoryService { get; set; } = default!;
+
+    [Inject]
     private ISnackbar SnackbarService { get; set; } = default!;
 
-    public void ToggleOpen()
+    public async Task ToggleOpen()
     {
         _open = !_open;
 
         if (_open)
         {
+            List<Category>? categories = await CategoryService.GetCategories();
             Input = new InputModel
             {
                 Category = Payment.Category,
@@ -40,6 +44,8 @@ public partial class PaymentDialog
                 Date = Payment.Date,
                 Place = Payment.Place,
                 Sum = Payment.Sum,
+                // todo обработать, если текущая категория удалена.
+                CategoryList = [.. categories!],
             };
         }
 
@@ -48,14 +54,7 @@ public partial class PaymentDialog
 
     protected override void OnParametersSet()
     {
-        Input = new InputModel
-        {
-            Category = Payment.Category,
-            Comment = Payment.Comment,
-            Date = Payment.Date,
-            Place = Payment.Place,
-            Sum = Payment.Sum,
-        };
+        Input = new InputModel();
     }
 
     private async Task SubmitAsync()
@@ -116,6 +115,8 @@ public partial class PaymentDialog
     {
         [Required(ErrorMessage = "Категория обязательна.")]
         public Category Category { get; set; }
+
+        public List<Category> CategoryList { get; set; }
 
         [Required(ErrorMessage = "Требуется сумма.")]
         [Range(0.01, double.MaxValue, ErrorMessage = "Сумма должна быть больше нуля.")]

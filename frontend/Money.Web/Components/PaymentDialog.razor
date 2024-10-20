@@ -15,6 +15,13 @@ else
             <MudTextField @bind-Value="Input.Place" Label="Место" />
             <MudDatePicker @bind-Date="Input.Date" Label="Дата" Required />
             <MudSelect @bind-Value="Input.Category" ToStringFunc="@(arg => arg.Name)" Label="Категория" Required>
+                @if (Input.CategoryList != null)
+                {
+                    @foreach (var category in Input.CategoryList)
+                    {
+                        <MudSelectItem Value="@(category)">@category.Name</MudSelectItem>
+                    }
+                }
             </MudSelect>
         </MudStack>
 
