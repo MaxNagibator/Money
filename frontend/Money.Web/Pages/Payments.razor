@@ -5,18 +5,13 @@
 
 @if (_init == false)
 {
-    <MudStack AlignItems="AlignItems.Center" Row>
-        <MudProgressCircular Indeterminate />
-        <MudText Typo="Typo.body1">Загрузка..</MudText>
-    </MudStack>
-
-    return;
+    <MudProgressLinear Indeterminate />
 }
 
 <MudTabs Elevation="4" Outlined>
     <MudTabPanel ID="1" Text="Список операций">
         <MudStack Class="mt-3" Spacing="2">
-            @foreach (PaymentsDay paymentsDay in PaymentsDays)
+            @foreach (PaymentsDay paymentsDay in PaymentsDays ?? [])
             {
                 <MudCard Elevation="3">
                     <MudCardHeader Class="border-b-4 border-solid mud-border-tertiary" Style="padding: 8px 8px;">
@@ -109,7 +104,7 @@
                                     </MudStack>
                                 }
 
-                                if (i != paymentsDay.Payments.Count - 1)
+                                if (AppSettings.ShowDividers && i != paymentsDay.Payments.Count - 1)
                                 {
                                     <MudDivider FlexItem DividerType="DividerType.FullWidth" />
                                 }

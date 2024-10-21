@@ -1,0 +1,49 @@
+﻿@page "/settings"
+
+<MudCard Class="mb-6">
+    <MudCardHeader>
+        <MudText Typo="Typo.h6">Настройки темы</MudText>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudIconButton Color="@(AppSettings.IsManualMode ? Color.Primary : Color.Secondary)"
+                       Icon="@(AppSettings.IsManualMode ? Icons.Material.Filled.Check : Icons.Material.Filled.SwapHoriz)"
+                       OnClick="ToggleManualMode"
+                       title="@(AppSettings.IsManualMode ? "Ручной" : "Авто")" />
+
+        <MudIconButton Color="Color.Inherit"
+                       Icon="@Icons.Material.Rounded.Brightness4"
+                       OnClick="ToggleDarkMode"
+                       Size="Size.Medium" />
+
+        <MudText>Текущий режим темной темы: @(AppSettings.IsManualMode ? "Ручной" : "Авто")</MudText>
+        <MudText>Текущий режим темной темы: @(AppSettings.IsDarkMod ? "Темный" : "Светлый")</MudText>
+    </MudCardContent>
+</MudCard>
+
+<MudCard Class="mb-6">
+    <MudCardHeader>
+        <MudText Typo="Typo.h6">Расписание темной темы</MudText>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudSwitch @bind-Value="AppSettings.IsSchedule" Label="Активировать расписание"
+                   Color="Color.Primary" UncheckedColor="Color.Default" />
+        <MudTimePicker Disabled="@(!AppSettings.IsSchedule)" @bind-Time="DarkModeStartTime" Label="Время начала" />
+        <MudTimePicker Disabled="@(!AppSettings.IsSchedule)" @bind-Time="DarkModeEndTime" Label="Время окончания" />
+        <MudButton Disabled="@(!AppSettings.IsSchedule)" OnClick="SetScheduledMode">Установить расписание</MudButton>
+    </MudCardContent>
+</MudCard>
+
+<MudCard Class="mb-6">
+    <MudCardHeader>
+        <MudText Typo="Typo.h6">Настройки отображения платежей</MudText>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudText>Выберите, показывать ли разделители между записями платежей. Это может помочь улучшить читаемость.</MudText>
+        <MudSwitch @bind-Value="AppSettings.ShowDividers" Label="Показывать разделители в платежах"
+                   Color="Color.Primary" UncheckedColor="Color.Default" />
+
+        <MudText>
+            Разделители в настоящее время: <strong>@(AppSettings.ShowDividers ? "Включены" : "Выключены")</strong>
+        </MudText>
+    </MudCardContent>
+</MudCard>

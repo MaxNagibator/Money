@@ -7,6 +7,9 @@ public partial class Payments
 {
     private bool _init;
 
+    [CascadingParameter]
+    public AppSettings AppSettings { get; set; } = default!;
+
     [Inject]
     private MoneyClient MoneyClient { get; set; } = default!;
 
@@ -19,7 +22,7 @@ public partial class Payments
     [Inject]
     private ISnackbar SnackbarService { get; set; } = default!;
 
-    private List<PaymentsDay> PaymentsDays { get; set; } = default!;
+    private List<PaymentsDay>? PaymentsDays { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -39,7 +42,7 @@ public partial class Payments
 
         Dictionary<int, Category> categoriesDict = categories.ToDictionary(x => x.Id!.Value, x => x);
 
-        List<Payment> payments = apiPayments.Content
+        PaymentsDays = apiPayments.Content
             .Select(apiPayment => new Payment
             {
                 Id = apiPayment.Id,
@@ -50,9 +53,7 @@ public partial class Payments
                 CreatedTaskId = apiPayment.CreatedTaskId,
                 Place = apiPayment.Place,
             })
-            .ToList();
-
-        PaymentsDays = payments.GroupBy(x => x.Date)
+            .GroupBy(x => x.Date)
             .Select(x => new PaymentsDay
             {
                 Date = x.Key,
