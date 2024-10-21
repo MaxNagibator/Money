@@ -2,34 +2,18 @@
 
 public static class PaymentTypes
 {
+    public static readonly Value None = new(0, "Неизвестный тип", Icons.Material.Rounded.Error, Color.Error);
+
     public static Value[] Values { get; } = GetValues();
 
     private static Value[] GetValues()
     {
         return
         [
-            new Value
-            {
-                Id = 1,
-                Name = "Расходы",
-                Icon = Icons.Material.Rounded.ArrowCircleDown,
-                Color = Color.Warning,
-            },
-            new Value
-            {
-                Id = 2,
-                Name = "Доходы",
-                Icon = Icons.Material.Rounded.ArrowCircleUp,
-                Color = Color.Success,
-            },
+            new Value(1, "Расходы", Icons.Material.Rounded.ArrowCircleDown, Color.Warning),
+            new Value(2, "Доходы", Icons.Material.Rounded.ArrowCircleUp, Color.Success),
         ];
     }
 
-    public class Value
-    {
-        public required int Id { get; init; }
-        public required string Name { get; init; }
-        public required string Icon { get; init; }
-        public required Color Color { get; init; }
-    }
+    public record Value(int Id, string Name, string Icon, Color Color);
 }

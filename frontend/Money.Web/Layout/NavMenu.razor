@@ -1,23 +1,24 @@
 ﻿<MudNavMenu>
-    <MudNavLink Href="" Icon="@Icons.Material.Filled.Home" Match="NavLinkMatch.All">Главная</MudNavLink>
-    <MudNavLink Href="auth" Icon="@Icons.Material.Filled.Lock" Match="NavLinkMatch.Prefix">Требуется авторизация</MudNavLink>
+    <MudNavLink Href="" Icon="@Icons.Material.TwoTone.Home" Match="NavLinkMatch.All">Главная</MudNavLink>
+    <MudNavLink Href="auth" Icon="@Icons.Material.TwoTone.Lock" Match="NavLinkMatch.Prefix">Требуется авторизация</MudNavLink>
+    <MudNavLink Href="settings" Icon="@Icons.Material.TwoTone.SettingsApplications">Настройки</MudNavLink>
 
     <AuthorizeView>
         <Authorized>
-            <MudNavLink Href="payments" Icon="@Icons.Material.Filled.Money" Match="NavLinkMatch.Prefix">Операции</MudNavLink>
-            <MudNavLink Href="categories" Icon="@Icons.Material.Filled.Category" Match="NavLinkMatch.Prefix">Категории</MudNavLink>
-            <MudNavLink Href="Account/Manage" Icon="@Icons.Material.Filled.Person" Match="NavLinkMatch.Prefix">@context.User.Identity?.Name</MudNavLink>
+            <MudNavLink Href="payments" Icon="@Icons.Material.TwoTone.Money" Match="NavLinkMatch.Prefix">Операции</MudNavLink>
+            <MudNavLink Href="categories" Icon="@Icons.Material.TwoTone.Category" Match="NavLinkMatch.Prefix">Категории</MudNavLink>
+            <MudNavLink Href="Account/Manage" Icon="@Icons.Material.TwoTone.Person" Match="NavLinkMatch.Prefix">@context.User.Identity?.Name</MudNavLink>
 
             <MudNavLink Href="@(NavigationManager.GetUriWithReturnUrl("Account/Logout", _currentUrl))"
-                        Icon="@Icons.Material.Filled.Logout"
+                        Icon="@Icons.Material.TwoTone.Logout"
                         Match="NavLinkMatch.Prefix"
                         IconColor="Color.Info">
                 Выйти
             </MudNavLink>
         </Authorized>
         <NotAuthorized>
-            <MudNavLink Href="Account/Register" Icon="@Icons.Material.Filled.Person" Match="NavLinkMatch.Prefix">Регистрация</MudNavLink>
-            <MudNavLink Href="Account/Login" Icon="@Icons.Material.Filled.Password" Match="NavLinkMatch.Prefix">Вход</MudNavLink>
+            <MudNavLink Href="Account/Register" Icon="@Icons.Material.TwoTone.Person" Match="NavLinkMatch.Prefix">Регистрация</MudNavLink>
+            <MudNavLink Href="Account/Login" Icon="@Icons.Material.TwoTone.Password" Match="NavLinkMatch.Prefix">Вход</MudNavLink>
         </NotAuthorized>
     </AuthorizeView>
 </MudNavMenu>

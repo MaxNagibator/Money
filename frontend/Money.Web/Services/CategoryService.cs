@@ -13,7 +13,6 @@ public class CategoryService(MoneyClient moneyClient)
                 Id = apiCategory.Id,
                 ParentId = apiCategory.ParentId,
                 Name = apiCategory.Name,
-                PaymentTypeId = apiCategory.PaymentTypeId,
                 Color = apiCategory.Color,
                 Order = apiCategory.Order,
                 PaymentType = PaymentTypes.Values.First(x => x.Id == apiCategory.PaymentTypeId),

@@ -33,7 +33,7 @@ public partial class Categories
 
         foreach (PaymentTypes.Value paymentType in PaymentTypes.Values)
         {
-            InitialTreeItems.Add(paymentType.Id, BuildChildren(categories.Where(x => x.PaymentTypeId == paymentType.Id).ToList(), null));
+            InitialTreeItems.Add(paymentType.Id, BuildChildren(categories.Where(x => x.PaymentType == paymentType).ToList(), null));
         }
 
         _init = true;
@@ -43,8 +43,8 @@ public partial class Categories
     {
         Category category = new()
         {
+            Name = string.Empty,
             PaymentType = paymentType,
-            PaymentTypeId = paymentType.Id,
             ParentId = parentId,
             Color = "#9b9b9bff",
         };
@@ -57,13 +57,13 @@ public partial class Categories
         }
 
         AddCategoryToTree(createdCategory, paymentType.Id);
-        SortTree(category.PaymentTypeId);
+        SortTree(category.PaymentType.Id);
     }
 
     private async Task Update(Category category)
     {
         await ShowCategoryDialog("Обновить", category);
-        SortTree(category.PaymentTypeId);
+        SortTree(category.PaymentType.Id);
     }
 
     private async Task Delete(Category category)
