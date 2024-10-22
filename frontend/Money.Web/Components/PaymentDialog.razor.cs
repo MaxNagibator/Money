@@ -10,6 +10,7 @@ namespace Money.Web.Components;
 
 public partial class PaymentDialog
 {
+    private static readonly HashSet<char> ValidKeys = ['(', ')', '+', '-', '*', '/'];
     private bool _isOpen;
     private bool _isNumericSumVisible = true;
 
@@ -61,7 +62,7 @@ public partial class PaymentDialog
 
     private async Task ToggleSumFieldAsync()
     {
-        if (await ValidateSumAsync())
+        if (_isNumericSumVisible == false && await ValidateSumAsync())
         {
             return;
         }
@@ -114,12 +115,20 @@ public partial class PaymentDialog
 
     private async Task OnSumKeyDown(KeyboardEventArgs args)
     {
-        if (args.Key != "(" && args.Key != ")" && args.Key != "+" && args.Key != "-" && args.Key != "*" && args.Key != "/")
+        char key = args.Key.Length == 1 ? args.Key[0] : '\0';
+
+        if (key == '\0' || !ValidKeys.Contains(key))
         {
             return;
         }
-        // todo почему то на минус печатется сразу два штуки
-        Input.CalculationSum += args.Key;
+
+        // Костыль, но ‘-’ валидный символ для NumericField, поэтому происходит его повторное добавление
+        // InputMode.@decimal / https://developer.mozilla.org/ru/docs/Web/HTML/Global_attributes/inputmode#decimal
+        if (key != '-')
+        {
+            Input.CalculationSum += key;
+        }
+
         await ToggleSumFieldAsync();
     }
 

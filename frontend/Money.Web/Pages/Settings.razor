@@ -13,6 +13,7 @@
         <MudIconButton Color="@(AppSettings.IsSchedule ? Color.Primary : Color.Secondary)"
                        Icon="@(AppSettings.IsSchedule ? Icons.Material.TwoTone.Schedule : Icons.Material.TwoTone.Computer)"
                        OnClick="() => ModeToggle.ToggleScheduleMode()"
+                       Disabled="DisabledSchedule"
                        title="@(AppSettings.IsSchedule ? "По расписанию" : "Согласно настройкам системы")" />
 
         <MudIconButton Color="Color.Inherit"
@@ -22,7 +23,9 @@
 
         <MudDivider Class="my-4" />
 
-        <MudText>Текущий режим темной темы: @(AppSettings.IsManualMode ? "Ручной" : "Авто")</MudText>
+        <MudText Color="@(DisabledSchedule ? Color.Warning : Color.Default)">
+            Текущий режим темной темы: @(AppSettings.IsManualMode ? "Ручной" : "Авто")
+        </MudText>
         <MudText>Текущий автоматический режим: @(AppSettings.IsSchedule ? "По расписанию" : "Согласно настройкам системы")</MudText>
         <MudText>Текущий режим темной темы: @(AppSettings.IsDarkMode ? "Темный" : "Светлый")</MudText>
     </MudCardContent>
@@ -38,9 +41,10 @@
                 <MudIconButton Icon="@(ModeToggle.Settings.IsLocationChangedEnabled ? Icons.Material.TwoTone.Check : Icons.Material.TwoTone.Close)"
                                Color="@(ModeToggle.Settings.IsLocationChangedEnabled ? Color.Primary : Color.Default)"
                                OnClick="() => ModeToggle.ToggleLocationChanged()"
+                               Disabled="DisabledSchedule"
                                aria-label="Переключить отслеживание перехода по страницам" />
             </MudTooltip>
-            <MudText Typo="Typo.body1">Активировать отслеживание перехода по страницам</MudText>
+            <MudText Typo="Typo.body1">Активировать отслеживание перехода по страницам приложения (не вкладкам)</MudText>
         </MudStack>
 
         <MudDivider Class="mb-6" DividerType="DividerType.FullWidth" />
@@ -51,6 +55,7 @@
                 <MudIconButton Icon="@(AppSettings.IsSchedule ? Icons.Material.TwoTone.Check : Icons.Material.TwoTone.Close)"
                                Color="@(AppSettings.IsSchedule ? Color.Primary : Color.Default)"
                                OnClick="() => ModeToggle.ToggleScheduleMode()"
+                               Disabled="DisabledSchedule"
                                aria-label="Переключить расписание темной темы" />
             </MudTooltip>
             <MudText Typo="Typo.body1">Активировать расписание</MudText>
@@ -58,13 +63,13 @@
 
         <MudGrid Spacing="3" Class="mt-4">
             <MudItem xs="12" sm="6">
-                <MudTimePicker Disabled="@(!AppSettings.IsSchedule)"
+                <MudTimePicker Disabled="DisabledSchedule"
                                @bind-Time="DarkModeStart"
                                Label="Время начала"
                                HelperText="Выберите время начала темной темы" />
             </MudItem>
             <MudItem xs="12" sm="6">
-                <MudTimePicker Disabled="@(!AppSettings.IsSchedule)"
+                <MudTimePicker Disabled="DisabledSchedule"
                                @bind-Time="DarkModeEnd"
                                Label="Время окончания"
                                HelperText="Выберите время окончания темной темы" />
@@ -78,6 +83,7 @@
                 <MudIconButton Icon="@(ModeToggle.Settings.IsTimerEnabled ? Icons.Material.TwoTone.Check : Icons.Material.TwoTone.Close)"
                                Color="@(ModeToggle.Settings.IsTimerEnabled ? Color.Primary : Color.Default)"
                                OnClick="() => ModeToggle.ToggleTimerEnabled()"
+                               Disabled="DisabledSchedule"
                                aria-label="Переключить таймер" />
             </MudTooltip>
             <MudText Typo="Typo.body1">Активировать таймер</MudText>
@@ -85,7 +91,7 @@
 
         <MudGrid Spacing="3" Class="mt-4">
             <MudItem xs="12">
-                <MudTimePicker Disabled="@(!AppSettings.IsSchedule)"
+                <MudTimePicker Disabled="@(DisabledSchedule || !ModeToggle.Settings.IsTimerEnabled)"
                                @bind-Time="ScheduleCheckInterval"
                                Label="Интервал проверки"
                                HelperText="Выберите интервал проверки расписания" />
@@ -94,7 +100,7 @@
 
         <MudDivider Class="mb-6" DividerType="DividerType.FullWidth" />
 
-        <MudButton Disabled="@(!AppSettings.IsSchedule)"
+        <MudButton Disabled="DisabledSchedule"
                    OnClick="UpdateSchedule"
                    Class="mt-4"
                    Color="Color.Primary"

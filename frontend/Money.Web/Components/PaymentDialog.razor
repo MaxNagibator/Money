@@ -35,7 +35,8 @@ else
                               For="@(() => Input.CalculationSum)"
                               Label="Сумма"
                               OnAdornmentClick="ToggleSumFieldAsync"
-                              OnBlur="ToggleSumFieldAsync" />
+                              OnBlur="ToggleSumFieldAsync"
+                              Clearable />
             }
 
             <MudTextField @bind-Value="Input.Comment" Counter="0" For="@(() => Input.Comment)" Label="Комментарий" />
