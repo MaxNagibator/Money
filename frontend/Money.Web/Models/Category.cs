@@ -5,6 +5,12 @@
 /// </summary>
 public class Category
 {
+    public static readonly Category Empty = new()
+    {
+        Name = "Несуществующая",
+        PaymentType = PaymentTypes.None,
+    };
+
     /// <summary>
     ///     Идентификатор (может быть null при создании новой категории).
     /// </summary>
@@ -13,7 +19,7 @@ public class Category
     /// <summary>
     ///     Наименование.
     /// </summary>
-    public string? Name { get; set; }
+    public required string Name { get; set; }
 
     /// <summary>
     ///     Идентификатор родительской категории, если такая существует.
@@ -29,11 +35,6 @@ public class Category
     ///     Цвет, представленный в виде строки (например, код цвета HEX).
     /// </summary>
     public string? Color { get; set; }
-
-    /// <summary>
-    ///     Идентификатор типа платежа, связанного с категорией.
-    /// </summary>
-    public required int PaymentTypeId { get; set; }
 
     /// <summary>
     ///     Типа платежа, связанного с категорией.

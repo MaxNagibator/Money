@@ -1,13 +1,17 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Money.ApiClient;
+using NCalc;
+using NCalc.Factories;
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 
 namespace Money.Web.Components;
 
 public partial class PaymentDialog
 {
-    private bool _open;
-    private bool _isProcessing;
+    private bool _isOpen;
+    private bool _isNumericSumVisible = true;
 
     [Parameter]
     public Payment Payment { get; set; } = default!;
@@ -19,7 +23,7 @@ public partial class PaymentDialog
     public RenderFragment? ChildContent { get; set; }
 
     [SupplyParameterFromForm]
-    private InputModel Input { get; set; } = default!;
+    private InputModel Input { get; set; } = InputModel.Empty;
 
     [Inject]
     private MoneyClient MoneyClient { get; set; } = default!;
@@ -30,13 +34,17 @@ public partial class PaymentDialog
     [Inject]
     private ISnackbar SnackbarService { get; set; } = default!;
 
+    [Inject]
+    private IAsyncExpressionFactory Factory { get; set; } = default!;
+
     public async Task ToggleOpen()
     {
-        _open = !_open;
+        _isOpen = !_isOpen;
 
-        if (_open)
+        if (_isOpen)
         {
-            List<Category>? categories = await CategoryService.GetCategories();
+            List<Category> categories = await CategoryService.GetCategories() ?? [];
+
             Input = new InputModel
             {
                 Category = Payment.Category,
@@ -44,27 +52,87 @@ public partial class PaymentDialog
                 Date = Payment.Date,
                 Place = Payment.Place,
                 Sum = Payment.Sum,
+                CalculationSum = Payment.Sum.ToString(CultureInfo.CurrentCulture),
                 // todo обработать, если текущая категория удалена.
-                CategoryList = [.. categories!],
+                CategoryList = [.. categories.Where(x => x.PaymentType == Payment.Category.PaymentType)],
             };
         }
-
-        StateHasChanged();
     }
 
-    protected override void OnParametersSet()
+    private async Task ToggleSumFieldAsync()
     {
-        Input = new InputModel();
+        if (await ValidateSumAsync())
+        {
+            return;
+        }
+
+        _isNumericSumVisible = !_isNumericSumVisible;
+    }
+
+    private async Task<bool> ValidateSumAsync()
+    {
+        if (_isNumericSumVisible == false)
+        {
+            decimal? sum = await CalculateAsync();
+
+            if (sum == null)
+            {
+                return true;
+            }
+
+            Input.Sum = sum.Value;
+        }
+
+        return false;
+    }
+
+    private async Task<decimal?> CalculateAsync()
+    {
+        decimal? sum = null;
+
+        if (Input.CalculationSum == null)
+        {
+            return sum;
+        }
+
+        try
+        {
+            string rawSum = Input.CalculationSum.Replace(',', '.');
+            AsyncExpression expression = Factory.Create(rawSum, ExpressionOptions.DecimalAsDefault);
+
+            object? rawResult = await expression.EvaluateAsync();
+            sum = Convert.ToDecimal(rawResult);
+        }
+        catch (Exception)
+        {
+            SnackbarService.Add("Нераспознано значение в поле 'сумма'.", Severity.Error);
+        }
+
+        return sum;
+    }
+
+    private async Task OnSumKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key.All(char.IsDigit))
+        {
+            return;
+        }
+
+        Input.CalculationSum += args.Key;
+        await ToggleSumFieldAsync();
     }
 
     private async Task SubmitAsync()
     {
-        _isProcessing = true;
-
         try
         {
+            if (await ValidateSumAsync())
+            {
+                return;
+            }
+
             await SaveAsync();
-            SnackbarService.Add("Категория успешно сохранена!", Severity.Success);
+            SnackbarService.Add("Платеж успешно сохранен!", Severity.Success);
 
             Payment.Category = Input.Category;
             Payment.Comment = Input.Comment;
@@ -73,15 +141,13 @@ public partial class PaymentDialog
             Payment.Sum = Input.Sum;
 
             await OnSubmit.InvokeAsync(Payment);
-            ToggleOpen();
+            await ToggleOpen();
         }
         catch (Exception)
         {
             // TODO: добавить логирование ошибки
             SnackbarService.Add("Не удалось сохранить платеж. Пожалуйста, попробуйте еще раз.", Severity.Error);
         }
-
-        _isProcessing = false;
     }
 
     private async Task SaveAsync()
@@ -103,7 +169,7 @@ public partial class PaymentDialog
     {
         return new PaymentClient.SaveRequest
         {
-            CategoryId = Input.Category.Id!.Value,
+            CategoryId = Input.Category.Id ?? throw new MoneyException("Идентификатор категории отсутствует при сохранении платежа"),
             Comment = Input.Comment,
             Date = Input.Date!.Value,
             Sum = Input.Sum,
@@ -113,20 +179,27 @@ public partial class PaymentDialog
 
     private sealed class InputModel
     {
-        [Required(ErrorMessage = "Категория обязательна.")]
-        public Category Category { get; set; }
+        public static readonly InputModel Empty = new()
+        {
+            Category = Category.Empty,
+        };
 
-        public List<Category> CategoryList { get; set; }
+        [Required(ErrorMessage = "Категория обязательна")]
+        public required Category Category { get; set; }
 
-        [Required(ErrorMessage = "Требуется сумма.")]
-        [Range(0.01, double.MaxValue, ErrorMessage = "Сумма должна быть больше нуля.")]
+        public List<Category>? CategoryList { get; set; }
+
+        [Required(ErrorMessage = "Требуется сумма")]
+        [Range(double.MinValue, double.MaxValue, ErrorMessage = "Сумма вне допустимого диапазона")]
         public decimal Sum { get; set; }
+
+        public string? CalculationSum { get; set; }
 
         public string? Comment { get; set; }
 
         public string? Place { get; set; }
 
-        [Required(ErrorMessage = "Укажите дату.")]
+        [Required(ErrorMessage = "Укажите дату")]
         public DateTime? Date { get; set; }
     }
 }

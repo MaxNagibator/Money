@@ -1,6 +1,6 @@
 ﻿@inherits LayoutComponentBase
 
-<MudThemeProvider IsDarkMode="@IsDarkMod" @ref="@_mudThemeProvider" Theme="_defaultTheme" />
+<MudThemeProvider IsDarkMode="@_appSettings.IsDarkMode" @ref="@_mudThemeProvider" Theme="_defaultTheme" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
@@ -9,17 +9,7 @@
     <MudAppBar Elevation="0" Class="docs-appbar-filter mud-appbar mud-appbar-fixed-top mud-elevation-0 mud-theme-transparent">
         <MudIconButton Color="Color.Inherit" Edge="Edge.Start" Icon="@Icons.Material.Filled.Menu" OnClick="ToggleDrawer" />
         <MudSpacer />
-        <MudBadge Class="cursor-pointer"
-                  Color="@(IsManualMode ? Color.Primary : Color.Secondary)"
-                  Icon="@(IsManualMode ? Icons.Material.Filled.Check : Icons.Material.Filled.SwapHoriz)"
-                  OnClick="ToggleManualMode"
-                  Overlap>
-            <MudIconButton Color="Color.Inherit"
-                           Icon="@Icons.Material.Rounded.Brightness4"
-                           OnClick="ToggleDarkMode"
-                           Size="Size.Medium"
-                           title="@(IsManualMode ? "Manual" : "Auto")" />
-        </MudBadge>
+        <DarkModeToggle @ref="_darkModeToggle" AppSettings="_appSettings" />
     </MudAppBar>
     <MudDrawer @bind-Open="DrawerOpen" Elevation="2">
         <MudDrawerHeader>
@@ -32,7 +22,11 @@
     </MudDrawer>
     <MudMainContent>
         <MudContainer MaxWidth="MaxWidth.Large">
-            @Body
+            <CascadingValue Value="_appSettings">
+                <CascadingValue Value="_darkModeToggle">
+                    @Body
+                </CascadingValue>
+            </CascadingValue>
         </MudContainer>
     </MudMainContent>
 </MudLayout>

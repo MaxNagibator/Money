@@ -84,11 +84,11 @@ public partial class CategoryDialog
     {
         return new CategoryClient.SaveRequest
         {
-            Name = Input.Name ?? string.Empty,
+            Name = Input.Name,
             Order = Input.Order,
             Color = Input.Color,
             ParentId = Category.ParentId,
-            PaymentTypeId = Category.PaymentTypeId,
+            PaymentTypeId = Category.PaymentType.Id,
         };
     }
 
@@ -100,8 +100,8 @@ public partial class CategoryDialog
     private sealed class InputModel
     {
         [Display(Name = "Наименование")] // todo подумать как красивее
-        [Required(ErrorMessage = "Обязательно")]
-        public string? Name { get; set; }
+        [Required(ErrorMessage = "Необходимо указать наименование")]
+        public required string Name { get; set; }
 
         public int? Order { get; set; }
 
