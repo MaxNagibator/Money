@@ -1,5 +1,6 @@
 ﻿using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components;
+using Money.Web.Components;
 
 namespace Money.Web.Layout;
 
@@ -55,6 +56,7 @@ public partial class MainLayout
     private AppSettings _appSettings = new();
 
     private MudThemeProvider _mudThemeProvider = default!;
+    private DarkModeToggle _darkModeToggle = default!;
 
     [Inject]
     private ILocalStorageService StorageService { get; set; } = default!;

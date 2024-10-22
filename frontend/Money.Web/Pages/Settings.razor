@@ -5,17 +5,28 @@
         <MudText Typo="Typo.h6">Настройки темы</MudText>
     </MudCardHeader>
     <MudCardContent>
-        <MudIconButton Color="@(AppSettings.IsManualMode ? Color.Primary : Color.Secondary)"
-                       Icon="@(AppSettings.IsManualMode ? Icons.Material.Filled.Check : Icons.Material.Filled.SwapHoriz)"
-                       OnClick="ToggleManualMode"
+        <MudIconButton Class="object-center"
+                       Color="@(AppSettings.IsManualMode ? Color.Primary : Color.Secondary)"
+                       Icon="@(AppSettings.IsManualMode ? Icons.Material.TwoTone.Check : Icons.Material.TwoTone.SwapHoriz)"
+                       OnClick="() => DarkModeToggle.ToggleManualMode()"
                        title="@(AppSettings.IsManualMode ? "Ручной" : "Авто")" />
 
-        <MudIconButton Color="Color.Inherit"
-                       Icon="@Icons.Material.Rounded.Brightness4"
-                       OnClick="ToggleDarkMode"
-                       Size="Size.Medium" />
+        <MudIconButton Class="object-center"
+                       Color="@(AppSettings.IsSchedule ? Color.Primary : Color.Secondary)"
+                       Icon="@(AppSettings.IsSchedule ? Icons.Material.TwoTone.Schedule : Icons.Material.TwoTone.Computer)"
+                       OnClick="() => DarkModeToggle.ToggleScheduleMode()"
+                       title="@(AppSettings.IsSchedule ? "По расписанию" : "Согласно настройкам системы")" />
+
+        <MudIconButton Class="object-center"
+                       Color="Color.Inherit"
+                       Icon="@Icons.Material.TwoTone.Brightness4"
+                       OnClick="() => DarkModeToggle.ToggleDarkMode()"
+                       title="@(AppSettings.IsDarkMode ? "Темный" : "Светлый")" />
+
+        <MudDivider Class="my-4" />
 
         <MudText>Текущий режим темной темы: @(AppSettings.IsManualMode ? "Ручной" : "Авто")</MudText>
+        <MudText>Текущий автоматический режим: @(AppSettings.IsSchedule ? "По расписанию" : "Согласно настройкам системы")</MudText>
         <MudText>Текущий режим темной темы: @(AppSettings.IsDarkMode ? "Темный" : "Светлый")</MudText>
     </MudCardContent>
 </MudCard>
@@ -25,11 +36,47 @@
         <MudText Typo="Typo.h6">Расписание темной темы</MudText>
     </MudCardHeader>
     <MudCardContent>
-        <MudSwitch @bind-Value="AppSettings.IsSchedule" Label="Активировать расписание"
-                   Color="Color.Primary" UncheckedColor="Color.Default" />
-        <MudTimePicker Disabled="@(!AppSettings.IsSchedule)" @bind-Time="DarkModeStartTime" Label="Время начала" />
-        <MudTimePicker Disabled="@(!AppSettings.IsSchedule)" @bind-Time="DarkModeEndTime" Label="Время окончания" />
-        <MudButton Disabled="@(!AppSettings.IsSchedule)" OnClick="SetScheduledMode">Установить расписание</MudButton>
+        <MudText Typo="Typo.body2">Включите расписание, чтобы автоматически переключать темную тему в заданные часы.</MudText>
+        <MudStack AlignItems="AlignItems.Center" Row Spacing="2">
+            <MudTooltip Text="@(AppSettings.ShowDividers ? "Включено" : "Выключено")">
+                <MudIconButton Icon="@(AppSettings.IsSchedule ? Icons.Material.TwoTone.Check : Icons.Material.TwoTone.Close)"
+                               Color="@(AppSettings.IsSchedule ? Color.Primary : Color.Default)"
+                               OnClick="() => DarkModeToggle.ToggleScheduleMode()"
+                               aria-label="Переключить расписание темной темы" />
+            </MudTooltip>
+            <MudText Typo="Typo.body1">Активировать расписание</MudText>
+        </MudStack>
+
+        <MudGrid Spacing="3" Class="mt-4">
+            <MudItem xs="12" sm="6">
+                <MudTimePicker Disabled="@(!AppSettings.IsSchedule)"
+                               @bind-Time="DarkModeStart"
+                               Label="Время начала"
+                               HelperText="Выберите время начала темной темы" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTimePicker Disabled="@(!AppSettings.IsSchedule)"
+                               @bind-Time="DarkModeEnd"
+                               Label="Время окончания"
+                               HelperText="Выберите время окончания темной темы" />
+            </MudItem>
+        </MudGrid>
+
+        <MudGrid Spacing="3" Class="mt-4">
+            <MudItem xs="12">
+                <MudTimePicker Disabled="@(!AppSettings.IsSchedule)"
+                               @bind-Time="ScheduleCheckInterval"
+                               Label="Интервал проверки"
+                               HelperText="Выберите интервал проверки расписания" />
+            </MudItem>
+        </MudGrid>
+
+        <MudButton Disabled="@(!AppSettings.IsSchedule)"
+                   OnClick="UpdateSchedule"
+                   Class="mt-4"
+                   Color="Color.Primary">
+            Установить расписание
+        </MudButton>
     </MudCardContent>
 </MudCard>
 
@@ -39,11 +86,13 @@
     </MudCardHeader>
     <MudCardContent>
         <MudText>Выберите, показывать ли разделители между записями платежей. Это может помочь улучшить читаемость.</MudText>
-        <MudSwitch @bind-Value="AppSettings.ShowDividers" Label="Показывать разделители в платежах"
-                   Color="Color.Primary" UncheckedColor="Color.Default" />
-
-        <MudText>
-            Разделители в настоящее время: <strong>@(AppSettings.ShowDividers ? "Включены" : "Выключены")</strong>
-        </MudText>
+        <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+            <MudTooltip Text="@(AppSettings.ShowDividers ? "Включены" : "Выключены")">
+                <MudIconButton Icon="@(AppSettings.ShowDividers ? Icons.Material.TwoTone.Check : Icons.Material.TwoTone.Close)"
+                               Color="@(AppSettings.ShowDividers ? Color.Primary : Color.Default)"
+                               @onclick="() => AppSettings.ShowDividers = !AppSettings.ShowDividers" />
+            </MudTooltip>
+            <MudText Typo="Typo.body1">Показывать разделители в платежах</MudText>
+        </MudStack>
     </MudCardContent>
 </MudCard>
