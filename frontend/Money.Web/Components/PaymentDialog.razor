@@ -12,6 +12,26 @@ else
         <DataAnnotationsValidator />
 
         <MudStack AlignItems="AlignItems.Stretch" Justify="Justify.SpaceBetween" Spacing="3" StretchItems="StretchItems.All">
+            @if (_isNumericSumVisible)
+            {
+                <MudNumericField @bind-Value="Input.Sum" For="@(() => Input.Sum)" Label="Сумма"
+                                 Adornment="Adornment.Start"
+                                 AdornmentIcon="@Icons.Material.Filled.Calculate"
+                                 AdornmentColor="Color.Tertiary"
+                                 OnAdornmentClick="ToggleSumField"
+                                 OnKeyDown="OnSumKeyDown" />
+            }
+            else
+            {
+                <MudTextField @bind-Value="Input.CalculationSum" Counter="0" For="@(() => Input.CalculationSum)" Label="Сумма"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Numbers"
+                              AdornmentColor="Color.Tertiary"
+                              OnAdornmentClick="ToggleSumField"
+                              OnBlur="ToggleSumField"
+                              AutoFocus />
+            }
+
             <MudNumericField AdornmentColor="Color.Tertiary" @bind-Value="Input.Sum" For="@(() => Input.Sum)" Label="Сумма" />
             <MudTextField @bind-Value="Input.Comment" Counter="0" For="@(() => Input.Comment)" Label="Комментарий" />
             <MudDatePicker AdornmentColor="Color.Tertiary" @bind-Date="Input.Date" Color="Color.Tertiary" For="@(() => Input.Date)" Label="Дата" />

@@ -1,12 +1,17 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Globalization;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Money.ApiClient;
-using System.ComponentModel.DataAnnotations;
+using NCalc;
+using NCalc.Factories;
 
 namespace Money.Web.Components;
 
 public partial class PaymentDialog
 {
     private bool _isOpen;
+    private bool _isNumericSumVisible = true;
 
     [Parameter]
     public Payment Payment { get; set; } = default!;
@@ -29,6 +34,9 @@ public partial class PaymentDialog
     [Inject]
     private ISnackbar SnackbarService { get; set; } = default!;
 
+    [Inject]
+    private IAsyncExpressionFactory Factory { get; set; } = default!;
+
     public async Task ToggleOpen()
     {
         _isOpen = !_isOpen;
@@ -44,16 +52,72 @@ public partial class PaymentDialog
                 Date = Payment.Date,
                 Place = Payment.Place,
                 Sum = Payment.Sum,
+                CalculationSum = Payment.Sum.ToString(CultureInfo.CurrentCulture),
                 // todo обработать, если текущая категория удалена.
                 CategoryList = [.. categories.Where(x => x.PaymentType == Payment.Category.PaymentType)],
             };
         }
     }
 
+    private async Task ToggleSumField()
+    {
+        if (_isNumericSumVisible == false)
+        {
+            bool isSuccess = await Calculate();
+
+            if (isSuccess == false)
+            {
+                SnackbarService.Add("Нераспознано значение в поле 'сумма'.", Severity.Success);
+                return;
+            }
+        }
+
+        _isNumericSumVisible = !_isNumericSumVisible;
+    }
+
+    private async Task<bool> Calculate()
+    {
+        if (Input.CalculationSum == null)
+        {
+            return false;
+        }
+
+        try
+        {
+            string rawSum = Input.CalculationSum.Replace(',', '.');
+            AsyncExpression expression = Factory.Create(rawSum, ExpressionOptions.DecimalAsDefault);
+
+            object? rawResult = await expression.EvaluateAsync();
+            Input.Sum = Convert.ToDecimal(rawResult);
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private async Task OnSumKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key.All(char.IsDigit))
+        {
+            return;
+        }
+
+        Input.CalculationSum += args.Key;
+        await ToggleSumField();
+    }
+
     private async Task SubmitAsync()
     {
         try
         {
+            if (await Calculate() == false)
+            {
+                return;
+            }
+
             await SaveAsync();
             SnackbarService.Add("Платеж успешно сохранен!", Severity.Success);
 
@@ -115,6 +179,8 @@ public partial class PaymentDialog
         [Required(ErrorMessage = "Требуется сумма")]
         [Range(double.MinValue, double.MaxValue, ErrorMessage = "Сумма вне допустимого диапазона")]
         public decimal Sum { get; set; }
+
+        public string? CalculationSum { get; set; }
 
         public string? Comment { get; set; }
 
