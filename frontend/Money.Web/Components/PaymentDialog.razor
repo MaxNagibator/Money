@@ -14,22 +14,28 @@ else
         <MudStack AlignItems="AlignItems.Stretch" Justify="Justify.SpaceBetween" Spacing="3" StretchItems="StretchItems.All">
             @if (_isNumericSumVisible)
             {
-                <MudNumericField @bind-Value="Input.Sum" For="@(() => Input.Sum)" Label="Сумма"
-                                 Adornment="Adornment.Start"
-                                 AdornmentIcon="@Icons.Material.Filled.Calculate"
+                <MudNumericField Adornment="Adornment.Start"
                                  AdornmentColor="Color.Tertiary"
-                                 OnAdornmentClick="ToggleSumField"
+                                 AdornmentIcon="@Icons.Material.Filled.Calculate"
+                                 @bind-Value="Input.Sum"
+                                 For="@(() => Input.Sum)"
+                                 Label="Сумма"
+                                 OnAdornmentClick="ToggleSumFieldAsync"
                                  OnKeyDown="OnSumKeyDown" />
             }
             else
             {
-                <MudTextField @bind-Value="Input.CalculationSum" Counter="0" For="@(() => Input.CalculationSum)" Label="Сумма"
-                              Adornment="Adornment.Start"
-                              AdornmentIcon="@Icons.Material.Filled.Numbers"
+                <MudTextField Adornment="Adornment.Start"
                               AdornmentColor="Color.Tertiary"
-                              OnAdornmentClick="ToggleSumField"
-                              OnBlur="ToggleSumField"
-                              AutoFocus />
+                              AdornmentIcon="@Icons.Material.Filled.Numbers"
+                              AutoFocus
+                              @bind-Value="Input.CalculationSum"
+                              Counter="0"
+                              Immediate
+                              For="@(() => Input.CalculationSum)"
+                              Label="Сумма"
+                              OnAdornmentClick="ToggleSumFieldAsync"
+                              OnBlur="ToggleSumFieldAsync" />
             }
 
             <MudNumericField AdornmentColor="Color.Tertiary" @bind-Value="Input.Sum" For="@(() => Input.Sum)" Label="Сумма" />
@@ -42,8 +48,9 @@ else
                        @bind-Value="Input.Category"
                        For="@(() => Input.Category)"
                        Label="Категория"
-                       ToStringFunc="@(arg => arg.Name)"
+                       ToStringFunc="@(arg => arg?.Name)"
                        TransformOrigin="Origin.TopCenter">
+
                 @foreach (Category category in Input.CategoryList ?? [])
                 {
                     <MudSelectItem Value="category">@category.Name</MudSelectItem>

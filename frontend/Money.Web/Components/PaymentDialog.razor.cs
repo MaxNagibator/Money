@@ -59,27 +59,40 @@ public partial class PaymentDialog
         }
     }
 
-    private async Task ToggleSumField()
+    private async Task ToggleSumFieldAsync()
     {
-        if (_isNumericSumVisible == false)
+        if (await ValidateSumAsync())
         {
-            bool isSuccess = await Calculate();
-
-            if (isSuccess == false)
-            {
-                SnackbarService.Add("Нераспознано значение в поле 'сумма'.", Severity.Success);
-                return;
-            }
+            return;
         }
 
         _isNumericSumVisible = !_isNumericSumVisible;
     }
 
-    private async Task<bool> Calculate()
+    private async Task<bool> ValidateSumAsync()
     {
+        if (_isNumericSumVisible == false)
+        {
+            decimal? sum = await CalculateAsync();
+
+            if (sum == null)
+            {
+                return true;
+            }
+
+            Input.Sum = sum.Value;
+        }
+
+        return false;
+    }
+
+    private async Task<decimal?> CalculateAsync()
+    {
+        decimal? sum = null;
+
         if (Input.CalculationSum == null)
         {
-            return false;
+            return sum;
         }
 
         try
@@ -88,14 +101,14 @@ public partial class PaymentDialog
             AsyncExpression expression = Factory.Create(rawSum, ExpressionOptions.DecimalAsDefault);
 
             object? rawResult = await expression.EvaluateAsync();
-            Input.Sum = Convert.ToDecimal(rawResult);
+            sum = Convert.ToDecimal(rawResult);
         }
         catch (Exception)
         {
-            return false;
+            SnackbarService.Add("Нераспознано значение в поле 'сумма'.", Severity.Success);
         }
 
-        return true;
+        return sum;
     }
 
     private async Task OnSumKeyDown(KeyboardEventArgs args)
@@ -106,14 +119,14 @@ public partial class PaymentDialog
         }
 
         Input.CalculationSum += args.Key;
-        await ToggleSumField();
+        await ToggleSumFieldAsync();
     }
 
     private async Task SubmitAsync()
     {
         try
         {
-            if (await Calculate() == false)
+            if (await ValidateSumAsync())
             {
                 return;
             }

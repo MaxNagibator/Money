@@ -3,7 +3,7 @@
 public class AppSettings
 {
     private bool _showDividers;
-    private bool _isDarkMod;
+    private bool _isDarkMode;
     private bool _isDarkModeSystem;
     private bool _isManualMode;
     private bool _isSchedule;
@@ -13,50 +13,42 @@ public class AppSettings
     public bool ShowDividers
     {
         get => _showDividers;
-        set
-        {
-            _showDividers = value;
-            OnChange?.Invoke();
-        }
+        set => SetValue(ref _showDividers, value);
     }
 
-    public bool IsDarkMod
+    // TODO: Переделать на состояния
+    public bool IsDarkMode
     {
-        get => _isDarkMod;
-        set
-        {
-            _isDarkMod = value;
-            OnChange?.Invoke();
-        }
+        get => _isDarkMode;
+        set => SetValue(ref _isDarkMode, value);
     }
 
     public bool IsDarkModeSystem
     {
         get => _isDarkModeSystem;
-        set
-        {
-            _isDarkModeSystem = value;
-            OnChange?.Invoke();
-        }
+        set => SetValue(ref _isDarkModeSystem, value);
     }
 
     public bool IsManualMode
     {
         get => _isManualMode;
-        set
-        {
-            _isManualMode = value;
-            OnChange?.Invoke();
-        }
+        set => SetValue(ref _isManualMode, value);
     }
 
     public bool IsSchedule
     {
         get => _isSchedule;
-        set
+        set => SetValue(ref _isSchedule, value);
+    }
+
+    private void SetValue(ref bool field, bool value)
+    {
+        if (field == value)
         {
-            _isSchedule = value;
-            OnChange?.Invoke();
+            return;
         }
+
+        field = value;
+        OnChange?.Invoke();
     }
 }

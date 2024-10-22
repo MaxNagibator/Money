@@ -32,7 +32,7 @@ public partial class Settings
             ToggleManualMode();
         }
 
-        AppSettings.IsDarkMod = !AppSettings.IsDarkMod;
+        AppSettings.IsDarkMode = !AppSettings.IsDarkMode;
     }
 
     private void ToggleManualMode()
@@ -47,7 +47,7 @@ public partial class Settings
         if (AppSettings.IsManualMode == false)
         {
             bool systemPreference = AppSettings.IsDarkModeSystem;
-            AppSettings.IsDarkMod = systemPreference;
+            AppSettings.IsDarkMode = systemPreference;
         }
     }
 
@@ -64,11 +64,11 @@ public partial class Settings
 
         if (DarkModeStartTime < DarkModeEndTime)
         {
-            AppSettings.IsDarkMod = currentTime >= DarkModeStartTime && currentTime < DarkModeEndTime;
+            AppSettings.IsDarkMode = currentTime >= DarkModeStartTime && currentTime < DarkModeEndTime;
         }
         else
         {
-            AppSettings.IsDarkMod = currentTime >= DarkModeStartTime || currentTime < DarkModeEndTime;
+            AppSettings.IsDarkMode = currentTime >= DarkModeStartTime || currentTime < DarkModeEndTime;
         }
 
         StateHasChanged();

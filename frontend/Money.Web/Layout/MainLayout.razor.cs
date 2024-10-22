@@ -64,14 +64,21 @@ public partial class MainLayout
     protected override async Task OnInitializedAsync()
     {
         _appSettings = await StorageService.GetItemAsync<AppSettings>(nameof(AppSettings)) ?? new AppSettings();
-        _appSettings.OnChange += async () => await SaveSettings();
+
+        _appSettings.OnChange += async () =>
+        {
+            await SaveSettings();
+            StateHasChanged();
+        };
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
+            _appSettings.IsDarkModeSystem = await _mudThemeProvider.GetSystemPreference();
             await _mudThemeProvider.WatchSystemPreference(OnSystemPreferenceChanged);
+
             StateHasChanged();
         }
     }
