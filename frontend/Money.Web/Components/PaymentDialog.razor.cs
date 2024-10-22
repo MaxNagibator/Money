@@ -1,10 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Globalization;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Money.ApiClient;
 using NCalc;
 using NCalc.Factories;
+using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 
 namespace Money.Web.Components;
 
@@ -105,7 +105,7 @@ public partial class PaymentDialog
         }
         catch (Exception)
         {
-            SnackbarService.Add("Нераспознано значение в поле 'сумма'.", Severity.Success);
+            SnackbarService.Add("Нераспознано значение в поле 'сумма'.", Severity.Error);
         }
 
         return sum;

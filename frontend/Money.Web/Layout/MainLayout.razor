@@ -9,7 +9,7 @@
     <MudAppBar Elevation="0" Class="docs-appbar-filter mud-appbar mud-appbar-fixed-top mud-elevation-0 mud-theme-transparent">
         <MudIconButton Color="Color.Inherit" Edge="Edge.Start" Icon="@Icons.Material.Filled.Menu" OnClick="ToggleDrawer" />
         <MudSpacer />
-        <DarkModeToggle @ref="_darkModeToggle" Settings="_appSettings" />
+        <DarkModeToggle @ref="_darkModeToggle" AppSettings="_appSettings" />
     </MudAppBar>
     <MudDrawer @bind-Open="DrawerOpen" Elevation="2">
         <MudDrawerHeader>

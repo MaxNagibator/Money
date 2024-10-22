@@ -1,5 +1,6 @@
 ﻿using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Routing;
 
 namespace Money.Web.Components;
 
@@ -9,49 +10,68 @@ public partial class DarkModeToggle : IDisposable
     private Task? _scheduledTask;
 
     [Parameter]
-    public AppSettings Settings { get; set; } = default!;
+    public AppSettings AppSettings { get; set; } = default!;
 
-    public TimeSpan? DarkStart { get; set; } = new(18, 0, 0);
-    public TimeSpan? DarkEnd { get; set; } = new(6, 0, 0);
-    public TimeSpan CheckInterval { get; set; } = new(0, 5, 0);
+    public DarkModeSettings Settings { get; set; } = default!;
 
     [Inject]
     private ILocalStorageService StorageService { get; set; } = default!;
 
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = default!;
+
     public async Task SetScheduledMode(TimeSpan? darkModeStartTime, TimeSpan? darkModeEndTime)
     {
-        DarkStart = darkModeStartTime;
-        DarkEnd = darkModeEndTime;
+        Settings.DarkStart = darkModeStartTime;
+        Settings.DarkEnd = darkModeEndTime;
 
-        await StorageService.SetItemAsync(nameof(DarkStart), darkModeStartTime);
-        await StorageService.SetItemAsync(nameof(DarkEnd), darkModeEndTime);
+        await SaveAsync();
 
         CheckScheduledMode();
     }
 
-    // TODO Убрать дублирование
     public void ToggleDarkMode()
     {
-        if (Settings is { IsManualMode: false })
+        if (AppSettings is { IsManualMode: false })
         {
             ToggleManualMode();
         }
 
-        Settings.IsDarkMode = !Settings.IsDarkMode;
+        AppSettings.IsDarkMode = !AppSettings.IsDarkMode;
     }
 
     public void ToggleManualMode()
     {
-        Settings.IsManualMode = !Settings.IsManualMode;
+        AppSettings.IsManualMode = !AppSettings.IsManualMode;
 
         UpdateState();
     }
 
     public void ToggleScheduleMode()
     {
-        Settings.IsSchedule = !Settings.IsSchedule;
+        AppSettings.IsSchedule = !AppSettings.IsSchedule;
 
         UpdateState();
+    }
+
+    public void ToggleTimerEnabled()
+    {
+        Settings.IsTimerEnabled = !Settings.IsTimerEnabled;
+    }
+
+    public void ToggleLocationChanged()
+    {
+        Settings.IsLocationChangedEnabled = !Settings.IsLocationChangedEnabled;
+
+        // TODO подумать
+        //if (Settings.IsLocationChangedEnabled)
+        //{
+        //    NavigationManager.LocationChanged += OnLocationChanged;
+        //}
+        //else
+        //{
+        //    NavigationManager.LocationChanged -= OnLocationChanged;
+        //}
     }
 
     public async Task SetInterval(TimeSpan? interval)
@@ -61,8 +81,8 @@ public partial class DarkModeToggle : IDisposable
             return;
         }
 
-        CheckInterval = interval.Value;
-        await StorageService.SetItemAsync(nameof(CheckInterval), interval);
+        Settings.CheckInterval = interval.Value;
+        await SaveAsync();
 
         if (_timer != null)
         {
@@ -74,35 +94,49 @@ public partial class DarkModeToggle : IDisposable
     {
         _scheduledTask?.Dispose();
         _timer?.Dispose();
+        NavigationManager.LocationChanged -= OnLocationChanged;
 
         GC.SuppressFinalize(this);
     }
 
     protected override async Task OnInitializedAsync()
     {
-        DarkStart = await StorageService.GetItemAsync<TimeSpan?>(nameof(DarkStart)) ?? DarkStart;
-        DarkEnd = await StorageService.GetItemAsync<TimeSpan?>(nameof(DarkEnd)) ?? DarkEnd;
-        CheckInterval = await StorageService.GetItemAsync<TimeSpan?>(nameof(CheckInterval)) ?? CheckInterval;
+        Settings = await StorageService.GetItemAsync<DarkModeSettings>(nameof(DarkModeSettings)) ?? new DarkModeSettings();
 
-        if (Settings is { IsManualMode: false, IsSchedule: false })
+        if (AppSettings is { IsManualMode: false, IsSchedule: false })
         {
-            Settings.IsDarkMode = Settings.IsDarkModeSystem;
+            AppSettings.IsDarkMode = AppSettings.IsDarkModeSystem;
         }
 
-        if (Settings is { IsManualMode: false, IsSchedule: true })
+        if (AppSettings is { IsManualMode: false, IsSchedule: true })
         {
             CheckScheduledMode();
         }
 
-        _timer = new PeriodicTimer(CheckInterval);
+        _timer = new PeriodicTimer(Settings.CheckInterval);
         _scheduledTask = Task.Run(MonitorScheduledModeAsync);
+
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        if (Settings.IsLocationChangedEnabled)
+        {
+            CheckScheduledMode();
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        await StorageService.SetItemAsync(nameof(DarkModeSettings), Settings);
     }
 
     private void UpdateState()
     {
-        if (Settings is { IsManualMode: false, IsSchedule: false })
+        if (AppSettings is { IsManualMode: false, IsSchedule: false })
         {
-            Settings.IsDarkMode = Settings.IsDarkModeSystem;
+            AppSettings.IsDarkMode = AppSettings.IsDarkModeSystem;
 
             if (_timer != null)
             {
@@ -110,7 +144,7 @@ public partial class DarkModeToggle : IDisposable
             }
         }
 
-        if (Settings is { IsManualMode: false, IsSchedule: true })
+        if (AppSettings is { IsManualMode: false, IsSchedule: true })
         {
             CheckScheduledMode();
         }
@@ -120,21 +154,29 @@ public partial class DarkModeToggle : IDisposable
     {
         while (await _timer!.WaitForNextTickAsync())
         {
-            CheckScheduledMode();
+            if (Settings.IsTimerEnabled)
+            {
+                CheckScheduledMode();
+            }
         }
     }
 
     private void CheckScheduledMode()
     {
+        if (AppSettings is { IsManualMode: false })
+        {
+            return;
+        }
+
         TimeSpan currentTime = DateTime.Now.TimeOfDay;
 
-        if (DarkStart < DarkEnd)
+        if (Settings.DarkStart < Settings.DarkEnd)
         {
-            Settings.IsDarkMode = currentTime >= DarkStart && currentTime < DarkEnd;
+            AppSettings.IsDarkMode = currentTime >= Settings.DarkStart && currentTime < Settings.DarkEnd;
         }
         else
         {
-            Settings.IsDarkMode = currentTime >= DarkStart || currentTime < DarkEnd;
+            AppSettings.IsDarkMode = currentTime >= Settings.DarkStart || currentTime < Settings.DarkEnd;
         }
 
         StateHasChanged();

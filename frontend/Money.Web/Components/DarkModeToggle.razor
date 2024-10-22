@@ -1,12 +1,12 @@
 ﻿<MudBadge Class="cursor-pointer"
-          Color="@(Settings.IsManualMode ? Color.Primary : Color.Secondary)"
-          Icon="@(Settings.IsManualMode ? Icons.Material.Filled.Check : Icons.Material.Filled.SwapHoriz)"
+          Color="@(AppSettings.IsManualMode ? Color.Primary : Color.Secondary)"
+          Icon="@(AppSettings.IsManualMode ? Icons.Material.Filled.Check : Icons.Material.Filled.SwapHoriz)"
           OnClick="ToggleManualMode"
           Overlap
-          title="@(Settings.IsManualMode ? "Ручной" : "Авто")">
+          title="@(AppSettings.IsManualMode ? "Ручной" : "Авто")">
     <MudIconButton Color="Color.Inherit"
                    Icon="@Icons.Material.Rounded.Brightness4"
                    OnClick="ToggleDarkMode"
                    Size="Size.Medium"
-                   title="@(Settings.IsDarkMode ? "Темный" : "Светлый")" />
+                   title="@(AppSettings.IsDarkMode ? "Темный" : "Светлый")" />
 </MudBadge>

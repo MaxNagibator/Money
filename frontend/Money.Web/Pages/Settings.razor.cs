@@ -9,23 +9,27 @@ public partial class Settings
     public AppSettings AppSettings { get; set; } = default!;
 
     [CascadingParameter]
-    public DarkModeToggle DarkModeToggle { get; set; } = default!;
+    public DarkModeToggle ModeToggle { get; set; } = default!;
 
     public TimeSpan? ScheduleCheckInterval { get; set; }
+
+    [Inject]
+    private ISnackbar SnackbarService { get; set; } = default!;
 
     private TimeSpan? DarkModeStart { get; set; }
     private TimeSpan? DarkModeEnd { get; set; }
 
     protected override void OnInitialized()
     {
-        DarkModeStart = DarkModeToggle.DarkStart;
-        DarkModeEnd = DarkModeToggle.DarkEnd;
-        ScheduleCheckInterval = DarkModeToggle.CheckInterval;
+        DarkModeStart = ModeToggle.Settings.DarkStart;
+        DarkModeEnd = ModeToggle.Settings.DarkEnd;
+        ScheduleCheckInterval = ModeToggle.Settings.CheckInterval;
     }
 
     private async Task UpdateSchedule()
     {
-        await DarkModeToggle.SetScheduledMode(DarkModeStart, DarkModeEnd);
-        await DarkModeToggle.SetInterval(ScheduleCheckInterval);
+        await ModeToggle.SetScheduledMode(DarkModeStart, DarkModeEnd);
+        await ModeToggle.SetInterval(ScheduleCheckInterval);
+        SnackbarService.Add("Расписание успешно обновлено!", Severity.Success);
     }
 }
