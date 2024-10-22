@@ -81,6 +81,7 @@ public partial class PaymentDialog
             }
 
             Input.Sum = sum.Value;
+            Input.CalculationSum = Input.Sum.ToString(CultureInfo.CurrentCulture);
         }
 
         return false;
@@ -105,7 +106,7 @@ public partial class PaymentDialog
         }
         catch (Exception)
         {
-            SnackbarService.Add("Нераспознано значение в поле 'сумма'.", Severity.Error);
+            SnackbarService.Add("Нераспознано значение в поле 'сумма'.", Severity.Warning);
         }
 
         return sum;
@@ -113,11 +114,11 @@ public partial class PaymentDialog
 
     private async Task OnSumKeyDown(KeyboardEventArgs args)
     {
-        if (args.Key.All(char.IsDigit))
+        if (args.Key != "(" && args.Key != ")" && args.Key != "+" && args.Key != "-" && args.Key != "*" && args.Key != "/")
         {
             return;
         }
-
+        // todo почему то на минус печатется сразу два штуки
         Input.CalculationSum += args.Key;
         await ToggleSumFieldAsync();
     }
