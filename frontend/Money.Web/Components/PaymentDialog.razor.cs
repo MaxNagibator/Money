@@ -18,6 +18,9 @@ public partial class PaymentDialog
     public Payment Payment { get; set; } = default!;
 
     [Parameter]
+    public int CreateMode { get; set; } = default!;
+
+    [Parameter]
     public EventCallback<Payment> OnSubmit { get; set; }
 
     [Parameter]

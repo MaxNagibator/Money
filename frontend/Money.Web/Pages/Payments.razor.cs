@@ -24,6 +24,8 @@ public partial class Payments
 
     private List<PaymentsDay>? PaymentsDays { get; set; }
 
+    private List<Category>? Categories { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         ApiClientResponse<PaymentClient.Payment[]> apiPayments = await MoneyClient.Payment.Get();
@@ -33,14 +35,13 @@ public partial class Payments
             return;
         }
 
-        List<Category>? categories = await CategoryService.GetCategories();
-
-        if (categories == null)
+        Categories = await CategoryService.GetCategories();
+        if (Categories == null)
         {
             return;
         }
 
-        Dictionary<int, Category> categoriesDict = categories.ToDictionary(x => x.Id!.Value, x => x);
+        Dictionary<int, Category> categoriesDict = Categories.ToDictionary(x => x.Id!.Value, x => x);
 
         PaymentsDays = apiPayments.Content
             .Select(apiPayment => new Payment
@@ -89,5 +90,11 @@ public partial class Payments
         }
 
         payment.IsDeleted = isDeleted;
+    }
+
+    private async Task AddNewPayment(Payment payment)
+    {
+        // todo обработать нормально
+        PaymentsDays.First().Payments.Add(payment);
     }
 }

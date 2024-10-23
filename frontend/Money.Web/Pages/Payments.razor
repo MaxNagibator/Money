@@ -6,11 +6,19 @@
 @if (_init == false)
 {
     <MudProgressLinear Indeterminate />
+    return;
 }
 
 <MudTabs Elevation="4" Outlined>
     <MudTabPanel ID="1" Text="Список операций">
         <MudStack Class="mt-3" Spacing="2">
+            <MudItem>
+                <PaymentDialog 
+                    CreateMode="0" 
+                    Payment="@(new Payment { Date = DateTime.Now, Category = Categories.First() })" 
+                    OnSubmit="x => AddNewPayment(x)">
+                </PaymentDialog>
+             </MudItem> 
             @foreach (PaymentsDay paymentsDay in PaymentsDays ?? [])
             {
                 <MudCard Elevation="3">
@@ -24,24 +32,13 @@
                             </MudStack>
                         </MudItem>
 
-                        @*
                         <MudItem md="2" xs="3">
-                            <PaymentDialog Payment="@(new Payment { Date = paymentsDay.Date })" OnSubmit="x => paymentsDay.Add(x)">
-                                <MudStack AlignItems="AlignItems.Center" Row>
-                                    <MudIconButton OnClick="() => dialog?.ToggleOpen()" Size="Size.Small" Color="Color.Warning" Icon="@Icons.Material.Rounded.Add" Title="Добавить расходы" />
-                                    <MudIconButton OnClick="() => dialog?.ToggleOpen()" Size="Size.Small" Color="Color.Success" Icon="@Icons.Material.Rounded.Add" Title="Добавить доходы" />
-                                    <MudIconButton OnClick="() => dialog?.ToggleOpen()" Size="Size.Small" Color="Color.Info" Icon="@Icons.Material.Rounded.Add" Title="Быстрое добавление" />
-                                </MudStack>
+                            <PaymentDialog 
+                                CreateMode="1"
+                                Payment="@(new Payment { Date = paymentsDay.Date, Category = Categories.First() })" 
+                                OnSubmit="x => paymentsDay.Payments.Add(x)">
                             </PaymentDialog>
-                        </MudItem>   *@
-
-                        <MudItem md="2" xs="3">
-                            <MudStack AlignItems="AlignItems.Center" Row>
-                                <MudIconButton Size="Size.Small" Color="Color.Warning" Icon="@Icons.Material.Rounded.Add" Title="Добавить расходы" />
-                                <MudIconButton Size="Size.Small" Color="Color.Success" Icon="@Icons.Material.Rounded.Add" Title="Добавить доходы" />
-                                <MudIconButton Size="Size.Small" Color="Color.Info" Icon="@Icons.Material.Rounded.Add" Title="Быстрое добавление" />
-                            </MudStack>
-                        </MudItem>
+                        </MudItem> 
 
                         @foreach (PaymentTypes.Value paymentType in PaymentTypes.Values)
                         {
@@ -79,7 +76,7 @@
                                     <MudStack AlignItems="AlignItems.Center" Row>
                                         <MudIcon Color="@payment.Category.PaymentType.Color" Icon="@payment.Category.PaymentType.Icon" Size="Size.Small" />
                                         @*TODO: Вынести из цикла*@
-                                        <PaymentDialog Payment="@payment" OnSubmit="() => StateHasChanged()" />
+                                        <PaymentDialog CreateMode="2" Payment="@payment" OnSubmit="() => StateHasChanged()" />
 
                                         <MudItem xs="2">
                                             <MudText Align="Align.Left" Inline>@payment.Sum.ToString("N2")</MudText>

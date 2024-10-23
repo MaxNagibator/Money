@@ -1,10 +1,28 @@
-﻿@if (ChildContent != null)
+﻿@{
+    string style = _isOpen ? "visibility: hidden" : "";
+}
+@if (CreateMode == 0)
 {
-    @ChildContent
+    <MudStack AlignItems="AlignItems.Start" Row>
+        <MudButton Disabled="@(_isOpen)" Variant="Variant.Filled" OnClick="() => ToggleOpen()" Size="Size.Small" Color="Color.Warning" Title="Добавить расходы">Добавить расходы</MudButton>
+        <MudButton Disabled="@(_isOpen)" Variant="Variant.Filled" OnClick="() => ToggleOpen()" Size="Size.Small" Color="Color.Success" Title="Добавить доходы">Добавить доходы</MudButton>
+        <MudButton Disabled="@(_isOpen)" Variant="Variant.Filled" OnClick="() => ToggleOpen()" Size="Size.Small" Color="Color.Info" Title="Быстрое добавление">Быстрое добавление</MudButton>
+    </MudStack>
+}
+else if (CreateMode == 1)
+{
+    <MudStack AlignItems="AlignItems.Center" Row Style="@style">
+        <MudIconButton Disabled="@(_isOpen)" OnClick="() => ToggleOpen()" Size="Size.Small" Color="Color.Warning" Icon="@Icons.Material.Rounded.Add" Title="Добавить расходы" />
+        <MudIconButton Disabled="@(_isOpen)" OnClick="() => ToggleOpen()" Size="Size.Small" Color="Color.Success" Icon="@Icons.Material.Rounded.Add" Title="Добавить доходы" />
+        <MudIconButton Disabled="@(_isOpen)" OnClick="() => ToggleOpen()" Size="Size.Small" Color="Color.Info" Icon="@Icons.Material.Rounded.Add" Title="Быстрое добавление" />
+    </MudStack>
 }
 else
 {
-    <MudIconButton Class="mx-n3" Icon="@Icons.Material.TwoTone.ModeEdit" OnClick="() => ToggleOpen()" Size="Size.Small" title="Редактировать" />
+    <MudIconButton Class="mx-n3"
+                   Style="@style"
+                   Icon="@Icons.Material.TwoTone.ModeEdit"
+                   OnClick="() => ToggleOpen()" Size="Size.Small" title="Редактировать" />
 }
 
 <MudPopover AnchorOrigin="Origin.BottomLeft" Class="mt-4 mx-4 pa-4" Open="_isOpen" TransformOrigin="Origin.TopLeft">
