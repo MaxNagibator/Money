@@ -54,24 +54,16 @@ public partial class DarkModeToggle : IDisposable
         UpdateState();
     }
 
-    public void ToggleTimerEnabled()
+    public async Task ToggleTimerEnabled()
     {
         Settings.IsTimerEnabled = !Settings.IsTimerEnabled;
+        await SaveAsync();
     }
 
-    public void ToggleLocationChanged()
+    public async Task ToggleLocationChanged()
     {
         Settings.IsLocationChangedEnabled = !Settings.IsLocationChangedEnabled;
-
-        // TODO подумать
-        //if (Settings.IsLocationChangedEnabled)
-        //{
-        //    NavigationManager.LocationChanged += OnLocationChanged;
-        //}
-        //else
-        //{
-        //    NavigationManager.LocationChanged -= OnLocationChanged;
-        //}
+        await SaveAsync();
     }
 
     public async Task SetInterval(TimeSpan? interval)
@@ -103,15 +95,7 @@ public partial class DarkModeToggle : IDisposable
     {
         Settings = await StorageService.GetItemAsync<DarkModeSettings>(nameof(DarkModeSettings)) ?? new DarkModeSettings();
 
-        if (AppSettings is { IsManualMode: false, IsSchedule: false })
-        {
-            AppSettings.IsDarkMode = AppSettings.IsDarkModeSystem;
-        }
-
-        if (AppSettings is { IsManualMode: false, IsSchedule: true })
-        {
-            CheckScheduledMode();
-        }
+        UpdateState();
 
         _timer = new PeriodicTimer(Settings.CheckInterval);
         _scheduledTask = Task.Run(MonitorScheduledModeAsync);
@@ -121,7 +105,7 @@ public partial class DarkModeToggle : IDisposable
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
-        if (Settings.IsLocationChangedEnabled)
+        if (AppSettings is { IsManualMode: false } && Settings is { IsLocationChangedEnabled: true })
         {
             CheckScheduledMode();
         }
@@ -163,7 +147,7 @@ public partial class DarkModeToggle : IDisposable
 
     private void CheckScheduledMode()
     {
-        if (AppSettings is { IsManualMode: false })
+        if (AppSettings is { IsManualMode: true })
         {
             return;
         }

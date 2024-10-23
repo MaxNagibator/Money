@@ -19,6 +19,8 @@ public partial class Settings
     private TimeSpan? DarkModeStart { get; set; }
     private TimeSpan? DarkModeEnd { get; set; }
 
+    private bool DisabledSchedule => !AppSettings.IsSchedule || AppSettings.IsManualMode;
+
     protected override void OnInitialized()
     {
         DarkModeStart = ModeToggle.Settings.DarkStart;
