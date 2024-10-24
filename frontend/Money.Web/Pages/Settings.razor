@@ -1,5 +1,12 @@
 ﻿@page "/settings"
 
+@if (_isInit == false)
+{
+    <MudProgressLinear Indeterminate />
+
+    return;
+}
+
 <MudCard Class="mb-6">
     <MudCardHeader>
         <MudText Typo="Typo.h6">Настройки темы</MudText>
@@ -13,7 +20,7 @@
         <MudIconButton Color="@(AppSettings.IsSchedule ? Color.Primary : Color.Secondary)"
                        Icon="@(AppSettings.IsSchedule ? Icons.Material.TwoTone.Schedule : Icons.Material.TwoTone.Computer)"
                        OnClick="() => ModeToggle.ToggleScheduleMode()"
-                       Disabled="DisabledSchedule"
+                       Disabled="AppSettings.IsManualMode"
                        title="@(AppSettings.IsSchedule ? "По расписанию" : "Согласно настройкам системы")" />
 
         <MudIconButton Color="Color.Inherit"
@@ -23,10 +30,12 @@
 
         <MudDivider Class="my-4" />
 
-        <MudText Color="@(DisabledSchedule ? Color.Warning : Color.Default)">
+        <MudText Color="@(AppSettings.IsManualMode ? Color.Warning : Color.Default)">
             Текущий режим темной темы: @(AppSettings.IsManualMode ? "Ручной" : "Авто")
         </MudText>
-        <MudText>Текущий автоматический режим: @(AppSettings.IsSchedule ? "По расписанию" : "Согласно настройкам системы")</MudText>
+        <MudText Style="@(AppSettings.IsManualMode ? "text-decoration: line-through;" : "")">
+            Текущий автоматический режим: @(AppSettings.IsSchedule ? "По расписанию" : "Согласно настройкам системы")
+        </MudText>
         <MudText>Текущий режим темной темы: @(AppSettings.IsDarkMode ? "Темный" : "Светлый")</MudText>
     </MudCardContent>
 </MudCard>
@@ -112,17 +121,17 @@
 
 <MudCard Class="mb-6">
     <MudCardHeader>
-        <MudText Typo="Typo.h6">Настройки отображения платежей</MudText>
+        <MudText Typo="Typo.h6">Настройки отображения операций</MudText>
     </MudCardHeader>
     <MudCardContent>
-        <MudText>Выберите, показывать ли разделители между записями платежей. Это может помочь улучшить читаемость.</MudText>
+        <MudText>Выберите, показывать ли разделители между записями операций. Это может помочь улучшить читаемость.</MudText>
         <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
             <MudTooltip Text="@(AppSettings.ShowDividers ? "Включены" : "Выключены")">
                 <MudIconButton Icon="@(AppSettings.ShowDividers ? Icons.Material.TwoTone.Check : Icons.Material.TwoTone.Close)"
                                Color="@(AppSettings.ShowDividers ? Color.Primary : Color.Default)"
                                @onclick="() => AppSettings.ShowDividers = !AppSettings.ShowDividers" />
             </MudTooltip>
-            <MudText Typo="Typo.body1">Показывать разделители в платежах</MudText>
+            <MudText Typo="Typo.body1">Показывать разделители в операциях</MudText>
         </MudStack>
     </MudCardContent>
 </MudCard>

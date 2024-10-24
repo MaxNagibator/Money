@@ -82,6 +82,12 @@ public partial class DarkModeToggle : IDisposable
         }
     }
 
+    // TODO Придумать альтернативную синхронизацию компонентов
+    public async Task<DarkModeSettings> GetSettingsAsync()
+    {
+        return await StorageService.GetItemAsync<DarkModeSettings>(nameof(DarkModeSettings)) ?? new DarkModeSettings();
+    }
+
     public void Dispose()
     {
         _scheduledTask?.Dispose();
@@ -93,7 +99,7 @@ public partial class DarkModeToggle : IDisposable
 
     protected override async Task OnInitializedAsync()
     {
-        Settings = await StorageService.GetItemAsync<DarkModeSettings>(nameof(DarkModeSettings)) ?? new DarkModeSettings();
+        Settings = await GetSettingsAsync();
 
         UpdateState();
 

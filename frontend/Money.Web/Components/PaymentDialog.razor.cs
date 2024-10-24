@@ -14,11 +14,19 @@ public partial class PaymentDialog
     private bool _isOpen;
     private bool _isNumericSumVisible = true;
 
+    public enum Mode
+    {
+        None = 0,
+        Add = 1,
+        AddCompact = 2,
+        Edit = 3,
+    }
+
     [Parameter]
     public Payment Payment { get; set; } = default!;
 
     [Parameter]
-    public int CreateMode { get; set; } = default!;
+    public Mode CreateMode { get; set; }
 
     [Parameter]
     public EventCallback<Payment> OnSubmit { get; set; }
