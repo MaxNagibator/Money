@@ -5,27 +5,30 @@ namespace Money.Web.Pages;
 
 public partial class Settings
 {
+    private bool _isInit;
+
     [CascadingParameter]
     public AppSettings AppSettings { get; set; } = default!;
 
     [CascadingParameter]
     public DarkModeToggle ModeToggle { get; set; } = default!;
 
-    public TimeSpan? ScheduleCheckInterval { get; set; }
-
     [Inject]
     private ISnackbar SnackbarService { get; set; } = default!;
 
+    private TimeSpan? ScheduleCheckInterval { get; set; }
     private TimeSpan? DarkModeStart { get; set; }
     private TimeSpan? DarkModeEnd { get; set; }
 
     private bool DisabledSchedule => !AppSettings.IsSchedule || AppSettings.IsManualMode;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        DarkModeStart = ModeToggle.Settings.DarkStart;
-        DarkModeEnd = ModeToggle.Settings.DarkEnd;
-        ScheduleCheckInterval = ModeToggle.Settings.CheckInterval;
+        DarkModeSettings modeSettings = await ModeToggle.GetSettingsAsync();
+        DarkModeStart = modeSettings.DarkStart;
+        DarkModeEnd = modeSettings.DarkEnd;
+        ScheduleCheckInterval = modeSettings.CheckInterval;
+        _isInit = true;
     }
 
     private async Task UpdateSchedule()
