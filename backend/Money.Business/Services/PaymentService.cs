@@ -66,13 +66,13 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
 
         if (string.IsNullOrEmpty(filter.Comment) == false)
         {
-            dbPayments = dbPayments.Where(x => x.Comment != null && x.Comment.Contains(filter.Comment));
+            dbPayments = dbPayments.Where(x => x.Comment != null && x.Comment.Contains(filter.Comment)); // todo сделать регистронезависимый поиск
         }
 
         if (string.IsNullOrEmpty(filter.Place) == false)
         {
             IQueryable<int> placesIds = context.Places
-                .Where(x => x.UserId == environment.UserId && x.Name.Contains(filter.Place))
+                .Where(x => x.UserId == environment.UserId && x.Name.Contains(filter.Place)) // todo сделать регистронезависимый поиск
                 .Select(x => x.Id);
 
             dbPayments = dbPayments.Where(x => x.PlaceId != null && placesIds.Contains(x.PlaceId.Value));

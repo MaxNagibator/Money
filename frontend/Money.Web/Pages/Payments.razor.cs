@@ -28,23 +28,52 @@ public partial class Payments
 
     private List<Category>? Categories { get; set; }
 
+    private DateTime? FilterDateFrom { get; set; }
+    private DateTime? FilterDateTo { get; set; }
+    private IEnumerable<Category>? FilterCategoryIds { get; set; }
+    private Category? _categoryFilterValue;
+    private string? FilterComment { get; set; }
+    private string? FilterPlace { get; set; }
+
+
     protected override async Task OnInitializedAsync()
     {
-        ApiClientResponse<PaymentClient.Payment[]> apiPayments = await MoneyClient.Payment.Get();
+        await Search();
+        _init = true;
+    }
 
+    private async Task GetCategories()
+    {
+        if (Categories == null)
+        {
+            Categories = await CategoryService.GetCategories();
+            if (Categories == null)
+            {
+                return;
+            }
+        }
+    }
+
+    private async Task Search()
+    {
+        await GetCategories();
+
+
+        var filter = new PaymentClient.PaymentFilterDto
+        {
+            CategoryIds = FilterCategoryIds?.Select(x=>x.Id!.Value).ToList(),
+            Comment = FilterComment,
+            Place = FilterPlace,
+            DateFrom = FilterDateFrom,
+            DateTo = FilterDateTo?.AddDays(1),
+        };
+        ApiClientResponse<PaymentClient.Payment[]> apiPayments = await MoneyClient.Payment.Get(filter);
         if (apiPayments.Content == null)
         {
             return;
         }
 
-        Categories = await CategoryService.GetCategories();
-
-        if (Categories == null)
-        {
-            return;
-        }
-
-        Dictionary<int, Category> categoriesDict = Categories.ToDictionary(x => x.Id!.Value, x => x);
+        Dictionary<int, Category> categoriesDict = Categories!.ToDictionary(x => x.Id!.Value, x => x);
 
         PaymentsDays = apiPayments.Content
             .Select(apiPayment => new Payment
@@ -64,8 +93,6 @@ public partial class Payments
                 Payments = x.ToList(),
             })
             .ToList();
-
-        _init = true;
     }
 
     private async Task Delete(Payment payment)

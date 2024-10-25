@@ -13,6 +13,49 @@
         <MudContainer Class="align-content-center" MaxWidth="MaxWidth.Large">
             <MudStack Class="mt-3" Spacing="2">
                 <MudItem>
+                    <MudDatePicker AdornmentColor="Color.Tertiary"
+                                    @bind-Date="FilterDateFrom"
+                                    Color="Color.Tertiary"
+                                    For="@(() => FilterDateFrom)"
+                                    Label="Дата" />
+                            <MudDatePicker AdornmentColor="Color.Tertiary"
+                                    @bind-Date="FilterDateTo"
+                                    Color="Color.Tertiary"
+                                    For="@(() => FilterDateTo)"
+                                    Label="Дата" />
+                    <MudSelect Label="Category" 
+                        @bind-SelectedValues="FilterCategoryIds" 
+                        T="Category"
+                        ToStringFunc="@(arg => arg?.Name)"
+                        MultiSelection="true" 
+                        Variant="Variant.Outlined" > 
+                        @foreach (var category in Categories ?? []) { 
+                            <MudSelectItem T="Category" Value="@category">
+                                @category.Name
+                            </MudSelectItem> 
+                        } 
+                    </MudSelect>
+            
+                    <MudTextField @bind-Value="FilterPlace"
+                                  Counter="0"
+                                  For="@(() => FilterPlace)"
+                                  Label="Место" />
+                          
+                    <MudTextField @bind-Value="FilterComment"
+                                  Counter="0"
+                                  For="@(() => FilterComment)"
+                                  Label="Комментарий" />
+                        <MudTooltip Text="Найти">
+                            <MudButton Color="Color.Info"
+                                        OnClick="() => Search()"
+                                        Size="Size.Small"
+                                        Variant="Variant.Filled"
+                                        EndIcon="@Icons.Material.Rounded.Search">
+                                Найти
+                            </MudButton>
+                        </MudTooltip>
+                </MudItem>
+                <MudItem>
                     <PaymentDialog @ref="_dialog"
                                    Payment="@(new Payment { Date = DateTime.Now, Category = Category.Empty })"
                                    OnSubmit="AddNewPayment">
