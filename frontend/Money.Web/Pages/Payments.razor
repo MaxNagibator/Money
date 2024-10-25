@@ -8,29 +8,30 @@
     <MudProgressLinear Indeterminate />
 }
 
-<MudTabs Elevation="4" Outlined>
-    <MudTabPanel ID="1" Text="Список операций">
-        <MudStack Class="mt-3" Spacing="2">
-            <MudItem>
-                <PaymentDialog CreateMode="PaymentDialog.Mode.Add"
-                               Payment="@(new Payment { Date = DateTime.Now, Category = Category.Empty })"
-                               OnSubmit="AddNewPayment" />
-            </MudItem>
-            @foreach (PaymentsDay paymentsDay in PaymentsDays ?? [])
-            {
-                <PaymentsDayCard PaymentsDay="@paymentsDay"
-                                 PaymentTypes="@PaymentTypes.Values"
-                                 OnAddPayment="x => paymentsDay.Payments.Add(x)"
-                                 OnRestore="Restore"
-                                 OnDelete="Delete">
-                </PaymentsDayCard>
-            }
-        </MudStack>
+<MudTabs ApplyEffectsToContainer Elevation="4" Outlined PanelClass="px-6" Position="Position.Left" Rounded SliderAnimation>
+    <MudTabPanel ID="1" Text="Список">
+        <MudContainer Class="align-content-center" MaxWidth="MaxWidth.Large">
+            <MudStack Class="mt-3" Spacing="2">
+                <MudItem>
+                    <PaymentDialog CreateMode="PaymentDialog.Mode.Add"
+                                   Payment="@(new Payment { Date = DateTime.Now, Category = Category.Empty })"
+                                   OnSubmit="AddNewPayment" />
+                </MudItem>
+                @foreach (PaymentsDay paymentsDay in PaymentsDays ?? [])
+                {
+                    <PaymentsDayCard PaymentsDay="@paymentsDay"
+                                     PaymentTypes="@PaymentTypes.Values"
+                                     OnAddPayment="x => paymentsDay.Payments.Add(x)"
+                                     OnRestore="Restore"
+                                     OnDelete="Delete" />
+                }
+            </MudStack>
+        </MudContainer>
     </MudTabPanel>
-    <MudTabPanel Text="Регулярные операции" ID="2">
+    <MudTabPanel Text="Регулярные" ID="2">
         =)
     </MudTabPanel>
-    <MudTabPanel Text="Быстрые операции" ID="3">
+    <MudTabPanel Text="Быстрые" ID="3">
         =)
     </MudTabPanel>
 </MudTabs>
