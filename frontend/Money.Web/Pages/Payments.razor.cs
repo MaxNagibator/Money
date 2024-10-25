@@ -28,13 +28,10 @@ public partial class Payments
 
     private List<Category>? Categories { get; set; }
 
-    private DateTime? FilterDateFrom { get; set; }
-    private DateTime? FilterDateTo { get; set; }
-    private IEnumerable<Category>? FilterCategoryIds { get; set; }
-    private Category? _categoryFilterValue;
+    private IEnumerable<Category>? FilterCategories { get; set; }
     private string? FilterComment { get; set; }
     private string? FilterPlace { get; set; }
-
+    private DateRange? FilterDateRange { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -44,30 +41,24 @@ public partial class Payments
 
     private async Task GetCategories()
     {
-        if (Categories == null)
-        {
-            Categories = await CategoryService.GetCategories();
-            if (Categories == null)
-            {
-                return;
-            }
-        }
+        Categories ??= await CategoryService.GetCategories();
     }
 
     private async Task Search()
     {
         await GetCategories();
 
-
-        var filter = new PaymentClient.PaymentFilterDto
+        PaymentClient.PaymentFilterDto filter = new()
         {
-            CategoryIds = FilterCategoryIds?.Select(x=>x.Id!.Value).ToList(),
+            CategoryIds = FilterCategories?.Select(x => x.Id!.Value).ToList(),
             Comment = FilterComment,
             Place = FilterPlace,
-            DateFrom = FilterDateFrom,
-            DateTo = FilterDateTo?.AddDays(1),
+            DateFrom = FilterDateRange?.Start,
+            DateTo = FilterDateRange?.End?.AddDays(1),
         };
+
         ApiClientResponse<PaymentClient.Payment[]> apiPayments = await MoneyClient.Payment.Get(filter);
+
         if (apiPayments.Content == null)
         {
             return;

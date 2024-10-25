@@ -13,47 +13,35 @@
         <MudContainer Class="align-content-center" MaxWidth="MaxWidth.Large">
             <MudStack Class="mt-3" Spacing="2">
                 <MudItem>
-                    <MudDatePicker AdornmentColor="Color.Tertiary"
-                                    @bind-Date="FilterDateFrom"
-                                    Color="Color.Tertiary"
-                                    For="@(() => FilterDateFrom)"
-                                    Label="Дата" />
-                            <MudDatePicker AdornmentColor="Color.Tertiary"
-                                    @bind-Date="FilterDateTo"
-                                    Color="Color.Tertiary"
-                                    For="@(() => FilterDateTo)"
-                                    Label="Дата" />
-                    <MudSelect Label="Category" 
-                        @bind-SelectedValues="FilterCategoryIds" 
-                        T="Category"
-                        ToStringFunc="@(arg => arg?.Name)"
-                        MultiSelection="true" 
-                        Variant="Variant.Outlined" > 
-                        @foreach (var category in Categories ?? []) { 
-                            <MudSelectItem T="Category" Value="@category">
-                                @category.Name
-                            </MudSelectItem> 
-                        } 
-                    </MudSelect>
-            
-                    <MudTextField @bind-Value="FilterPlace"
-                                  Counter="0"
-                                  For="@(() => FilterPlace)"
-                                  Label="Место" />
-                          
-                    <MudTextField @bind-Value="FilterComment"
-                                  Counter="0"
-                                  For="@(() => FilterComment)"
-                                  Label="Комментарий" />
-                        <MudTooltip Text="Найти">
-                            <MudButton Color="Color.Info"
-                                        OnClick="() => Search()"
-                                        Size="Size.Small"
-                                        Variant="Variant.Filled"
-                                        EndIcon="@Icons.Material.Rounded.Search">
-                                Найти
-                            </MudButton>
-                        </MudTooltip>
+                    <MudStack AlignItems="AlignItems.Stretch" Spacing="3">
+
+                        <MudDateRangePicker AdornmentColor="Color.Tertiary"
+                                            AnchorOrigin="Origin.BottomLeft"
+                                            @bind-DateRange="@FilterDateRange" Clearable
+                                            Color="Color.Tertiary"
+                                            Label="Диапазон дат"
+                                            PickerVariant="PickerVariant.Inline" Rounded />
+
+                        <MudSelect AdornmentColor="Color.Tertiary"
+                                   AdornmentIcon="@Icons.Material.Rounded.Search"
+                                   AnchorOrigin="Origin.BottomCenter"
+                                   @bind-SelectedValues="FilterCategories"
+                                   Label="Категории" MultiSelection
+                                   ToStringFunc="@(arg => arg?.Name)">
+                            @foreach (Category category in Categories ?? [])
+                            {
+                                <MudSelectItem Value="@category">
+                                    @category.Name
+                                </MudSelectItem>
+                            }
+                        </MudSelect>
+
+                        <MudTextField @bind-Value="FilterPlace"
+                                      Label="Место" />
+
+                        <MudTextField @bind-Value="FilterComment"
+                                      Label="Комментарий" />
+                    </MudStack>
                 </MudItem>
                 <MudItem>
                     <PaymentDialog @ref="_dialog"
@@ -80,6 +68,16 @@
                                            Size="Size.Small"
                                            Variant="Variant.Filled">
                                     Быстрое добавление
+                                </MudButton>
+                            </MudTooltip>
+                            <MudSpacer />
+                            <MudTooltip Text="Найти">
+                                <MudButton Color="Color.Info"
+                                           EndIcon="@Icons.Material.Rounded.Search"
+                                           OnClick="Search"
+                                           Size="Size.Small"
+                                           Variant="Variant.Filled">
+                                    Найти
                                 </MudButton>
                             </MudTooltip>
                         </MudStack>
