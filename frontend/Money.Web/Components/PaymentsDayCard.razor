@@ -1,0 +1,71 @@
+﻿@code {
+    [CascadingParameter] public AppSettings Settings { get; set; }
+    [Parameter] public PaymentsDay PaymentsDay { get; set; }
+    [Parameter] public PaymentTypes.Value[] PaymentTypes { get; set; }
+    [Parameter] public EventCallback<Payment> OnAddPayment { get; set; }
+    [Parameter] public EventCallback<Payment> OnRestore { get; set; }
+    [Parameter] public EventCallback<Payment> OnDelete { get; set; }
+}
+
+<MudCard Elevation="3">
+    <MudCardHeader Class="border-b-2 border-solid" Style="padding: 8px 8px; border-color: var(--mud-palette-divider)">
+        <MudItem md="2" xs="3">
+            <MudStack Justify="Justify.FlexStart" Row StretchItems="StretchItems.End">
+                <MudIcon Icon="@Icons.Material.Rounded.CalendarToday" Size="Size.Small" />
+                <MudText>
+                    @PaymentsDay.Date.ToShortDateString()
+                </MudText>
+            </MudStack>
+        </MudItem>
+
+        <MudItem md="2" xs="3">
+            <PaymentDialog
+                CreateMode="PaymentDialog.Mode.AddCompact"
+                Payment="@(new Payment { Date = PaymentsDay.Date, Category = Category.Empty })"
+                OnSubmit="PaymentsDay.Payments.Add">
+            </PaymentDialog>
+        </MudItem>
+
+        @foreach (PaymentTypes.Value paymentType in PaymentTypes)
+        {
+            <MudItem md="2" xs="3">
+                <MudStack AlignItems="AlignItems.Center" Justify="Justify.FlexEnd" Row StretchItems="StretchItems.End">
+                    <MudIcon Color="@paymentType.Color" Icon="@paymentType.Icon" Size="Size.Small" />
+                    <MudText>
+                        @PaymentsDay.CalculateSum(paymentType).ToString("N0")
+                    </MudText>
+                </MudStack>
+            </MudItem>
+        }
+
+        <MudSpacer />
+    </MudCardHeader>
+    <MudCardContent Style="padding: 8px 8px;">
+        <MudStack Spacing="0">
+            @for (int i = 0; i < PaymentsDay.Payments.Count; i++)
+            {
+                Payment payment = PaymentsDay.Payments[i];
+
+                if (payment.IsDeleted)
+                {
+                    <MudStack AlignItems="AlignItems.Center" Row>
+                        <MudText Style="text-decoration: line-through;">
+                            @payment.Sum.ToString("N0") - @payment.Category.Name - @payment.Comment
+                        </MudText>
+                        <MudSpacer />
+                        <MudButton Color="Color.Info" EndIcon="@Icons.Material.TwoTone.Cancel" OnClick="() => OnRestore.InvokeAsync(payment)">
+                            Восстановить
+                        </MudButton>
+                    </MudStack>
+                }
+                else
+                {
+                    <PaymentItem OnDelete="() => OnDelete.InvokeAsync(payment)"
+                                 OnEdit="() => StateHasChanged()"
+                                 Payment="@payment"
+                                 ShowDividers="@(Settings.ShowDividers && i != PaymentsDay.Payments.Count - 1)" />
+                }
+            }
+        </MudStack>
+    </MudCardContent>
+</MudCard>

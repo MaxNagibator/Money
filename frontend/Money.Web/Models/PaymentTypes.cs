@@ -15,5 +15,8 @@ public static class PaymentTypes
         ];
     }
 
-    public record Value(int Id, string Name, string Icon, Color Color);
+    public record Value(int Id, string Name, string Icon, Color Color)
+    {
+        public string AddText { get; } = "Добавить " + Name.ToLower();
+    }
 }

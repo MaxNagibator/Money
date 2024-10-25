@@ -1,0 +1,41 @@
+﻿@code {
+    [Parameter] public Payment Payment { get; set; }
+    [Parameter] public EventCallback<Payment> OnEdit { get; set; }
+    [Parameter] public EventCallback<Payment> OnDelete { get; set; }
+    [Parameter] public bool ShowDividers { get; set; }
+
+    private Category Category => Payment.Category;
+}
+
+<MudStack AlignItems="AlignItems.Center" Row>
+    <MudIcon Color="@Category.PaymentType.Color" Icon="@Category.PaymentType.Icon" Size="Size.Small" />
+    <PaymentDialog CreateMode="PaymentDialog.Mode.Edit" Payment="@Payment" OnSubmit="OnEdit" />
+
+    <MudItem xs="2">
+        <MudText Align="Align.Left" Inline>@Payment.Sum.ToString("N0")</MudText>
+    </MudItem>
+    <MudItem xs="3">
+        <MudText Align="Align.Left" Inline title="@Category.Name">@Category.Name</MudText>
+    </MudItem>
+    <MudItem xs="3">
+        <MudText Align="Align.Left" Inline title="@Payment.Place">@Payment.Place</MudText>
+    </MudItem>
+    @if (Payment.CreatedTaskId != null)
+    {
+        <MudItem xs="1">
+            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Title="Создано регулярной задачей" />
+        </MudItem>
+    }
+    <MudItem xs="4">
+        <MudText Align="Align.Left" Inline Typo="Typo.body2">@Payment.Comment</MudText>
+    </MudItem>
+    <MudSpacer />
+    <MudTooltip Text="Удалить">
+        <MudIconButton Color="Color.Error" Icon="@Icons.Material.TwoTone.Delete" OnClick="() => OnDelete.InvokeAsync(Payment)" Size="Size.Small" />
+    </MudTooltip>
+</MudStack>
+
+@if (ShowDividers)
+{
+    <MudDivider FlexItem DividerType="DividerType.FullWidth" />
+}
