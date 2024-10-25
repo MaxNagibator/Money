@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Money.ApiClient;
+using Money.Web.Components;
 
 namespace Money.Web.Pages;
 
 public partial class Payments
 {
     private bool _init;
+    private PaymentDialog _dialog = null!;
 
     [CascadingParameter]
     public AppSettings AppSettings { get; set; } = default!;
@@ -36,6 +38,7 @@ public partial class Payments
         }
 
         Categories = await CategoryService.GetCategories();
+
         if (Categories == null)
         {
             return;
@@ -50,7 +53,7 @@ public partial class Payments
                 Sum = apiPayment.Sum,
                 Category = categoriesDict[apiPayment.CategoryId],
                 Comment = apiPayment.Comment,
-                Date = apiPayment.Date,
+                Date = apiPayment.Date.Date,
                 CreatedTaskId = apiPayment.CreatedTaskId,
                 Place = apiPayment.Place,
             })
@@ -92,9 +95,36 @@ public partial class Payments
         payment.IsDeleted = isDeleted;
     }
 
-    private async Task AddNewPayment(Payment payment)
+    private void AddNewPayment(Payment payment)
     {
-        // todo обработать нормально
-        PaymentsDays.First().Payments.Add(payment);
+        PaymentsDays ??= [];
+
+        DateTime paymentDate = payment.Date.Date;
+        PaymentsDay? paymentsDay = PaymentsDays.FirstOrDefault(x => x.Date == paymentDate);
+
+        if (paymentsDay != null)
+        {
+            paymentsDay.Payments.Add(payment);
+            return;
+        }
+
+        paymentsDay = new PaymentsDay
+        {
+            Date = paymentDate,
+            Payments = [payment],
+        };
+
+        int index = PaymentsDays.FindIndex(x => x.Date < paymentDate);
+
+        if (index == -1)
+        {
+            PaymentsDays.Add(paymentsDay);
+        }
+        else
+        {
+            PaymentsDays.Insert(index, paymentsDay);
+        }
+
+        StateHasChanged();
     }
 }

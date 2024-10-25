@@ -1,35 +1,19 @@
-﻿@{
-    string style = _isOpen ? "visibility: hidden" : "";
-}
-@if (CreateMode == 0)
+﻿@if (ChildContent != null)
 {
-    <MudStack AlignItems="AlignItems.Start" Row>
-        <MudButton Disabled="@(_isOpen)" Variant="Variant.Filled" OnClick="() => ToggleOpen()" Size="Size.Small" Color="Color.Warning" Title="Добавить расходы">Добавить расходы</MudButton>
-        <MudButton Disabled="@(_isOpen)" Variant="Variant.Filled" OnClick="() => ToggleOpen()" Size="Size.Small" Color="Color.Success" Title="Добавить доходы">Добавить доходы</MudButton>
-        <MudButton Disabled="@(_isOpen)" Variant="Variant.Filled" OnClick="() => ToggleOpen()" Size="Size.Small" Color="Color.Info" Title="Быстрое добавление">Быстрое добавление</MudButton>
-    </MudStack>
-}
-else if (CreateMode == 1)
-{
-    <MudStack AlignItems="AlignItems.Center" Row Style="@style">
-        <MudIconButton Disabled="@(_isOpen)" OnClick="() => ToggleOpen()" Size="Size.Small" Color="Color.Warning" Icon="@Icons.Material.Rounded.Add" Title="Добавить расходы" />
-        <MudIconButton Disabled="@(_isOpen)" OnClick="() => ToggleOpen()" Size="Size.Small" Color="Color.Success" Icon="@Icons.Material.Rounded.Add" Title="Добавить доходы" />
-        <MudIconButton Disabled="@(_isOpen)" OnClick="() => ToggleOpen()" Size="Size.Small" Color="Color.Info" Icon="@Icons.Material.Rounded.Add" Title="Быстрое добавление" />
-    </MudStack>
-}
-else
-{
-    <MudIconButton Class="mx-n3"
-                   Style="@style"
-                   Icon="@Icons.Material.TwoTone.ModeEdit"
-                   OnClick="() => ToggleOpen()" Size="Size.Small" title="Редактировать" />
+    @ChildContent
 }
 
-<MudPopover AnchorOrigin="Origin.BottomLeft" Class="mt-4 mx-4 pa-4" Open="_isOpen" TransformOrigin="Origin.TopLeft">
+<MudPopover AnchorOrigin="Origin.BottomLeft"
+            Class="mt-4 mx-4 pa-4"
+            Open="IsOpen"
+            TransformOrigin="Origin.TopLeft">
     <EditForm Model="@Input" OnValidSubmit="SubmitAsync">
         <DataAnnotationsValidator />
 
-        <MudStack AlignItems="AlignItems.Stretch" Justify="Justify.SpaceBetween" Spacing="3" StretchItems="StretchItems.All">
+        <MudStack AlignItems="AlignItems.Stretch"
+                  Justify="Justify.SpaceBetween"
+                  Spacing="3"
+                  StretchItems="StretchItems.All">
             @if (_isNumericSumVisible)
             {
                 <MudNumericField Adornment="Adornment.Start"
@@ -37,6 +21,7 @@ else
                                  AdornmentIcon="@Icons.Material.Filled.Calculate"
                                  @bind-Value="Input.Sum"
                                  For="@(() => Input.Sum)"
+                                 Immediate
                                  Label="Сумма"
                                  OnAdornmentClick="ToggleSumFieldAsync"
                                  OnKeyDown="OnSumKeyDown" />
@@ -48,17 +33,24 @@ else
                               AdornmentIcon="@Icons.Material.Filled.Numbers"
                               AutoFocus
                               @bind-Value="Input.CalculationSum"
+                              Clearable
                               Counter="0"
-                              Immediate
                               For="@(() => Input.CalculationSum)"
+                              Immediate
                               Label="Сумма"
                               OnAdornmentClick="ToggleSumFieldAsync"
-                              OnBlur="ToggleSumFieldAsync"
-                              Clearable />
+                              OnBlur="ToggleSumFieldAsync" />
             }
 
-            <MudTextField @bind-Value="Input.Comment" Counter="0" For="@(() => Input.Comment)" Label="Комментарий" />
-            <MudDatePicker AdornmentColor="Color.Tertiary" @bind-Date="Input.Date" Color="Color.Tertiary" For="@(() => Input.Date)" Label="Дата" />
+            <MudTextField @bind-Value="Input.Comment"
+                          Counter="0"
+                          For="@(() => Input.Comment)"
+                          Label="Комментарий" />
+            <MudDatePicker AdornmentColor="Color.Tertiary"
+                           @bind-Date="Input.Date"
+                           Color="Color.Tertiary"
+                           For="@(() => Input.Date)"
+                           Label="Дата" />
 
             <MudSelect AdornmentColor="Color.Tertiary"
                        AdornmentIcon="@Icons.Material.Rounded.Search"
@@ -68,19 +60,30 @@ else
                        Label="Категория"
                        ToStringFunc="@(arg => arg?.Name)"
                        TransformOrigin="Origin.TopCenter">
-
                 @foreach (Category category in Input.CategoryList ?? [])
                 {
-                    <MudSelectItem Value="category">@category.Name</MudSelectItem>
+                    <MudSelectItem Value="category">
+                        @category.Name
+                    </MudSelectItem>
                 }
             </MudSelect>
 
-            <MudTextField @bind-Value="Input.Place" Counter="0" For="@(() => Input.Place)" Label="Место" />
+            <MudTextField @bind-Value="Input.Place"
+                          Counter="0"
+                          For="@(() => Input.Place)"
+                          Label="Место" />
         </MudStack>
 
-        <MudStack Class="mt-3" Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
-            <MudButton Color="Color.Error" OnClick="@ToggleOpen">Закрыть</MudButton>
-            <MudButton ButtonType="ButtonType.Submit" Color="Color.Tertiary" Variant="Variant.Filled">Сохранить</MudButton>
+        <MudStack Class="mt-3"
+                  Row
+                  AlignItems="AlignItems.Center"
+                  Justify="Justify.SpaceBetween">
+            <MudButton Color="Color.Error" OnClick="() => ToggleOpen()">
+                Закрыть
+            </MudButton>
+            <MudButton ButtonType="ButtonType.Submit" Color="Color.Tertiary" Variant="Variant.Filled">
+                Сохранить
+            </MudButton>
         </MudStack>
     </EditForm>
 </MudPopover>

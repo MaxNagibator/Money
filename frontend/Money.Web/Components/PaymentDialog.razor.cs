@@ -11,14 +11,12 @@ namespace Money.Web.Components;
 public partial class PaymentDialog
 {
     private static readonly HashSet<char> ValidKeys = ['(', ')', '+', '-', '*', '/'];
-    private bool _isOpen;
     private bool _isNumericSumVisible = true;
+
+    public bool IsOpen { get; private set; }
 
     [Parameter]
     public Payment Payment { get; set; } = default!;
-
-    [Parameter]
-    public int CreateMode { get; set; } = default!;
 
     [Parameter]
     public EventCallback<Payment> OnSubmit { get; set; }
@@ -41,11 +39,11 @@ public partial class PaymentDialog
     [Inject]
     private IAsyncExpressionFactory Factory { get; set; } = default!;
 
-    public async Task ToggleOpen()
+    public async Task ToggleOpen(PaymentTypes.Value? type = null)
     {
-        _isOpen = !_isOpen;
+        IsOpen = !IsOpen;
 
-        if (_isOpen)
+        if (IsOpen)
         {
             List<Category> categories = await CategoryService.GetCategories() ?? [];
 
@@ -57,15 +55,33 @@ public partial class PaymentDialog
                 Place = Payment.Place,
                 Sum = Payment.Sum,
                 CalculationSum = Payment.Sum.ToString(CultureInfo.CurrentCulture),
-                // todo обработать, если текущая категория удалена.
-                CategoryList = [.. categories.Where(x => x.PaymentType == Payment.Category.PaymentType)],
             };
+
+            // todo обработать, если текущая категория удалена.
+            if (type == null)
+            {
+                Input.CategoryList = [..categories.Where(x => x.PaymentType == Payment.Category.PaymentType)];
+                return;
+            }
+
+            Input.CategoryList = [..categories.Where(x => x.PaymentType == type)];
+
+            Category? first = Input.CategoryList.FirstOrDefault();
+
+            if (first != null)
+            {
+                Input.Category = first;
+            }
         }
     }
 
     private async Task ToggleSumFieldAsync()
     {
-        if (_isNumericSumVisible == false && await ValidateSumAsync())
+        if (_isNumericSumVisible)
+        {
+            Input.CalculationSum = Input.Sum.ToString(CultureInfo.CurrentCulture);
+        }
+        else if (await ValidateSumAsync() == false)
         {
             return;
         }
@@ -75,27 +91,29 @@ public partial class PaymentDialog
 
     private async Task<bool> ValidateSumAsync()
     {
-        if (_isNumericSumVisible == false)
+        if (_isNumericSumVisible)
         {
-            decimal? sum = await CalculateAsync();
-
-            if (sum == null)
-            {
-                return true;
-            }
-
-            Input.Sum = sum.Value;
-            Input.CalculationSum = Input.Sum.ToString(CultureInfo.CurrentCulture);
+            return true;
         }
 
-        return false;
+        decimal? sum = await CalculateAsync();
+
+        if (sum == null)
+        {
+            return false;
+        }
+
+        Input.Sum = sum.Value;
+        Input.CalculationSum = Input.Sum.ToString(CultureInfo.CurrentCulture);
+
+        return true;
     }
 
     private async Task<decimal?> CalculateAsync()
     {
         decimal? sum = null;
 
-        if (Input.CalculationSum == null)
+        if (string.IsNullOrWhiteSpace(Input.CalculationSum))
         {
             return sum;
         }
@@ -125,27 +143,27 @@ public partial class PaymentDialog
             return;
         }
 
+        await ToggleSumFieldAsync();
+
         // Костыль, но ‘-’ валидный символ для NumericField, поэтому происходит его повторное добавление
         // InputMode.@decimal / https://developer.mozilla.org/ru/docs/Web/HTML/Global_attributes/inputmode#decimal
         if (key != '-')
         {
             Input.CalculationSum += key;
         }
-
-        await ToggleSumFieldAsync();
     }
 
     private async Task SubmitAsync()
     {
         try
         {
-            if (await ValidateSumAsync())
+            if (await ValidateSumAsync() == false)
             {
                 return;
             }
 
             await SaveAsync();
-            SnackbarService.Add("Платеж успешно сохранен!", Severity.Success);
+            SnackbarService.Add("Операция успешно сохранена!", Severity.Success);
 
             Payment.Category = Input.Category;
             Payment.Comment = Input.Comment;
