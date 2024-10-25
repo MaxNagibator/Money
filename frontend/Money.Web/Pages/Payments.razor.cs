@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Money.ApiClient;
+using Money.Web.Components;
 
 namespace Money.Web.Pages;
 
 public partial class Payments
 {
     private bool _init;
+    private PaymentDialog _dialog = null!;
 
     [CascadingParameter]
     public AppSettings AppSettings { get; set; } = default!;

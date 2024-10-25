@@ -1,75 +1,11 @@
-﻿@switch (CreateMode)
+﻿@if (ChildContent != null)
 {
-    case Mode.Add:
-        <MudStack AlignItems="AlignItems.Start" Row>
-            @foreach (PaymentTypes.Value type in PaymentTypes.Values)
-            {
-                <MudTooltip Text="@type.AddText">
-                    <MudButton Color="type.Color"
-                               Disabled="@(_isOpen)"
-                               OnClick="() => ToggleOpen(type)"
-                               Size="Size.Small"
-                               Variant="Variant.Filled"
-                               EndIcon="@type.Icon">
-                        @type.AddText
-                    </MudButton>
-                </MudTooltip>
-            }
-            <MudTooltip Text="Быстрое добавление">
-                <MudButton Color="Color.Info"
-                           Disabled="@(_isOpen)"
-                           OnClick="() => ToggleOpen()"
-                           Size="Size.Small"
-                           Variant="Variant.Filled">
-                    Быстрое добавление
-                </MudButton>
-            </MudTooltip>
-        </MudStack>
-
-        break;
-
-    case Mode.AddCompact:
-        <MudStack
-            AlignItems="AlignItems.Center" Row>
-            @foreach (PaymentTypes.Value type in PaymentTypes.Values)
-            {
-                <MudTooltip Text="@type.AddText">
-                    <MudIconButton Color="type.Color"
-                                   Disabled="@(_isOpen)"
-                                   Icon="@Icons.Material.Rounded.Add"
-                                   OnClick="() => ToggleOpen(type)"
-                                   Size="Size.Small" />
-                </MudTooltip>
-            }
-            <MudTooltip Text="Быстрое добавление">
-                <MudIconButton Color="Color.Info"
-                               Disabled="@(_isOpen)"
-                               Icon="@Icons.Material.Rounded.Add"
-                               OnClick="() => ToggleOpen()"
-                               Size="Size.Small" />
-            </MudTooltip>
-        </MudStack>
-
-        break;
-
-    case Mode.Edit:
-        <MudTooltip Text="Редактировать">
-            <MudIconButton Class="mx-n3"
-                           Icon="@Icons.Material.TwoTone.ModeEdit"
-                           OnClick="() => ToggleOpen()"
-                           Size="Size.Small" />
-        </MudTooltip>
-
-        break;
-
-    case Mode.None:
-    default:
-        break;
+    @ChildContent
 }
 
 <MudPopover AnchorOrigin="Origin.BottomLeft"
             Class="mt-4 mx-4 pa-4"
-            Open="_isOpen"
+            Open="IsOpen"
             TransformOrigin="Origin.TopLeft">
     <EditForm Model="@Input" OnValidSubmit="SubmitAsync">
         <DataAnnotationsValidator />

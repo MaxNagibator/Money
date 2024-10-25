@@ -1,15 +1,13 @@
-﻿@code {
-    [Parameter] public Payment Payment { get; set; }
-    [Parameter] public EventCallback<Payment> OnEdit { get; set; }
-    [Parameter] public EventCallback<Payment> OnDelete { get; set; }
-    [Parameter] public bool ShowDividers { get; set; }
-
-    private Category Category => Payment.Category;
-}
-
-<MudStack AlignItems="AlignItems.Center" Row>
+﻿<MudStack AlignItems="AlignItems.Center" Row>
     <MudIcon Color="@Category.PaymentType.Color" Icon="@Category.PaymentType.Icon" Size="Size.Small" />
-    <PaymentDialog CreateMode="PaymentDialog.Mode.Edit" Payment="@Payment" OnSubmit="OnEdit" />
+    <PaymentDialog @ref="_dialog" Payment="@Payment" OnSubmit="OnEdit">
+        <MudTooltip Text="Редактировать">
+            <MudIconButton Class="mx-n3"
+                           Icon="@Icons.Material.TwoTone.ModeEdit"
+                           OnClick="() => _dialog.ToggleOpen()"
+                           Size="Size.Small" />
+        </MudTooltip>
+    </PaymentDialog>
 
     <MudItem xs="2">
         <MudText Align="Align.Left" Inline>@Payment.Sum.ToString("N0")</MudText>
@@ -34,8 +32,3 @@
         <MudIconButton Color="Color.Error" Icon="@Icons.Material.TwoTone.Delete" OnClick="() => OnDelete.InvokeAsync(Payment)" Size="Size.Small" />
     </MudTooltip>
 </MudStack>
-
-@if (ShowDividers)
-{
-    <MudDivider FlexItem DividerType="DividerType.FullWidth" />
-}

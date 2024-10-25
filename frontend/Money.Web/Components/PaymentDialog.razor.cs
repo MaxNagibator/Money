@@ -11,22 +11,12 @@ namespace Money.Web.Components;
 public partial class PaymentDialog
 {
     private static readonly HashSet<char> ValidKeys = ['(', ')', '+', '-', '*', '/'];
-    private bool _isOpen;
     private bool _isNumericSumVisible = true;
 
-    public enum Mode
-    {
-        None = 0,
-        Add = 1,
-        AddCompact = 2,
-        Edit = 3,
-    }
+    public bool IsOpen { get; private set; }
 
     [Parameter]
     public Payment Payment { get; set; } = default!;
-
-    [Parameter]
-    public Mode CreateMode { get; set; }
 
     [Parameter]
     public EventCallback<Payment> OnSubmit { get; set; }
@@ -51,9 +41,9 @@ public partial class PaymentDialog
 
     public async Task ToggleOpen(PaymentTypes.Value? type = null)
     {
-        _isOpen = !_isOpen;
+        IsOpen = !IsOpen;
 
-        if (_isOpen)
+        if (IsOpen)
         {
             List<Category> categories = await CategoryService.GetCategories() ?? [];
 
