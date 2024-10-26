@@ -6,15 +6,12 @@ namespace Money.Web.Pages;
 
 public partial class Payments
 {
+    private PaymentsFilter _filter = null!;
     private bool _init;
     private PaymentDialog _dialog = null!;
-    private MudExpansionPanel _panel;
-    private MudPopover _popover;
 
     [CascadingParameter]
     public AppSettings AppSettings { get; set; } = default!;
-
-    private List<TreeItemData<Category>> InitialTreeItems { get; set; } = [];
 
     [Inject]
     private MoneyClient MoneyClient { get; set; } = default!;
@@ -29,92 +26,23 @@ public partial class Payments
 
     private List<Category>? Categories { get; set; }
 
-    private IReadOnlyCollection<Category>? FilterCategories { get; set; }
-    private string? FilterComment { get; set; }
-    private string? FilterPlace { get; set; }
-    private DateRange FilterDateRange { get; set; } = new();
-    private bool ShowDateRange { get; set; }
-
     protected override async Task OnInitializedAsync()
     {
         await Search();
         _init = true;
     }
 
-    private string GetHelperText()
-    {
-        if (FilterCategories == null || FilterCategories.Count == 0)
-        {
-            return "Выберите категории";
-        }
-
-        return string.Join(", ", FilterCategories.Select(x => x.Name));
-    }
-
     private async Task GetCategories()
     {
         Categories ??= await CategoryService.GetCategories();
-        InitialTreeItems = BuildChildren(Categories!, null).ToList();
-    }
-
-    private void OnTextChanged(string searchTerm)
-    {
-        Filter(InitialTreeItems, searchTerm);
-    }
-
-    private void Filter(IEnumerable<TreeItemData<Category>> treeItemData, string text)
-    {
-        foreach (TreeItemData<Category> itemData in treeItemData)
-        {
-            if (itemData.HasChildren)
-            {
-                Filter(itemData.Children, text);
-            }
-
-            itemData.Visible = IsVisible(itemData, text);
-        }
-    }
-
-    private bool IsVisible(TreeItemData<Category> treeItemData, string searchTerm)
-    {
-        if (!treeItemData.HasChildren)
-        {
-            return treeItemData.Text.Contains(searchTerm, StringComparison.OrdinalIgnoreCase);
-        }
-
-        return treeItemData.Children.Any(i => i.Text.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-               || treeItemData.Text.Contains(searchTerm, StringComparison.OrdinalIgnoreCase);
-    }
-
-    private List<TreeItemData<Category>> BuildChildren(List<Category> categories, int? parentId)
-    {
-        return categories.Where(category => category.ParentId == parentId)
-            .Select(child => new TreeItemData<Category>
-            {
-                Text = child.Name,
-                Value = child,
-                Children = BuildChildren(categories, child.Id),
-            })
-            .OrderBy(item => item.Value?.Order == null)
-            .ThenBy(item => item.Value?.Order)
-            .ThenBy(item => item.Value?.Name)
-            .ToList();
     }
 
     private async Task Search()
     {
         await GetCategories();
+        _filter.UpdateCategories(Categories!);
 
-        PaymentClient.PaymentFilterDto filter = new()
-        {
-            CategoryIds = FilterCategories?.Select(x => x.Id!.Value).ToList(),
-            Comment = FilterComment,
-            Place = FilterPlace,
-            DateFrom = FilterDateRange.Start,
-            DateTo = FilterDateRange.End?.AddDays(1),
-        };
-
-        ApiClientResponse<PaymentClient.Payment[]> apiPayments = await MoneyClient.Payment.Get(filter);
+        ApiClientResponse<PaymentClient.Payment[]> apiPayments = await MoneyClient.Payment.Get(_filter.GetFilter());
 
         if (apiPayments.Content == null)
         {

@@ -1,32 +1,40 @@
 ﻿<MudStack AlignItems="AlignItems.Center"
           Row>
-    <MudIcon Color="@Category.PaymentType.Color"
-             Icon="@Category.PaymentType.Icon"
-             Size="Size.Small" />
-    <PaymentDialog OnSubmit="OnEdit"
-                   Payment="@Payment"@ref="_dialog">
-        <MudTooltip Text="Редактировать">
-            <MudIconButton Class="mx-n3"
-                           Icon="@Icons.Material.Rounded.ModeEdit"
-                           OnClick="() => _dialog.ToggleOpen()"
-                           Size="Size.Small" />
-        </MudTooltip>
-    </PaymentDialog>
 
-    <MudItem xs="2">
+    <MudStack AlignItems="AlignItems.Center"
+              Row
+              Spacing="0">
+        <MudIcon Color="@Category.PaymentType.Color"
+                 Icon="@Category.PaymentType.Icon"
+                 Size="Size.Small" />
+
+        <PaymentDialog OnSubmit="OnEdit"
+                       Payment="@Payment"
+                       @ref="_dialog">
+            <MudTooltip Text="Редактировать">
+                <MudIconButton Icon="@Icons.Material.Rounded.ModeEdit"
+                               OnClick="() => _dialog.ToggleOpen()"
+                               Size="Size.Small" />
+            </MudTooltip>
+        </PaymentDialog>
+    </MudStack>
+    <MudItem md="1"
+             xs="2">
         <MudText Align="Align.Left"
                  Inline>
             @Payment.Sum.ToString("N0")
         </MudText>
     </MudItem>
-    <MudItem xs="3">
+    <MudItem md="3"
+             xs="9">
         <MudText Align="Align.Left"
                  Inline
                  title="@Category.Name">
             @Category.Name
         </MudText>
     </MudItem>
-    <MudItem xs="3">
+    <MudItem md="3"
+             xs="5">
         <MudText Align="Align.Left"
                  Inline
                  title="@Payment.Place">
@@ -40,10 +48,10 @@
                      Title="Создано регулярной задачей" />
         </MudItem>
     }
-    <MudItem xs="4">
+    <MudItem md="4"
+             xs="6">
         <MudText Align="Align.Left"
-                 Inline
-                 Typo="Typo.body2">
+                 Inline>
             @Payment.Comment
         </MudText>
     </MudItem>

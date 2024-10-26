@@ -8,7 +8,7 @@
     <MudProgressLinear Indeterminate />
 }
 
-<MudTabs ApplyEffectsToContainer
+@*<MudTabsApplyEffectsToContainer
          Elevation="0"
          MinimumTabWidth="0"
          Outlined
@@ -20,182 +20,64 @@
         <TabContent>
             <div class="my-4 vertical-text">Список</div>
         </TabContent>
-        <ChildContent>
-            <MudContainer MaxWidth="MaxWidth.Large">
-                <MudStack Class="mt-3"
-                          Spacing="2">
-                    <MudItem>
-                        <MudStack AlignItems="AlignItems.Stretch"
-                                  Spacing="3">
-
-                            <MudStack AlignItems="AlignItems.Center"
-                                      Row
-                                      StretchItems="StretchItems.None">
-
-                                @if (ShowDateRange)
-                                {
-                                    <MudDateRangePicker Adornment="Adornment.Start"
-                                                        AdornmentColor="Color.Tertiary"
-                                                        AnchorOrigin="Origin.BottomLeft"
-                                                        @bind-DateRange="@FilterDateRange"
-                                                        Clearable
-                                                        Color="Color.Tertiary"
-                                                        Label="Диапазон дат"
-                                                        PickerVariant="PickerVariant.Inline"
-                                                        Rounded
-                                                        ShowWeekNumbers />
-                                }
-                                else
-                                {
-                                    <MudDatePicker Adornment="Adornment.Start"
-                                                   AdornmentColor="Color.Tertiary"
-                                                   @bind-Date="@FilterDateRange.Start"
-                                                   Clearable
-                                                   Color="Color.Tertiary"
-                                                   Label="Дата с"
-                                                   MaxDate="@FilterDateRange.End" />
-
-                                    <MudDatePicker Adornment="Adornment.Start"
-                                                   AdornmentColor="Color.Tertiary"
-                                                   @bind-Date="@FilterDateRange.End"
-                                                   Clearable
-                                                   Color="Color.Tertiary"
-                                                   Label="Дата по"
-                                                   MinDate="@FilterDateRange.Start" />
-                                }
-
-                                <MudIconButton Color="Color.Tertiary"
-                                               Icon="@Icons.Material.Rounded.SwapHoriz"
-                                               OnClick="() => ShowDateRange = !ShowDateRange"
-                                               Size="Size.Small" />
-                            </MudStack>
-
-                            @*TODO: придумать способ закрытия*@
-                            <div class="d-flex flex-column"
-                                 @onblur="() => _popover.Open = false">
-                                <MudStack AlignItems="AlignItems.Center"
-                                          Justify="Justify.FlexStart"
-                                          Row>
-                                    <MudTextField Adornment="Adornment.Start"
-                                                  AdornmentColor="Color.Tertiary"
-                                                  AdornmentIcon="@Icons.Material.Filled.Search"
-                                                  Clearable
-                                                  HelperText="@(GetHelperText())"
-                                                  Immediate
-                                                  Label="Категории"
-                                                  OnAdornmentClick="() => _popover.Open = !_popover.Open"
-                                                  @onclick="() => _popover.Open = true"
-                                                  T="string"
-                                                  TextChanged="OnTextChanged" />
-                                    <MudIconButton Color="Color.Tertiary"
-                                                   Icon="@Icons.Material.Rounded.Delete"
-                                                   OnClick="() => FilterCategories = null"
-                                                   Size="Size.Small" />
-                                </MudStack>
-
-                                <MudPopover AnchorOrigin="Origin.BottomLeft"
-                                            MaxHeight="300"
-                                            @ref="_popover"
-                                            RelativeWidth
-                                            TransformOrigin="Origin.TopLeft">
-                                    <MudTreeView AutoSelectParent
-                                                 @bind-SelectedValues="FilterCategories"
-                                                 ExpandOnClick
-                                                 Hover
-                                                 Items="InitialTreeItems"
-                                                 MaxHeight="400"
-                                                 Ripple
-                                                 SelectionMode="SelectionMode.MultiSelection"
-                                                 TriState>
-                                        <ItemTemplate>
-                                            <MudTreeViewItem @bind-Expanded="@context.Expanded"
-                                                             Icon="@context.Icon"
-                                                             Items="@context.Children"
-                                                             Text="@context.Text"
-                                                             Value="@context.Value"
-                                                             Visible="@context.Visible" />
-                                        </ItemTemplate>
-                                    </MudTreeView>
-                                </MudPopover>
-                            </div>
-
-                            <MudGrid>
-                                <MudItem md="6"
-                                         xs="12">
-                                    <MudTextField Adornment="Adornment.Start"
-                                                  AdornmentColor="Color.Tertiary"
-                                                  AdornmentIcon="@Icons.Material.Rounded.Place"
-                                                  @bind-Value="FilterPlace"
-                                                  Clearable
-                                                  Immediate
-                                                  Label="Место" />
-                                </MudItem>
-                                <MudItem md="6"
-                                         xs="12">
-                                    <MudTextField Adornment="Adornment.Start"
-                                                  AdornmentColor="Color.Tertiary"
-                                                  AdornmentIcon="@Icons.Material.Rounded.Comment"
-                                                  AutoGrow
-                                                  @bind-Value="FilterComment"
-                                                  Clearable
-                                                  Immediate
-                                                  Label="Комментарий" />
-                                </MudItem>
-                            </MudGrid>
-                        </MudStack>
-                    </MudItem>
-                    <MudItem>
-                        <PaymentDialog OnSubmit="AddNewPayment"
-                                       Payment="@(new Payment { Date = DateTime.Now, Category = Category.Empty })"
-                                       @ref="_dialog">
-                            <MudStack AlignItems="AlignItems.Start"
-                                      Row>
-                                @foreach (PaymentTypes.Value type in PaymentTypes.Values)
-                                {
-                                    <MudTooltip Text="@type.AddText">
-                                        <MudButton Color="type.Color"
-                                                   Disabled="_dialog.IsOpen"
-                                                   EndIcon="@type.Icon"
-                                                   OnClick="() => _dialog.ToggleOpen(type)"
-                                                   Size="Size.Small"
-                                                   Variant="Variant.Filled">
-                                            @type.AddText
-                                        </MudButton>
-                                    </MudTooltip>
-                                }
-                                <MudTooltip Text="Быстрое добавление">
-                                    <MudButton Color="Color.Info"
-                                               Disabled="_dialog.IsOpen"
-                                               OnClick="() => _dialog.ToggleOpen()"
-                                               Size="Size.Small"
-                                               Variant="Variant.Filled">
-                                        Быстрое добавление
-                                    </MudButton>
-                                </MudTooltip>
-                                <MudSpacer />
-                                <MudTooltip Text="Найти">
-                                    <MudButton Color="Color.Info"
-                                               EndIcon="@Icons.Material.Rounded.Search"
-                                               OnClick="Search"
-                                               Size="Size.Small"
-                                               Variant="Variant.Filled">
-                                        Найти
-                                    </MudButton>
-                                </MudTooltip>
-                            </MudStack>
-                        </PaymentDialog>
-                    </MudItem>
-                    @foreach (PaymentsDay paymentsDay in PaymentsDays ?? [])
-                    {
-                        <PaymentsDayCard OnAddPayment="x => AddPayment(x, paymentsDay)"
-                                         OnCanDelete="DeleteDay"
-                                         OnDelete="Delete"
-                                         OnRestore="Restore"
-                                         PaymentsDay="@paymentsDay"
-                                         PaymentTypes="@PaymentTypes.Values" />
-                    }
-                </MudStack>
-            </MudContainer>
+        <ChildContent>*@
+<MudStack Class="mt-3"
+          Spacing="2">
+    <MudItem>
+        <PaymentsFilter @ref="_filter" />
+    </MudItem>
+    <MudItem>
+        <PaymentDialog OnSubmit="AddNewPayment"
+                       Payment="@(new Payment { Date = DateTime.Now, Category = Category.Empty })"
+                       @ref="_dialog">
+            <MudStack AlignItems="AlignItems.Start"
+                      Row>
+                @foreach (PaymentTypes.Value type in PaymentTypes.Values)
+                {
+                    <MudTooltip Text="@type.AddText">
+                        <MudButton Color="type.Color"
+                                   Disabled="_dialog.IsOpen"
+                                   EndIcon="@type.Icon"
+                                   OnClick="() => _dialog.ToggleOpen(type)"
+                                   Size="Size.Small"
+                                   Variant="Variant.Filled">
+                            @type.AddText
+                        </MudButton>
+                    </MudTooltip>
+                }
+                <MudTooltip Text="Быстрое добавление">
+                    <MudButton Color="Color.Info"
+                               Disabled="_dialog.IsOpen"
+                               OnClick="() => _dialog.ToggleOpen()"
+                               Size="Size.Small"
+                               Variant="Variant.Filled">
+                        Быстрое добавление
+                    </MudButton>
+                </MudTooltip>
+                <MudSpacer />
+                <MudTooltip Text="Найти">
+                    <MudButton Color="Color.Info"
+                               EndIcon="@Icons.Material.Rounded.Search"
+                               OnClick="Search"
+                               Size="Size.Small"
+                               Variant="Variant.Filled">
+                        Найти
+                    </MudButton>
+                </MudTooltip>
+            </MudStack>
+        </PaymentDialog>
+    </MudItem>
+    @foreach (PaymentsDay paymentsDay in PaymentsDays ?? [])
+    {
+        <PaymentsDayCard OnAddPayment="x => AddPayment(x, paymentsDay)"
+                         OnCanDelete="DeleteDay"
+                         OnDelete="Delete"
+                         OnRestore="Restore"
+                         PaymentsDay="@paymentsDay"
+                         PaymentTypes="@PaymentTypes.Values" />
+    }
+</MudStack>
+@*
         </ChildContent>
     </MudTabPanel>
     <MudTabPanel >
@@ -209,3 +91,4 @@
         </TabContent>
     </MudTabPanel>
 </MudTabs>
+*@

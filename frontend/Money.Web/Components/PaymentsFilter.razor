@@ -1,0 +1,127 @@
+﻿<MudPaper Class="pa-2">
+    <MudStack AlignItems="AlignItems.Stretch"
+              Spacing="3"
+              Wrap="Wrap.Wrap">
+
+        <MudStack AlignItems="AlignItems.Center"
+                  Row
+                  StretchItems="StretchItems.None">
+
+            @if (ShowDateRange)
+            {
+                <MudDateRangePicker Adornment="Adornment.Start"
+                                    AdornmentColor="Color.Tertiary"
+                                    AnchorOrigin="Origin.BottomLeft"
+                                    @bind-DateRange="@DateRange"
+                                    Clearable
+                                    Color="Color.Tertiary"
+                                    Label="Диапазон дат"
+                                    PickerVariant="PickerVariant.Inline"
+                                    Rounded
+                                    ShowWeekNumbers />
+            }
+            else
+            {
+                <MudDatePicker Adornment="Adornment.Start"
+                               AdornmentColor="Color.Tertiary"
+                               AnchorOrigin="Origin.BottomLeft"
+                               @bind-Date="@DateRange.Start"
+                               Clearable
+                               Color="Color.Tertiary"
+                               Label="Дата с"
+                               MaxDate="@DateRange.End" />
+
+                <MudDatePicker Adornment="Adornment.Start"
+                               AdornmentColor="Color.Tertiary"
+                               AnchorOrigin="Origin.BottomRight"
+                               @bind-Date="@DateRange.End"
+                               Clearable
+                               Color="Color.Tertiary"
+                               Label="Дата по"
+                               MinDate="@DateRange.Start" />
+            }
+
+            <MudIconButton Color="Color.Tertiary"
+                           Icon="@Icons.Material.Rounded.SwapHoriz"
+                           OnClick="() => ShowDateRange = !ShowDateRange"
+                           Size="Size.Small" />
+        </MudStack>
+
+        @*TODO: придумать способ закрытия*@
+        <div class="d-flex flex-column"
+             @onblur="() => _popover.Open = false">
+            <MudStack AlignItems="AlignItems.Center"
+                      Justify="Justify.FlexStart"
+                      Row>
+                <MudTextField Adornment="Adornment.Start"
+                              AdornmentColor="Color.Tertiary"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              Clearable
+                              HelperText="@(GetHelperText())"
+                              Immediate
+                              Label="Категории"
+                              OnAdornmentClick="() => _popover.Open = !_popover.Open"
+                              @onclick="() => _popover.Open = true"
+                              T="string"
+                              TextChanged="OnTextChanged" />
+                <MudIconButton Color="Color.Tertiary"
+                               Icon="@Icons.Material.Rounded.Delete"
+                               OnClick="() => SelectedCategories = null"
+                               Size="Size.Small" />
+            </MudStack>
+
+            <MudPopover AnchorOrigin="Origin.BottomLeft"
+                        MaxHeight="400"
+                        @ref="_popover"
+                        RelativeWidth
+                        TransformOrigin="Origin.TopLeft">
+                <MudTreeView AutoSelectParent
+                             @bind-SelectedValues="SelectedCategories"
+                             ExpandOnClick
+                             Hover
+                             Items="InitialTreeItems"
+                             MaxHeight="400"
+                             Ripple
+                             SelectionMode="SelectionMode.MultiSelection"
+                             TriState>
+                    <ItemTemplate>
+                        <MudTreeViewItem @bind-Expanded="@context.Expanded"
+                                         Icon="@context.Icon"
+                                         Items="@context.Children"
+                                         Text="@context.Text"
+                                         Value="@context.Value"
+                                         Visible="@context.Visible" />
+                    </ItemTemplate>
+                </MudTreeView>
+            </MudPopover>
+        </div>
+
+        <MudStack AlignItems="AlignItems.Center"
+                  Row
+                  StretchItems="StretchItems.None">
+            <MudTextField Adornment="Adornment.Start"
+                          AdornmentColor="Color.Tertiary"
+                          AdornmentIcon="@Icons.Material.Rounded.Place"
+                          @bind-Value="Place"
+                          Clearable
+                          Immediate
+                          Label="Место" />
+
+            <MudTextField Adornment="Adornment.Start"
+                          AdornmentColor="Color.Tertiary"
+                          AdornmentIcon="@Icons.Material.Rounded.Comment"
+                          AutoGrow
+                          @bind-Value="Comment"
+                          Clearable
+                          Immediate
+                          Label="Комментарий"
+                          @ref="_comment" />
+
+            <MudIconButton Color="Color.Tertiary"
+                           Disabled
+                           Icon="@Icons.Material.Rounded.PlusOne"
+                           OnClick="() => _comment.Lines++"
+                           Size="Size.Small" />
+        </MudStack>
+    </MudStack>
+</MudPaper>
