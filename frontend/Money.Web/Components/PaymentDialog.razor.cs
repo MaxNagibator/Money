@@ -208,6 +208,16 @@ public partial class PaymentDialog
         };
     }
 
+    private Task<IEnumerable<Category>> Search(string value, CancellationToken token)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return Task.FromResult<IEnumerable<Category>>(Input.CategoryList ?? []);
+        }
+
+        return Task.FromResult(Input.CategoryList?.Where(x => x.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase)) ?? Array.Empty<Category>());
+    }
+
     private sealed class InputModel
     {
         public static readonly InputModel Empty = new()

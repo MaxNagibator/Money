@@ -12,7 +12,7 @@
          Elevation="0"
          MinimumTabWidth="0"
          Outlined
-         PanelClass="px-2"
+         PanelClass="px-1"
          Position="Position.Right"
          Rounded
          SliderAnimation>
@@ -28,15 +28,47 @@
                         <MudStack AlignItems="AlignItems.Stretch"
                                   Spacing="3">
 
-                            <MudDateRangePicker AdornmentColor="Color.Tertiary"
-                                                AnchorOrigin="Origin.BottomLeft"
-                                                @bind-DateRange="@FilterDateRange"
-                                                Clearable
-                                                Color="Color.Tertiary"
-                                                Label="Диапазон дат"
-                                                PickerVariant="PickerVariant.Inline"
-                                                Rounded
-                                                ShowWeekNumbers />
+                            <MudStack AlignItems="AlignItems.Center"
+                                      Row
+                                      StretchItems="StretchItems.None">
+
+                                @if (ShowDateRange)
+                                {
+                                    <MudDateRangePicker Adornment="Adornment.Start"
+                                                        AdornmentColor="Color.Tertiary"
+                                                        AnchorOrigin="Origin.BottomLeft"
+                                                        @bind-DateRange="@FilterDateRange"
+                                                        Clearable
+                                                        Color="Color.Tertiary"
+                                                        Label="Диапазон дат"
+                                                        PickerVariant="PickerVariant.Inline"
+                                                        Rounded
+                                                        ShowWeekNumbers />
+                                }
+                                else
+                                {
+                                    <MudDatePicker Adornment="Adornment.Start"
+                                                   AdornmentColor="Color.Tertiary"
+                                                   @bind-Date="@FilterDateRange.Start"
+                                                   Clearable
+                                                   Color="Color.Tertiary"
+                                                   Label="Дата с"
+                                                   MaxDate="@FilterDateRange.End" />
+
+                                    <MudDatePicker Adornment="Adornment.Start"
+                                                   AdornmentColor="Color.Tertiary"
+                                                   @bind-Date="@FilterDateRange.End"
+                                                   Clearable
+                                                   Color="Color.Tertiary"
+                                                   Label="Дата по"
+                                                   MinDate="@FilterDateRange.Start" />
+                                }
+
+                                <MudIconButton Color="Color.Tertiary"
+                                               Icon="@Icons.Material.Rounded.SwapHoriz"
+                                               OnClick="() => ShowDateRange = !ShowDateRange"
+                                               Size="Size.Small" />
+                            </MudStack>
 
                             @*TODO: придумать способ закрытия*@
                             <div class="d-flex flex-column"
@@ -47,16 +79,16 @@
                                     <MudTextField Adornment="Adornment.Start"
                                                   AdornmentColor="Color.Tertiary"
                                                   AdornmentIcon="@Icons.Material.Filled.Search"
-                                                  Clearable="true"
+                                                  Clearable
                                                   HelperText="@(GetHelperText())"
-                                                  Immediate="true"
+                                                  Immediate
                                                   Label="Категории"
                                                   OnAdornmentClick="() => _popover.Open = !_popover.Open"
                                                   @onclick="() => _popover.Open = true"
                                                   T="string"
                                                   TextChanged="OnTextChanged" />
                                     <MudIconButton Color="Color.Tertiary"
-                                                   Icon="@Icons.Material.Rounded.Clear"
+                                                   Icon="@Icons.Material.Rounded.Delete"
                                                    OnClick="() => FilterCategories = null"
                                                    Size="Size.Small" />
                                 </MudStack>
@@ -87,11 +119,29 @@
                                 </MudPopover>
                             </div>
 
-                            <MudTextField @bind-Value="FilterPlace"
-                                          Label="Место" />
-
-                            <MudTextField @bind-Value="FilterComment"
-                                          Label="Комментарий" />
+                            <MudGrid>
+                                <MudItem md="6"
+                                         xs="12">
+                                    <MudTextField Adornment="Adornment.Start"
+                                                  AdornmentColor="Color.Tertiary"
+                                                  AdornmentIcon="@Icons.Material.Rounded.Place"
+                                                  @bind-Value="FilterPlace"
+                                                  Clearable
+                                                  Immediate
+                                                  Label="Место" />
+                                </MudItem>
+                                <MudItem md="6"
+                                         xs="12">
+                                    <MudTextField Adornment="Adornment.Start"
+                                                  AdornmentColor="Color.Tertiary"
+                                                  AdornmentIcon="@Icons.Material.Rounded.Comment"
+                                                  AutoGrow
+                                                  @bind-Value="FilterComment"
+                                                  Clearable
+                                                  Immediate
+                                                  Label="Комментарий" />
+                                </MudItem>
+                            </MudGrid>
                         </MudStack>
                     </MudItem>
                     <MudItem>
@@ -137,7 +187,8 @@
                     </MudItem>
                     @foreach (PaymentsDay paymentsDay in PaymentsDays ?? [])
                     {
-                        <PaymentsDayCard OnAddPayment="paymentsDay.AddPayment"
+                        <PaymentsDayCard OnAddPayment="x => AddPayment(x, paymentsDay)"
+                                         OnCanDelete="DeleteDay"
                                          OnDelete="Delete"
                                          OnRestore="Restore"
                                          PaymentsDay="@paymentsDay"

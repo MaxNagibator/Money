@@ -32,7 +32,8 @@ public partial class Payments
     private IReadOnlyCollection<Category>? FilterCategories { get; set; }
     private string? FilterComment { get; set; }
     private string? FilterPlace { get; set; }
-    private DateRange? FilterDateRange { get; set; }
+    private DateRange FilterDateRange { get; set; } = new();
+    private bool ShowDateRange { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -104,15 +105,13 @@ public partial class Payments
     {
         await GetCategories();
 
-        Console.WriteLine($"Searching for categories: {string.Join(", ", FilterCategories?.Select(c => c.Name) ?? Array.Empty<string>())}");
-
         PaymentClient.PaymentFilterDto filter = new()
         {
             CategoryIds = FilterCategories?.Select(x => x.Id!.Value).ToList(),
             Comment = FilterComment,
             Place = FilterPlace,
-            DateFrom = FilterDateRange?.Start,
-            DateTo = FilterDateRange?.End?.AddDays(1),
+            DateFrom = FilterDateRange.Start,
+            DateTo = FilterDateRange.End?.AddDays(1),
         };
 
         ApiClientResponse<PaymentClient.Payment[]> apiPayments = await MoneyClient.Payment.Get(filter);
@@ -194,6 +193,24 @@ public partial class Payments
 
         PaymentsDays.Insert(index == -1 ? 0 : index, paymentsDay);
 
+        StateHasChanged();
+    }
+
+    private void AddPayment(Payment payment, PaymentsDay paymentsDay)
+    {
+        if (payment.Date == paymentsDay.Date)
+        {
+            paymentsDay.Payments.Add(payment);
+        }
+        else
+        {
+            AddNewPayment(payment);
+        }
+    }
+
+    private void DeleteDay(PaymentsDay day)
+    {
+        PaymentsDays?.Remove(day);
         StateHasChanged();
     }
 }

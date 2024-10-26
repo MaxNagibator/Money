@@ -16,7 +16,7 @@
 
         <MudItem md="2"
                  xs="3">
-            <PaymentDialog OnSubmit="PaymentsDay.Payments.Add"
+            <PaymentDialog OnSubmit="OnSubmit"
                            Payment="@(new Payment { Date = PaymentsDay.Date, Category = Category.Empty })"
                            @ref="_dialog">
                 <MudStack AlignItems="AlignItems.Center"
@@ -86,7 +86,7 @@
                 else
                 {
                     <PaymentItem OnDelete="() => OnDelete.InvokeAsync(payment)"
-                                 OnEdit="() => StateHasChanged()"
+                                 OnEdit="OnEdit"
                                  Payment="@payment" />
 
                     if (Settings.ShowDividers && i != PaymentsDay.Payments.Count - 1)

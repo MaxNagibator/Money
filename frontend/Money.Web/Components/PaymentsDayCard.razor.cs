@@ -23,4 +23,38 @@ public partial class PaymentsDayCard
 
     [Parameter]
     public EventCallback<Payment> OnDelete { get; set; }
+
+    [Parameter]
+    public EventCallback<PaymentsDay> OnCanDelete { get; set; }
+
+    private async Task OnSubmit(Payment payment)
+    {
+        if (payment.Date == PaymentsDay.Date)
+        {
+            PaymentsDay.Payments.Add(payment);
+        }
+        else
+        {
+            await OnAddPayment.InvokeAsync(payment);
+        }
+    }
+
+    private async Task OnEdit(Payment payment)
+    {
+        if (payment.Date == PaymentsDay.Date)
+        {
+            StateHasChanged();
+            return;
+        }
+
+        PaymentsDay.Payments.Remove(payment);
+
+        if (PaymentsDay.Payments.Count == 0)
+        {
+            await OnCanDelete.InvokeAsync(PaymentsDay);
+        }
+
+        await OnAddPayment.InvokeAsync(payment);
+        StateHasChanged();
+    }
 }

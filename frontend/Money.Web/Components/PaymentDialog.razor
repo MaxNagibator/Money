@@ -43,37 +43,33 @@
                               OnBlur="ToggleSumFieldAsync" />
             }
 
-            <MudTextField @bind-Value="Input.Comment"
-                          Counter="0"
-                          For="@(() => Input.Comment)"
-                          Label="Комментарий" />
-
             <MudDatePicker AdornmentColor="Color.Tertiary"
                            @bind-Date="Input.Date"
                            Color="Color.Tertiary"
                            For="@(() => Input.Date)"
                            Label="Дата" />
 
-            <MudSelect AdornmentColor="Color.Tertiary"
-                       AdornmentIcon="@Icons.Material.Rounded.Search"
-                       AnchorOrigin="Origin.BottomCenter"
-                       @bind-Value="Input.Category"
-                       For="@(() => Input.Category)"
-                       Label="Категория"
-                       ToStringFunc="@(arg => arg?.Name)"
-                       TransformOrigin="Origin.TopCenter">
-                @foreach (Category category in Input.CategoryList ?? [])
-                {
-                    <MudSelectItem Value="category">
-                        @category.Name
-                    </MudSelectItem>
-                }
-            </MudSelect>
+            <MudAutocomplete AdornmentColor="Color.Tertiary"
+                             AdornmentIcon="@Icons.Material.Rounded.Search"
+                             @bind-Value="Input.Category"
+                             Clearable
+                             For="@(() => Input.Category)"
+                             Label="Категория"
+                             ResetValueOnEmptyText
+                             SearchFunc="Search"
+                             SelectValueOnTab
+                             ToStringFunc="@(arg => arg.Name)" />
 
-            <MudTextField @bind-Value="Input.Place"
-                          Counter="0"
+            <MudTextField AutoGrow
+                          @bind-Value="Input.Place"
                           For="@(() => Input.Place)"
                           Label="Место" />
+
+            <MudTextField AutoGrow
+                          @bind-Value="Input.Comment"
+                          For="@(() => Input.Comment)"
+                          Label="Комментарий" />
+
         </MudStack>
 
         <MudStack AlignItems="AlignItems.Center"
