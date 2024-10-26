@@ -1,27 +1,39 @@
 ﻿@inherits LayoutComponentBase
 
-<MudThemeProvider IsDarkMode="@_appSettings.IsDarkMode" @ref="@_mudThemeProvider" Theme="_defaultTheme" />
+<MudThemeProvider IsDarkMode="@_appSettings.IsDarkMode"@ref="@_mudThemeProvider"
+                  Theme="_defaultTheme" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
 <MudLayout>
-    <MudAppBar Elevation="0" Class="docs-appbar-filter mud-appbar mud-appbar-fixed-top mud-elevation-0 mud-theme-transparent">
-        <MudIconButton Color="Color.Inherit" Edge="Edge.Start" Icon="@Icons.Material.Filled.Menu" OnClick="ToggleDrawer" />
+    <MudAppBar Class="docs-appbar-filter mud-appbar mud-appbar-fixed-top mud-elevation-0 mud-theme-transparent"
+               Elevation="0">
+        <MudIconButton Color="Color.Inherit"
+                       Edge="Edge.Start"
+                       Icon="@Icons.Material.Rounded.Menu"
+                       OnClick="ToggleDrawer" />
         <MudSpacer />
-        <DarkModeToggle @ref="_darkModeToggle" AppSettings="_appSettings" />
+        <DarkModeToggle AppSettings="_appSettings"
+                        @ref="_darkModeToggle" />
     </MudAppBar>
-    <MudDrawer @bind-Open="DrawerOpen" Elevation="2">
+    <MudDrawer @bind-Open="DrawerOpen"
+               Elevation="2">
         <MudDrawerHeader>
-            <MudStack AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Row Spacing="3">
-                <MudImage Height="64" Src="./icon-192.png" />
+            <MudStack AlignItems="AlignItems.Center"
+                      Justify="Justify.SpaceBetween"
+                      Row
+                      Spacing="3">
+                <MudImage Height="64"
+                          Src="./icon-192.png" />
                 <MudText Typo="Typo.h5">Филочки</MudText>
             </MudStack>
         </MudDrawerHeader>
         <NavMenu />
     </MudDrawer>
     <MudMainContent>
-        <MudContainer Gutters MaxWidth="MaxWidth.Large">
+        <MudContainer Gutters
+                      MaxWidth="MaxWidth.Large">
             <CascadingValue Value="_appSettings">
                 <CascadingValue Value="_darkModeToggle">
                     @Body

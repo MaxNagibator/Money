@@ -77,3 +77,8 @@
 .payment-type-color-2 {
     color: orange;
 }
+
+.vertical-text {
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+}
