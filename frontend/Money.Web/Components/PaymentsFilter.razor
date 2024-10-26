@@ -3,6 +3,15 @@
               Spacing="3"
               Wrap="Wrap.Wrap">
 
+        <MudToggleGroup @bind-Value="SelectedRange"
+                        Color="Color.Tertiary"
+                        SelectionMode="SelectionMode.ToggleSelection">
+            @foreach (DateInterval interval in _dateIntervals)
+            {
+                <MudToggleItem Value="interval">@interval.DisplayName</MudToggleItem>
+            }
+        </MudToggleGroup>
+
         <MudStack AlignItems="AlignItems.Center"
                   Row
                   StretchItems="StretchItems.None">

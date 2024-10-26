@@ -4,8 +4,31 @@ namespace Money.Web.Components;
 
 public partial class PaymentsFilter
 {
+    private List<DateInterval> _dateIntervals =
+    [
+        new("День", time => time, time => time),
+        new("Неделя", time => time.StartOfWeek(), time => time.EndOfWeek()),
+        new("Месяц", time => time.StartOfMonth(), time => time.EndOfMonth()),
+        new("Год", time => time.StartOfYear(), time => time.EndOfYear()),
+    ];
+
     private MudPopover _popover = null!;
     private MudTextField<string> _comment = null!;
+    private DateInterval? _selectedRange;
+
+    public DateInterval? SelectedRange
+    {
+        get => _selectedRange;
+        set
+        {
+            _selectedRange = value;
+
+            if (value != null)
+            {
+                UpdateDateRange(value);
+            }
+        }
+    }
 
     private List<TreeItemData<Category>> InitialTreeItems { get; set; } = [];
     private IReadOnlyCollection<Category>? SelectedCategories { get; set; }
@@ -14,7 +37,7 @@ public partial class PaymentsFilter
     private string? Place { get; set; }
 
     private DateRange DateRange { get; set; } = new();
-    private bool ShowDateRange { get; set; }
+    private bool ShowDateRange { get; set; } = true;
 
     public PaymentClient.PaymentFilterDto GetFilter()
     {
@@ -75,6 +98,26 @@ public partial class PaymentsFilter
 
             itemData.Visible = IsVisible(itemData, text);
         }
+    }
+
+    private void UpdateDateRange(DateInterval value)
+    {
+        DateTime start;
+
+        if (DateRange.Start != null)
+        {
+            start = value.Start.Invoke(DateRange.Start.Value);
+        }
+        else if (DateRange.End != null)
+        {
+            start = value.Start.Invoke(DateRange.End.Value);
+        }
+        else
+        {
+            start = value.Start.Invoke(DateTime.Today);
+        }
+
+        DateRange = new DateRange(start, value.End.Invoke(start));
     }
 
     private string GetHelperText()
