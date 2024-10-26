@@ -38,21 +38,54 @@
                                                 Rounded
                                                 ShowWeekNumbers />
 
-                            <MudSelect AdornmentColor="Color.Tertiary"
-                                       AdornmentIcon="@Icons.Material.Rounded.Search"
-                                       AnchorOrigin="Origin.BottomCenter"
-                                       @bind-SelectedValues="FilterCategories"
-                                       Clearable
-                                       Label="Категории"
-                                       MultiSelection
-                                       ToStringFunc="@(arg => arg?.Name)">
-                                @foreach (Category category in Categories ?? [])
-                                {
-                                    <MudSelectItem Value="@category">
-                                        @category.Name
-                                    </MudSelectItem>
-                                }
-                            </MudSelect>
+                            @*TODO: придумать способ закрытия*@
+                            <div class="d-flex flex-column"
+                                 @onblur="() => _popover.Open = false">
+                                <MudStack AlignItems="AlignItems.Center"
+                                          Justify="Justify.FlexStart"
+                                          Row>
+                                    <MudTextField Adornment="Adornment.Start"
+                                                  AdornmentColor="Color.Tertiary"
+                                                  AdornmentIcon="@Icons.Material.Filled.Search"
+                                                  Clearable="true"
+                                                  HelperText="@(GetHelperText())"
+                                                  Immediate="true"
+                                                  Label="Категории"
+                                                  OnAdornmentClick="() => _popover.Open = !_popover.Open"
+                                                  @onclick="() => _popover.Open = true"
+                                                  T="string"
+                                                  TextChanged="OnTextChanged" />
+                                    <MudIconButton Color="Color.Tertiary"
+                                                   Icon="@Icons.Material.Rounded.Clear"
+                                                   OnClick="() => FilterCategories = null"
+                                                   Size="Size.Small" />
+                                </MudStack>
+
+                                <MudPopover AnchorOrigin="Origin.BottomLeft"
+                                            MaxHeight="300"
+                                            @ref="_popover"
+                                            RelativeWidth
+                                            TransformOrigin="Origin.TopLeft">
+                                    <MudTreeView AutoSelectParent
+                                                 @bind-SelectedValues="FilterCategories"
+                                                 ExpandOnClick
+                                                 Hover
+                                                 Items="InitialTreeItems"
+                                                 MaxHeight="400"
+                                                 Ripple
+                                                 SelectionMode="SelectionMode.MultiSelection"
+                                                 TriState>
+                                        <ItemTemplate>
+                                            <MudTreeViewItem @bind-Expanded="@context.Expanded"
+                                                             Icon="@context.Icon"
+                                                             Items="@context.Children"
+                                                             Text="@context.Text"
+                                                             Value="@context.Value"
+                                                             Visible="@context.Visible" />
+                                        </ItemTemplate>
+                                    </MudTreeView>
+                                </MudPopover>
+                            </div>
 
                             <MudTextField @bind-Value="FilterPlace"
                                           Label="Место" />
