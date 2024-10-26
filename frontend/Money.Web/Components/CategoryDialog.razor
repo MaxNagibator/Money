@@ -1,4 +1,5 @@
-﻿<EditForm Model="@Input" OnValidSubmit="SubmitAsync">
+﻿<EditForm Model="@Input"
+          OnValidSubmit="SubmitAsync">
     <DataAnnotationsValidator />
     <MudDialog>
         <TitleContent>
@@ -11,17 +12,17 @@
                 <MudTextField AutoGrow
                               @bind-Value="@Input.Name"
                               Clearable
+                              For="@(() => Input.Name)"
                               HelperText="Отображаемое имя"
                               Label="Наименование"
                               Required
-                              Variant="Variant.Text"
-                              For="@(() => Input.Name)" />
+                              Variant="Variant.Text" />
 
                 <MudNumericField @bind-Value="@Input.Order"
                                  DebounceInterval="500"
+                                 For="@(() => Input.Order)"
                                  HelperText="Меньше -> выше"
-                                 Label="Значение для сортировки"
-                                 For="@(() => Input.Order)" />
+                                 Label="Значение для сортировки" />
 
                 <MudStack Spacing="0">
                     <MudText Typo="Typo.subtitle2">Цвет</MudText>
@@ -41,12 +42,14 @@
         </DialogContent>
         <DialogActions>
             <MudButton OnClick="Cancel">Отмена</MudButton>
-            <MudButton Color="Color.Success"
-                       Disabled="@_isProcessing"
-                       ButtonType="ButtonType.Submit">
+            <MudButton ButtonType="ButtonType.Submit"
+                       Color="Color.Success"
+                       Disabled="@_isProcessing">
                 @if (_isProcessing)
                 {
-                    <MudProgressCircular Class="ms-n1" Indeterminate="true" Size="Size.Small" />
+                    <MudProgressCircular Class="ms-n1"
+                                         Indeterminate="true"
+                                         Size="Size.Small" />
                 }
                 else
                 {

@@ -104,7 +104,7 @@
                     </MudItem>
                     @foreach (PaymentsDay paymentsDay in PaymentsDays ?? [])
                     {
-                        <PaymentsDayCard OnAddPayment="x => paymentsDay.Payments.Add(x)"
+                        <PaymentsDayCard OnAddPayment="paymentsDay.AddPayment"
                                          OnDelete="Delete"
                                          OnRestore="Restore"
                                          PaymentsDay="@paymentsDay"

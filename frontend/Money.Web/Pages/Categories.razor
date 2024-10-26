@@ -3,11 +3,15 @@
 
 <PageTitle>Категории</PageTitle>
 
-<MudText GutterBottom Typo="Typo.h3">Категории</MudText>
+<MudText GutterBottom
+         Typo="Typo.h3">
+    Категории
+</MudText>
 
 @if (_init == false)
 {
-    <MudStack AlignItems="AlignItems.Center" Row>
+    <MudStack AlignItems="AlignItems.Center"
+              Row>
         <MudProgressCircular Indeterminate />
         <MudText Typo="Typo.body1">Загрузка..</MudText>
     </MudStack>
@@ -15,39 +19,51 @@
     return;
 }
 
-<MudTabs Elevation="4" Color="@Color.Primary">
+<MudTabs Color="@Color.Primary"
+         Elevation="4">
     @foreach (PaymentTypes.Value paymentType in PaymentTypes.Values)
     {
-        <MudTabPanel Text="@paymentType.Name" ID='@paymentType.Id'>
-            <MudTreeView ExpandOnClick Hover Items="@InitialTreeItems[paymentType.Id]" ReadOnly Ripple>
+        <MudTabPanel Text="@paymentType.Name">
+            <MudTreeView ExpandOnClick
+                         Hover
+                         Items="@InitialTreeItems[paymentType.Id]"
+                         ReadOnly
+                         Ripple>
                 <ItemTemplate>
                     @{
                         Category category = context.Value!;
                         List<TreeItemData<Category?>> children = context.Children?.OfType<TreeItemData<Category?>>().ToList() ?? [];
                     }
-                    <MudStack Row StretchItems="StretchItems.Start">
-                        <MudTreeViewItem @bind-Expanded="@context.Expanded" Items="@children" Value="@context.Value" Disabled="category.IsDeleted">
+                    <MudStack Row
+                              StretchItems="StretchItems.Start">
+                        <MudTreeViewItem @bind-Expanded="@context.Expanded"
+                                         Disabled="category.IsDeleted"
+                                         Items="@children"
+                                         Value="@context.Value">
                             <Content>
-                                <MudTreeViewItemToggleButton @bind-Expanded="@context.Expanded" Visible="@context.HasChildren" />
+                                <MudTreeViewItemToggleButton @bind-Expanded="@context.Expanded"
+                                                             Visible="@context.HasChildren" />
                                 <MudText>@category.Name</MudText>
                                 <MudSpacer />
                                 @if (category is { Color: not null, IsDeleted: false })
                                 {
-                                    <div class="chip" style="background-color: @category.Color"></div>
+                                    <div class="chip"
+                                         style="background-color: @category.Color">
+                                    </div>
                                 }
 
                                 @if (category.IsDeleted == false)
                                 {
                                     <MudIconButton Color="Color.Success"
-                                                   Icon="@Icons.Material.TwoTone.Add"
+                                                   Icon="@Icons.Material.Rounded.Add"
                                                    OnClick="() => Create(paymentType, category.Id)" />
 
                                     <MudIconButton Color="Color.Warning"
-                                                   Icon="@Icons.Material.TwoTone.Edit"
+                                                   Icon="@Icons.Material.Rounded.Edit"
                                                    OnClick="() => Update(category)" />
 
                                     <MudIconButton Color="Color.Error"
-                                                   Icon="@Icons.Material.TwoTone.Delete"
+                                                   Icon="@Icons.Material.Rounded.Delete"
                                                    OnClick="() => Delete(category)" />
                                 }
                             </Content>
@@ -58,7 +74,7 @@
                             <MudSpacer />
 
                             <MudButton Color="Color.Info"
-                                       EndIcon="@Icons.Material.Sharp.Cancel"
+                                       EndIcon="@Icons.Material.Rounded.Cancel"
                                        OnClick="() => Restore(category)"
                                        Size="Size.Large">
                                 Восстановить
@@ -67,7 +83,7 @@
                     </MudStack>
                 </ItemTemplate>
             </MudTreeView>
-            <MudButton EndIcon="@Icons.Material.TwoTone.Add"
+            <MudButton EndIcon="@Icons.Material.Rounded.Add"
                        OnClick="() => Create(paymentType, null)"
                        Variant="Variant.Filled">
                 Создать

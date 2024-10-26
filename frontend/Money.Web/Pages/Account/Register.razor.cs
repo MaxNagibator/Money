@@ -8,10 +8,10 @@ namespace Money.Web.Pages.Account;
 public partial class Register
 {
     [SupplyParameterFromForm]
-    private InputModel Input { get; set; } = new();
+    private InputModel Input { get; } = new();
 
     [SupplyParameterFromQuery]
-    private string? ReturnUrl { get; set; } = null;
+    private string? ReturnUrl { get; } = null;
 
     [Inject]
     private AuthenticationService AuthenticationService { get; set; } = default!;

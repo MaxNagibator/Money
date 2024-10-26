@@ -4,10 +4,17 @@
 
 <PageTitle>Добро пожаловать!</PageTitle>
 
-<MudText Typo="Typo.h3" GutterBottom>Вы успешно вошли в систему</MudText>
+<MudText GutterBottom
+         Typo="Typo.h3">
+    Вы успешно вошли в систему
+</MudText>
 
 <AuthorizeView>
     <MudText Class="mb-4">Здравствуйте, @context.User.Identity?.Name!</MudText>
 </AuthorizeView>
 
-<MudButton Href="/" Variant="Variant.Filled" Color="Color.Primary">Перейти на главную</MudButton>
+<MudButton Color="Color.Primary"
+           Href="/"
+           Variant="Variant.Filled">
+    Перейти на главную
+</MudButton>

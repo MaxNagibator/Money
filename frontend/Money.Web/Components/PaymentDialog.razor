@@ -7,7 +7,8 @@
             Class="mt-4 mx-4 pa-4"
             Open="IsOpen"
             TransformOrigin="Origin.TopLeft">
-    <EditForm Model="@Input" OnValidSubmit="SubmitAsync">
+    <EditForm Model="@Input"
+              OnValidSubmit="SubmitAsync">
         <DataAnnotationsValidator />
 
         <MudStack AlignItems="AlignItems.Stretch"
@@ -18,7 +19,7 @@
             {
                 <MudNumericField Adornment="Adornment.Start"
                                  AdornmentColor="Color.Tertiary"
-                                 AdornmentIcon="@Icons.Material.Filled.Calculate"
+                                 AdornmentIcon="@Icons.Material.Rounded.Calculate"
                                  @bind-Value="Input.Sum"
                                  For="@(() => Input.Sum)"
                                  Immediate
@@ -30,7 +31,7 @@
             {
                 <MudTextField Adornment="Adornment.Start"
                               AdornmentColor="Color.Tertiary"
-                              AdornmentIcon="@Icons.Material.Filled.Numbers"
+                              AdornmentIcon="@Icons.Material.Rounded.Numbers"
                               AutoFocus
                               @bind-Value="Input.CalculationSum"
                               Clearable
@@ -46,6 +47,7 @@
                           Counter="0"
                           For="@(() => Input.Comment)"
                           Label="Комментарий" />
+
             <MudDatePicker AdornmentColor="Color.Tertiary"
                            @bind-Date="Input.Date"
                            Color="Color.Tertiary"
@@ -74,14 +76,17 @@
                           Label="Место" />
         </MudStack>
 
-        <MudStack Class="mt-3"
-                  Row
-                  AlignItems="AlignItems.Center"
-                  Justify="Justify.SpaceBetween">
-            <MudButton Color="Color.Error" OnClick="() => ToggleOpen()">
+        <MudStack AlignItems="AlignItems.Center"
+                  Class="mt-3"
+                  Justify="Justify.SpaceBetween"
+                  Row>
+            <MudButton Color="Color.Error"
+                       OnClick="() => ToggleOpen()">
                 Закрыть
             </MudButton>
-            <MudButton ButtonType="ButtonType.Submit" Color="Color.Tertiary" Variant="Variant.Filled">
+            <MudButton ButtonType="ButtonType.Submit"
+                       Color="Color.Tertiary"
+                       Variant="Variant.Filled">
                 Сохранить
             </MudButton>
         </MudStack>

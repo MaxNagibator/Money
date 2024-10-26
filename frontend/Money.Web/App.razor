@@ -1,7 +1,8 @@
 ﻿<CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly">
         <Found Context="routeData">
-            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+            <AuthorizeRouteView DefaultLayout="@typeof(MainLayout)"
+                                RouteData="@routeData">
                 <NotAuthorized>
                     @if (context.User.Identity?.IsAuthenticated == true)
                     {
@@ -12,7 +13,9 @@
                         <RedirectToLogin />
                     }
                 </NotAuthorized>
-            </AuthorizeRouteView> <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+            </AuthorizeRouteView>
+            <FocusOnNavigate RouteData="@routeData"
+                             Selector="h1" />
         </Found>
         <NotFound>
             <PageTitle>Страница не найдена</PageTitle>
