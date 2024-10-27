@@ -6,7 +6,7 @@ namespace Money.Web.Components;
 
 public partial class PaymentsFilter
 {
-    private List<DateInterval> _dateIntervals =
+    private static readonly List<DateInterval> DateIntervals =
     [
         new("День", "ий день", time => time, time => time, (time, direction) => time.AddDays(direction)),
         new("Неделя", "ая неделя", time => time.StartOfWeek(), time => time.EndOfWeek(), (time, direction) => time.AddDays(7 * direction)),
@@ -15,7 +15,6 @@ public partial class PaymentsFilter
     ];
 
     private MudPopover _popover = null!;
-    private MudTextField<string> _comment = null!;
 
     [Parameter]
     public EventCallback<PaymentClient.PaymentFilterDto> OnSearch { get; set; }
@@ -54,7 +53,7 @@ public partial class PaymentsFilter
     protected override async Task OnInitializedAsync()
     {
         string? key = await StorageService.GetItemAsync<string?>(nameof(SelectedRange));
-        DateInterval? interval = _dateIntervals.FirstOrDefault(interval => interval.DisplayName == key);
+        DateInterval? interval = DateIntervals.FirstOrDefault(interval => interval.DisplayName == key);
         await OnDateIntervalChanged(interval);
     }
 
@@ -87,7 +86,7 @@ public partial class PaymentsFilter
         }
 
         DateRange = new DateRange(start, value.End.Invoke(start));
-        await OnSearch.InvokeAsync(GetFilter());
+        await SearchAsync();
     }
 
     private string GetHelperText()
@@ -105,25 +104,37 @@ public partial class PaymentsFilter
         InitialTreeItems.Filter(searchTerm);
     }
 
-    private async Task DecrementDateRange()
+    private async Task Reset()
+    {
+        Comment = null;
+        Place = null;
+        SelectedCategories = null;
+        await SearchAsync();
+    }
+
+    private async Task UpdateDateRange(Func<DateRange, DateRange> updateFunction)
     {
         if (SelectedRange == null)
         {
             return;
         }
 
-        DateRange = SelectedRange.Decrement(DateRange);
-        await OnSearch.InvokeAsync(GetFilter());
+        DateRange = updateFunction.Invoke(DateRange);
+        await SearchAsync();
+    }
+
+    private async Task DecrementDateRange()
+    {
+        await UpdateDateRange(SelectedRange!.Decrement);
     }
 
     private async Task IncrementDateRange()
     {
-        if (SelectedRange == null)
-        {
-            return;
-        }
+        await UpdateDateRange(SelectedRange!.Increment);
+    }
 
-        DateRange = SelectedRange.Increment(DateRange);
+    private async Task SearchAsync()
+    {
         await OnSearch.InvokeAsync(GetFilter());
     }
 }

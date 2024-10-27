@@ -1,6 +1,6 @@
 ﻿<MudCard Elevation="3">
-    <MudCardHeader Class="border-b-2 border-solid"
-                   Style="padding: 8px 8px; border-color: var(--mud-palette-divider)">
+    <MudCardHeader Class="border-b-2 border-solid pa-2"
+                   Style="border-color: var(--mud-palette-divider)">
         <MudItem md="2"
                  xs="4">
             <MudStack Justify="Justify.FlexStart"
@@ -62,7 +62,7 @@
 
         <MudSpacer />
     </MudCardHeader>
-    <MudCardContent Style="padding: 8px 8px;">
+    <MudCardContent Class="pa-2">
         <MudStack Spacing="0">
             @for (int i = 0; i < PaymentsDay.Payments.Count; i++)
             {

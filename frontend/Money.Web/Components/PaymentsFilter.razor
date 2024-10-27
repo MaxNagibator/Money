@@ -26,7 +26,7 @@
                                     T="DateInterval?"
                                     Value="SelectedRange"
                                     ValueChanged="@(OnDateIntervalChanged)">
-                        @foreach (DateInterval interval in _dateIntervals)
+                        @foreach (DateInterval interval in DateIntervals)
                         {
                             <MudToggleItem Value="interval">@interval.DisplayName</MudToggleItem>
                         }
@@ -159,14 +159,14 @@
                           @bind-Value="Comment"
                           Clearable
                           Immediate
-                          Label="Комментарий"
-                          @ref="_comment" />
+                          Label="Комментарий" />
 
-            <MudIconButton Color="Color.Tertiary"
-                           Disabled
-                           Icon="@Icons.Material.Rounded.PlusOne"
-                           OnClick="() => _comment.Lines++"
-                           Size="Size.Small" />
+            <MudTooltip Text="Очистить все фильтры">
+                <MudIconButton Color="Color.Tertiary"
+                               Icon="@Icons.Material.Rounded.DeleteSweep"
+                               OnClick="Reset"
+                               Size="Size.Small" />
+            </MudTooltip>
         </MudStack>
     </MudStack>
 </MudPaper>
