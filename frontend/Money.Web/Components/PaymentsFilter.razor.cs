@@ -1,4 +1,6 @@
-﻿using Money.ApiClient;
+﻿using Blazored.LocalStorage;
+using Microsoft.AspNetCore.Components;
+using Money.ApiClient;
 
 namespace Money.Web.Components;
 
@@ -14,21 +16,14 @@ public partial class PaymentsFilter
 
     private MudPopover _popover = null!;
     private MudTextField<string> _comment = null!;
-    private DateInterval? _selectedRange;
 
-    public DateInterval? SelectedRange
-    {
-        get => _selectedRange;
-        set
-        {
-            _selectedRange = value;
+    [Parameter]
+    public EventCallback<PaymentClient.PaymentFilterDto> OnSearch { get; set; }
 
-            if (value != null)
-            {
-                UpdateDateRange(value);
-            }
-        }
-    }
+    public DateInterval? SelectedRange { get; set; }
+
+    [Inject]
+    private ILocalStorageService StorageService { get; set; } = default!;
 
     private List<TreeItemData<Category>> InitialTreeItems { get; set; } = [];
     private IReadOnlyCollection<Category>? SelectedCategories { get; set; }
@@ -54,6 +49,13 @@ public partial class PaymentsFilter
     public void UpdateCategories(List<Category> categories)
     {
         InitialTreeItems = BuildChildren(categories, null).ToList();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        string? key = await StorageService.GetItemAsync<string?>(nameof(SelectedRange));
+        DateInterval? interval = _dateIntervals.FirstOrDefault(interval => interval.DisplayName == key);
+        await OnDateIntervalChanged(interval);
     }
 
     private static bool IsMatch(string? text, string searchTerm)
@@ -100,7 +102,18 @@ public partial class PaymentsFilter
         }
     }
 
-    private void UpdateDateRange(DateInterval value)
+    private async Task OnDateIntervalChanged(DateInterval? value)
+    {
+        SelectedRange = value;
+
+        if (value != null)
+        {
+            await UpdateDateRange(value);
+            await StorageService.SetItemAsync(nameof(SelectedRange), SelectedRange?.DisplayName);
+        }
+    }
+
+    private async Task UpdateDateRange(DateInterval value)
     {
         DateTime start;
 
@@ -118,6 +131,7 @@ public partial class PaymentsFilter
         }
 
         DateRange = new DateRange(start, value.End.Invoke(start));
+        await OnSearch.InvokeAsync(GetFilter());
     }
 
     private string GetHelperText()
@@ -135,7 +149,7 @@ public partial class PaymentsFilter
         Filter(InitialTreeItems, searchTerm);
     }
 
-    private void DecrementDateRange()
+    private async Task DecrementDateRange()
     {
         if (SelectedRange == null)
         {
@@ -143,9 +157,10 @@ public partial class PaymentsFilter
         }
 
         DateRange = SelectedRange.Decrement(DateRange);
+        await OnSearch.InvokeAsync(GetFilter());
     }
 
-    private void IncrementDateRange()
+    private async Task IncrementDateRange()
     {
         if (SelectedRange == null)
         {
@@ -153,5 +168,6 @@ public partial class PaymentsFilter
         }
 
         DateRange = SelectedRange.Increment(DateRange);
+        await OnSearch.InvokeAsync(GetFilter());
     }
 }

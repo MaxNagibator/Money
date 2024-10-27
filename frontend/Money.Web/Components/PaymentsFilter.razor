@@ -21,18 +21,16 @@
                                        Size="Size.Medium" />
                     </MudTooltip>
 
-                    <MudTooltip Delay="100"
-                                Placement="Placement.Bottom"
-                                Text="Выберите диапазон дат">
-                        <MudToggleGroup @bind-Value="SelectedRange"
-                                        Color="Color.Tertiary"
-                                        SelectionMode="SelectionMode.ToggleSelection">
-                            @foreach (DateInterval interval in _dateIntervals)
-                            {
-                                <MudToggleItem Value="interval">@interval.DisplayName</MudToggleItem>
-                            }
-                        </MudToggleGroup>
-                    </MudTooltip>
+                    <MudToggleGroup Color="Color.Tertiary"
+                                    SelectionMode="SelectionMode.ToggleSelection"
+                                    T="DateInterval?"
+                                    Value="SelectedRange"
+                                    ValueChanged="@(OnDateIntervalChanged)">
+                        @foreach (DateInterval interval in _dateIntervals)
+                        {
+                            <MudToggleItem Value="interval">@interval.DisplayName</MudToggleItem>
+                        }
+                    </MudToggleGroup>
 
                     <MudTooltip Arrow
                                 Delay="100"
@@ -57,7 +55,6 @@
                     {
                         <MudDateRangePicker Adornment="Adornment.Start"
                                             AdornmentColor="Color.Tertiary"
-                                            AnchorOrigin="Origin.BottomLeft"
                                             @bind-DateRange="@DateRange"
                                             Clearable
                                             Color="Color.Tertiary"

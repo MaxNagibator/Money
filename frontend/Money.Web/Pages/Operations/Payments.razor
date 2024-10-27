@@ -10,9 +10,36 @@
 
 <MudStack Class="mt-3"
           Spacing="2">
-    <MudItem>
-        <PaymentsFilter @ref="_filter" />
-    </MudItem>
+    <PaymentsFilter OnSearch="x => Search(x)"
+                    @ref="_paymentsFilter" />
+
+    <MudPaper Class="pa-2">
+        <MudStack Row>
+            <MudItem xs="5">
+                <MudText>
+                    @GetPeriodString(Filter?.DateFrom, Filter?.DateTo)
+                </MudText>
+            </MudItem>
+
+            @foreach (PaymentTypes.Value paymentType in PaymentTypes.Values)
+            {
+                <MudItem xs="2">
+                    <MudStack AlignItems="AlignItems.Center"
+                              Justify="Justify.FlexEnd"
+                              Row
+                              StretchItems="StretchItems.End">
+                        <MudIcon Color="@paymentType.Color"
+                                 Icon="@paymentType.Icon"
+                                 Size="Size.Small" />
+                        <MudText>
+                            @FilteredPayments?.Where(x => x.Category.PaymentType == paymentType).Sum(payment => payment.Sum).ToString("N0")
+                        </MudText>
+                    </MudStack>
+                </MudItem>
+            }
+        </MudStack>
+    </MudPaper>
+
     <MudItem>
         <PaymentDialog OnSubmit="AddNewPayment"
                        Payment="@(new Payment { Date = DateTime.Now, Category = Category.Empty })"
@@ -45,7 +72,7 @@
                 <MudTooltip Text="Найти">
                     <MudButton Color="Color.Info"
                                EndIcon="@Icons.Material.Rounded.Search"
-                               OnClick="Search"
+                               OnClick="() => Search()"
                                Size="Size.Small"
                                Variant="Variant.Filled">
                         Найти
