@@ -33,7 +33,8 @@ public partial class Categories
 
         foreach (PaymentTypes.Value paymentType in PaymentTypes.Values)
         {
-            InitialTreeItems.Add(paymentType.Id, BuildChildren(categories.Where(x => x.PaymentType == paymentType).ToList(), null));
+            List<Category> filteredCategories = categories.Where(x => x.PaymentType == paymentType).ToList();
+            InitialTreeItems.Add(paymentType.Id, filteredCategories.BuildChildren(null));
         }
 
         _init = true;
@@ -46,7 +47,7 @@ public partial class Categories
             Name = string.Empty,
             PaymentType = paymentType,
             ParentId = parentId,
-            Color = "#9b9b9bff",
+            Color = Random.Shared.NextColor(),
         };
 
         Category? createdCategory = await ShowCategoryDialog("Создать", category);
@@ -177,20 +178,5 @@ public partial class Categories
         }
 
         return null;
-    }
-
-    private List<TreeItemData<Category>> BuildChildren(List<Category> categories, int? parentId)
-    {
-        return categories.Where(category => category.ParentId == parentId)
-            .Select(child => new TreeItemData<Category>
-            {
-                Text = child.Name,
-                Value = child,
-                Children = BuildChildren(categories, child.Id),
-            })
-            .OrderBy(item => item.Value?.Order == null)
-            .ThenBy(item => item.Value?.Order)
-            .ThenBy(item => item.Value?.Name)
-            .ToList();
     }
 }

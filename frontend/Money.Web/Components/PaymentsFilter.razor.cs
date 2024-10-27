@@ -48,7 +48,7 @@ public partial class PaymentsFilter
 
     public void UpdateCategories(List<Category> categories)
     {
-        InitialTreeItems = BuildChildren(categories, null).ToList();
+        InitialTreeItems = categories.BuildChildren(null).ToList();
     }
 
     protected override async Task OnInitializedAsync()
@@ -56,50 +56,6 @@ public partial class PaymentsFilter
         string? key = await StorageService.GetItemAsync<string?>(nameof(SelectedRange));
         DateInterval? interval = _dateIntervals.FirstOrDefault(interval => interval.DisplayName == key);
         await OnDateIntervalChanged(interval);
-    }
-
-    private static bool IsMatch(string? text, string searchTerm)
-    {
-        return string.IsNullOrEmpty(text) == false && text.Contains(searchTerm, StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static List<TreeItemData<Category>> BuildChildren(List<Category> categories, int? parentId)
-    {
-        return categories.Where(category => category.ParentId == parentId)
-            .Select(child => new TreeItemData<Category>
-            {
-                Text = child.Name,
-                Value = child,
-                Children = BuildChildren(categories, child.Id),
-            })
-            .OrderBy(item => item.Value?.Order == null)
-            .ThenBy(item => item.Value?.Order)
-            .ThenBy(item => item.Value?.Name)
-            .ToList();
-    }
-
-    private static bool IsVisible(TreeItemData<Category> treeItemData, string searchTerm)
-    {
-        if (treeItemData.HasChildren)
-        {
-            return IsMatch(treeItemData.Text, searchTerm)
-                   || treeItemData.Children!.Any(child => IsMatch(child.Text, searchTerm));
-        }
-
-        return IsMatch(treeItemData.Text, searchTerm);
-    }
-
-    private static void Filter(IEnumerable<TreeItemData<Category>> treeItemData, string text)
-    {
-        foreach (TreeItemData<Category> itemData in treeItemData)
-        {
-            if (itemData.HasChildren)
-            {
-                Filter(itemData.Children!, text);
-            }
-
-            itemData.Visible = IsVisible(itemData, text);
-        }
     }
 
     private async Task OnDateIntervalChanged(DateInterval? value)
@@ -146,7 +102,7 @@ public partial class PaymentsFilter
 
     private void OnTextChanged(string searchTerm)
     {
-        Filter(InitialTreeItems, searchTerm);
+        InitialTreeItems.Filter(searchTerm);
     }
 
     private async Task DecrementDateRange()

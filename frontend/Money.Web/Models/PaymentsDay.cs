@@ -11,9 +11,4 @@ public class PaymentsDay
         return Payments.Where(x => x.IsDeleted == false && x.Category.PaymentType == paymentType)
             .Sum(x => x.Sum);
     }
-
-    public void AddPayment(Payment payment)
-    {
-        Payments.Add(payment);
-    }
 }
