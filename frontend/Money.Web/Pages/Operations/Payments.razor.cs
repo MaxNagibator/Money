@@ -2,7 +2,7 @@
 using Money.ApiClient;
 using Money.Web.Components;
 
-namespace Money.Web.Pages;
+namespace Money.Web.Pages.Operations;
 
 public partial class Payments
 {

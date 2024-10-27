@@ -6,10 +6,10 @@ public partial class PaymentsFilter
 {
     private List<DateInterval> _dateIntervals =
     [
-        new("День", time => time, time => time),
-        new("Неделя", time => time.StartOfWeek(), time => time.EndOfWeek()),
-        new("Месяц", time => time.StartOfMonth(), time => time.EndOfMonth()),
-        new("Год", time => time.StartOfYear(), time => time.EndOfYear()),
+        new("День", "ий день", time => time, time => time, (time, direction) => time.AddDays(direction)),
+        new("Неделя", "ая неделя", time => time.StartOfWeek(), time => time.EndOfWeek(), (time, direction) => time.AddDays(7 * direction)),
+        new("Месяц", "ий месяц", time => time.StartOfMonth(), time => time.EndOfMonth(), (time, direction) => time.AddMonths(direction)),
+        new("Год", "ий год", time => time.StartOfYear(), time => time.EndOfYear(), (time, direction) => time.AddYears(direction)),
     ];
 
     private MudPopover _popover = null!;
@@ -133,5 +133,25 @@ public partial class PaymentsFilter
     private void OnTextChanged(string searchTerm)
     {
         Filter(InitialTreeItems, searchTerm);
+    }
+
+    private void DecrementDateRange()
+    {
+        if (SelectedRange == null)
+        {
+            return;
+        }
+
+        DateRange = SelectedRange.Decrement(DateRange);
+    }
+
+    private void IncrementDateRange()
+    {
+        if (SelectedRange == null)
+        {
+            return;
+        }
+
+        DateRange = SelectedRange.Increment(DateRange);
     }
 }

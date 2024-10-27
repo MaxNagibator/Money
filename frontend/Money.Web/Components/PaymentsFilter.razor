@@ -3,58 +3,97 @@
               Spacing="3"
               Wrap="Wrap.Wrap">
 
-        <MudToggleGroup @bind-Value="SelectedRange"
-                        Color="Color.Tertiary"
-                        SelectionMode="SelectionMode.ToggleSelection">
-            @foreach (DateInterval interval in _dateIntervals)
-            {
-                <MudToggleItem Value="interval">@interval.DisplayName</MudToggleItem>
-            }
-        </MudToggleGroup>
+        <MudGrid Spacing="1">
+            <MudItem md="6"
+                     xs="12">
+                <MudStack AlignItems="AlignItems.Center"
+                          Row
+                          Spacing="0"
+                          StretchItems="StretchItems.Middle">
+                    <MudTooltip Arrow
+                                Delay="100"
+                                Placement="Placement.Bottom"
+                                Text="@(SelectedRange == null ? "Не выбран диапазон" : "Предыдущ" + SelectedRange.ChangeName)">
+                        <MudIconButton Color="Color.Tertiary"
+                                       Disabled="@(SelectedRange == null)"
+                                       Icon="@Icons.Material.Rounded.ChevronLeft"
+                                       OnClick="DecrementDateRange"
+                                       Size="Size.Medium" />
+                    </MudTooltip>
 
-        <MudStack AlignItems="AlignItems.Center"
-                  Row
-                  StretchItems="StretchItems.None">
+                    <MudTooltip Delay="100"
+                                Placement="Placement.Bottom"
+                                Text="Выберите диапазон дат">
+                        <MudToggleGroup @bind-Value="SelectedRange"
+                                        Color="Color.Tertiary"
+                                        SelectionMode="SelectionMode.ToggleSelection">
+                            @foreach (DateInterval interval in _dateIntervals)
+                            {
+                                <MudToggleItem Value="interval">@interval.DisplayName</MudToggleItem>
+                            }
+                        </MudToggleGroup>
+                    </MudTooltip>
 
-            @if (ShowDateRange)
-            {
-                <MudDateRangePicker Adornment="Adornment.Start"
-                                    AdornmentColor="Color.Tertiary"
-                                    AnchorOrigin="Origin.BottomLeft"
-                                    @bind-DateRange="@DateRange"
-                                    Clearable
-                                    Color="Color.Tertiary"
-                                    Label="Диапазон дат"
-                                    PickerVariant="PickerVariant.Inline"
-                                    Rounded
-                                    ShowWeekNumbers />
-            }
-            else
-            {
-                <MudDatePicker Adornment="Adornment.Start"
-                               AdornmentColor="Color.Tertiary"
-                               AnchorOrigin="Origin.BottomLeft"
-                               @bind-Date="@DateRange.Start"
-                               Clearable
-                               Color="Color.Tertiary"
-                               Label="Дата с"
-                               MaxDate="@DateRange.End" />
+                    <MudTooltip Arrow
+                                Delay="100"
+                                Placement="Placement.Bottom"
+                                Text="@(SelectedRange == null ? "Не выбран диапазон" : "Следующ" + SelectedRange.ChangeName)">
+                        <MudIconButton Color="Color.Tertiary"
+                                       Disabled="@(SelectedRange == null)"
+                                       Icon="@Icons.Material.Rounded.ChevronRight"
+                                       OnClick="IncrementDateRange"
+                                       Size="Size.Medium" />
+                    </MudTooltip>
+                </MudStack>
 
-                <MudDatePicker Adornment="Adornment.Start"
-                               AdornmentColor="Color.Tertiary"
-                               AnchorOrigin="Origin.BottomRight"
-                               @bind-Date="@DateRange.End"
-                               Clearable
-                               Color="Color.Tertiary"
-                               Label="Дата по"
-                               MinDate="@DateRange.Start" />
-            }
+            </MudItem>
+            <MudItem md="6"
+                     xs="12">
+                <MudStack AlignItems="AlignItems.Center"
+                          Row
+                          StretchItems="StretchItems.None">
 
-            <MudIconButton Color="Color.Tertiary"
-                           Icon="@Icons.Material.Rounded.SwapHoriz"
-                           OnClick="() => ShowDateRange = !ShowDateRange"
-                           Size="Size.Small" />
-        </MudStack>
+                    @if (ShowDateRange)
+                    {
+                        <MudDateRangePicker Adornment="Adornment.Start"
+                                            AdornmentColor="Color.Tertiary"
+                                            AnchorOrigin="Origin.BottomLeft"
+                                            @bind-DateRange="@DateRange"
+                                            Clearable
+                                            Color="Color.Tertiary"
+                                            Label="Диапазон дат"
+                                            PickerVariant="PickerVariant.Inline"
+                                            Rounded
+                                            ShowWeekNumbers />
+                    }
+                    else
+                    {
+                        <MudDatePicker Adornment="Adornment.Start"
+                                       AdornmentColor="Color.Tertiary"
+                                       AnchorOrigin="Origin.BottomLeft"
+                                       @bind-Date="@DateRange.Start"
+                                       Clearable
+                                       Color="Color.Tertiary"
+                                       Label="Дата с"
+                                       MaxDate="@DateRange.End" />
+
+                        <MudDatePicker Adornment="Adornment.Start"
+                                       AdornmentColor="Color.Tertiary"
+                                       AnchorOrigin="Origin.BottomRight"
+                                       @bind-Date="@DateRange.End"
+                                       Clearable
+                                       Color="Color.Tertiary"
+                                       Label="Дата по"
+                                       MinDate="@DateRange.Start" />
+                    }
+
+                    <MudIconButton Color="Color.Tertiary"
+                                   Icon="@Icons.Material.Rounded.SwapHoriz"
+                                   OnClick="() => ShowDateRange = !ShowDateRange"
+                                   Size="Size.Small" />
+                </MudStack>
+            </MudItem>
+        </MudGrid>
 
         @*TODO: придумать способ закрытия*@
         <div class="d-flex flex-column"

@@ -16,11 +16,26 @@
 
     <AuthorizeView>
         <Authorized>
-            <MudNavLink Href="payments"
-                        Icon="@Icons.Material.Rounded.Money"
-                        Match="NavLinkMatch.Prefix">
-                Операции
-            </MudNavLink>
+            <MudNavGroup Expanded
+                         Icon="@Icons.Material.Rounded.Money"
+                         Title="Операции">
+                <MudNavLink Href="payments"
+                            Icon="@Icons.Material.Rounded.List"
+                            Match="NavLinkMatch.Prefix">
+                    Список
+                </MudNavLink>
+                <MudNavLink Href="fast-operations"
+                            Icon="@Icons.Material.Rounded.FlashOn"
+                            Match="NavLinkMatch.Prefix">
+                    Быстрые
+                </MudNavLink>
+                <MudNavLink Href="regular-operations"
+                            Icon="@Icons.Material.Rounded.Repeat"
+                            Match="NavLinkMatch.Prefix">
+                    Регулярные
+                </MudNavLink>
+            </MudNavGroup>
+
             <MudNavLink Href="categories"
                         Icon="@Icons.Material.Rounded.Category"
                         Match="NavLinkMatch.Prefix">

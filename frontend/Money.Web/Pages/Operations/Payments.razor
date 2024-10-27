@@ -8,19 +8,6 @@
     <MudProgressLinear Indeterminate />
 }
 
-@*<MudTabsApplyEffectsToContainer
-         Elevation="0"
-         MinimumTabWidth="0"
-         Outlined
-         PanelClass="px-1"
-         Position="Position.Right"
-         Rounded
-         SliderAnimation>
-    <MudTabPanel>
-        <TabContent>
-            <div class="my-4 vertical-text">Список</div>
-        </TabContent>
-        <ChildContent>*@
 <MudStack Class="mt-3"
           Spacing="2">
     <MudItem>
@@ -77,18 +64,3 @@
                          PaymentTypes="@PaymentTypes.Values" />
     }
 </MudStack>
-@*
-        </ChildContent>
-    </MudTabPanel>
-    <MudTabPanel >
-        <TabContent>
-            <div class="my-4 vertical-text">Регулярные</div>
-        </TabContent>
-    </MudTabPanel>
-    <MudTabPanel>
-        <TabContent>
-            <div class="my-4 vertical-text">Быстрые</div>
-        </TabContent>
-    </MudTabPanel>
-</MudTabs>
-*@
