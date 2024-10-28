@@ -264,4 +264,40 @@ public class PaymentPlaceTests
             Assert.That(dbPlaces[0].IsDeleted, Is.False);
         });
     }
+
+    /// <summary>
+    ///     Создадим три плейса и проверим параметры offset и count.
+    /// </summary>
+    [Test]
+    public async Task GetPlacesOffsetAndCountTest()
+    {
+        TestCategory category = _user.WithCategory();
+        _dbClient.Save();
+
+        PaymentClient.SaveRequest request = new()
+        {
+            CategoryId = category.Id,
+            Sum = 1,
+            Date = DateTime.Now,
+            Place = "Абрикос",
+        };
+
+        await _apiClient.Payment.Create(request).IsSuccessWithContent();
+        request.Place = "ТестАбрикос";
+        await _apiClient.Payment.Create(request).IsSuccessWithContent();
+        request.Place = "СуперТестАбрикос";
+        await _apiClient.Payment.Create(request).IsSuccessWithContent();
+
+        PaymentClient.Place[]? apiPlaces = await _apiClient.Payment.GetPlaces(0, 1, "Абрикос").IsSuccessWithContent();
+        Assert.That(apiPlaces, Is.Not.Null);
+        Assert.That(apiPlaces.Length, Is.EqualTo(1));
+
+        apiPlaces = await _apiClient.Payment.GetPlaces(1, 10, "Абрикос").IsSuccessWithContent();
+        Assert.That(apiPlaces, Is.Not.Null);
+        Assert.That(apiPlaces.Length, Is.EqualTo(2));
+
+        apiPlaces = await _apiClient.Payment.GetPlaces(2, 10, "Абрикос").IsSuccessWithContent();
+        Assert.That(apiPlaces, Is.Not.Null);
+        Assert.That(apiPlaces.Length, Is.EqualTo(1));
+    }
 }

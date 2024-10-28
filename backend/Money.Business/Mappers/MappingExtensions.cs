@@ -16,9 +16,9 @@ public static class MappingExtensions
         };
     }
 
-    public static Payment Adapt(this DomainPayment dbPayment, IEnumerable<DomainPlace> dbPlaces)
+    public static Operation Adapt(this DomainPayment dbPayment, IEnumerable<DomainPlace> dbPlaces)
     {
-        return new Payment
+        return new Operation
         {
             CategoryId = dbPayment.CategoryId,
             Sum = dbPayment.Sum,

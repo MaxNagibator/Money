@@ -38,6 +38,11 @@ public class PaymentClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
         return await PostAsync($"{BaseUri}/{id}/Restore");
     }
 
+    public async Task<ApiClientResponse<Place[]>> GetPlaces(int offset, int count, string name)
+    {
+        return await GetAsync<Place[]>($"{BaseUri}/GetPlaces/{offset}/{count}/{name}");
+    }
+
     private string ToUriParameters(PaymentFilterDto? filter)
     {
         if (filter == null)
@@ -134,5 +139,12 @@ public class PaymentClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
         ///     Не null, если платеж создан регулярной задачей.
         /// </remarks>
         public int? CreatedTaskId { get; set; }
+    }
+
+    public class Place
+    {
+        public int Id { get; set; }
+
+        public required string Name { get; set; }
     }
 }

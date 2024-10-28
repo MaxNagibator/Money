@@ -1,6 +1,9 @@
 ﻿namespace Money.Business.Models;
 
-public class Payment
+/// <summary>
+///     Операция.
+/// </summary>
+public class Operation
 {
     public int Id { get; set; }
 

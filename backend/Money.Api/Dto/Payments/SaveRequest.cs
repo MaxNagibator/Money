@@ -34,11 +34,11 @@ public class SaveRequest
     ///     Преобразует текущую DTO-модель в бизнес-модель.
     /// </summary>
     /// <returns>
-    ///     Экземпляр <see cref="Business.Models.Payment" />, который представляет бизнес-модель платежа.
+    ///     Экземпляр <see cref="Business.Models.Operation" />, который представляет бизнес-модель платежа.
     /// </returns>
-    public Payment ToBusinessModel()
+    public Operation ToBusinessModel()
     {
-        return new Payment
+        return new Operation
         {
             CategoryId = CategoryId,
             Sum = Sum,

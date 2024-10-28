@@ -22,7 +22,7 @@ public class PaymentsController(PaymentService paymentService) : ControllerBase
     public async Task<PaymentDto[]> Get([FromQuery] PaymentFilterDto filter, CancellationToken cancellationToken)
     {
         PaymentFilter businessFilter = filter.ToBusinessModel();
-        ICollection<Payment> payments = await paymentService.GetAsync(businessFilter, cancellationToken);
+        ICollection<Operation> payments = await paymentService.GetAsync(businessFilter, cancellationToken);
         return payments.Select(PaymentDto.FromBusinessModel).ToArray();
     }
 
@@ -38,7 +38,7 @@ public class PaymentsController(PaymentService paymentService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<PaymentDto> GetById(int id, CancellationToken cancellationToken)
     {
-        Payment category = await paymentService.GetByIdAsync(id, cancellationToken);
+        Operation category = await paymentService.GetByIdAsync(id, cancellationToken);
         return PaymentDto.FromBusinessModel(category);
     }
 
@@ -53,7 +53,7 @@ public class PaymentsController(PaymentService paymentService) : ControllerBase
     [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
     public async Task<int> CreateAsync([FromBody] SaveRequest request, CancellationToken cancellationToken)
     {
-        Payment business = request.ToBusinessModel();
+        Operation business = request.ToBusinessModel();
         int id = await paymentService.CreateAsync(business, cancellationToken);
         return id;
     }
@@ -69,7 +69,7 @@ public class PaymentsController(PaymentService paymentService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task Update(int id, [FromBody] SaveRequest request, CancellationToken cancellationToken)
     {
-        Payment business = request.ToBusinessModel();
+        Operation business = request.ToBusinessModel();
         business.Id = id;
         await paymentService.UpdateAsync(business, cancellationToken);
     }
@@ -98,5 +98,23 @@ public class PaymentsController(PaymentService paymentService) : ControllerBase
     public async Task Restore(int id, CancellationToken cancellationToken)
     {
         await paymentService.RestoreAsync(id, cancellationToken);
+    }
+
+    /// <summary>
+    ///     Получить места.
+    /// </summary>
+    /// <param name="offset">Сдвиг.</param>
+    /// <param name="count">Количество.</param>
+    /// <param name="name">Фильтрация.</param>
+    /// <param name="cancellationToken">Токен отмены запроса.</param>
+    /// <returns>Информация о платеже.</returns>
+    [HttpGet]
+    [Route("GetPlaces/{offset:int}/{count:int}/{name}")]
+    [ProducesResponseType(typeof(PaymentDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<PlaceDto[]> GetPlaces(int offset, int count, string name, CancellationToken cancellationToken)
+    {
+        ICollection<Place> places = await paymentService.GetPlaces(offset, count, name, cancellationToken);
+        return places.Select(PlaceDto.FromBusinessModel).ToArray();
     }
 }
