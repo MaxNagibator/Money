@@ -50,30 +50,3 @@
     background-position: center;
     background-size: cover;
 }
-
-.rotating-image {
-    position: absolute;
-    top: 50vh;
-    left: 50vw;
-    width: 30%;
-    height: auto;
-    transform: translate(-50%, -50%);
-    animation: rotate 10s linear infinite;
-}
-
-@keyframes rotate {
-    0% {
-        transform: translate(-50%, -50%) rotate(0deg);
-    }
-    100% {
-        transform: translate(-50%, -50%) rotate(360deg);
-    }
-}
-
-.payment-type-color-1 {
-    color: green;
-}
-
-.payment-type-color-2 {
-    color: orange;
-}

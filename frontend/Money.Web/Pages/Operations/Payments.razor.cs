@@ -1,12 +1,14 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Money.ApiClient;
 using Money.Web.Components;
+using System.Globalization;
 
-namespace Money.Web.Pages;
+namespace Money.Web.Pages.Operations;
 
 public partial class Payments
 {
     private bool _init;
+    private PaymentsFilter _paymentsFilter = null!;
     private PaymentDialog _dialog = null!;
 
     [CascadingParameter]
@@ -19,22 +21,15 @@ public partial class Payments
     private CategoryService CategoryService { get; set; } = default!;
 
     [Inject]
-    private IDialogService DialogService { get; set; } = default!;
-
-    [Inject]
     private ISnackbar SnackbarService { get; set; } = default!;
+
+    private PaymentClient.PaymentFilterDto? Filter { get; set; }
 
     private List<PaymentsDay>? PaymentsDays { get; set; }
 
     private List<Category>? Categories { get; set; }
 
-    private DateTime? FilterDateFrom { get; set; }
-    private DateTime? FilterDateTo { get; set; }
-    private IEnumerable<Category>? FilterCategoryIds { get; set; }
-    private Category? _categoryFilterValue;
-    private string? FilterComment { get; set; }
-    private string? FilterPlace { get; set; }
-
+    private List<Payment>? FilteredPayments { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -44,30 +39,17 @@ public partial class Payments
 
     private async Task GetCategories()
     {
-        if (Categories == null)
-        {
-            Categories = await CategoryService.GetCategories();
-            if (Categories == null)
-            {
-                return;
-            }
-        }
+        Categories ??= await CategoryService.GetCategories();
     }
 
-    private async Task Search()
+    private async Task Search(PaymentClient.PaymentFilterDto? filter = null)
     {
         await GetCategories();
+        _paymentsFilter.UpdateCategories(Categories!);
 
-
-        var filter = new PaymentClient.PaymentFilterDto
-        {
-            CategoryIds = FilterCategoryIds?.Select(x=>x.Id!.Value).ToList(),
-            Comment = FilterComment,
-            Place = FilterPlace,
-            DateFrom = FilterDateFrom,
-            DateTo = FilterDateTo?.AddDays(1),
-        };
+        filter ??= _paymentsFilter.GetFilter();
         ApiClientResponse<PaymentClient.Payment[]> apiPayments = await MoneyClient.Payment.Get(filter);
+
         if (apiPayments.Content == null)
         {
             return;
@@ -75,7 +57,7 @@ public partial class Payments
 
         Dictionary<int, Category> categoriesDict = Categories!.ToDictionary(x => x.Id!.Value, x => x);
 
-        PaymentsDays = apiPayments.Content
+        List<Payment> payments = apiPayments.Content
             .Select(apiPayment => new Payment
             {
                 Id = apiPayment.Id,
@@ -86,6 +68,9 @@ public partial class Payments
                 CreatedTaskId = apiPayment.CreatedTaskId,
                 Place = apiPayment.Place,
             })
+            .ToList();
+
+        PaymentsDays = payments
             .GroupBy(x => x.Date)
             .Select(x => new PaymentsDay
             {
@@ -93,6 +78,11 @@ public partial class Payments
                 Payments = x.ToList(),
             })
             .ToList();
+
+        // TODO: Костыль
+        filter.DateTo = filter.DateTo?.AddDays(-1);
+        Filter = filter;
+        FilteredPayments = payments;
     }
 
     private async Task Delete(Payment payment)
@@ -131,7 +121,7 @@ public partial class Payments
 
         if (paymentsDay != null)
         {
-            paymentsDay.Payments.Add(payment);
+            paymentsDay.Payments.Insert(0, payment);
             return;
         }
 
@@ -142,16 +132,34 @@ public partial class Payments
         };
 
         int index = PaymentsDays.FindIndex(x => x.Date < paymentDate);
+        PaymentsDays.Insert(index == -1 ? 0 : index, paymentsDay);
 
-        if (index == -1)
+        StateHasChanged();
+    }
+
+    private void AddPayment(Payment payment, PaymentsDay paymentsDay)
+    {
+        if (payment.Date == paymentsDay.Date)
         {
-            PaymentsDays.Add(paymentsDay);
+            paymentsDay.Payments.Add(payment);
         }
         else
         {
-            PaymentsDays.Insert(index, paymentsDay);
+            AddNewPayment(payment);
         }
+    }
 
+    private void DeleteDay(PaymentsDay day)
+    {
+        PaymentsDays?.Remove(day);
         StateHasChanged();
+    }
+
+    private string GetPeriodString(DateTime? dateFrom, DateTime? dateTo)
+    {
+        return $"Период с {FormatDate(dateFrom)} "
+               + $"по {FormatDate(dateTo)}";
+
+        string FormatDate(DateTime? date) => date?.ToString("d MMMM yyyy", CultureInfo.CurrentCulture) ?? "-";
     }
 }

@@ -1,24 +1,70 @@
 ﻿<MudNavMenu>
-    <MudNavLink Href="" Icon="@Icons.Material.TwoTone.Home" Match="NavLinkMatch.All">Главная</MudNavLink>
-    <MudNavLink Href="auth" Icon="@Icons.Material.TwoTone.Lock" Match="NavLinkMatch.Prefix">Требуется авторизация</MudNavLink>
-    <MudNavLink Href="settings" Icon="@Icons.Material.TwoTone.SettingsApplications">Настройки</MudNavLink>
+    <MudNavLink Href=""
+                Icon="@Icons.Material.Rounded.Home"
+                Match="NavLinkMatch.All">
+        Главная
+    </MudNavLink>
+    <MudNavLink Href="auth"
+                Icon="@Icons.Material.Rounded.Lock"
+                Match="NavLinkMatch.Prefix">
+        Требуется авторизация
+    </MudNavLink>
+    <MudNavLink Href="settings"
+                Icon="@Icons.Material.Rounded.SettingsApplications">
+        Настройки
+    </MudNavLink>
 
     <AuthorizeView>
         <Authorized>
-            <MudNavLink Href="payments" Icon="@Icons.Material.TwoTone.Money" Match="NavLinkMatch.Prefix">Операции</MudNavLink>
-            <MudNavLink Href="categories" Icon="@Icons.Material.TwoTone.Category" Match="NavLinkMatch.Prefix">Категории</MudNavLink>
-            <MudNavLink Href="Account/Manage" Icon="@Icons.Material.TwoTone.Person" Match="NavLinkMatch.Prefix">@context.User.Identity?.Name</MudNavLink>
+            <MudNavGroup Expanded
+                         Icon="@Icons.Material.Rounded.Money"
+                         Title="Операции">
+                <MudNavLink Href="payments"
+                            Icon="@Icons.Material.Rounded.List"
+                            Match="NavLinkMatch.Prefix">
+                    Список
+                </MudNavLink>
+                <MudNavLink Href="fast-operations"
+                            Icon="@Icons.Material.Rounded.FlashOn"
+                            Match="NavLinkMatch.Prefix">
+                    Быстрые
+                </MudNavLink>
+                <MudNavLink Href="regular-operations"
+                            Icon="@Icons.Material.Rounded.Repeat"
+                            Match="NavLinkMatch.Prefix">
+                    Регулярные
+                </MudNavLink>
+            </MudNavGroup>
+
+            <MudNavLink Href="categories"
+                        Icon="@Icons.Material.Rounded.Category"
+                        Match="NavLinkMatch.Prefix">
+                Категории
+            </MudNavLink>
+            <MudNavLink Href="Account/Manage"
+                        Icon="@Icons.Material.Rounded.Person"
+                        Match="NavLinkMatch.Prefix">
+                @context.User.Identity?.Name
+            </MudNavLink>
 
             <MudNavLink Href="@(NavigationManager.GetUriWithReturnUrl("Account/Logout", _currentUrl))"
-                        Icon="@Icons.Material.TwoTone.Logout"
-                        Match="NavLinkMatch.Prefix"
-                        IconColor="Color.Info">
+                        Icon="@Icons.Material.Rounded.Logout"
+                        IconColor="Color.Info"
+                        Match="NavLinkMatch.Prefix">
                 Выйти
             </MudNavLink>
         </Authorized>
         <NotAuthorized>
-            <MudNavLink Href="Account/Register" Icon="@Icons.Material.TwoTone.Person" Match="NavLinkMatch.Prefix">Регистрация</MudNavLink>
-            <MudNavLink Href="Account/Login" Icon="@Icons.Material.TwoTone.Password" Match="NavLinkMatch.Prefix">Вход</MudNavLink>
+            <MudNavLink Href="Account/Register"
+                        Icon="@Icons.Material.Rounded.Person"
+                        Match="NavLinkMatch.Prefix">
+                Регистрация
+            </MudNavLink>
+            <MudNavLink Href="Account/Login"
+                        Icon="@Icons.Material.Rounded.Password"
+                        Match="NavLinkMatch.Prefix">
+                Вход
+            </MudNavLink>
         </NotAuthorized>
     </AuthorizeView>
 </MudNavMenu>

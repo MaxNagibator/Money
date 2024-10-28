@@ -6,82 +6,94 @@
 <MudPopover AnchorOrigin="Origin.BottomLeft"
             Class="mt-4 mx-4 pa-4"
             Open="IsOpen"
+            Style="max-width: 600px"
             TransformOrigin="Origin.TopLeft">
-    <EditForm Model="@Input" OnValidSubmit="SubmitAsync">
+    <EditForm Model="@Input"
+              OnValidSubmit="SubmitAsync">
         <DataAnnotationsValidator />
 
-        <MudStack AlignItems="AlignItems.Stretch"
-                  Justify="Justify.SpaceBetween"
-                  Spacing="3"
-                  StretchItems="StretchItems.All">
-            @if (_isNumericSumVisible)
-            {
-                <MudNumericField Adornment="Adornment.Start"
-                                 AdornmentColor="Color.Tertiary"
-                                 AdornmentIcon="@Icons.Material.Filled.Calculate"
-                                 @bind-Value="Input.Sum"
-                                 For="@(() => Input.Sum)"
-                                 Immediate
-                                 Label="Сумма"
-                                 OnAdornmentClick="ToggleSumFieldAsync"
-                                 OnKeyDown="OnSumKeyDown" />
-            }
-            else
-            {
-                <MudTextField Adornment="Adornment.Start"
-                              AdornmentColor="Color.Tertiary"
-                              AdornmentIcon="@Icons.Material.Filled.Numbers"
-                              AutoFocus
-                              @bind-Value="Input.CalculationSum"
-                              Clearable
-                              Counter="0"
-                              For="@(() => Input.CalculationSum)"
-                              Immediate
-                              Label="Сумма"
-                              OnAdornmentClick="ToggleSumFieldAsync"
-                              OnBlur="ToggleSumFieldAsync" />
-            }
-
-            <MudTextField @bind-Value="Input.Comment"
-                          Counter="0"
-                          For="@(() => Input.Comment)"
-                          Label="Комментарий" />
-            <MudDatePicker AdornmentColor="Color.Tertiary"
-                           @bind-Date="Input.Date"
-                           Color="Color.Tertiary"
-                           For="@(() => Input.Date)"
-                           Label="Дата" />
-
-            <MudSelect AdornmentColor="Color.Tertiary"
-                       AdornmentIcon="@Icons.Material.Rounded.Search"
-                       AnchorOrigin="Origin.BottomCenter"
-                       @bind-Value="Input.Category"
-                       For="@(() => Input.Category)"
-                       Label="Категория"
-                       ToStringFunc="@(arg => arg?.Name)"
-                       TransformOrigin="Origin.TopCenter">
-                @foreach (Category category in Input.CategoryList ?? [])
+        <MudGrid>
+            <MudItem md="6"
+                     xs="12">
+                @if (_isNumericSumVisible)
                 {
-                    <MudSelectItem Value="category">
-                        @category.Name
-                    </MudSelectItem>
+                    <MudNumericField Adornment="Adornment.Start"
+                                     AdornmentColor="Color.Tertiary"
+                                     AdornmentIcon="@Icons.Material.Rounded.Calculate"
+                                     @bind-Value="Input.Sum"
+                                     For="@(() => Input.Sum)"
+                                     Immediate
+                                     Label="Сумма"
+                                     OnAdornmentClick="ToggleSumFieldAsync"
+                                     OnKeyDown="OnSumKeyDown" />
                 }
-            </MudSelect>
+                else
+                {
+                    <MudTextField Adornment="Adornment.Start"
+                                  AdornmentColor="Color.Tertiary"
+                                  AdornmentIcon="@Icons.Material.Rounded.Numbers"
+                                  AutoFocus
+                                  @bind-Value="Input.CalculationSum"
+                                  Clearable
+                                  Counter="0"
+                                  For="@(() => Input.CalculationSum)"
+                                  Immediate
+                                  Label="Сумма"
+                                  OnAdornmentClick="ToggleSumFieldAsync"
+                                  OnBlur="ToggleSumFieldAsync" />
+                }
+            </MudItem>
+            <MudItem md="6"
+                     xs="12">
+                <MudDatePicker AdornmentColor="Color.Tertiary"
+                               @bind-Date="Input.Date"
+                               Color="Color.Tertiary"
+                               For="@(() => Input.Date)"
+                               Label="Дата" />
+            </MudItem>
+            <MudItem md="6"
+                     xs="12">
+                <MudAutocomplete AdornmentColor="Color.Tertiary"
+                                 AdornmentIcon="@Icons.Material.Rounded.Search"
+                                 @bind-Value="Input.Category"
+                                 Clearable
+                                 Counter="0"
+                                 For="@(() => Input.Category)"
+                                 Label="Категория"
+                                 ResetValueOnEmptyText
+                                 SearchFunc="Search"
+                                 SelectValueOnTab
+                                 ToStringFunc="@(arg => arg.Name)" />
+            </MudItem>
+            <MudItem md="6"
+                     xs="12">
+                <MudTextField AutoGrow
+                              @bind-Value="Input.Place"
+                              Counter="0"
+                              For="@(() => Input.Place)"
+                              Label="Место" />
+            </MudItem>
+            <MudItem md="12"
+                     xs="12">
+                <MudTextField AutoGrow
+                              @bind-Value="Input.Comment"
+                              Counter="0"
+                              For="@(() => Input.Comment)"
+                              Label="Комментарий" />
+            </MudItem>
+        </MudGrid>
 
-            <MudTextField @bind-Value="Input.Place"
-                          Counter="0"
-                          For="@(() => Input.Place)"
-                          Label="Место" />
-        </MudStack>
-
-        <MudStack Class="mt-3"
-                  Row
-                  AlignItems="AlignItems.Center"
-                  Justify="Justify.SpaceBetween">
-            <MudButton Color="Color.Error" OnClick="() => ToggleOpen()">
+        <MudStack AlignItems="AlignItems.Center"
+                  Class="mt-3"
+                  Justify="Justify.SpaceBetween"
+                  Row>
+            <MudButton Color="Color.Error"
+                       OnClick="() => ToggleOpen()">
                 Закрыть
             </MudButton>
-            <MudButton ButtonType="ButtonType.Submit" Color="Color.Tertiary" Variant="Variant.Filled">
+            <MudButton ButtonType="ButtonType.Submit"
+                       Color="Color.Tertiary"
+                       Variant="Variant.Filled">
                 Сохранить
             </MudButton>
         </MudStack>

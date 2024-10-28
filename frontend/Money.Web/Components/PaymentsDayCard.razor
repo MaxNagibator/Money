@@ -1,19 +1,26 @@
 ﻿<MudCard Elevation="3">
-    <MudCardHeader Class="border-b-2 border-solid" Style="padding: 8px 8px; border-color: var(--mud-palette-divider)">
-        <MudItem md="2" xs="3">
-            <MudStack Justify="Justify.FlexStart" Row StretchItems="StretchItems.End">
-                <MudIcon Icon="@Icons.Material.Rounded.CalendarToday" Size="Size.Small" />
+    <MudCardHeader Class="border-b-2 border-solid pa-2"
+                   Style="border-color: var(--mud-palette-divider)">
+        <MudItem md="2"
+                 xs="4">
+            <MudStack Justify="Justify.FlexStart"
+                      Row
+                      StretchItems="StretchItems.End">
+                <MudIcon Icon="@Icons.Material.Rounded.CalendarToday"
+                         Size="Size.Small" />
                 <MudText>
                     @PaymentsDay.Date.ToShortDateString()
                 </MudText>
             </MudStack>
         </MudItem>
 
-        <MudItem md="2" xs="3">
-            <PaymentDialog @ref="_dialog"
+        <MudItem md="2"
+                 xs="4">
+            <PaymentDialog OnSubmit="OnSubmit"
                            Payment="@(new Payment { Date = PaymentsDay.Date, Category = Category.Empty })"
-                           OnSubmit="PaymentsDay.Payments.Add">
-                <MudStack AlignItems="AlignItems.Center" Row>
+                           @ref="_dialog">
+                <MudStack AlignItems="AlignItems.Center"
+                          Row>
                     @foreach (PaymentTypes.Value type in PaymentTypes)
                     {
                         <MudTooltip Text="@type.AddText">
@@ -37,9 +44,15 @@
 
         @foreach (PaymentTypes.Value paymentType in PaymentTypes)
         {
-            <MudItem md="2" xs="3">
-                <MudStack AlignItems="AlignItems.Center" Justify="Justify.FlexEnd" Row StretchItems="StretchItems.End">
-                    <MudIcon Color="@paymentType.Color" Icon="@paymentType.Icon" Size="Size.Small" />
+            <MudItem md="2"
+                     xs="2">
+                <MudStack AlignItems="AlignItems.Center"
+                          Justify="Justify.FlexEnd"
+                          Row
+                          StretchItems="StretchItems.End">
+                    <MudIcon Color="@paymentType.Color"
+                             Icon="@paymentType.Icon"
+                             Size="Size.Small" />
                     <MudText>
                         @PaymentsDay.CalculateSum(paymentType).ToString("N0")
                     </MudText>
@@ -49,7 +62,7 @@
 
         <MudSpacer />
     </MudCardHeader>
-    <MudCardContent Style="padding: 8px 8px;">
+    <MudCardContent Class="pa-2">
         <MudStack Spacing="0">
             @for (int i = 0; i < PaymentsDay.Payments.Count; i++)
             {
@@ -57,12 +70,15 @@
 
                 if (payment.IsDeleted)
                 {
-                    <MudStack AlignItems="AlignItems.Center" Row>
+                    <MudStack AlignItems="AlignItems.Center"
+                              Row>
                         <MudText Style="text-decoration: line-through;">
                             @payment.Sum.ToString("N0") - @payment.Category.Name - @payment.Comment
                         </MudText>
                         <MudSpacer />
-                        <MudButton Color="Color.Info" EndIcon="@Icons.Material.TwoTone.Cancel" OnClick="() => OnRestore.InvokeAsync(payment)">
+                        <MudButton Color="Color.Info"
+                                   EndIcon="@Icons.Material.Rounded.Cancel"
+                                   OnClick="() => OnRestore.InvokeAsync(payment)">
                             Восстановить
                         </MudButton>
                     </MudStack>
@@ -70,12 +86,13 @@
                 else
                 {
                     <PaymentItem OnDelete="() => OnDelete.InvokeAsync(payment)"
-                                 OnEdit="() => StateHasChanged()"
+                                 OnEdit="OnEdit"
                                  Payment="@payment" />
 
                     if (Settings.ShowDividers && i != PaymentsDay.Payments.Count - 1)
                     {
-                        <MudDivider FlexItem DividerType="DividerType.FullWidth" />
+                        <MudDivider DividerType="DividerType.FullWidth"
+                                    FlexItem />
                     }
                 }
             }
