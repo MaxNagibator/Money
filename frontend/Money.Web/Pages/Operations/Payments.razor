@@ -43,54 +43,56 @@
         </MudStack>
     </MudPaper>
 
-    <MudItem>
-        <PaymentDialog OnSubmit="AddNewPayment"
-                       Payment="@(new Payment { Date = DateTime.Now, Category = Category.Empty })"
-                       @ref="_dialog">
-            <MudStack AlignItems="AlignItems.Start"
-                      Row>
-                @foreach (PaymentTypes.Value type in PaymentTypes.Values)
-                {
-                    <MudTooltip Text="@type.AddText">
-                        <MudButton Color="type.Color"
+    <CascadingValue Value="Categories">
+        <MudItem>
+            <PaymentDialog OnSubmit="AddNewPayment"
+                           Payment="@(new Payment { Date = DateTime.Now, Category = Category.Empty })"
+                           @ref="_dialog">
+                <MudStack AlignItems="AlignItems.Start"
+                          Row>
+                    @foreach (PaymentTypes.Value type in PaymentTypes.Values)
+                    {
+                        <MudTooltip Text="@type.AddText">
+                            <MudButton Color="type.Color"
+                                       Disabled="_dialog.IsOpen"
+                                       EndIcon="@type.Icon"
+                                       OnClick="() => _dialog.ToggleOpen(type)"
+                                       Size="Size.Small"
+                                       Variant="Variant.Filled">
+                                @type.AddText
+                            </MudButton>
+                        </MudTooltip>
+                    }
+                    <MudTooltip Text="Быстрое добавление">
+                        <MudButton Color="Color.Info"
                                    Disabled="_dialog.IsOpen"
-                                   EndIcon="@type.Icon"
-                                   OnClick="() => _dialog.ToggleOpen(type)"
+                                   OnClick="() => _dialog.ToggleOpen()"
                                    Size="Size.Small"
                                    Variant="Variant.Filled">
-                            @type.AddText
+                            Быстрое добавление
                         </MudButton>
                     </MudTooltip>
-                }
-                <MudTooltip Text="Быстрое добавление">
-                    <MudButton Color="Color.Info"
-                               Disabled="_dialog.IsOpen"
-                               OnClick="() => _dialog.ToggleOpen()"
-                               Size="Size.Small"
-                               Variant="Variant.Filled">
-                        Быстрое добавление
-                    </MudButton>
-                </MudTooltip>
-                <MudSpacer />
-                <MudTooltip Text="Найти">
-                    <MudButton Color="Color.Info"
-                               EndIcon="@Icons.Material.Rounded.Search"
-                               OnClick="() => Search()"
-                               Size="Size.Small"
-                               Variant="Variant.Filled">
-                        Найти
-                    </MudButton>
-                </MudTooltip>
-            </MudStack>
-        </PaymentDialog>
-    </MudItem>
-    @foreach (PaymentsDay paymentsDay in PaymentsDays ?? [])
-    {
-        <PaymentsDayCard OnAddPayment="x => AddPayment(x, paymentsDay)"
-                         OnCanDelete="DeleteDay"
-                         OnDelete="Delete"
-                         OnRestore="Restore"
-                         PaymentsDay="@paymentsDay"
-                         PaymentTypes="@PaymentTypes.Values" />
-    }
+                    <MudSpacer />
+                    <MudTooltip Text="Найти">
+                        <MudButton Color="Color.Info"
+                                   EndIcon="@Icons.Material.Rounded.Search"
+                                   OnClick="() => Search()"
+                                   Size="Size.Small"
+                                   Variant="Variant.Filled">
+                            Найти
+                        </MudButton>
+                    </MudTooltip>
+                </MudStack>
+            </PaymentDialog>
+        </MudItem>
+        @foreach (PaymentsDay paymentsDay in PaymentsDays ?? [])
+        {
+            <PaymentsDayCard OnAddPayment="x => AddPayment(x, paymentsDay)"
+                             OnCanDelete="DeleteDay"
+                             OnDelete="Delete"
+                             OnRestore="Restore"
+                             PaymentsDay="@paymentsDay"
+                             PaymentTypes="@PaymentTypes.Values" />
+        }
+    </CascadingValue>
 </MudStack>
