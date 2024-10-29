@@ -40,11 +40,8 @@ public class PaymentClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
 
     public async Task<ApiClientResponse<string[]>> GetPlaces(int offset, int count, string? name = null)
     {
-        string postfixUri = null;
-        if (!string.IsNullOrEmpty(name))
-        {
-            postfixUri = "\\" + name;
-        }
+        string postfixUri = string.IsNullOrWhiteSpace(name) ? string.Empty : $"/{name}";
+
         return await GetAsync<string[]>($"{BaseUri}/GetPlaces/{offset}/{count}{postfixUri}");
     }
 
