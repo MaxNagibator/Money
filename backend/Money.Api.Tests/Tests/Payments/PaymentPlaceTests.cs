@@ -272,32 +272,60 @@ public class PaymentPlaceTests
     public async Task GetPlacesOffsetAndCountTest()
     {
         TestCategory category = _user.WithCategory();
+        var place = _user.WithPlace();
+        _user.WithPlace();
+        _user.WithPlace();
         _dbClient.Save();
 
-        PaymentClient.SaveRequest request = new()
-        {
-            CategoryId = category.Id,
-            Sum = 1,
-            Date = DateTime.Now,
-            Place = "Абрикос",
-        };
-
-        await _apiClient.Payment.Create(request).IsSuccessWithContent();
-        request.Place = "ТестАбрикос";
-        await _apiClient.Payment.Create(request).IsSuccessWithContent();
-        request.Place = "СуперТестАбрикос";
-        await _apiClient.Payment.Create(request).IsSuccessWithContent();
-
-        PaymentClient.Place[]? apiPlaces = await _apiClient.Payment.GetPlaces(0, 1, "Абрикос").IsSuccessWithContent();
+        string[]? apiPlaces = await _apiClient.Payment.GetPlaces(0, 1, place.Name.Substring(0, 1)).IsSuccessWithContent();
         Assert.That(apiPlaces, Is.Not.Null);
         Assert.That(apiPlaces.Length, Is.EqualTo(1));
 
-        apiPlaces = await _apiClient.Payment.GetPlaces(1, 10, "Абрикос").IsSuccessWithContent();
+        apiPlaces = await _apiClient.Payment.GetPlaces(1, 10, place.Name.Substring(0, 1)).IsSuccessWithContent();
         Assert.That(apiPlaces, Is.Not.Null);
         Assert.That(apiPlaces.Length, Is.EqualTo(2));
 
-        apiPlaces = await _apiClient.Payment.GetPlaces(2, 10, "Абрикос").IsSuccessWithContent();
+        apiPlaces = await _apiClient.Payment.GetPlaces(2, 10, place.Name.Substring(0, 1)).IsSuccessWithContent();
         Assert.That(apiPlaces, Is.Not.Null);
         Assert.That(apiPlaces.Length, Is.EqualTo(1));
+    }
+
+
+    /// <summary>
+    ///     Создадим три плейса и проверим параметры offset и count.
+    /// </summary>
+    [Test]
+    public async Task GetPlacesWithEmptySearchTest()
+    {
+        TestCategory category = _user.WithCategory();
+        _user.WithPlace();
+        _dbClient.Save();
+
+        string[]? apiPlaces = await _apiClient.Payment.GetPlaces(0, 1).IsSuccessWithContent();
+        Assert.That(apiPlaces, Is.Not.Null);
+        Assert.That(apiPlaces.Length, Is.EqualTo(1));
+
+        apiPlaces = await _apiClient.Payment.GetPlaces(0, 1, "").IsSuccessWithContent();
+        Assert.That(apiPlaces, Is.Not.Null);
+        Assert.That(apiPlaces.Length, Is.EqualTo(1));
+    }
+
+    /// <summary>
+    ///     Если фильтр пустой, на первой позиции будем последнее используемое место.
+    /// </summary>
+    [Test]
+    public async Task GetPlacesOrderByLastUsedDateTest()
+    {
+        TestCategory category = _user.WithCategory();
+        var place3 = _user.WithPlace().SetLastUsedDate(DateTime.Now.AddMinutes(-2));
+        var place2 = _user.WithPlace().SetLastUsedDate(DateTime.Now.AddMinutes(-1));
+        var place1 = _user.WithPlace().SetLastUsedDate(DateTime.Now);
+        _dbClient.Save();
+
+        string[]? apiPlaces = await _apiClient.Payment.GetPlaces(0, 100).IsSuccessWithContent();
+        Assert.That(apiPlaces, Is.Not.Null);
+        Assert.That(apiPlaces.Length, Is.EqualTo(3));
+        Assert.That(apiPlaces[0], Is.EqualTo(place1.Name));
+        Assert.That(apiPlaces[2], Is.EqualTo(place3.Name));
     }
 }

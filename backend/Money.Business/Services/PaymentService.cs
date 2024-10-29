@@ -305,7 +305,7 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
             : null;
     }
 
-    public async Task<ICollection<Place>> GetPlaces(int offset, int count, string name, CancellationToken cancellationToken = default)
+    public async Task<ICollection<Place>> GetPlaces(int offset, int count, string? name, CancellationToken cancellationToken = default)
     {
         var dbPlaces = context.Places.Where(x => x.UserId == environment.UserId && x.IsDeleted == false).AsQueryable();
         if (!string.IsNullOrEmpty(name))
@@ -314,7 +314,7 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
         }
 
         var placeList = await dbPlaces
-            .OrderByDescending(x => x.Name.StartsWith(name))
+            .OrderByDescending(x => name != null && x.Name.StartsWith(name))
             .ThenByDescending(x => x.LastUsedDate)
             .Skip(offset)
             .Take(count)

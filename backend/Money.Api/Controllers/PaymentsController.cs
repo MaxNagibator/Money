@@ -107,14 +107,15 @@ public class PaymentsController(PaymentService paymentService) : ControllerBase
     /// <param name="count">Количество.</param>
     /// <param name="name">Фильтрация.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
-    /// <returns>Информация о платеже.</returns>
+    /// <returns>Список мест.</returns>
     [HttpGet]
+    [Route("GetPlaces/{offset:int}/{count:int}")]
     [Route("GetPlaces/{offset:int}/{count:int}/{name}")]
     [ProducesResponseType(typeof(PaymentDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<PlaceDto[]> GetPlaces(int offset, int count, string name, CancellationToken cancellationToken)
+    public async Task<string[]> GetPlaces(int offset, int count, string? name = null, CancellationToken cancellationToken = default)
     {
         ICollection<Place> places = await paymentService.GetPlaces(offset, count, name, cancellationToken);
-        return places.Select(PlaceDto.FromBusinessModel).ToArray();
+        return places.Select(x=>x.Name).ToArray();
     }
 }

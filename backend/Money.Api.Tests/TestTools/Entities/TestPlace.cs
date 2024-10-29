@@ -15,14 +15,23 @@ public class TestPlace : TestObject
 
     public string Name { get; }
 
+    public DateTime LastUsedDate { get; private set; }
+
     /// <summary>
     ///     Пользователь.
     /// </summary>
     public TestUser User { get; }
 
+    public TestPlace SetLastUsedDate(DateTime value)
+    {
+        LastUsedDate = value;
+        return this;
+    }
+
     private void FillDbProperties(DomainPlace obj)
     {
         obj.Name = Name;
+        obj.LastUsedDate = LastUsedDate;
     }
 
     public override void LocalSave()

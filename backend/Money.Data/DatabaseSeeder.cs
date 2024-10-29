@@ -529,6 +529,7 @@ public static class DatabaseSeeder
                 Id = startIndex + 1,
                 Name = "Работа",
                 Description = "Место работы пользователя",
+                LastUsedDate = DateTime.Now,
             },
 
             new()
@@ -537,6 +538,7 @@ public static class DatabaseSeeder
                 Id = startIndex + 2,
                 Name = "Супермаркет",
                 Description = "Местный супермаркет",
+                LastUsedDate = DateTime.Now,
             },
 
             new()
@@ -545,6 +547,7 @@ public static class DatabaseSeeder
                 Id = startIndex + 3,
                 Name = "Концертный зал",
                 Description = "Место проведения концертов",
+                LastUsedDate = DateTime.Now,
             },
 
             new()
@@ -553,6 +556,7 @@ public static class DatabaseSeeder
                 Id = startIndex + 4,
                 Name = "Квартира",
                 Description = "Арендуемая квартира",
+                LastUsedDate = DateTime.Now,
             },
 
             new()
@@ -561,6 +565,7 @@ public static class DatabaseSeeder
                 Id = startIndex + 5,
                 Name = "Поликлиника",
                 Description = "Медицинское учреждение",
+                LastUsedDate = DateTime.Now,
             },
 
             new()
@@ -569,6 +574,7 @@ public static class DatabaseSeeder
                 Id = startIndex + 6,
                 Name = "Магазин одежды",
                 Description = "Магазин для покупки одежды",
+                LastUsedDate = DateTime.Now,
             },
 
             new()
@@ -577,6 +583,7 @@ public static class DatabaseSeeder
                 Id = startIndex + 7,
                 Name = "Кинотеатр",
                 Description = "Место для просмотра фильмов",
+                LastUsedDate = DateTime.Now,
             },
 
             new()
@@ -585,6 +592,7 @@ public static class DatabaseSeeder
                 Id = startIndex + 8,
                 Name = "Учебный центр",
                 Description = "Центр для обучения и курсов",
+                LastUsedDate = DateTime.Now,
             },
 
             new()
@@ -593,6 +601,7 @@ public static class DatabaseSeeder
                 Id = startIndex + 9,
                 Name = "Магазин продуктов",
                 Description = "Магазин для покупки продуктов питания",
+                LastUsedDate = DateTime.Now,
             },
         ];
 

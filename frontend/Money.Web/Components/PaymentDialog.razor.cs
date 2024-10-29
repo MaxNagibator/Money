@@ -60,11 +60,11 @@ public partial class PaymentDialog
             // todo обработать, если текущая категория удалена.
             if (type == null)
             {
-                Input.CategoryList = [..categories.Where(x => x.PaymentType == Payment.Category.PaymentType)];
+                Input.CategoryList = [.. categories.Where(x => x.PaymentType == Payment.Category.PaymentType)];
                 return;
             }
 
-            Input.CategoryList = [..categories.Where(x => x.PaymentType == type)];
+            Input.CategoryList = [.. categories.Where(x => x.PaymentType == type)];
 
             Category? first = Input.CategoryList.FirstOrDefault();
 
@@ -208,14 +208,27 @@ public partial class PaymentDialog
         };
     }
 
-    private Task<IEnumerable<Category>> Search(string value, CancellationToken token)
+    private async Task<IEnumerable<Category>> SearchCategory(string value, CancellationToken token)
     {
         if (string.IsNullOrEmpty(value))
         {
-            return Task.FromResult<IEnumerable<Category>>(Input.CategoryList ?? []);
+            return Input.CategoryList ?? [];
         }
 
-        return Task.FromResult(Input.CategoryList?.Where(x => x.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase)) ?? Array.Empty<Category>());
+        return Input.CategoryList?.Where(x => x.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase)) ?? Array.Empty<Category>();
+    }
+
+    private async Task<IEnumerable<string>> SearchPlace(string value, CancellationToken token)
+    {
+        var places = (await MoneyClient.Payment.GetPlaces(0, 10, value)).Content!.ToList();
+        if (!string.IsNullOrEmpty(value))
+        {
+            if (places.Count == 0 || !places.Any(x => x == value))
+            {
+                places.Insert(0, value);
+            }
+        }
+        return places;
     }
 
     private sealed class InputModel
