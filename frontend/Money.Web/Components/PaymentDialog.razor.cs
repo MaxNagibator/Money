@@ -11,7 +11,10 @@ namespace Money.Web.Components;
 public partial class PaymentDialog
 {
     private static readonly HashSet<char> ValidKeys = ['(', ')', '+', '-', '*', '/'];
+    private static readonly Dictionary<string, List<string>> Cache = new();
+
     private bool _isNumericSumVisible = true;
+    private string _lastSearchedValue = string.Empty;
 
     public bool IsOpen { get; private set; }
 
@@ -24,6 +27,9 @@ public partial class PaymentDialog
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
+    [CascadingParameter]
+    public List<Category> Categories { get; set; } = default!;
+
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = InputModel.Empty;
 
@@ -31,7 +37,7 @@ public partial class PaymentDialog
     private MoneyClient MoneyClient { get; set; } = default!;
 
     [Inject]
-    private CategoryService CategoryService { get; set; } = default!;
+    private PlaceService PlaceService { get; set; } = default!;
 
     [Inject]
     private ISnackbar SnackbarService { get; set; } = default!;
@@ -39,40 +45,33 @@ public partial class PaymentDialog
     [Inject]
     private IAsyncExpressionFactory Factory { get; set; } = default!;
 
-    public async Task ToggleOpen(PaymentTypes.Value? type = null)
+    public void ToggleOpen(PaymentTypes.Value? type = null)
     {
         IsOpen = !IsOpen;
 
-        if (IsOpen)
+        if (IsOpen == false)
         {
-            List<Category> categories = await CategoryService.GetCategories() ?? [];
-
-            Input = new InputModel
-            {
-                Category = Payment.Category,
-                Comment = Payment.Comment,
-                Date = Payment.Date,
-                Place = Payment.Place,
-                Sum = Payment.Sum,
-                CalculationSum = Payment.Sum.ToString(CultureInfo.CurrentCulture),
-            };
-
-            // todo обработать, если текущая категория удалена.
-            if (type == null)
-            {
-                Input.CategoryList = [.. categories.Where(x => x.PaymentType == Payment.Category.PaymentType)];
-                return;
-            }
-
-            Input.CategoryList = [.. categories.Where(x => x.PaymentType == type)];
-
-            Category? first = Input.CategoryList.FirstOrDefault();
-
-            if (first != null)
-            {
-                Input.Category = first;
-            }
+            return;
         }
+
+        Input = new InputModel
+        {
+            Category = Payment.Category == Category.Empty ? null : Payment.Category,
+            Comment = Payment.Comment,
+            Date = Payment.Date,
+            Place = Payment.Place,
+            Sum = Payment.Sum,
+            CalculationSum = Payment.Sum.ToString(CultureInfo.CurrentCulture),
+        };
+
+        // todo обработать, если текущая категория удалена.
+        if (type == null)
+        {
+            Input.CategoryList = [.. Categories.Where(x => x.PaymentType == Payment.Category.PaymentType)];
+            return;
+        }
+
+        Input.CategoryList = [.. Categories.Where(x => x.PaymentType == type)];
     }
 
     private async Task ToggleSumFieldAsync()
@@ -165,14 +164,14 @@ public partial class PaymentDialog
             await SaveAsync();
             SnackbarService.Add("Операция успешно сохранена!", Severity.Success);
 
-            Payment.Category = Input.Category;
+            Payment.Category = Input.Category ?? throw new MoneyException("Категория платежа не может быть null");
             Payment.Comment = Input.Comment;
             Payment.Date = Input.Date!.Value;
             Payment.Place = Input.Place;
             Payment.Sum = Input.Sum;
 
             await OnSubmit.InvokeAsync(Payment);
-            await ToggleOpen();
+            ToggleOpen();
         }
         catch (Exception)
         {
@@ -200,7 +199,7 @@ public partial class PaymentDialog
     {
         return new PaymentClient.SaveRequest
         {
-            CategoryId = Input.Category.Id ?? throw new MoneyException("Идентификатор категории отсутствует при сохранении платежа"),
+            CategoryId = Input.Category?.Id ?? throw new MoneyException("Идентификатор категории отсутствует при сохранении платежа"),
             Comment = Input.Comment,
             Date = Input.Date!.Value,
             Sum = Input.Sum,
@@ -220,15 +219,7 @@ public partial class PaymentDialog
 
     private async Task<IEnumerable<string>> SearchPlace(string value, CancellationToken token)
     {
-        var places = (await MoneyClient.Payment.GetPlaces(0, 10, value)).Content!.ToList();
-        if (!string.IsNullOrEmpty(value))
-        {
-            if (places.Count == 0 || !places.Any(x => x == value))
-            {
-                places.Insert(0, value);
-            }
-        }
-        return places;
+        return await PlaceService.SearchPlace(value, token);
     }
 
     private sealed class InputModel
@@ -239,7 +230,7 @@ public partial class PaymentDialog
         };
 
         [Required(ErrorMessage = "Категория обязательна")]
-        public required Category Category { get; set; }
+        public Category? Category { get; set; }
 
         public List<Category>? CategoryList { get; set; }
 

@@ -101,21 +101,21 @@ public class PaymentsController(PaymentService paymentService) : ControllerBase
     }
 
     /// <summary>
-    ///     Получить места.
+    ///     Получить список мест на основе указанного сдвига, количества и необязательной фильтрации по имени.
     /// </summary>
     /// <param name="offset">Сдвиг.</param>
     /// <param name="count">Количество.</param>
-    /// <param name="name">Фильтрация.</param>
+    /// <param name="name">Необязательный фильтр по имени.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     /// <returns>Список мест.</returns>
     [HttpGet]
     [Route("GetPlaces/{offset:int}/{count:int}")]
     [Route("GetPlaces/{offset:int}/{count:int}/{name}")]
-    [ProducesResponseType(typeof(PaymentDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(string[]), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<string[]> GetPlaces(int offset, int count, string? name = null, CancellationToken cancellationToken = default)
     {
         ICollection<Place> places = await paymentService.GetPlaces(offset, count, name, cancellationToken);
-        return places.Select(x=>x.Name).ToArray();
+        return places.Select(x => x.Name).ToArray();
     }
 }

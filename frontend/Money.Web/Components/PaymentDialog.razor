@@ -68,20 +68,26 @@
             <MudItem md="6"
                      xs="12">
                 <MudAutocomplete AdornmentColor="Color.Tertiary"
-                                 AdornmentIcon="@Icons.Material.Rounded.Search"
+                                 AdornmentIcon="@Icons.Material.Rounded.Place"
                                  @bind-Value="Input.Place"
                                  Clearable
-                                 Counter="0"
+                                 Immediate
+                                 ShowProgressIndicator
+                                 CoerceText="false"
+                                 CoerceValue="true"
                                  For="@(() => Input.Place)"
+                                 Counter="0"
+                                 ResetValueOnEmptyText="false"
+                                 DebounceInterval="350"
                                  Label="Место"
                                  SearchFunc="SearchPlace"
-                                 SelectValueOnTab
-                                 CoerceValue="true"
-                                 ToStringFunc="@(arg => arg)" />
+                                 SelectValueOnTab />
             </MudItem>
             <MudItem md="12"
                      xs="12">
-                <MudTextField AutoGrow
+                <MudTextField AdornmentColor="Color.Tertiary"
+                              AdornmentIcon="@Icons.Material.Rounded.Comment"
+                              AutoGrow
                               @bind-Value="Input.Comment"
                               Counter="0"
                               For="@(() => Input.Comment)"

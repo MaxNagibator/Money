@@ -38,7 +38,7 @@ public class MoneyClient
         Log(content);
     }
 
-    public async Task<AuthData> LoginAsync(string username, string password)
+    public async Task<AuthData> LoginAsync(string username, string password, CancellationToken token = default)
     {
         FormUrlEncodedContent requestContent = new([
             new KeyValuePair<string, string>("grant_type", "password"),
@@ -46,9 +46,9 @@ public class MoneyClient
             new KeyValuePair<string, string>("password", password),
         ]);
 
-        HttpResponseMessage response = await HttpClient.PostAsync("connect/token", requestContent);
+        HttpResponseMessage response = await HttpClient.PostAsync("connect/token", requestContent, token);
         response.EnsureSuccessStatusCode();
 
-        return await response.Content.ReadFromJsonAsync<AuthData>() ?? throw new InvalidOperationException();
+        return await response.Content.ReadFromJsonAsync<AuthData>(token) ?? throw new InvalidOperationException();
     }
 }

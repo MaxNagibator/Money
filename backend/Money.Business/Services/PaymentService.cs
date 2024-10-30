@@ -307,19 +307,27 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
 
     public async Task<ICollection<Place>> GetPlaces(int offset, int count, string? name, CancellationToken cancellationToken = default)
     {
-        var dbPlaces = context.Places.Where(x => x.UserId == environment.UserId && x.IsDeleted == false).AsQueryable();
-        if (!string.IsNullOrEmpty(name))
+        IQueryable<DomainPlace> dbPlaces = context.Places
+            .IsUserEntity(environment.UserId)
+            .Where(x => x.IsDeleted == false);
+
+        if (string.IsNullOrWhiteSpace(name) == false)
         {
             dbPlaces = dbPlaces.Where(x => x.Name.Contains(name)); // todo сделать регистронезависимый поиск
         }
 
-        var placeList = await dbPlaces
-            .OrderByDescending(x => name != null && x.Name.StartsWith(name))
+        dbPlaces = dbPlaces.OrderByDescending(x => string.IsNullOrWhiteSpace(name) == false && x.Name.StartsWith(name))
             .ThenByDescending(x => x.LastUsedDate)
             .Skip(offset)
-            .Take(count)
-            .ToListAsync(cancellationToken);
+            .Take(count);
 
-        return placeList.Select(x => new Place { Id = x.Id, Name = x.Name }).ToList();
+        List<DomainPlace> places = await dbPlaces.ToListAsync(cancellationToken);
+
+        return places.Select(x => new Place
+            {
+                Id = x.Id,
+                Name = x.Name,
+            })
+            .ToList();
     }
 }

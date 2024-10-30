@@ -38,14 +38,11 @@ public class PaymentClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
         return await PostAsync($"{BaseUri}/{id}/Restore");
     }
 
-    public async Task<ApiClientResponse<string[]>> GetPlaces(int offset, int count, string? name = null)
+    public async Task<ApiClientResponse<string[]>> GetPlaces(int offset, int count, string? name = null, CancellationToken token = default)
     {
-        string postfixUri = null;
-        if (!string.IsNullOrEmpty(name))
-        {
-            postfixUri = "\\" + name;
-        }
-        return await GetAsync<string[]>($"{BaseUri}/GetPlaces/{offset}/{count}{postfixUri}");
+        string postfixUri = string.IsNullOrWhiteSpace(name) ? string.Empty : $"/{name}";
+
+        return await GetAsync<string[]>($"{BaseUri}/GetPlaces/{offset}/{count}{postfixUri}", token);
     }
 
     private string ToUriParameters(PaymentFilterDto? filter)
