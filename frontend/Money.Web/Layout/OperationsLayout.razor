@@ -1,0 +1,16 @@
+﻿@inherits LayoutComponentBase
+
+@layout MainLayout
+
+<PaymentsFilter @ref="_paymentsFilter" />
+
+@if (_paymentsFilter == null)
+{
+    <MudProgressCircular />
+
+    return;
+}
+
+<CascadingValue Value="_paymentsFilter">
+    @Body
+</CascadingValue>

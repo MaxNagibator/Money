@@ -7,12 +7,17 @@ namespace Money.Web.Pages.Operations;
 
 public partial class Payments
 {
-    private bool _init;
-    private PaymentsFilter _paymentsFilter = null!;
     private PaymentDialog _dialog = null!;
 
     [CascadingParameter]
     public AppSettings AppSettings { get; set; } = default!;
+
+    [CascadingParameter]
+    public PaymentsFilter PaymentsFilter { get; set; } = default!;
+
+    public List<Category>? Categories { get; set; }
+
+    private List<Payment>? FilteredPayments { get; set; }
 
     [Inject]
     private MoneyClient MoneyClient { get; set; } = default!;
@@ -27,62 +32,31 @@ public partial class Payments
 
     private List<PaymentsDay>? PaymentsDays { get; set; }
 
-    private List<Category>? Categories { get; set; }
-
-    private List<Payment>? FilteredPayments { get; set; }
-
     protected override async Task OnInitializedAsync()
     {
-        await Search();
-        _init = true;
-    }
+        Categories = await CategoryService.GetCategories();
 
-    private async Task GetCategories()
-    {
-        Categories ??= await CategoryService.GetCategories();
-    }
-
-    private async Task Search(PaymentClient.PaymentFilterDto? filter = null)
-    {
-        await GetCategories();
-        _paymentsFilter.UpdateCategories(Categories!);
-
-        filter ??= _paymentsFilter.GetFilter();
-        ApiClientResponse<PaymentClient.Payment[]> apiPayments = await MoneyClient.Payment.Get(filter);
-
-        if (apiPayments.Content == null)
+        PaymentsFilter.OnSearch += (sender, list) =>
         {
-            return;
-        }
-
-        Dictionary<int, Category> categoriesDict = Categories!.ToDictionary(x => x.Id!.Value, x => x);
-
-        List<Payment> payments = apiPayments.Content
-            .Select(apiPayment => new Payment
+            if (list != null)
             {
-                Id = apiPayment.Id,
-                Sum = apiPayment.Sum,
-                Category = categoriesDict[apiPayment.CategoryId],
-                Comment = apiPayment.Comment,
-                Date = apiPayment.Date.Date,
-                CreatedTaskId = apiPayment.CreatedTaskId,
-                Place = apiPayment.Place,
-            })
-            .ToList();
+                PaymentsDays = list
+                    .GroupBy(x => x.Date)
+                    .Select(x => new PaymentsDay
+                    {
+                        Date = x.Key,
+                        Payments = x.ToList(),
+                    })
+                    .ToList();
 
-        PaymentsDays = payments
-            .GroupBy(x => x.Date)
-            .Select(x => new PaymentsDay
-            {
-                Date = x.Key,
-                Payments = x.ToList(),
-            })
-            .ToList();
+                FilteredPayments = list;
+            }
 
-        // TODO: Костыль
-        filter.DateTo = filter.DateTo?.AddDays(-1);
-        Filter = filter;
-        FilteredPayments = payments;
+            PaymentClient.PaymentFilterDto filter = PaymentsFilter.GetFilter();
+            filter.DateTo = filter.DateTo?.AddDays(-1);
+            Filter = filter;
+            StateHasChanged();
+        };
     }
 
     private async Task Delete(Payment payment)

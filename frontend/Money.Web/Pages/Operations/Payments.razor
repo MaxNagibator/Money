@@ -1,17 +1,9 @@
 ﻿@page "/payments"
-@attribute [Authorize]
+@layout OperationsLayout
 
 <PageTitle>Операции</PageTitle>
 
-@if (_init == false)
-{
-    <MudProgressLinear Indeterminate />
-}
-
 <MudStack Spacing="2">
-    <PaymentsFilter OnSearch="x => Search(x)"
-                    @ref="_paymentsFilter" />
-
     <MudPaper Class="pa-2">
         <MudStack Row
                   Wrap="Wrap.Wrap">
@@ -76,7 +68,7 @@
                     <MudTooltip Text="Найти">
                         <MudButton Color="Color.Info"
                                    EndIcon="@Icons.Material.Rounded.Search"
-                                   OnClick="() => Search()"
+                                   OnClick="PaymentsFilter.Search"
                                    Size="Size.Small"
                                    Variant="Variant.Filled">
                             Найти
