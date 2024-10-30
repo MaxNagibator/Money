@@ -1,0 +1,189 @@
+﻿@page "/statistics"
+
+@using ChartJs.Blazor
+@using ChartJs.Blazor.BarChart
+@using ChartJs.Blazor.BarChart.Axes
+@using ChartJs.Blazor.Common
+@using ChartJs.Blazor.Common.Axes
+@using ChartJs.Blazor.Common.Axes.Ticks
+@using ChartJs.Blazor.Common.Enums
+@using ChartJs.Blazor.Common.Handlers
+@using ChartJs.Blazor.Common.Time
+@using ChartJs.Blazor.Util
+@using ChartJs.Blazor.Interop
+@using System.Collections.ObjectModel
+
+<PageTitle>Статистика</PageTitle>
+
+<Chart Config="_config" @ref="_chart"></Chart>
+
+<button @onclick="RandomizeData">Randomize Data</button>
+
+@code {
+    private const int InitalCount = 7;
+    private BarConfig _config;
+    private Chart _chart;
+
+    protected override void OnInitialized()
+    {
+        _config = new BarConfig
+        {
+            Options = new BarOptions
+            {
+                Responsive = true,
+                Title = new OptionsTitle
+                {
+                    Display = true,
+                    Text = "Chart.js Bar Chart - Stacked"
+                },
+                Tooltips = new Tooltips
+                {
+                    Mode = InteractionMode.Index,
+                    Intersect = false
+                },
+                Scales = new BarScales
+                {
+                    XAxes = new List<CartesianAxis>
+                    {
+                        new BarCategoryAxis
+                        {
+                            Stacked = true
+                        }
+                    },
+                    YAxes = new List<CartesianAxis>
+                    {
+                        new BarLinearCartesianAxis
+                        {
+                            Stacked = true
+                        }
+                    }
+                }
+            }
+        };
+
+        IDataset<int> dataset1 = new BarDataset<int>(SampleUtils.RandomScalingFactor(InitalCount))
+        {
+            Label = "Dataset 1",
+                BackgroundColor = ColorUtil.FromDrawingColor(SampleUtils.ChartColors.Red)
+        };
+
+        IDataset<int> dataset2 = new BarDataset<int>(SampleUtils.RandomScalingFactor(InitalCount))
+        {
+            Label = "Dataset 2",
+                BackgroundColor = ColorUtil.FromDrawingColor(SampleUtils.ChartColors.Blue)
+        };
+
+        IDataset<int> dataset3 = new BarDataset<int>(SampleUtils.RandomScalingFactor(InitalCount))
+        {
+            Label = "Dataset 3",
+                BackgroundColor = ColorUtil.FromDrawingColor(SampleUtils.ChartColors.Green)
+        };
+
+        IListExtensions.AddRange(_config.Data.Labels, SampleUtils.Months.Take(InitalCount));
+        _config.Data.Datasets.Add(dataset1);
+        _config.Data.Datasets.Add(dataset2);
+        _config.Data.Datasets.Add(dataset3);
+    }
+
+    private void RandomizeData()
+    {
+        foreach (IDataset<int> dataset in _config.Data.Datasets)
+        {
+            int count = dataset.Count;
+            dataset.Clear();
+            IListExtensions.AddRange(dataset, SampleUtils.RandomScalingFactor(count));
+        }
+
+        _chart.Update();
+    }
+
+    public static class SampleUtils
+    {
+        private static readonly Random _rng = new Random();
+
+        public static class ChartColors
+        {
+            private static readonly Lazy<IReadOnlyList<System.Drawing.Color>> _all = new Lazy<IReadOnlyList<System.Drawing.Color>>(() => new System.Drawing.Color[7]
+            {
+                System.Drawing.Color.Red, System.Drawing.Color.Orange, System.Drawing.Color.Yellow, System.Drawing.Color.Green, System.Drawing.Color.Blue, System.Drawing.Color.Purple, System.Drawing.Color.Gray
+            });
+
+            public static IReadOnlyList<System.Drawing.Color> All => _all.Value;
+
+            public static readonly System.Drawing.Color Red = System.Drawing.Color.FromArgb(255, 99, 132);
+            public static readonly System.Drawing.Color Orange = System.Drawing.Color.FromArgb(255, 159, 64);
+            public static readonly System.Drawing.Color Yellow = System.Drawing.Color.FromArgb(255, 205, 86);
+            public static readonly System.Drawing.Color Green = System.Drawing.Color.FromArgb(75, 192, 192);
+            public static readonly System.Drawing.Color Blue = System.Drawing.Color.FromArgb(54, 162, 235);
+            public static readonly System.Drawing.Color Purple = System.Drawing.Color.FromArgb(153, 102, 255);
+            public static readonly System.Drawing.Color Grey = System.Drawing.Color.FromArgb(201, 203, 207);
+        }
+
+        public static IReadOnlyList<string> Months { get; } = new ReadOnlyCollection<string>(new[]
+        {
+            "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
+        });
+
+        private static int RandomScalingFactorThreadUnsafe() => _rng.Next(-100, 100);
+
+        public static int RandomScalingFactor()
+        {
+            lock (_rng)
+            {
+                return RandomScalingFactorThreadUnsafe();
+            }
+        }
+
+        public static IEnumerable<int> RandomScalingFactor(int count)
+        {
+            int[] factors = new int[count];
+            lock (_rng)
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    factors[i] = RandomScalingFactorThreadUnsafe();
+                }
+            }
+
+            return factors;
+        }
+
+        public static IEnumerable<DateTime> GetNextDays(int count)
+        {
+            DateTime now = DateTime.Now;
+            DateTime[] factors = new DateTime[count];
+            for (int i = 0; i < factors.Length; i++)
+            {
+                factors[i] = now.AddDays(i);
+            }
+
+            return factors;
+        }
+    }
+
+    public static class IListExtensions
+    {
+        // Basically a Polyfill since we now expose IList instead of List
+        // which is better but IList doesn't have AddRange
+        public static void AddRange<T>( IList<T> list, IEnumerable<T> items)
+        {
+            if (list == null)
+                throw new ArgumentNullException(nameof(list));
+
+            if (items == null)
+                throw new ArgumentNullException(nameof(items));
+
+            if (list is List<T> asList)
+            {
+                asList.AddRange(items);
+            }
+            else
+            {
+                foreach (T item in items)
+                {
+                    list.Add(item);
+                }
+            }
+        }
+    }
+}
