@@ -37,6 +37,9 @@ public partial class PaymentDialog
     private MoneyClient MoneyClient { get; set; } = default!;
 
     [Inject]
+    private PlaceService PlaceService { get; set; } = default!;
+
+    [Inject]
     private ISnackbar SnackbarService { get; set; } = default!;
 
     [Inject]
@@ -216,54 +219,7 @@ public partial class PaymentDialog
 
     private async Task<IEnumerable<string>> SearchPlace(string value, CancellationToken token)
     {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return Array.Empty<string>();
-        }
-
-        if (Cache.TryGetValue(value, out List<string>? cachedResults))
-        {
-            return EnsureValueInList(cachedResults, value);
-        }
-
-        int diff = value.Length - _lastSearchedValue.Length;
-
-        if (diff > 0 && value[..^diff] == _lastSearchedValue)
-        {
-            if (Cache.TryGetValue(_lastSearchedValue, out List<string>? cachedPlaces))
-            {
-                if (cachedPlaces.Count == 0)
-                {
-                    return [value];
-                }
-            }
-        }
-
-        ApiClientResponse<string[]> response = await MoneyClient.Payment.GetPlaces(0, 10, value);
-
-        if (response.Content == null)
-        {
-            return [value];
-        }
-
-        List<string> places = response.Content.ToList();
-
-        Cache[value] = places;
-        _lastSearchedValue = value;
-
-        return EnsureValueInList(places, value);
-    }
-
-    private static List<T> EnsureValueInList<T>(List<T> list, T value)
-    {
-        List<T> newList = [..list];
-
-        if (newList.Count == 0 || newList.All(x => !Equals(x, value)))
-        {
-            newList.Insert(0, value);
-        }
-
-        return newList;
+        return await PlaceService.SearchPlace(value, token);
     }
 
     private sealed class InputModel

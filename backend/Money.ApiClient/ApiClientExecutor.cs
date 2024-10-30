@@ -7,43 +7,43 @@ public class ApiClientExecutor(MoneyClient apiClient)
 {
     protected virtual string ApiPrefix => "api";
 
-    protected async Task<ApiClientResponse<T>> GetAsync<T>(string uri)
+    protected async Task<ApiClientResponse<T>> GetAsync<T>(string uri, CancellationToken token = default)
     {
-        return await SendWithBody<T>(HttpMethod.Get, uri);
+        return await SendWithBody<T>(HttpMethod.Get, uri, token: token);
     }
 
-    protected async Task<ApiClientResponse<T>> PostAsync<T>(string uri, object? body = null)
+    protected async Task<ApiClientResponse<T>> PostAsync<T>(string uri, object? body = null, CancellationToken token = default)
     {
-        return await SendWithBody<T>(HttpMethod.Post, uri, body);
+        return await SendWithBody<T>(HttpMethod.Post, uri, body, token);
     }
 
-    protected async Task<ApiClientResponse> PostAsync(string uri, object? body = null)
+    protected async Task<ApiClientResponse> PostAsync(string uri, object? body = null, CancellationToken token = default)
     {
-        return await SendWithBody<string>(HttpMethod.Post, uri, body);
+        return await SendWithBody<string>(HttpMethod.Post, uri, body, token);
     }
 
-    protected async Task<ApiClientResponse> PutAsync(string uri, object? body = null)
+    protected async Task<ApiClientResponse> PutAsync(string uri, object? body = null, CancellationToken token = default)
     {
-        return await SendWithBody<string>(HttpMethod.Put, uri, body);
+        return await SendWithBody<string>(HttpMethod.Put, uri, body, token);
     }
 
-    protected async Task<ApiClientResponse<T>> PatchAsync<T>(string uri, object? body = null)
+    protected async Task<ApiClientResponse<T>> PatchAsync<T>(string uri, object? body = null, CancellationToken token = default)
     {
-        return await SendWithBody<T>(HttpMethod.Patch, uri, body);
+        return await SendWithBody<T>(HttpMethod.Patch, uri, body, token);
     }
 
-    protected async Task<ApiClientResponse> DeleteAsync(string uri)
+    protected async Task<ApiClientResponse> DeleteAsync(string uri, CancellationToken token = default)
     {
-        return await SendWithBody<string>(HttpMethod.Delete, uri);
+        return await SendWithBody<string>(HttpMethod.Delete, uri, token: token);
     }
 
-    private async Task<ApiClientResponse<T>> SendWithBody<T>(HttpMethod method, string uri, object? body = null)
+    private async Task<ApiClientResponse<T>> SendWithBody<T>(HttpMethod method, string uri, object? body = null, CancellationToken token = default)
     {
         using HttpRequestMessage requestMessage = new(method, $"{ApiPrefix}{uri}");
 
         apiClient.Log($"method: {method}");
         apiClient.Log($"url: {ApiPrefix}{uri}");
-        await SetAuthHeaders(requestMessage);
+        await SetAuthHeaders(requestMessage, token);
 
         if (body != null)
         {
@@ -51,11 +51,11 @@ public class ApiClientExecutor(MoneyClient apiClient)
             apiClient.Log($"body: {JsonSerializer.Serialize(body)}");
         }
 
-        HttpResponseMessage response = await apiClient.HttpClient.SendAsync(requestMessage);
-        return ProcessResponse<T>(response);
+        HttpResponseMessage response = await apiClient.HttpClient.SendAsync(requestMessage, token);
+        return ProcessResponse<T>(response, token);
     }
 
-    private async Task SetAuthHeaders(HttpRequestMessage requestMessage)
+    private async Task SetAuthHeaders(HttpRequestMessage requestMessage, CancellationToken token = default)
     {
         ApiUser? user = apiClient.User;
 
@@ -66,7 +66,7 @@ public class ApiClientExecutor(MoneyClient apiClient)
 
         if (user.Token == null)
         {
-            AuthData authData = await apiClient.LoginAsync(user.Username, user.Password);
+            AuthData authData = await apiClient.LoginAsync(user.Username, user.Password, token);
             user.AuthData = authData;
         }
 
@@ -81,9 +81,9 @@ public class ApiClientExecutor(MoneyClient apiClient)
         }
     }
 
-    private ApiClientResponse<T> ProcessResponse<T>(HttpResponseMessage response)
+    private ApiClientResponse<T> ProcessResponse<T>(HttpResponseMessage response, CancellationToken token = default)
     {
-        using StreamReader responseStreamReader = new(response.Content.ReadAsStream());
+        using StreamReader responseStreamReader = new(response.Content.ReadAsStream(token));
 
         string responseContent = responseStreamReader.ReadToEnd();
         apiClient.Log("response: " + responseContent);

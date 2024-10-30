@@ -24,6 +24,9 @@ public partial class PaymentsFilter
     [Inject]
     private ILocalStorageService StorageService { get; set; } = default!;
 
+    [Inject]
+    private PlaceService PlaceService { get; set; } = default!;
+
     private List<TreeItemData<Category>> InitialTreeItems { get; set; } = [];
     private IReadOnlyCollection<Category>? SelectedCategories { get; set; }
 
@@ -55,6 +58,11 @@ public partial class PaymentsFilter
         string? key = await StorageService.GetItemAsync<string?>(nameof(SelectedRange));
         DateInterval? interval = DateIntervals.FirstOrDefault(interval => interval.DisplayName == key);
         await OnDateIntervalChanged(interval);
+    }
+
+    private async Task<IEnumerable<string>> SearchPlace(string value, CancellationToken token)
+    {
+        return await PlaceService.SearchPlace(value, token);
     }
 
     private async Task OnDateIntervalChanged(DateInterval? value)

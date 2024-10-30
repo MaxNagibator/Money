@@ -28,6 +28,7 @@ builder.Services.AddScoped<JwtParser>();
 builder.Services.AddScoped<RefreshTokenService>();
 builder.Services.AddScoped<RefreshTokenService>();
 builder.Services.AddScoped<CategoryService>();
+builder.Services.AddScoped<PlaceService>();
 builder.Services.AddTransient<RefreshTokenHandler>();
 
 builder.Services.AddHttpClient("api")

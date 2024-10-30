@@ -144,13 +144,21 @@
         <MudStack AlignItems="AlignItems.Center"
                   Row
                   StretchItems="StretchItems.None">
-            <MudTextField Adornment="Adornment.Start"
-                          AdornmentColor="Color.Tertiary"
-                          AdornmentIcon="@Icons.Material.Rounded.Place"
-                          @bind-Value="Place"
-                          Clearable
-                          Immediate
-                          Label="Место" />
+            <MudAutocomplete Adornment="Adornment.Start"
+                             AdornmentColor="Color.Tertiary"
+                             AdornmentIcon="@Icons.Material.Rounded.Place"
+                             @bind-Value="Place"
+                             Clearable
+                             Immediate
+                             ShowProgressIndicator
+                             CoerceText="false"
+                             CoerceValue="true"
+                             Counter="0"
+                             ResetValueOnEmptyText="false"
+                             DebounceInterval="350"
+                             Label="Место"
+                             SearchFunc="SearchPlace"
+                             SelectValueOnTab />
 
             <MudTextField Adornment="Adornment.Start"
                           AdornmentColor="Color.Tertiary"
