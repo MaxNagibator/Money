@@ -33,7 +33,7 @@ public partial class PaymentsFilter
     private string? Comment { get; set; }
     private string? Place { get; set; }
 
-    private DateRange DateRange { get; set; } = new();
+    public DateRange DateRange { get; set; } = new();
     private bool ShowDateRange { get; set; } = true;
 
     private List<Category>? Categories { get; set; }
