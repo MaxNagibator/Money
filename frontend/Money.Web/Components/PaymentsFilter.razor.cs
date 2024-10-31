@@ -16,10 +16,10 @@ public partial class PaymentsFilter
 
     private MudPopover _popover = null!;
 
-    [Parameter]
-    public EventCallback<PaymentClient.PaymentFilterDto> OnSearch { get; set; }
+    public event EventHandler<List<Payment>?>? OnSearch;
 
     public DateInterval? SelectedRange { get; set; }
+    public List<Payment>? FilteredPayments { get; private set; }
 
     [Inject]
     private ILocalStorageService StorageService { get; set; } = default!;
@@ -35,6 +35,14 @@ public partial class PaymentsFilter
 
     private DateRange DateRange { get; set; } = new();
     private bool ShowDateRange { get; set; } = true;
+
+    private List<Category>? Categories { get; set; }
+
+    [Inject]
+    private MoneyClient MoneyClient { get; set; } = default!;
+
+    [Inject]
+    private CategoryService CategoryService { get; set; } = default!;
 
     public PaymentClient.PaymentFilterDto GetFilter()
     {
@@ -53,11 +61,44 @@ public partial class PaymentsFilter
         InitialTreeItems = categories.BuildChildren(null).ToList();
     }
 
+    public async Task Search()
+    {
+        await GetCategories();
+        UpdateCategories(Categories!);
+
+        PaymentClient.PaymentFilterDto filter = GetFilter();
+        ApiClientResponse<PaymentClient.Payment[]> apiPayments = await MoneyClient.Payment.Get(filter);
+
+        if (apiPayments.Content == null)
+        {
+            return;
+        }
+
+        Dictionary<int, Category> categoriesDict = Categories!.ToDictionary(x => x.Id!.Value, x => x);
+
+        List<Payment> payments = apiPayments.Content
+            .Select(apiPayment => new Payment
+            {
+                Id = apiPayment.Id,
+                Sum = apiPayment.Sum,
+                Category = categoriesDict[apiPayment.CategoryId],
+                Comment = apiPayment.Comment,
+                Date = apiPayment.Date.Date,
+                CreatedTaskId = apiPayment.CreatedTaskId,
+                Place = apiPayment.Place,
+            })
+            .ToList();
+
+        FilteredPayments = payments;
+        OnSearch?.Invoke(this, payments);
+    }
+
     protected override async Task OnInitializedAsync()
     {
         string? key = await StorageService.GetItemAsync<string?>(nameof(SelectedRange));
         DateInterval? interval = DateIntervals.FirstOrDefault(interval => interval.DisplayName == key);
         await OnDateIntervalChanged(interval);
+        await Search();
     }
 
     private async Task<IEnumerable<string>> SearchPlace(string value, CancellationToken token)
@@ -94,7 +135,7 @@ public partial class PaymentsFilter
         }
 
         DateRange = new DateRange(start, value.End.Invoke(start));
-        await SearchAsync();
+        await Search();
     }
 
     private string GetHelperText()
@@ -117,7 +158,7 @@ public partial class PaymentsFilter
         Comment = null;
         Place = null;
         SelectedCategories = null;
-        await SearchAsync();
+        await Search();
     }
 
     private async Task UpdateDateRange(Func<DateRange, DateRange> updateFunction)
@@ -128,7 +169,7 @@ public partial class PaymentsFilter
         }
 
         DateRange = updateFunction.Invoke(DateRange);
-        await SearchAsync();
+        await Search();
     }
 
     private async Task DecrementDateRange()
@@ -141,8 +182,8 @@ public partial class PaymentsFilter
         await UpdateDateRange(SelectedRange!.Increment);
     }
 
-    private async Task SearchAsync()
+    private async Task GetCategories()
     {
-        await OnSearch.InvokeAsync(GetFilter());
+        Categories ??= await CategoryService.GetCategories();
     }
 }

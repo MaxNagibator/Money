@@ -1,16 +1,12 @@
 ﻿using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 
 namespace Money.Web.Pages.Account;
 
 public partial class Login
 {
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
-
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
 
