@@ -11,11 +11,11 @@ namespace Money.Api.Controllers;
 public class CategoriesController(CategoryService categoryService) : ControllerBase
 {
     /// <summary>
-    ///     Получить список категорий платежей.
+    ///     Получить список категорий операций.
     /// </summary>
     /// <param name="type">Тип категории (опционально).</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
-    /// <returns>Массив категорий платежей.</returns>
+    /// <returns>Массив категорий операций.</returns>
     [HttpGet]
     [Route("")]
     [ProducesResponseType(typeof(CategoryDto[]), StatusCodes.Status200OK)]
@@ -26,7 +26,7 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     }
 
     /// <summary>
-    ///     Получить категорию платежа по идентификатору.
+    ///     Получить категорию операции по идентификатору.
     /// </summary>
     /// <param name="id">Идентификатор категории.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
@@ -42,7 +42,7 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     }
 
     /// <summary>
-    ///     Создать новую категорию платежа.
+    ///     Создать новую категорию операции.
     /// </summary>
     /// <param name="request">Данные для создания новой категории.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
@@ -58,7 +58,7 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     }
 
     /// <summary>
-    ///     Обновить существующую категорию платежа.
+    ///     Обновить существующую категорию операции.
     /// </summary>
     /// <param name="id">Идентификатор обновляемой категории.</param>
     /// <param name="request">Данные для обновления категории.</param>
@@ -74,7 +74,7 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     }
 
     /// <summary>
-    ///     Удалить категорию платежа по идентификатору.
+    ///     Удалить категорию операции по идентификатору.
     /// </summary>
     /// <param name="id">Идентификатор категории.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
@@ -87,7 +87,7 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     }
 
     /// <summary>
-    ///     Восстановить категорию платежа по идентификатору.
+    ///     Восстановить категорию операции по идентификатору.
     /// </summary>
     /// <param name="id">Идентификатор категории.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>

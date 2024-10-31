@@ -3,70 +3,70 @@ using Money.Data.Extensions;
 
 namespace Money.Business.Services;
 
-public class PaymentService(RequestEnvironment environment, ApplicationDbContext context, CategoryService categoryService)
+public class OperationService(RequestEnvironment environment, ApplicationDbContext context, CategoryService categoryService)
 {
-    public async Task<ICollection<Operation>> GetAsync(PaymentFilter filter, CancellationToken cancellationToken = default)
+    public async Task<ICollection<Operation>> GetAsync(OperationFilter filter, CancellationToken cancellationToken = default)
     {
-        IQueryable<DomainPayment> dbPayments = FilterPayments(filter);
+        IQueryable<DomainOperation> dbOperations = FilterOperations(filter);
 
-        List<int> placeIds = await dbPayments
+        List<int> placeIds = await dbOperations
             .Where(x => x.PlaceId != null)
             .Select(x => x.PlaceId!.Value)
             .ToListAsync(cancellationToken);
 
         List<DomainPlace> dbPlaces = await GetPlacesAsync(placeIds, cancellationToken);
 
-        List<DomainPayment> dbPaymentList = await dbPayments
+        List<DomainOperation> dbOperationList = await dbOperations
             .OrderByDescending(x => x.Date)
             .ThenBy(x => x.CategoryId)
             .ToListAsync(cancellationToken);
 
-        return dbPaymentList.Select(x => x.Adapt(dbPlaces)).ToList();
+        return dbOperationList.Select(x => x.Adapt(dbPlaces)).ToList();
     }
 
     public async Task<Operation> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
-        DomainPayment dbPayment = await GetByIdInternal(id, cancellationToken);
+        DomainOperation dbOperation = await GetByIdInternal(id, cancellationToken);
 
-        List<DomainPlace> dbPlaces = dbPayment.PlaceId != null
-            ? await GetPlacesAsync([dbPayment.PlaceId.Value], cancellationToken)
+        List<DomainPlace> dbPlaces = dbOperation.PlaceId != null
+            ? await GetPlacesAsync([dbOperation.PlaceId.Value], cancellationToken)
             : [];
 
-        Operation payment = dbPayment.Adapt(dbPlaces);
-        return payment;
+        Operation operation = dbOperation.Adapt(dbPlaces);
+        return operation;
     }
 
-    private async Task<DomainPayment> GetByIdInternal(int id, CancellationToken cancellationToken)
+    private async Task<DomainOperation> GetByIdInternal(int id, CancellationToken cancellationToken)
     {
-        DomainPayment dbCategory = await context.Payments.SingleOrDefaultAsync(environment.UserId, id, cancellationToken)
-                                   ?? throw new NotFoundException("платеж", id);
+        DomainOperation dbCategory = await context.Operations.SingleOrDefaultAsync(environment.UserId, id, cancellationToken)
+                                   ?? throw new NotFoundException("операция", id);
 
         return dbCategory;
     }
 
-    private IQueryable<DomainPayment> FilterPayments(PaymentFilter filter)
+    private IQueryable<DomainOperation> FilterOperations(OperationFilter filter)
     {
-        IQueryable<DomainPayment> dbPayments = context.Payments.IsUserEntity(environment.UserId)
+        IQueryable<DomainOperation> dbOperations = context.Operations.IsUserEntity(environment.UserId)
             .Where(x => x.TaskId == null);
 
         if (filter.DateFrom.HasValue)
         {
-            dbPayments = dbPayments.Where(x => x.Date >= filter.DateFrom.Value);
+            dbOperations = dbOperations.Where(x => x.Date >= filter.DateFrom.Value);
         }
 
         if (filter.DateTo.HasValue)
         {
-            dbPayments = dbPayments.Where(x => x.Date < filter.DateTo.Value);
+            dbOperations = dbOperations.Where(x => x.Date < filter.DateTo.Value);
         }
 
         if (filter.CategoryIds is { Count: > 0 })
         {
-            dbPayments = dbPayments.Where(x => filter.CategoryIds.Contains(x.CategoryId));
+            dbOperations = dbOperations.Where(x => filter.CategoryIds.Contains(x.CategoryId));
         }
 
         if (string.IsNullOrEmpty(filter.Comment) == false)
         {
-            dbPayments = dbPayments.Where(x => x.Comment != null && x.Comment.Contains(filter.Comment)); // todo сделать регистронезависимый поиск
+            dbOperations = dbOperations.Where(x => x.Comment != null && x.Comment.Contains(filter.Comment)); // todo сделать регистронезависимый поиск
         }
 
         if (string.IsNullOrEmpty(filter.Place) == false)
@@ -75,10 +75,10 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
                 .Where(x => x.UserId == environment.UserId && x.Name.Contains(filter.Place)) // todo сделать регистронезависимый поиск
                 .Select(x => x.Id);
 
-            dbPayments = dbPayments.Where(x => x.PlaceId != null && placesIds.Contains(x.PlaceId.Value));
+            dbOperations = dbOperations.Where(x => x.PlaceId != null && placesIds.Contains(x.PlaceId.Value));
         }
 
-        return dbPayments;
+        return dbOperations;
     }
 
     private async Task<List<DomainPlace>> GetPlacesAsync(List<int> placeIds, CancellationToken cancellationToken)
@@ -88,7 +88,7 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<int> CreateAsync(Operation payment, CancellationToken cancellationToken = default)
+    public async Task<int> CreateAsync(Operation operation, CancellationToken cancellationToken = default)
     {
         if (environment.UserId == null)
         {
@@ -98,28 +98,28 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
         DomainUser dbUser = await context.DomainUsers.SingleOrDefaultAsync(x => x.Id == environment.UserId, cancellationToken)
                             ?? throw new BusinessException("Извините, но пользователь не найден.");
 
-        Category category = await categoryService.GetByIdAsync(payment.CategoryId, cancellationToken);
+        Category category = await categoryService.GetByIdAsync(operation.CategoryId, cancellationToken);
 
-        int paymentId = dbUser.NextPaymentId;
-        dbUser.NextPaymentId++;
+        int operationId = dbUser.NextOperationId;
+        dbUser.NextOperationId++;
 
-        int? placeId = await GetPlaceId(dbUser, payment.Place, cancellationToken);
+        int? placeId = await GetPlaceId(dbUser, operation.Place, cancellationToken);
 
-        DomainPayment dbPayment = new()
+        DomainOperation dbOperation = new()
         {
-            Id = paymentId,
+            Id = operationId,
             UserId = environment.UserId.Value,
             CategoryId = category.Id,
-            Sum = payment.Sum,
-            Comment = payment.Comment,
-            Date = payment.Date,
+            Sum = operation.Sum,
+            Comment = operation.Comment,
+            Date = operation.Date,
             PlaceId = placeId,
-            CreatedTaskId = payment.CreatedTaskId,
+            CreatedTaskId = operation.CreatedTaskId,
         };
 
-        await context.Payments.AddAsync(dbPayment, cancellationToken);
+        await context.Operations.AddAsync(dbOperation, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
-        return paymentId;
+        return operationId;
     }
 
     private async Task<int?> GetPlaceId(DomainUser dbUser, string? place, CancellationToken cancellationToken = default)
@@ -156,32 +156,32 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
         return dbPlace.Id;
     }
 
-    public async Task UpdateAsync(Operation payment, CancellationToken cancellationToken)
+    public async Task UpdateAsync(Operation operation, CancellationToken cancellationToken)
     {
-        DomainPayment dbPayment = await context.Payments.SingleOrDefaultAsync(environment.UserId, payment.Id, cancellationToken)
-                                  ?? throw new NotFoundException("платеж", payment.Id);
+        DomainOperation dbOperation = await context.Operations.SingleOrDefaultAsync(environment.UserId, operation.Id, cancellationToken)
+                                  ?? throw new NotFoundException("операция", operation.Id);
 
-        Category category = await categoryService.GetByIdAsync(payment.CategoryId, cancellationToken);
+        Category category = await categoryService.GetByIdAsync(operation.CategoryId, cancellationToken);
         DomainUser dbUser = await context.DomainUsers.SingleAsync(x => x.Id == environment.UserId, cancellationToken);
-        int? placeId = await GetPlaceId(dbUser, payment.Place, dbPayment, cancellationToken);
+        int? placeId = await GetPlaceId(dbUser, operation.Place, dbOperation, cancellationToken);
 
-        dbPayment.Sum = payment.Sum;
-        dbPayment.Comment = payment.Comment;
-        dbPayment.Date = payment.Date;
-        dbPayment.CategoryId = category.Id;
-        dbPayment.PlaceId = placeId;
+        dbOperation.Sum = operation.Sum;
+        dbOperation.Comment = operation.Comment;
+        dbOperation.Date = operation.Date;
+        dbOperation.CategoryId = category.Id;
+        dbOperation.PlaceId = placeId;
 
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task<int?> GetPlaceId(DomainUser dbUser, string? place, DomainPayment dbPayment, CancellationToken cancellationToken = default)
+    private async Task<int?> GetPlaceId(DomainUser dbUser, string? place, DomainOperation dbOperation, CancellationToken cancellationToken = default)
     {
-        DomainPlace? dbPlace = await GetPlaceById(dbPayment.PlaceId, cancellationToken);
-        bool hasAnyPayments = await IsPlaceBusy(dbPlace, dbPayment.Id, cancellationToken);
+        DomainPlace? dbPlace = await GetPlaceById(dbOperation.PlaceId, cancellationToken);
+        bool hasAnyOperations = await IsPlaceBusy(dbPlace, dbOperation.Id, cancellationToken);
 
         if (string.IsNullOrWhiteSpace(place))
         {
-            if (dbPlace != null && hasAnyPayments == false)
+            if (dbPlace != null && hasAnyOperations == false)
             {
                 dbPlace.IsDeleted = true;
             }
@@ -195,14 +195,14 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
 
         if (dbNewPlace != null)
         {
-            if (dbPlace != null && hasAnyPayments == false && dbPlace.Id != dbNewPlace.Id)
+            if (dbPlace != null && hasAnyOperations == false && dbPlace.Id != dbNewPlace.Id)
             {
                 dbPlace.IsDeleted = true;
             }
         }
         else
         {
-            if (dbPlace != null && hasAnyPayments == false)
+            if (dbPlace != null && hasAnyOperations == false)
             {
                 dbNewPlace = dbPlace;
             }
@@ -229,34 +229,34 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
         return dbNewPlace.Id;
     }
 
-    private Task<bool> IsPlaceBusy(DomainPlace? place, int? paymentId, CancellationToken cancellationToken = default)
+    private Task<bool> IsPlaceBusy(DomainPlace? place, int? operationId, CancellationToken cancellationToken = default)
     {
         if (place == null)
         {
             return Task.FromResult(false);
         }
 
-        IQueryable<DomainPayment> payments = context.Payments
+        IQueryable<DomainOperation> operations = context.Operations
             .IsUserEntity(place.UserId)
             .Where(x => x.PlaceId == place.Id);
 
-        if (paymentId != null)
+        if (operationId != null)
         {
-            payments = payments.Where(x => x.Id != paymentId.Value);
+            operations = operations.Where(x => x.Id != operationId.Value);
         }
 
-        return payments.AnyAsync(cancellationToken);
+        return operations.AnyAsync(cancellationToken);
     }
 
     public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
-        DomainPayment dbPayment = await GetByIdInternal(id, cancellationToken);
-        dbPayment.IsDeleted = true;
-        await CheckRemovePlace(dbPayment.PlaceId, dbPayment.Id, cancellationToken);
+        DomainOperation dbOperation = await GetByIdInternal(id, cancellationToken);
+        dbOperation.IsDeleted = true;
+        await CheckRemovePlace(dbOperation.PlaceId, dbOperation.Id, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task CheckRemovePlace(int? placeId, int? paymentId, CancellationToken cancellationToken = default)
+    private async Task CheckRemovePlace(int? placeId, int? operationId, CancellationToken cancellationToken = default)
     {
         DomainPlace? dbPlace = await GetPlaceById(placeId, cancellationToken);
 
@@ -265,9 +265,9 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
             return;
         }
 
-        bool hasAnyPayments = await IsPlaceBusy(dbPlace, paymentId, cancellationToken);
+        bool hasAnyOperations = await IsPlaceBusy(dbPlace, operationId, cancellationToken);
 
-        if (hasAnyPayments == false)
+        if (hasAnyOperations == false)
         {
             dbPlace.IsDeleted = true;
         }
@@ -275,14 +275,14 @@ public class PaymentService(RequestEnvironment environment, ApplicationDbContext
 
     public async Task RestoreAsync(int id, CancellationToken cancellationToken = default)
     {
-        DomainPayment dbPayment = await context.Payments
+        DomainOperation dbOperation = await context.Operations
                                       .IgnoreQueryFilters()
                                       .Where(x => x.IsDeleted)
                                       .SingleOrDefaultAsync(environment.UserId, id, cancellationToken)
-                                  ?? throw new NotFoundException("платеж", id);
+                                  ?? throw new NotFoundException("операция", id);
 
-        dbPayment.IsDeleted = false;
-        await CheckRestorePlace(dbPayment.PlaceId, cancellationToken);
+        dbOperation.IsDeleted = false;
+        await CheckRestorePlace(dbOperation.PlaceId, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
     }
 

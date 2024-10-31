@@ -9,7 +9,7 @@ public class MoneyClient
         HttpClient = client;
         Log = log;
         Category = new CategoryClient(this);
-        Payment = new PaymentClient(this);
+        Operation = new OperationClient(this);
     }
 
     public HttpClient HttpClient { get; }
@@ -17,7 +17,7 @@ public class MoneyClient
     public ApiUser? User { get; private set; }
 
     public CategoryClient Category { get; }
-    public PaymentClient Payment { get; }
+    public OperationClient Operation { get; }
 
     public void SetUser(string login, string password)
     {

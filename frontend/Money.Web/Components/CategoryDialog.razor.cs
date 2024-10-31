@@ -88,7 +88,7 @@ public partial class CategoryDialog
             Order = Input.Order,
             Color = Input.Color,
             ParentId = Category.ParentId,
-            PaymentTypeId = Category.PaymentType.Id,
+            OperationTypeId = Category.OperationType.Id,
         };
     }
 

@@ -41,7 +41,7 @@ public class CategoryClient(MoneyClient apiClient) : ApiClientExecutor(apiClient
     {
         public required string Name { get; set; }
 
-        public required int PaymentTypeId { get; set; }
+        public required int OperationTypeId { get; set; }
 
         public int? ParentId { get; set; }
 
@@ -56,7 +56,7 @@ public class CategoryClient(MoneyClient apiClient) : ApiClientExecutor(apiClient
 
         public required string Name { get; set; }
 
-        public required int PaymentTypeId { get; set; }
+        public required int OperationTypeId { get; set; }
 
         public int? ParentId { get; set; }
 

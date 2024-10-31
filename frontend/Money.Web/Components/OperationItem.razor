@@ -4,25 +4,25 @@
     <MudStack AlignItems="AlignItems.Center"
               Row
               Spacing="0">
-        <MudIcon Color="@Category.PaymentType.Color"
-                 Icon="@Category.PaymentType.Icon"
+        <MudIcon Color="@Category.OperationType.Color"
+                 Icon="@Category.OperationType.Icon"
                  Size="Size.Small" />
 
-        <PaymentDialog OnSubmit="OnEdit"
-                       Payment="@Payment"
+        <OperationDialog OnSubmit="OnEdit"
+                       Operation="@Operation"
                        @ref="_dialog">
             <MudTooltip Text="Редактировать">
                 <MudIconButton Icon="@Icons.Material.Rounded.ModeEdit"
                                OnClick="() => _dialog.ToggleOpen()"
                                Size="Size.Small" />
             </MudTooltip>
-        </PaymentDialog>
+        </OperationDialog>
     </MudStack>
     <MudItem md="1"
              xs="2">
         <MudText Align="Align.Left"
                  Inline>
-            @Payment.Sum.ToString("N0")
+            @Operation.Sum.ToString("N0")
         </MudText>
     </MudItem>
     <MudItem md="3"
@@ -37,11 +37,11 @@
              xs="5">
         <MudText Align="Align.Left"
                  Inline
-                 title="@Payment.Place">
-            @Payment.Place
+                 title="@Operation.Place">
+            @Operation.Place
         </MudText>
     </MudItem>
-    @if (Payment.CreatedTaskId != null)
+    @if (Operation.CreatedTaskId != null)
     {
         <MudItem xs="1">
             <MudIcon Icon="@Icons.Material.Rounded.CheckCircle"
@@ -52,13 +52,13 @@
              xs="6">
         <MudText Align="Align.Left"
                  Inline>
-            @Payment.Comment
+            @Operation.Comment
         </MudText>
     </MudItem>
     <MudSpacer />
     <MudTooltip Text="Удалить">
         <MudIconButton Icon="@Icons.Material.Rounded.Delete"
-                       OnClick="() => OnDelete.InvokeAsync(Payment)"
+                       OnClick="() => OnDelete.InvokeAsync(Operation)"
                        Size="Size.Small" />
     </MudTooltip>
 </MudStack>

@@ -31,21 +31,21 @@ public partial class Categories
             return;
         }
 
-        foreach (PaymentTypes.Value paymentType in PaymentTypes.Values)
+        foreach (OperationTypes.Value operationType in OperationTypes.Values)
         {
-            List<Category> filteredCategories = categories.Where(x => x.PaymentType == paymentType).ToList();
-            InitialTreeItems.Add(paymentType.Id, filteredCategories.BuildChildren(null));
+            List<Category> filteredCategories = categories.Where(x => x.OperationType == operationType).ToList();
+            InitialTreeItems.Add(operationType.Id, filteredCategories.BuildChildren(null));
         }
 
         _init = true;
     }
 
-    private async Task Create(PaymentTypes.Value paymentType, int? parentId)
+    private async Task Create(OperationTypes.Value operationType, int? parentId)
     {
         Category category = new()
         {
             Name = string.Empty,
-            PaymentType = paymentType,
+            OperationType = operationType,
             ParentId = parentId,
             Color = Random.Shared.NextColor(),
         };
@@ -57,14 +57,14 @@ public partial class Categories
             return;
         }
 
-        AddCategoryToTree(createdCategory, paymentType.Id);
-        SortTree(category.PaymentType.Id);
+        AddCategoryToTree(createdCategory, operationType.Id);
+        SortTree(category.OperationType.Id);
     }
 
     private async Task Update(Category category)
     {
         await ShowCategoryDialog("Обновить", category);
-        SortTree(category.PaymentType.Id);
+        SortTree(category.OperationType.Id);
     }
 
     private async Task Delete(Category category)
@@ -105,7 +105,7 @@ public partial class Categories
         category.IsDeleted = isDeleted;
     }
 
-    private void AddCategoryToTree(Category createdCategory, int paymentTypeId)
+    private void AddCategoryToTree(Category createdCategory, int operationTypeId)
     {
         TreeItemData<Category> addedItem = new()
         {
@@ -115,11 +115,11 @@ public partial class Categories
 
         if (createdCategory.ParentId == null)
         {
-            InitialTreeItems[paymentTypeId].Add(addedItem);
+            InitialTreeItems[operationTypeId].Add(addedItem);
             return;
         }
 
-        TreeItemData<Category>? parentItem = SearchParentTreeItem(InitialTreeItems[paymentTypeId], createdCategory.ParentId.Value);
+        TreeItemData<Category>? parentItem = SearchParentTreeItem(InitialTreeItems[operationTypeId], createdCategory.ParentId.Value);
 
         if (parentItem == null)
         {
@@ -130,9 +130,9 @@ public partial class Categories
         parentItem.Children.Add(addedItem);
     }
 
-    private void SortTree(int paymentTypeId)
+    private void SortTree(int operationTypeId)
     {
-        InitialTreeItems[paymentTypeId] = SortChildren(InitialTreeItems[paymentTypeId]);
+        InitialTreeItems[operationTypeId] = SortChildren(InitialTreeItems[operationTypeId]);
         StateHasChanged();
     }
 

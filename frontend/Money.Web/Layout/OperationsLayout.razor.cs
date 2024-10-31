@@ -6,21 +6,21 @@ namespace Money.Web.Layout;
 
 public partial class OperationsLayout
 {
-    private PaymentsFilter? _paymentsFilter;
+    private OperationsFilter? _operationsFilter;
 
     [Inject]
     public NavigationManager NavigationManager { get; set; } = default!;
 
     private string PeriodString { get; set; } = GetPeriodString(null, null);
-    private List<(PaymentTypes.Value type, decimal amount)> Payments { get; } = [];
+    private List<(OperationTypes.Value type, decimal amount)> Operations { get; } = [];
 
     protected override void OnInitialized()
     {
         NavigationManager.LocationChanged += async (_, _) =>
         {
-            if (_paymentsFilter != null)
+            if (_operationsFilter != null)
             {
-                await _paymentsFilter.Search();
+                await _operationsFilter.Search();
             }
         };
     }
@@ -32,19 +32,19 @@ public partial class OperationsLayout
             return;
         }
 
-        if (_paymentsFilter != null)
+        if (_operationsFilter != null)
         {
-            _paymentsFilter.OnSearch += (_, list) =>
+            _operationsFilter.OnSearch += (_, list) =>
             {
-                Payments.Clear();
+                Operations.Clear();
 
-                foreach (PaymentTypes.Value paymentType in PaymentTypes.Values)
+                foreach (OperationTypes.Value operationType in OperationTypes.Values)
                 {
-                    decimal? amount = list?.Where(x => x.Category.PaymentType == paymentType).Sum(payment => payment.Sum);
-                    Payments.Add((paymentType, amount ?? 0));
+                    decimal? amount = list?.Where(x => x.Category.OperationType == operationType).Sum(operation => operation.Sum);
+                    Operations.Add((operationType, amount ?? 0));
                 }
 
-                PeriodString = GetPeriodString(_paymentsFilter.DateRange.Start, _paymentsFilter.DateRange.End);
+                PeriodString = GetPeriodString(_operationsFilter.DateRange.Start, _operationsFilter.DateRange.End);
                 StateHasChanged();
             };
         }

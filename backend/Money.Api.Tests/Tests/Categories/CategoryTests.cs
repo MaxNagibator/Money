@@ -58,7 +58,7 @@ public class CategoryTests
         {
             Assert.That(apiCategory.Id, Is.EqualTo(category.Id));
             Assert.That(apiCategory.Name, Is.EqualTo(category.Name));
-            Assert.That(apiCategory.PaymentTypeId, Is.EqualTo((int)category.PaymentType));
+            Assert.That(apiCategory.OperationTypeId, Is.EqualTo((int)category.OperationType));
         });
     }
 
@@ -72,7 +72,7 @@ public class CategoryTests
         CategoryClient.SaveRequest request = new()
         {
             Name = category.Name,
-            PaymentTypeId = category.PaymentType,
+            OperationTypeId = category.OperationType,
             Color = "#606217",
             Order = 217,
             ParentId = null,
@@ -86,7 +86,7 @@ public class CategoryTests
         Assert.Multiple(() =>
         {
             Assert.That(dbCategory.Name, Is.EqualTo(request.Name));
-            Assert.That(dbCategory.TypeId, Is.EqualTo(request.PaymentTypeId));
+            Assert.That(dbCategory.TypeId, Is.EqualTo(request.OperationTypeId));
             Assert.That(dbCategory.Color, Is.EqualTo(request.Color));
             Assert.That(dbCategory.Order, Is.EqualTo(request.Order));
             Assert.That(dbCategory.ParentId, Is.EqualTo(request.ParentId));
@@ -102,7 +102,7 @@ public class CategoryTests
         CategoryClient.SaveRequest request = new()
         {
             Name = category.Name,
-            PaymentTypeId = category.PaymentType,
+            OperationTypeId = category.OperationType,
             Color = "#606217",
             Order = 217,
             ParentId = null,
@@ -116,7 +116,7 @@ public class CategoryTests
         Assert.Multiple(() =>
         {
             Assert.That(dbCategory.Name, Is.EqualTo(request.Name));
-            Assert.That(dbCategory.TypeId, Is.EqualTo(request.PaymentTypeId));
+            Assert.That(dbCategory.TypeId, Is.EqualTo(request.OperationTypeId));
             Assert.That(dbCategory.Color, Is.EqualTo(request.Color));
             Assert.That(dbCategory.Order, Is.EqualTo(request.Order));
             Assert.That(dbCategory.ParentId, Is.EqualTo(request.ParentId));
@@ -136,7 +136,7 @@ public class CategoryTests
         CategoryClient.SaveRequest request = new()
         {
             Name = category1.Name,
-            PaymentTypeId = category1.PaymentType,
+            OperationTypeId = category1.OperationType,
             ParentId = category3.Id,
         };
 
@@ -145,7 +145,7 @@ public class CategoryTests
         request = new CategoryClient.SaveRequest
         {
             Name = category2.Name,
-            PaymentTypeId = category2.PaymentType,
+            OperationTypeId = category2.OperationType,
             ParentId = category3.Id,
         };
 

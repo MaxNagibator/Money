@@ -30,7 +30,7 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
         {
             AuthUserId = user.Id,
             NextCategoryId = 1,
-            NextPaymentId = 1,
+            NextOperationId = 1,
             NextPlaceId = 1,
         }, cancellationToken);
 
@@ -50,7 +50,7 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
         {
             AuthUserId = authUserId,
             NextCategoryId = 1,
-            NextPaymentId = 1,
+            NextOperationId = 1,
             NextPlaceId = 1,
         };
 

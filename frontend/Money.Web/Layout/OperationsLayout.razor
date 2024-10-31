@@ -2,9 +2,9 @@
 
 @layout MainLayout
 
-<PaymentsFilter @ref="_paymentsFilter" />
+<OperationsFilter @ref="_operationsFilter" />
 
-@if (_paymentsFilter == null)
+@if (_operationsFilter == null)
 {
     <MudProgressLinear Indeterminate />
 
@@ -23,7 +23,7 @@
             </MudText>
         </MudItem>
 
-        @foreach ((PaymentTypes.Value? type, decimal amount) in Payments)
+        @foreach ((OperationTypes.Value? type, decimal amount) in Operations)
         {
             <MudItem xs="2">
                 <MudStack AlignItems="AlignItems.Center"
@@ -42,6 +42,6 @@
     </MudStack>
 </MudPaper>
 
-<CascadingValue Value="_paymentsFilter">
+<CascadingValue Value="_operationsFilter">
     @Body
 </CascadingValue>

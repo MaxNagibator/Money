@@ -13,7 +13,7 @@ public class TestCategory : TestObject
         User = user;
         IsNew = true;
         Name = $"P{Guid.NewGuid()}";
-        PaymentType = PaymentTypes.Costs;
+        OperationType = OperationTypes.Costs;
     }
 
     /// <summary>
@@ -34,7 +34,7 @@ public class TestCategory : TestObject
     /// <summary>
     ///     Тип.
     /// </summary>
-    public PaymentTypes PaymentType { get; }
+    public OperationTypes OperationType { get; }
 
     /// <summary>
     ///     Пользователь.
@@ -58,9 +58,9 @@ public class TestCategory : TestObject
         return this;
     }
 
-    public TestPayment WithPayment()
+    public TestOperation WithOperation()
     {
-        TestPayment obj = new(this);
+        TestOperation obj = new(this);
         obj.Attach(Environment);
         return obj;
     }
@@ -68,7 +68,7 @@ public class TestCategory : TestObject
     private void FillDbProperties(DomainCategory obj)
     {
         obj.Name = Name;
-        obj.TypeId = PaymentType;
+        obj.TypeId = OperationType;
         obj.UserId = User.Id;
         obj.ParentId = Parent?.Id;
         obj.IsDeleted = IsDeleted;

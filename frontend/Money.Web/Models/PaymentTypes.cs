@@ -1,6 +1,6 @@
 ﻿namespace Money.Web.Models;
 
-public static class PaymentTypes
+public static class OperationTypes
 {
     public static readonly Value None = new(0, "Неизвестный тип", Icons.Material.Rounded.Error, Color.Error);
 

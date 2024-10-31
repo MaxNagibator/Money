@@ -2,20 +2,20 @@
 
 namespace Money.ApiClient;
 
-public class PaymentClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
+public class OperationClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
 {
-    private const string BaseUri = "/Payments";
+    private const string BaseUri = "/Operations";
 
     protected override string ApiPrefix => "";
 
-    public async Task<ApiClientResponse<Payment[]>> Get(PaymentFilterDto? filter = null)
+    public async Task<ApiClientResponse<Operation[]>> Get(OperationFilterDto? filter = null)
     {
-        return await GetAsync<Payment[]>(ToUriParameters(filter));
+        return await GetAsync<Operation[]>(ToUriParameters(filter));
     }
 
-    public async Task<ApiClientResponse<Payment>> GetById(int id)
+    public async Task<ApiClientResponse<Operation>> GetById(int id)
     {
-        return await GetAsync<Payment>($"{BaseUri}/{id}");
+        return await GetAsync<Operation>($"{BaseUri}/{id}");
     }
 
     public async Task<ApiClientResponse<int>> Create(SaveRequest request)
@@ -45,7 +45,7 @@ public class PaymentClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
         return await GetAsync<string[]>($"{BaseUri}/GetPlaces/{offset}/{count}{postfixUri}", token);
     }
 
-    private string ToUriParameters(PaymentFilterDto? filter)
+    private string ToUriParameters(OperationFilterDto? filter)
     {
         if (filter == null)
         {
@@ -92,7 +92,7 @@ public class PaymentClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
         public DateTime Date { get; set; }
     }
 
-    public class PaymentFilterDto
+    public class OperationFilterDto
     {
         /// <summary>
         ///     Дата начала периода.
@@ -120,7 +120,7 @@ public class PaymentClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
         public string? Place { get; set; }
     }
 
-    public class Payment
+    public class Operation
     {
         public int Id { get; set; }
 
@@ -138,7 +138,7 @@ public class PaymentClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
         ///     Идентификатор родительской регулярной задачи.
         /// </summary>
         /// <remarks>
-        ///     Не null, если платеж создан регулярной задачей.
+        ///     Не null, если операция создана регулярной задачей.
         /// </remarks>
         public int? CreatedTaskId { get; set; }
     }

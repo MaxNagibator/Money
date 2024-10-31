@@ -13,7 +13,7 @@ public class DomainUser
     // TODO: обработать конкурентные изменения
     public int NextCategoryId { get; set; }
 
-    public int NextPaymentId { get; set; }
+    public int NextOperationId { get; set; }
 
     public int NextPlaceId { get; set; }
 }

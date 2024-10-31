@@ -8,5 +8,5 @@ public class Category
     public int? ParentId { get; set; }
     public int? Order { get; set; }
     public string? Color { get; set; }
-    public required PaymentTypes PaymentType { get; set; }
+    public required OperationTypes OperationType { get; set; }
 }

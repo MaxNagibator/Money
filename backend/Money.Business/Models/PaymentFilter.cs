@@ -1,9 +1,9 @@
 ﻿namespace Money.Business.Models;
 
 /// <summary>
-///     Фильтр для платежей.
+///     Фильтр для операций.
 /// </summary>
-public class PaymentFilter
+public class OperationFilter
 {
     /// <summary>
     ///     Дата начала периода.

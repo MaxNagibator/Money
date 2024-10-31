@@ -3,11 +3,11 @@
 namespace Money.Api.Tests.TestTools.Entities;
 
 /// <summary>
-///     Платеж.
+///     Операция.
 /// </summary>
-public class TestPayment : TestObject
+public class TestOperation : TestObject
 {
-    public TestPayment(TestCategory category)
+    public TestOperation(TestCategory category)
     {
         IsNew = true;
         Sum = 100;
@@ -56,37 +56,37 @@ public class TestPayment : TestObject
     /// </summary>
     public bool IsDeleted { get; private set; }
 
-    public TestPayment SetIsDeleted()
+    public TestOperation SetIsDeleted()
     {
         IsDeleted = true;
         return this;
     }
 
-    public TestPayment SetDate(DateTime value)
+    public TestOperation SetDate(DateTime value)
     {
         Date = value;
         return this;
     }
 
-    public TestPayment SetPlace(TestPlace value)
+    public TestOperation SetPlace(TestPlace value)
     {
         Place = value;
         return this;
     }
 
-    public TestPayment SetComment(string value)
+    public TestOperation SetComment(string value)
     {
         Comment = value;
         return this;
     }
 
-    public TestPayment SetSum(decimal value)
+    public TestOperation SetSum(decimal value)
     {
         Sum = value;
         return this;
     }
 
-    private void FillDbProperties(DomainPayment obj)
+    private void FillDbProperties(DomainOperation obj)
     {
         obj.Comment = Comment;
         obj.Sum = Sum;
@@ -102,23 +102,23 @@ public class TestPayment : TestObject
         if (IsNew)
         {
             DomainUser dbUser = Environment.Context.DomainUsers.Single(x => x.Id == User.Id);
-            int paymentId = dbUser.NextPaymentId;
-            dbUser.NextPaymentId++; // todo обработать канкаренси
+            int operationId = dbUser.NextOperationId;
+            dbUser.NextOperationId++; // todo обработать канкаренси
 
-            DomainPayment obj = new()
+            DomainOperation obj = new()
             {
-                Id = paymentId,
+                Id = operationId,
             };
 
             FillDbProperties(obj);
-            Environment.Context.Payments.Add(obj);
+            Environment.Context.Operations.Add(obj);
             IsNew = false;
             Environment.Context.SaveChanges();
             Id = obj.Id;
         }
         else
         {
-            DomainPayment obj = Environment.Context.Payments.First(x => x.UserId == User.Id && x.Id == Id);
+            DomainOperation obj = Environment.Context.Operations.First(x => x.UserId == User.Id && x.Id == Id);
             FillDbProperties(obj);
             Environment.Context.SaveChanges();
         }

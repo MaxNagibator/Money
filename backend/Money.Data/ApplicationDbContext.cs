@@ -7,14 +7,14 @@ public class ApplicationDbContext(DbContextOptions options) : IdentityDbContext<
 {
     public DbSet<DomainCategory> Categories { get; set; } = null!;
     public DbSet<DomainUser> DomainUsers { get; set; } = null!;
-    public DbSet<DomainPayment> Payments { get; set; } = null!;
+    public DbSet<DomainOperation> Operations { get; set; } = null!;
     public DbSet<DomainPlace> Places { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
 
-        builder.Entity<DomainPayment>()
+        builder.Entity<DomainOperation>()
             .Property(e => e.Date)
             .HasConversion(time => time.Date, time => time.Date)
             .HasColumnType("date");
@@ -25,6 +25,6 @@ public class ApplicationDbContext(DbContextOptions options) : IdentityDbContext<
             .HasForeignKey(nameof(DomainCategory.UserId), nameof(DomainCategory.ParentId));
 
         builder.Entity<DomainCategory>().HasQueryFilter(x => x.IsDeleted == false);
-        builder.Entity<DomainPayment>().HasQueryFilter(x => x.IsDeleted == false);
+        builder.Entity<DomainOperation>().HasQueryFilter(x => x.IsDeleted == false);
     }
 }

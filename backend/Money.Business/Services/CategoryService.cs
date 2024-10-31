@@ -5,7 +5,7 @@ namespace Money.Business.Services;
 
 public class CategoryService(RequestEnvironment environment, ApplicationDbContext context)
 {
-    public async Task<ICollection<Category>> GetAsync(PaymentTypes? type = null, CancellationToken cancellationToken = default)
+    public async Task<ICollection<Category>> GetAsync(OperationTypes? type = null, CancellationToken cancellationToken = default)
     {
         IQueryable<DomainCategory> query = context.Categories.IsUserEntity(environment.UserId);
 
@@ -46,7 +46,7 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
             throw new BusinessException("Извините, но идентификатор пользователя не указан.");
         }
 
-        await ValidateParentCategoryAsync(category.ParentId, category.PaymentType, cancellationToken);
+        await ValidateParentCategoryAsync(category.ParentId, category.OperationType, cancellationToken);
 
         DomainUser dbUser = await context.DomainUsers.SingleAsync(x => x.Id == environment.UserId, cancellationToken)
                             ?? throw new BusinessException("Извините, но пользователь не найден.");
@@ -63,7 +63,7 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
             Description = category.Description,
             Name = category.Name,
             Order = category.Order,
-            TypeId = category.PaymentType,
+            TypeId = category.OperationType,
         };
 
         await context.Categories.AddAsync(dbCategory, cancellationToken);
@@ -71,7 +71,7 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
         return categoryId;
     }
 
-    private async Task ValidateParentCategoryAsync(int? parentId, PaymentTypes paymentType, CancellationToken cancellationToken)
+    private async Task ValidateParentCategoryAsync(int? parentId, OperationTypes operationType, CancellationToken cancellationToken)
     {
         if (parentId == null)
         {
@@ -80,7 +80,7 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
 
         bool parentExists = await context.Categories
             .IsUserEntity(environment.UserId, parentId)
-            .AnyAsync(x => x.TypeId == paymentType, cancellationToken);
+            .AnyAsync(x => x.TypeId == operationType, cancellationToken);
 
         if (parentExists == false)
         {
@@ -105,7 +105,7 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task ValidateRecursiveParentingAsync(int categoryId, int? parentId, PaymentTypes typeId, CancellationToken cancellationToken)
+    private async Task ValidateRecursiveParentingAsync(int categoryId, int? parentId, OperationTypes typeId, CancellationToken cancellationToken)
     {
         int? nextParentId = parentId;
 

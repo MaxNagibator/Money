@@ -14,7 +14,7 @@ public partial class Statistics
     private Chart _chart;
 
     [CascadingParameter]
-    public PaymentsFilter PaymentsFilter { get; set; } = default!;
+    public OperationsFilter OperationsFilter { get; set; } = default!;
 
     protected override void OnInitialized()
     {
@@ -48,14 +48,14 @@ public partial class Statistics
         };
 
         // Просто набросок для проверки работоспособности
-        PaymentsFilter.OnSearch += async (sender, list) =>
+        OperationsFilter.OnSearch += async (sender, list) =>
         {
             _config.Data.Datasets.Clear();
             _config.Data.Labels.Clear();
             var mode = "day";
 
-            var date1 = PaymentsFilter.DateRange.Start ?? DateTime.Now;
-            var date2 = PaymentsFilter.DateRange.End ?? DateTime.Now;
+            var date1 = OperationsFilter.DateRange.Start ?? DateTime.Now;
+            var date2 = OperationsFilter.DateRange.End ?? DateTime.Now;
             if ((date2 - date1).TotalDays > 10)
             {
                 date1 = list!.Select(x => x.Date).DefaultIfEmpty(DateTime.Now).Min();
@@ -81,7 +81,7 @@ public partial class Statistics
                 }
             }
 
-            var categories = list!.Where(x => x.Category.PaymentType.Id == 1).Select(x => x.Category).DistinctBy(x => x.Id).ToList();
+            var categories = list!.Where(x => x.Category.OperationType.Id == 1).Select(x => x.Category).DistinctBy(x => x.Id).ToList();
             //
             BarDataset<decimal?>[] datasets = new BarDataset<decimal?>[categories.Count];
             for (int i = 0; i < categories.Count; i++)
@@ -101,7 +101,7 @@ public partial class Statistics
                 // todo криво но пойдёт, подрефачить
 
                 string label22;
-                IEnumerable<Payment> sum22;
+                IEnumerable<Operation> sum22;
                 if (mode == "day")
                 {
                     sum22 = list!.Where(x => x.Date == date1.Date);
@@ -122,8 +122,8 @@ public partial class Statistics
                 for (int i = 0; i < categories.Count; i++)
                 {
                     Category? operGroup = categories[i];
-                    var paymentsByGroup = sum22.Where(x => x.Category.Id == operGroup.Id).Sum(x => x.Sum);
-                    datasets[i].Add(paymentsByGroup == 0 ? null : paymentsByGroup);
+                    var operationsByGroup = sum22.Where(x => x.Category.Id == operGroup.Id).Sum(x => x.Sum);
+                    datasets[i].Add(operationsByGroup == 0 ? null : operationsByGroup);
                 }
                 if (mode == "day")
                 {

@@ -36,9 +36,9 @@ public class TestUser : TestObject
         return obj;
     }
 
-    public TestPayment WithPayment()
+    public TestOperation WithOperation()
     {
-        TestPayment obj = new(WithCategory());
+        TestOperation obj = new(WithCategory());
         obj.Attach(Environment);
         return obj;
     }

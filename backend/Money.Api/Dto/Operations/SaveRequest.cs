@@ -1,7 +1,7 @@
-﻿namespace Money.Api.Dto.Payments;
+﻿namespace Money.Api.Dto.Operations;
 
 /// <summary>
-///     Запрос на сохранение платежа.
+///     Запрос на сохранение операции.
 /// </summary>
 public class SaveRequest
 {
@@ -34,7 +34,7 @@ public class SaveRequest
     ///     Преобразует текущую DTO-модель в бизнес-модель.
     /// </summary>
     /// <returns>
-    ///     Экземпляр <see cref="Business.Models.Operation" />, который представляет бизнес-модель платежа.
+    ///     Экземпляр <see cref="Business.Models.Operation" />, который представляет бизнес-модель.
     /// </returns>
     public Operation ToBusinessModel()
     {

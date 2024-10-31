@@ -1,4 +1,4 @@
-﻿@page "/payments"
+﻿@page "/operations"
 @layout OperationsLayout
 
 <PageTitle>Операции</PageTitle>
@@ -6,12 +6,12 @@
 <MudStack Spacing="2">
     <CascadingValue Value="Categories">
         <MudItem>
-            <PaymentDialog OnSubmit="AddNewPayment"
-                           Payment="@(new Payment { Date = DateTime.Now, Category = Category.Empty })"
+            <OperationDialog OnSubmit="AddNewOperation"
+                           Operation="@(new Operation { Date = DateTime.Now, Category = Category.Empty })"
                            @ref="_dialog">
                 <MudStack AlignItems="AlignItems.Start"
                           Row>
-                    @foreach (PaymentTypes.Value type in PaymentTypes.Values)
+                    @foreach (OperationTypes.Value type in OperationTypes.Values)
                     {
                         <MudTooltip Text="@type.AddText">
                             <MudButton Color="type.Color"
@@ -37,23 +37,23 @@
                     <MudTooltip Text="Найти">
                         <MudButton Color="Color.Info"
                                    EndIcon="@Icons.Material.Rounded.Search"
-                                   OnClick="PaymentsFilter.Search"
+                                   OnClick="OperationsFilter.Search"
                                    Size="Size.Small"
                                    Variant="Variant.Filled">
                             Найти
                         </MudButton>
                     </MudTooltip>
                 </MudStack>
-            </PaymentDialog>
+            </OperationDialog>
         </MudItem>
-        @foreach (PaymentsDay paymentsDay in PaymentsDays ?? [])
+        @foreach (OperationsDay operationsDay in OperationsDays ?? [])
         {
-            <PaymentsDayCard OnAddPayment="x => AddPayment(x, paymentsDay)"
+            <OperationsDayCard OnAddOperation="x => AddOperation(x, operationsDay)"
                              OnCanDelete="DeleteDay"
                              OnDelete="Delete"
                              OnRestore="Restore"
-                             PaymentsDay="@paymentsDay"
-                             PaymentTypes="@PaymentTypes.Values" />
+                             OperationsDay="@operationsDay"
+                             OperationTypes="@OperationTypes.Values" />
         }
     </CascadingValue>
 </MudStack>
