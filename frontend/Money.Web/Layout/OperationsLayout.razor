@@ -6,10 +6,41 @@
 
 @if (_paymentsFilter == null)
 {
-    <MudProgressCircular />
+    <MudProgressLinear Indeterminate />
 
     return;
 }
+
+<MudPaper Class="my-1 pa-2">
+    <MudStack Row
+              Wrap="Wrap.Wrap">
+        <MudItem lg="4"
+                 md="7"
+                 sm="7"
+                 xs="7">
+            <MudText>
+                @PeriodString
+            </MudText>
+        </MudItem>
+
+        @foreach ((PaymentTypes.Value? type, decimal amount) in Payments)
+        {
+            <MudItem xs="2">
+                <MudStack AlignItems="AlignItems.Center"
+                          Justify="Justify.FlexEnd"
+                          Row
+                          StretchItems="StretchItems.End">
+                    <MudIcon Color="@type.Color"
+                             Icon="@type.Icon"
+                             Size="Size.Small" />
+                    <MudText>
+                        @amount.ToString("N0")
+                    </MudText>
+                </MudStack>
+            </MudItem>
+        }
+    </MudStack>
+</MudPaper>
 
 <CascadingValue Value="_paymentsFilter">
     @Body

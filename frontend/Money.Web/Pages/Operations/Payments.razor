@@ -4,37 +4,6 @@
 <PageTitle>Операции</PageTitle>
 
 <MudStack Spacing="2">
-    <MudPaper Class="pa-2">
-        <MudStack Row
-                  Wrap="Wrap.Wrap">
-            <MudItem lg="4"
-                     md="7"
-                     sm="7"
-                     xs="7">
-                <MudText>
-                    @GetPeriodString(Filter?.DateFrom, Filter?.DateTo)
-                </MudText>
-            </MudItem>
-
-            @foreach (PaymentTypes.Value paymentType in PaymentTypes.Values)
-            {
-                <MudItem xs="2">
-                    <MudStack AlignItems="AlignItems.Center"
-                              Justify="Justify.FlexEnd"
-                              Row
-                              StretchItems="StretchItems.End">
-                        <MudIcon Color="@paymentType.Color"
-                                 Icon="@paymentType.Icon"
-                                 Size="Size.Small" />
-                        <MudText>
-                            @FilteredPayments?.Where(x => x.Category.PaymentType == paymentType).Sum(payment => payment.Sum).ToString("N0")
-                        </MudText>
-                    </MudStack>
-                </MudItem>
-            }
-        </MudStack>
-    </MudPaper>
-
     <CascadingValue Value="Categories">
         <MudItem>
             <PaymentDialog OnSubmit="AddNewPayment"

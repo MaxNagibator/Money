@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Money.ApiClient;
 using Money.Web.Components;
-using System.Globalization;
 
 namespace Money.Web.Pages.Operations;
 
@@ -10,14 +9,9 @@ public partial class Payments
     private PaymentDialog _dialog = null!;
 
     [CascadingParameter]
-    public AppSettings AppSettings { get; set; } = default!;
-
-    [CascadingParameter]
     public PaymentsFilter PaymentsFilter { get; set; } = default!;
 
     public List<Category>? Categories { get; set; }
-
-    private List<Payment>? FilteredPayments { get; set; }
 
     [Inject]
     private MoneyClient MoneyClient { get; set; } = default!;
@@ -28,15 +22,13 @@ public partial class Payments
     [Inject]
     private ISnackbar SnackbarService { get; set; } = default!;
 
-    private PaymentClient.PaymentFilterDto? Filter { get; set; }
-
     private List<PaymentsDay>? PaymentsDays { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         Categories = await CategoryService.GetCategories();
 
-        PaymentsFilter.OnSearch += (sender, list) =>
+        PaymentsFilter.OnSearch += (_, list) =>
         {
             if (list != null)
             {
@@ -48,13 +40,8 @@ public partial class Payments
                         Payments = x.ToList(),
                     })
                     .ToList();
-
-                FilteredPayments = list;
             }
 
-            PaymentClient.PaymentFilterDto filter = PaymentsFilter.GetFilter();
-            filter.DateTo = filter.DateTo?.AddDays(-1);
-            Filter = filter;
             StateHasChanged();
         };
     }
@@ -127,13 +114,5 @@ public partial class Payments
     {
         PaymentsDays?.Remove(day);
         StateHasChanged();
-    }
-
-    private string GetPeriodString(DateTime? dateFrom, DateTime? dateTo)
-    {
-        return $"Период с {FormatDate(dateFrom)} "
-               + $"по {FormatDate(dateTo)}";
-
-        string FormatDate(DateTime? date) => date?.ToString("d MMMM yyyy", CultureInfo.CurrentCulture) ?? "-";
     }
 }
