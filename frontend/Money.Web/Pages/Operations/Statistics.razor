@@ -5,8 +5,37 @@
 
 <PageTitle>Статистика</PageTitle>
 
-<Chart Config="_config"
-       @ref="_chart">
-</Chart>
+@if (_barCharts == null || _pieCharts == null)
+{
+    return;
+}
+
+<MudExpansionPanels MultiExpansion="true">
+
+    <MudExpansionPanel Text="Пирожки" Expanded="true">
+        <table>
+            <tr>
+                @* MudGrid и 2 MudItem с md=6.*@
+                @foreach (var operationType in OperationTypes.Values)
+                {
+                    <td>
+                        <Chart Config="_pieCharts[operationType.Id].Config"
+                               @ref="_pieCharts[operationType.Id].Chart">
+                        </Chart>
+                    </td>
+                }
+            </tr>
+        </table>
+    </MudExpansionPanel>
+
+    @foreach (var operationType in OperationTypes.Values)
+    {
+        <MudExpansionPanel Text="@operationType.Name" Expanded="true">
+            <Chart Config="_barCharts[operationType.Id].Config"
+                   @ref="_barCharts[operationType.Id].Chart">
+            </Chart>
+        </MudExpansionPanel>
+    }
+</MudExpansionPanels>
 
 <button @onclick="OperationsFilter.Search">Randomize Data</button>

@@ -3,6 +3,7 @@ using ChartJs.Blazor.BarChart;
 using ChartJs.Blazor.BarChart.Axes;
 using ChartJs.Blazor.Common.Axes;
 using ChartJs.Blazor.Common.Axes.Ticks;
+using ChartJs.Blazor.PieChart;
 
 namespace Money.Web.Pages.Operations;
 
@@ -24,86 +25,143 @@ public partial class Statistics
     private readonly int _daysBreakpoint = 31;
     private readonly int _weekBreakpoint = 140;
 
-    private BarConfig _config;
-    private Chart _chart;
+    private Dictionary<int, BarChart> _barCharts;
+    private Dictionary<int, PieChart> _pieCharts;
 
     protected override void OnInitialized()
     {
-        _config = new BarConfig
+        var barCharts = new Dictionary<int, BarChart>();
+        var pieCharts = new Dictionary<int, PieChart>();
+        foreach (var operationType in OperationTypes.Values)
         {
-            Options = new BarOptions
+            barCharts.Add(operationType.Id, new BarChart
             {
-                Responsive = true,
-                Scales = new BarScales
+                Chart = new Chart(),
+                Config = new BarConfig
                 {
-                    XAxes = new List<CartesianAxis>
+                    Options = new BarOptions
                     {
-                        new BarCategoryAxis
+                        Responsive = true,
+                        Scales = new BarScales
                         {
-                            Stacked = true,
-                        },
-                    },
-                    YAxes = new List<CartesianAxis>
-                    {
-                        new BarLinearCartesianAxis
-                        {
-                            Stacked = true,
-                            Ticks = new LinearCartesianTicks
+                            XAxes = new List<CartesianAxis>
                             {
-                                BeginAtZero = true,
+                                new BarCategoryAxis
+                                {
+                                    Stacked = true,
+                                },
+                            },
+                            YAxes = new List<CartesianAxis>
+                            {
+                                new BarLinearCartesianAxis
+                                {
+                                    Stacked = true,
+                                    Ticks = new LinearCartesianTicks
+                                    {
+                                        BeginAtZero = true,
+                                    },
+                                },
                             },
                         },
                     },
                 },
-            },
-        };
+            });
+            pieCharts.Add(operationType.Id, new PieChart
+            {
+                Chart = new Chart(),
+                Config = new PieConfig
+                {
+                    Options = new PieOptions
+                    {
+                        Responsive = true,
+                        Legend = new ChartJs.Blazor.Common.Legend
+                        {
+                            Display = true,
+                            Position = ChartJs.Blazor.Common.Enums.Position.Right,
+                            Labels = new ChartJs.Blazor.Common.LegendLabels
+                            {
+                                BoxWidth = 50,
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        _barCharts = barCharts;
+        _pieCharts = pieCharts;
     }
 
     protected override async void OnSearchChanged(object? sender, List<Operation>? operations)
     {
-        _config.Data.Datasets.Clear();
-        _config.Data.Labels.Clear();
-
-        if (operations == null)
+        foreach (var operationType in OperationTypes.Values)
         {
-            return;
-        }
+            var barChart = _barCharts[operationType.Id];
+            barChart.Config.Data.Datasets.Clear();
+            barChart.Config.Data.Labels.Clear();
 
-        (DateTime start, DateTime finish, double totalDays) = GetOperationsDateRange(operations);
-        TimeFrame.Mode mode = DetermineTimeFrame(totalDays, ref start, ref finish);
+            var pieChart = _pieCharts[operationType.Id];
+            pieChart.Config.Data.Datasets.Clear();
+            pieChart.Config.Data.Labels.Clear();
 
-        List<Category> categories = operations
-            .Where(x => x.Category.OperationType.Id == 1)
-            .Select(x => x.Category)
-            .DistinctBy(x => x.Id)
-            .ToList();
-
-        BarDataset<decimal?>[] datasets = CreateDatasets(categories);
-
-        TimeFrame timeFrame = TimeFrames[mode];
-
-        do
-        {
-            _config.Data.Labels.Add(timeFrame.Labeling.Invoke(start));
-
-            for (int i = 0; i < categories.Count; i++)
+            if (operations == null)
             {
-                Category category = categories[i];
-
-                decimal sum = operations.Where(x => timeFrame.Predicate.Invoke(x, start))
-                    .Where(x => x.Category.Id == category.Id)
-                    .Sum(x => x.Sum);
-
-                datasets[i].Add(sum == 0 ? null : sum);
+                return;
             }
 
-            start = timeFrame.Modifier.Invoke(start);
-        } while (start <= finish);
+            (DateTime start, DateTime finish, double totalDays) = GetOperationsDateRange(operations);
+            TimeFrame.Mode mode = DetermineTimeFrame(totalDays, ref start, ref finish);
 
-        await _chart.Update();
+            List<Category> categories = operations
+                .Where(x => x.Category.OperationType.Id == operationType.Id)
+                .Select(x => x.Category)
+                .DistinctBy(x => x.Id)
+                .ToList();
+
+            BarDataset<decimal?>[] datasets = CreateDatasets(barChart, categories);
+
+            TimeFrame timeFrame = TimeFrames[mode];
+
+            do
+            {
+                barChart.Config.Data.Labels.Add(timeFrame.Labeling.Invoke(start));
+
+                for (int i = 0; i < categories.Count; i++)
+                {
+                    Category category = categories[i];
+
+                    decimal sum = operations.Where(x => timeFrame.Predicate.Invoke(x, start))
+                        .Where(x => x.Category.Id == category.Id)
+                        .Sum(x => x.Sum);
+
+                    datasets[i].Add(sum == 0 ? null : sum);
+                }
+
+                start = timeFrame.Modifier.Invoke(start);
+            } while (start <= finish);
+
+            await barChart.Chart.Update();
+
+            var paymentGroups = operations.GroupBy(x => x.Category.Id!.Value).ToDictionary(x => x.Key, x => x.ToArray());
+            var cats = GetValue(categories, operationType.Id, paymentGroups, null);
+
+            var ds = new PieDataset<decimal>();
+            pieChart.Config.Data.Datasets.Add(ds);
+
+            var notZeroCategories = cats.Where(x => x.ParentId == null && x.TotalSum != 0);
+            var colors = new List<string>();
+            foreach (var category in notZeroCategories)
+            {
+                pieChart.Config.Data.Labels.Add(category.Name);
+                colors.Add(category.Color ?? Random.Shared.NextColor());
+                ds.Add(category.TotalSum);
+            }
+            ds.BackgroundColor = colors.ToArray();
+
+            await pieChart.Chart.Update();
+        }
     }
 
-    private BarDataset<decimal?>[] CreateDatasets(List<Category> categories)
+    private BarDataset<decimal?>[] CreateDatasets(BarChart barChart, List<Category> categories)
     {
         BarDataset<decimal?>[] datasets = new BarDataset<decimal?>[categories.Count];
 
@@ -118,7 +176,7 @@ public partial class Statistics
             };
 
             datasets[i] = dataset;
-            _config.Data.Datasets.Add(dataset);
+            barChart.Config.Data.Datasets.Add(dataset);
         }
 
         return datasets;
@@ -157,6 +215,40 @@ public partial class Statistics
         return (start, finish, (finish - start).TotalDays);
     }
 
+    private List<OperationCategorySum> GetValue(List<Category> categories,
+        int operationTypeId,
+        Dictionary<int, Operation[]> paymentGroups,
+        int? parentId)
+    {
+        List<OperationCategorySum> cats = new List<OperationCategorySum>();
+        foreach (var category in categories.Where(x => x.OperationType.Id == operationTypeId && x.ParentId == parentId))
+        {
+            var cx = new OperationCategorySum();
+            cx.Name = category.Name;
+            cx.Color = category.Color;
+            cx.ParentId = parentId;
+            decimal mainSum;
+            if (paymentGroups.ContainsKey(category.Id!.Value))
+            {
+                mainSum = paymentGroups[category.Id!.Value].Sum(x => x.Sum);
+            }
+            else
+            {
+                mainSum = 0;
+            }
+            cx.TotalSum = mainSum;
+            var chields = GetValue(categories, operationTypeId, paymentGroups, category.Id);
+            cx.TotalSum += chields.Sum(x => x.TotalSum);
+            cx.Chields = chields;
+            if (chields.Count > 0)
+            {
+                cx.Chields.Add(new OperationCategorySum { TotalSum = mainSum, Name = category.Name });
+            }
+            cats.Add(cx);
+        }
+        return cats;
+    }
+
     private record TimeFrame(
         Func<Operation, DateTime, bool> Predicate,
         Func<DateTime, string> Labeling,
@@ -168,5 +260,27 @@ public partial class Statistics
             Week = 1,
             Month = 2,
         }
+    }
+
+    public class BarChart
+    {
+        public Chart Chart { get; set; }
+        public BarConfig Config { get; set; }
+    }
+
+    public class PieChart
+    {
+        public Chart Chart { get; set; }
+        public PieConfig Config { get; set; }
+    }
+
+    public class OperationCategorySum
+    {
+        public string Name { get; set; }
+        public string Color { get; set; }
+        public decimal MainSum { get; set; }
+        public decimal TotalSum { get; set; }
+        public int? ParentId { get; set; }
+        public List<OperationCategorySum> Chields { get; set; }
     }
 }
