@@ -284,14 +284,14 @@ public static class DatabaseSeeder
         return categories;
     }
 
-    public static (List<DomainPayment> payments, List<DomainPlace> places) SeedPayments(int userId, List<DomainCategory> categories, int startIndex = 0, int placeStartIndex = 0)
+    public static (List<DomainOperation> operations, List<DomainPlace> places) SeedOperations(int userId, List<DomainCategory> categories, int startIndex = 0, int placeStartIndex = 0)
     {
         List<DomainPlace> places = SeedPlaces(userId, placeStartIndex);
 
         Dictionary<string, int> categoryDictionary = GetAllCategories(categories).ToDictionary(x => x.Name, x => x.Id);
         Dictionary<string, int> placeDictionary = places.ToDictionary(x => x.Name, x => x.Id);
 
-        List<DomainPayment> payments =
+        List<DomainOperation> operations =
         [
             new()
             {
@@ -513,7 +513,7 @@ public static class DatabaseSeeder
             },
         ];
 
-        return (payments, places);
+        return (operations, places);
 
         int GetCategoryId(string name) => categoryDictionary[name];
         int? GetPlaceId(string name) => placeDictionary.TryGetValue(name, out int id) ? id : null;

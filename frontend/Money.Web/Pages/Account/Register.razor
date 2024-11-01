@@ -2,12 +2,14 @@
 
 <PageTitle>Регистрация</PageTitle>
 
-<MudText GutterBottom
-         Typo="Typo.h3">
-    Создайте новый аккаунт
-</MudText>
-
-<MudGrid>
+<MudGrid Justify="Justify.Center">
+    <MudItem md="12">
+        <MudText Align="Align.Center"
+                 GutterBottom
+                 Typo="Typo.h3">
+            Создайте новый аккаунт
+        </MudText>
+    </MudItem>
     <MudItem md="6">
         <EditForm asp-route-returnUrl="@ReturnUrl"
                   FormName="register"

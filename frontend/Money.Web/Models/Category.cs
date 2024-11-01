@@ -1,14 +1,14 @@
 ﻿namespace Money.Web.Models;
 
 /// <summary>
-///     Категория платежа.
+///     Категория операции.
 /// </summary>
 public class Category
 {
     public static readonly Category Empty = new()
     {
         Name = "Несуществующая",
-        PaymentType = PaymentTypes.None,
+        OperationType = OperationTypes.None,
     };
 
     /// <summary>
@@ -37,9 +37,9 @@ public class Category
     public string? Color { get; set; }
 
     /// <summary>
-    ///     Типа платежа, связанного с категорией.
+    ///     Типа операции, связанного с категорией.
     /// </summary>
-    public required PaymentTypes.Value PaymentType { get; set; }
+    public required OperationTypes.Value OperationType { get; set; }
 
     /// <summary>
     ///     Удалён.

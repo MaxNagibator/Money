@@ -4,9 +4,9 @@ using Money.ApiClient;
 using Money.Data.Entities;
 using Money.Data.Extensions;
 
-namespace Money.Api.Tests.Payments;
+namespace Money.Api.Tests.Operations;
 
-public class PaymentPlaceTests
+public class OperationPlaceTests
 {
     private DatabaseClient _dbClient;
     private TestUser _user;
@@ -22,7 +22,7 @@ public class PaymentPlaceTests
     }
 
     /// <summary>
-    ///     Создали платёж с оригинальным местом и место появилось.
+    ///     Создали операцию с оригинальным местом и место появилось.
     /// </summary>
     [Test]
     public async Task CreatePlaceTest()
@@ -30,7 +30,7 @@ public class PaymentPlaceTests
         TestCategory category = _user.WithCategory();
         _dbClient.Save();
 
-        PaymentClient.SaveRequest request = new()
+        OperationClient.SaveRequest request = new()
         {
             CategoryId = category.Id,
             Sum = 1,
@@ -38,7 +38,7 @@ public class PaymentPlaceTests
             Place = "place1",
         };
 
-        await _apiClient.Payment.Create(request).IsSuccess();
+        await _apiClient.Operation.Create(request).IsSuccess();
 
         DomainPlace[] dbPlaces = _dbClient.CreateApplicationDbContext()
             .Places
@@ -56,17 +56,17 @@ public class PaymentPlaceTests
     }
 
     /// <summary>
-    ///     Занулили место у единственного платежа, место удалилось.
+    ///     Занулили место у единственной операции, место удалилось.
     /// </summary>
     [Test]
     [TestCase("")]
     [TestCase(null)]
-    public async Task RemovePlaceAfterSetPaymentZeroPlaceTest(string? updatedPlace)
+    public async Task RemovePlaceAfterSetOperationZeroPlaceTest(string? updatedPlace)
     {
         TestCategory category = _user.WithCategory();
         _dbClient.Save();
 
-        PaymentClient.SaveRequest request = new()
+        OperationClient.SaveRequest request = new()
         {
             CategoryId = category.Id,
             Sum = 1,
@@ -74,9 +74,9 @@ public class PaymentPlaceTests
             Place = "place1",
         };
 
-        int paymentId = await _apiClient.Payment.Create(request).IsSuccessWithContent();
+        int operationId = await _apiClient.Operation.Create(request).IsSuccessWithContent();
         request.Place = updatedPlace;
-        await _apiClient.Payment.Update(paymentId, request).IsSuccess();
+        await _apiClient.Operation.Update(operationId, request).IsSuccess();
 
         DomainPlace[] dbPlaces = _dbClient.CreateApplicationDbContext()
             .Places
@@ -91,15 +91,15 @@ public class PaymentPlaceTests
     }
 
     /// <summary>
-    ///     Два платежа имеют одно место, и если место занулить у одного из платежей, оно не удалится.
+    ///     Две операции имеют одно место, и если место занулить у одной из операций, оно не удалится.
     /// </summary>
     [Test]
-    public async Task DontRemovePlaceAfterSetPaymentZeroPlaceTest()
+    public async Task DontRemovePlaceAfterSetOperationZeroPlaceTest()
     {
         TestCategory category = _user.WithCategory();
         _dbClient.Save();
 
-        PaymentClient.SaveRequest request = new()
+        OperationClient.SaveRequest request = new()
         {
             CategoryId = category.Id,
             Sum = 1,
@@ -107,11 +107,11 @@ public class PaymentPlaceTests
             Place = "place1",
         };
 
-        int paymentId1 = await _apiClient.Payment.Create(request).IsSuccessWithContent();
-        int paymentId2 = await _apiClient.Payment.Create(request).IsSuccessWithContent();
+        int operationId1 = await _apiClient.Operation.Create(request).IsSuccessWithContent();
+        int operationId2 = await _apiClient.Operation.Create(request).IsSuccessWithContent();
 
         request.Place = null;
-        await _apiClient.Payment.Update(paymentId2, request).IsSuccess();
+        await _apiClient.Operation.Update(operationId2, request).IsSuccess();
 
         DomainPlace[] dbPlaces = _dbClient.CreateApplicationDbContext()
             .Places
@@ -126,15 +126,15 @@ public class PaymentPlaceTests
     }
 
     /// <summary>
-    ///     Два платежа имеют одно место, после зануления места всех платежей, место исчезло.
+    ///     Две операции имеют одно место, после зануления места всех операций, место исчезло.
     /// </summary>
     [Test]
-    public async Task RemovePlaceAfterSetAllPaymentsZeroPlaceTest()
+    public async Task RemovePlaceAfterSetAllOperationsZeroPlaceTest()
     {
         TestCategory category = _user.WithCategory();
         _dbClient.Save();
 
-        PaymentClient.SaveRequest request = new()
+        OperationClient.SaveRequest request = new()
         {
             CategoryId = category.Id,
             Sum = 1,
@@ -142,12 +142,12 @@ public class PaymentPlaceTests
             Place = "place1",
         };
 
-        int paymentId1 = await _apiClient.Payment.Create(request).IsSuccessWithContent();
-        int paymentId2 = await _apiClient.Payment.Create(request).IsSuccessWithContent();
+        int operationId1 = await _apiClient.Operation.Create(request).IsSuccessWithContent();
+        int operationId2 = await _apiClient.Operation.Create(request).IsSuccessWithContent();
 
         request.Place = null;
-        await _apiClient.Payment.Update(paymentId1, request).IsSuccess();
-        await _apiClient.Payment.Update(paymentId2, request).IsSuccess();
+        await _apiClient.Operation.Update(operationId1, request).IsSuccess();
+        await _apiClient.Operation.Update(operationId2, request).IsSuccess();
 
         DomainPlace[] dbPlaces = _dbClient.CreateApplicationDbContext()
             .Places
@@ -162,16 +162,16 @@ public class PaymentPlaceTests
     }
 
     /// <summary>
-    ///     Один платёж имеет уникальное место.
-    ///     После удаления платежа, оно удалится.
+    ///     Одна операция имеет уникальное место.
+    ///     После удаления операции, оно удалится.
     /// </summary>
     [Test]
-    public async Task DeletePlaceAfterDeletePaymentTest()
+    public async Task DeletePlaceAfterDeleteOperationTest()
     {
         TestCategory category = _user.WithCategory();
         _dbClient.Save();
 
-        PaymentClient.SaveRequest request = new()
+        OperationClient.SaveRequest request = new()
         {
             CategoryId = category.Id,
             Sum = 1,
@@ -179,8 +179,8 @@ public class PaymentPlaceTests
             Place = "place1",
         };
 
-        int paymentId = await _apiClient.Payment.Create(request).IsSuccessWithContent();
-        await _apiClient.Payment.Delete(paymentId).IsSuccess();
+        int operationId = await _apiClient.Operation.Create(request).IsSuccessWithContent();
+        await _apiClient.Operation.Delete(operationId).IsSuccess();
 
         DomainPlace[] dbPlaces = _dbClient.CreateApplicationDbContext()
             .Places
@@ -195,17 +195,17 @@ public class PaymentPlaceTests
     }
 
     /// <summary>
-    ///     Один платёж имеет уникальное место.
-    ///     После удаления платежа, оно удалится.
-    ///     После восстановления платежа должно восстановиться.
+    ///     Одна операция имеет уникальное место.
+    ///     После удаления операции, оно удалится.
+    ///     После восстановления операции должно восстановиться.
     /// </summary>
     [Test]
-    public async Task RestorePlaceAfterRestorePaymentTest()
+    public async Task RestorePlaceAfterRestoreOperationTest()
     {
         TestCategory category = _user.WithCategory();
         _dbClient.Save();
 
-        PaymentClient.SaveRequest request = new()
+        OperationClient.SaveRequest request = new()
         {
             CategoryId = category.Id,
             Sum = 1,
@@ -213,9 +213,9 @@ public class PaymentPlaceTests
             Place = "place1",
         };
 
-        int paymentId = await _apiClient.Payment.Create(request).IsSuccessWithContent();
-        await _apiClient.Payment.Delete(paymentId).IsSuccess();
-        await _apiClient.Payment.Restore(paymentId).IsSuccess();
+        int operationId = await _apiClient.Operation.Create(request).IsSuccessWithContent();
+        await _apiClient.Operation.Delete(operationId).IsSuccess();
+        await _apiClient.Operation.Restore(operationId).IsSuccess();
 
         DomainPlace[] dbPlaces = _dbClient.CreateApplicationDbContext()
             .Places
@@ -230,18 +230,18 @@ public class PaymentPlaceTests
     }
 
     /// <summary>
-    ///     Один платёж имеет уникальное место.
-    ///     После удаления платежа, оно удалится.
-    ///     После восстановления платежа должно
+    ///     Одна операция имеет уникальное место.
+    ///     После удаления операции, оно удалится.
+    ///     После восстановления операции должно
     ///     восстановиться.
     /// </summary>
     [Test]
-    public async Task RestorePlaceAfterCreatePaymentWithDeletedPlaceTest()
+    public async Task RestorePlaceAfterCreateOperationWithDeletedPlaceTest()
     {
         TestCategory category = _user.WithCategory();
         _dbClient.Save();
 
-        PaymentClient.SaveRequest request = new()
+        OperationClient.SaveRequest request = new()
         {
             CategoryId = category.Id,
             Sum = 1,
@@ -249,9 +249,9 @@ public class PaymentPlaceTests
             Place = "place1",
         };
 
-        int paymentId1 = await _apiClient.Payment.Create(request).IsSuccessWithContent();
-        await _apiClient.Payment.Delete(paymentId1).IsSuccess();
-        int paymentId2 = await _apiClient.Payment.Create(request).IsSuccessWithContent();
+        int operationId1 = await _apiClient.Operation.Create(request).IsSuccessWithContent();
+        await _apiClient.Operation.Delete(operationId1).IsSuccess();
+        int operationId2 = await _apiClient.Operation.Create(request).IsSuccessWithContent();
 
         DomainPlace[] dbPlaces = _dbClient.CreateApplicationDbContext()
             .Places
@@ -277,15 +277,15 @@ public class PaymentPlaceTests
         _user.WithPlace();
         _dbClient.Save();
 
-        string[]? apiPlaces = await _apiClient.Payment.GetPlaces(0, 1, place.Name.Substring(0, 1)).IsSuccessWithContent();
+        string[]? apiPlaces = await _apiClient.Operation.GetPlaces(0, 1, place.Name.Substring(0, 1)).IsSuccessWithContent();
         Assert.That(apiPlaces, Is.Not.Null);
         Assert.That(apiPlaces, Has.Length.EqualTo(1));
 
-        apiPlaces = await _apiClient.Payment.GetPlaces(1, 10, place.Name.Substring(0, 1)).IsSuccessWithContent();
+        apiPlaces = await _apiClient.Operation.GetPlaces(1, 10, place.Name.Substring(0, 1)).IsSuccessWithContent();
         Assert.That(apiPlaces, Is.Not.Null);
         Assert.That(apiPlaces, Has.Length.EqualTo(2));
 
-        apiPlaces = await _apiClient.Payment.GetPlaces(2, 10, place.Name.Substring(0, 1)).IsSuccessWithContent();
+        apiPlaces = await _apiClient.Operation.GetPlaces(2, 10, place.Name.Substring(0, 1)).IsSuccessWithContent();
         Assert.That(apiPlaces, Is.Not.Null);
         Assert.That(apiPlaces, Has.Length.EqualTo(1));
     }
@@ -300,11 +300,11 @@ public class PaymentPlaceTests
         _user.WithPlace();
         _dbClient.Save();
 
-        string[]? apiPlaces = await _apiClient.Payment.GetPlaces(0, 1).IsSuccessWithContent();
+        string[]? apiPlaces = await _apiClient.Operation.GetPlaces(0, 1).IsSuccessWithContent();
         Assert.That(apiPlaces, Is.Not.Null);
         Assert.That(apiPlaces, Has.Length.EqualTo(1));
 
-        apiPlaces = await _apiClient.Payment.GetPlaces(0, 1, "").IsSuccessWithContent();
+        apiPlaces = await _apiClient.Operation.GetPlaces(0, 1, "").IsSuccessWithContent();
         Assert.That(apiPlaces, Is.Not.Null);
         Assert.That(apiPlaces, Has.Length.EqualTo(1));
     }
@@ -321,7 +321,7 @@ public class PaymentPlaceTests
         TestPlace place1 = _user.WithPlace().SetLastUsedDate(DateTime.Now);
         _dbClient.Save();
 
-        string[]? apiPlaces = await _apiClient.Payment.GetPlaces(0, 100).IsSuccessWithContent();
+        string[]? apiPlaces = await _apiClient.Operation.GetPlaces(0, 100).IsSuccessWithContent();
         Assert.That(apiPlaces, Is.Not.Null);
         Assert.That(apiPlaces, Has.Length.EqualTo(3));
 

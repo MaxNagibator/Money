@@ -1,36 +1,60 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Money.Web.Components;
+using System.Globalization;
 
 namespace Money.Web.Layout;
 
 public partial class OperationsLayout
 {
-    private PaymentsFilter? _paymentsFilter;
+    private OperationsFilter? _operationsFilter;
 
     [Inject]
     public NavigationManager NavigationManager { get; set; } = default!;
 
+    private string PeriodString { get; set; } = GetPeriodString(null, null);
+    private List<(OperationTypes.Value type, decimal amount)> Operations { get; } = [];
+
     protected override void OnInitialized()
     {
-        NavigationManager.LocationChanged += async (sender, args) =>
+        NavigationManager.LocationChanged += async (_, _) =>
         {
-            await (_paymentsFilter?.Search() ?? Task.CompletedTask);
+            if (_operationsFilter != null)
+            {
+                await _operationsFilter.Search();
+            }
         };
     }
 
     protected override void OnAfterRender(bool firstRender)
     {
-        if (firstRender)
+        if (firstRender == false)
         {
-            if (_paymentsFilter != null)
-            {
-                _paymentsFilter.OnSearch += (sender, list) =>
-                {
-                    StateHasChanged();
-                };
-            }
+            return;
         }
 
-        base.OnAfterRender(firstRender);
+        if (_operationsFilter != null)
+        {
+            _operationsFilter.OnSearch += (_, list) =>
+            {
+                Operations.Clear();
+
+                foreach (OperationTypes.Value operationType in OperationTypes.Values)
+                {
+                    decimal? amount = list?.Where(x => x.Category.OperationType == operationType).Sum(operation => operation.Sum);
+                    Operations.Add((operationType, amount ?? 0));
+                }
+
+                PeriodString = GetPeriodString(_operationsFilter.DateRange.Start, _operationsFilter.DateRange.End);
+                StateHasChanged();
+            };
+        }
+    }
+
+    private static string GetPeriodString(DateTime? dateFrom, DateTime? dateTo)
+    {
+        return $"Период с {FormatDate(dateFrom)} "
+               + $"по {FormatDate(dateTo)}";
+
+        string FormatDate(DateTime? date) => date?.ToString("d MMMM yyyy", CultureInfo.CurrentCulture) ?? "-";
     }
 }

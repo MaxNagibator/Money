@@ -1,14 +1,14 @@
 ﻿namespace Money.Web.Models;
 
-public class PaymentsDay
+public class OperationsDay
 {
     public DateTime Date { get; set; }
 
-    public List<Payment> Payments { get; set; } = [];
+    public List<Operation> Operations { get; set; } = [];
 
-    public decimal CalculateSum(PaymentTypes.Value paymentType)
+    public decimal CalculateSum(OperationTypes.Value operationType)
     {
-        return Payments.Where(x => x.IsDeleted == false && x.Category.PaymentType == paymentType)
+        return Operations.Where(x => x.IsDeleted == false && x.Category.OperationType == operationType)
             .Sum(x => x.Sum);
     }
 }

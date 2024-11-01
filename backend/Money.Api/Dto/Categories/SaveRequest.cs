@@ -1,12 +1,12 @@
 ﻿namespace Money.Api.Dto.Categories;
 
 /// <summary>
-///     Запрос на сохранение категории платежа.
+///     Запрос на сохранение категории операции.
 /// </summary>
 public class SaveRequest
 {
     /// <summary>
-    ///     Цвет категории платежа.
+    ///     Цвет категории операции.
     /// </summary>
     public string? Color { get; init; }
 
@@ -16,7 +16,7 @@ public class SaveRequest
     public int? ParentId { get; init; }
 
     /// <summary>
-    ///     Название категории платежа.
+    ///     Название категории операции.
     /// </summary>
     public required string Name { get; init; }
 
@@ -26,20 +26,20 @@ public class SaveRequest
     public int? Order { get; init; }
 
     /// <summary>
-    ///     Описание категории платежа.
+    ///     Описание категории операции.
     /// </summary>
     public string? Description { get; init; }
 
     /// <summary>
-    ///     Идентификатор типа платежа.
+    ///     Идентификатор типа операции.
     /// </summary>
-    public required int PaymentTypeId { get; init; }
+    public required int OperationTypeId { get; init; }
 
     /// <summary>
-    ///     Преобразует текущую DTO-модель в бизнес-модель категории.
+    ///     Преобразует текущую DTO-модель в бизнес-модель.
     /// </summary>
     /// <returns>
-    ///     Экземпляр <see cref="Business.Models.Category" />, который представляет бизнес-модель категории платежа.
+    ///     Экземпляр <see cref="Business.Models.Category" />, который представляет бизнес-модель.
     /// </returns>
     public Category ToBusinessModel()
     {
@@ -49,7 +49,7 @@ public class SaveRequest
             Name = Name,
             Order = Order,
             Description = Description,
-            PaymentType = PaymentTypeId,
+            OperationType = OperationTypeId,
             ParentId = ParentId,
         };
     }

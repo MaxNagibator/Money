@@ -3,18 +3,29 @@ using ChartJs.Blazor.BarChart;
 using ChartJs.Blazor.BarChart.Axes;
 using ChartJs.Blazor.Common.Axes;
 using ChartJs.Blazor.Common.Axes.Ticks;
-using Microsoft.AspNetCore.Components;
-using Money.Web.Components;
 
 namespace Money.Web.Pages.Operations;
 
 public partial class Statistics
 {
+    private static readonly Dictionary<TimeFrame.Mode, TimeFrame> TimeFrames = new()
+    {
+        [TimeFrame.Mode.Day] = new TimeFrame((operation, date) => operation.Date == date.Date,
+            date => date.ToShortDateString(),
+            date => date.AddDays(1)),
+        [TimeFrame.Mode.Week] = new TimeFrame((operation, date) => operation.Date >= date.Date && operation.Date < date.AddDays(7).Date,
+            date => date.ToString("dd MMMM"),
+            date => date.AddDays(7)),
+        [TimeFrame.Mode.Month] = new TimeFrame((operation, date) => operation.Date >= date.Date && operation.Date < date.AddMonths(1).Date,
+            date => date.ToString("MMMM yyyy"),
+            date => date.AddMonths(1)),
+    };
+
+    private readonly int _daysBreakpoint = 31;
+    private readonly int _weekBreakpoint = 140;
+
     private BarConfig _config;
     private Chart _chart;
-
-    [CascadingParameter]
-    public PaymentsFilter PaymentsFilter { get; set; } = default!;
 
     protected override void OnInitialized()
     {
@@ -33,117 +44,129 @@ public partial class Statistics
                         },
                     },
                     YAxes = new List<CartesianAxis>
+                    {
+                        new BarLinearCartesianAxis
                         {
-                            new BarLinearCartesianAxis
+                            Stacked = true,
+                            Ticks = new LinearCartesianTicks
                             {
-                                Stacked = true,
-                                Ticks = new LinearCartesianTicks
-                                {
-                                    BeginAtZero = true,
-                                },
+                                BeginAtZero = true,
                             },
                         },
+                    },
                 },
             },
         };
+    }
 
-        // Просто набросок для проверки работоспособности
-        PaymentsFilter.OnSearch += async (sender, list) =>
+    protected override async void OnSearchChanged(object? sender, List<Operation>? operations)
+    {
+        _config.Data.Datasets.Clear();
+        _config.Data.Labels.Clear();
+
+        if (operations == null)
         {
-            _config.Data.Datasets.Clear();
-            _config.Data.Labels.Clear();
-            var mode = "day";
+            return;
+        }
 
-            var date1 = PaymentsFilter.DateRange.Start ?? DateTime.Now;
-            var date2 = PaymentsFilter.DateRange.End ?? DateTime.Now;
-            if ((date2 - date1).TotalDays > 10)
-            {
-                date1 = list!.Select(x => x.Date).DefaultIfEmpty(DateTime.Now).Min();
-                date2 = list!.Select(x => x.Date).DefaultIfEmpty(DateTime.Now).Max();
-            }
-            var totalDays = (date2 - date1).TotalDays;
-            if (totalDays > 31)
-            {
-                if (totalDays > 140)
-                {
-                    date1 = new DateTime(date1.Year, date1.Month, 1);
-                    date2 = new DateTime(date2.Year, date2.Month, 1);
-                    mode = "month";
-                }
-                else
-                {
-                    int diff = (7 + (date1.DayOfWeek - DayOfWeek.Monday)) % 7;
-                    date1 = date1.AddDays(-1 * diff).Date;
-                    int diff2 = (7 + (date2.DayOfWeek - DayOfWeek.Monday)) % 7;
-                    date2 = date2.AddDays(-1 * diff2).Date;
+        (DateTime start, DateTime finish, double totalDays) = GetOperationsDateRange(operations);
+        TimeFrame.Mode mode = DetermineTimeFrame(totalDays, ref start, ref finish);
 
-                    mode = "week";
-                }
-            }
+        List<Category> categories = operations
+            .Where(x => x.Category.OperationType.Id == 1)
+            .Select(x => x.Category)
+            .DistinctBy(x => x.Id)
+            .ToList();
 
-            var categories = list!.Where(x => x.Category.PaymentType.Id == 1).Select(x => x.Category).DistinctBy(x => x.Id).ToList();
-            //
-            BarDataset<decimal?>[] datasets = new BarDataset<decimal?>[categories.Count];
+        BarDataset<decimal?>[] datasets = CreateDatasets(categories);
+
+        TimeFrame timeFrame = TimeFrames[mode];
+
+        do
+        {
+            _config.Data.Labels.Add(timeFrame.Labeling.Invoke(start));
+
             for (int i = 0; i < categories.Count; i++)
             {
                 Category category = categories[i];
-                BarDataset<decimal?> dataset = new BarDataset<decimal?>()
-                {
-                    Label = category.Name,
-                    BackgroundColor = category.Color ?? Random.Shared.NextColor(),
 
-                };
-                datasets[i] = dataset;
-                _config.Data.Datasets.Add(dataset);
+                decimal sum = operations.Where(x => timeFrame.Predicate.Invoke(x, start))
+                    .Where(x => x.Category.Id == category.Id)
+                    .Sum(x => x.Sum);
+
+                datasets[i].Add(sum == 0 ? null : sum);
             }
-            while (true)
+
+            start = timeFrame.Modifier.Invoke(start);
+        } while (start <= finish);
+
+        await _chart.Update();
+    }
+
+    private BarDataset<decimal?>[] CreateDatasets(List<Category> categories)
+    {
+        BarDataset<decimal?>[] datasets = new BarDataset<decimal?>[categories.Count];
+
+        for (int i = 0; i < categories.Count; i++)
+        {
+            Category category = categories[i];
+
+            BarDataset<decimal?> dataset = new()
             {
-                // todo криво но пойдёт, подрефачить
+                Label = category.Name,
+                BackgroundColor = category.Color ?? Random.Shared.NextColor(),
+            };
 
-                string label22;
-                IEnumerable<Payment> sum22;
-                if (mode == "day")
-                {
-                    sum22 = list!.Where(x => x.Date == date1.Date);
-                    label22 = date1.ToShortDateString();
-                }
-                else if (mode == "week")
-                {
-                    sum22 = list!.Where(x => x.Date >= date1.Date && x.Date < date1.AddDays(7).Date);
-                    label22 = date1.ToString("dd MMMM");
-                }
-                else
-                {
-                    sum22 = list!.Where(x => x.Date >= date1.Date && x.Date < date1.AddMonths(1).Date);
-                    label22 = date1.ToString("MMMM yyyy");
-                }
-                _config.Data.Labels.Add(label22);
+            datasets[i] = dataset;
+            _config.Data.Datasets.Add(dataset);
+        }
 
-                for (int i = 0; i < categories.Count; i++)
-                {
-                    Category? operGroup = categories[i];
-                    var paymentsByGroup = sum22.Where(x => x.Category.Id == operGroup.Id).Sum(x => x.Sum);
-                    datasets[i].Add(paymentsByGroup == 0 ? null : paymentsByGroup);
-                }
-                if (mode == "day")
-                {
-                    date1 = date1.AddDays(1);
-                }
-                else if (mode == "week")
-                {
-                    date1 = date1.AddDays(7);
-                }
-                else
-                {
-                    date1 = date1.AddMonths(1);
-                }
-                if (date1 > date2)
-                {
-                    break;
-                }
-            }
+        return datasets;
+    }
 
-            await _chart.Update();
-        };
+    private TimeFrame.Mode DetermineTimeFrame(double totalDays, ref DateTime start, ref DateTime finish)
+    {
+        if (totalDays <= _daysBreakpoint)
+        {
+            return TimeFrame.Mode.Day;
+        }
+
+        if (totalDays <= _weekBreakpoint)
+        {
+            start = start.StartOfWeek();
+            finish = finish.StartOfWeek();
+            return TimeFrame.Mode.Week;
+        }
+
+        start = start.StartOfMonth();
+        finish = finish.StartOfMonth();
+        return TimeFrame.Mode.Month;
+    }
+
+    private (DateTime start, DateTime finish, double totalDays) GetOperationsDateRange(List<Operation> operations)
+    {
+        DateTime start = OperationsFilter.DateRange.Start ?? DateTime.Now;
+        DateTime finish = OperationsFilter.DateRange.End ?? DateTime.Now;
+
+        if ((finish - start).TotalDays > 10)
+        {
+            start = operations.MinBy(x => x.Date)?.Date ?? DateTime.Now;
+            finish = operations.MaxBy(x => x.Date)?.Date ?? DateTime.Now;
+        }
+
+        return (start, finish, (finish - start).TotalDays);
+    }
+
+    private record TimeFrame(
+        Func<Operation, DateTime, bool> Predicate,
+        Func<DateTime, string> Labeling,
+        Func<DateTime, DateTime> Modifier)
+    {
+        public enum Mode
+        {
+            Day = 0,
+            Week = 1,
+            Month = 2,
+        }
     }
 }

@@ -12,23 +12,23 @@ public static class MappingExtensions
             Color = dbCategory.Color,
             ParentId = dbCategory.ParentId,
             Order = dbCategory.Order,
-            PaymentType = dbCategory.TypeId,
+            OperationType = dbCategory.TypeId,
         };
     }
 
-    public static Operation Adapt(this DomainPayment dbPayment, IEnumerable<DomainPlace> dbPlaces)
+    public static Operation Adapt(this DomainOperation dbOperation, IEnumerable<DomainPlace> dbPlaces)
     {
         return new Operation
         {
-            CategoryId = dbPayment.CategoryId,
-            Sum = dbPayment.Sum,
-            Comment = dbPayment.Comment,
-            Place = dbPayment.PlaceId.HasValue
-                ? dbPlaces.FirstOrDefault(x => x.Id == dbPayment.PlaceId)?.Name
+            CategoryId = dbOperation.CategoryId,
+            Sum = dbOperation.Sum,
+            Comment = dbOperation.Comment,
+            Place = dbOperation.PlaceId.HasValue
+                ? dbPlaces.FirstOrDefault(x => x.Id == dbOperation.PlaceId)?.Name
                 : null,
-            Id = dbPayment.Id,
-            Date = dbPayment.Date,
-            CreatedTaskId = dbPayment.CreatedTaskId,
+            Id = dbOperation.Id,
+            Date = dbOperation.Date,
+            CreatedTaskId = dbOperation.CreatedTaskId,
         };
     }
 }

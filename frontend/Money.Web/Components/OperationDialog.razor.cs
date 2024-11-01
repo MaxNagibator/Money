@@ -8,7 +8,7 @@ using System.Globalization;
 
 namespace Money.Web.Components;
 
-public partial class PaymentDialog
+public partial class OperationDialog
 {
     private static readonly HashSet<char> ValidKeys = ['(', ')', '+', '-', '*', '/'];
     private static readonly Dictionary<string, List<string>> Cache = new();
@@ -19,10 +19,10 @@ public partial class PaymentDialog
     public bool IsOpen { get; private set; }
 
     [Parameter]
-    public Payment Payment { get; set; } = default!;
+    public Operation Operation { get; set; } = default!;
 
     [Parameter]
-    public EventCallback<Payment> OnSubmit { get; set; }
+    public EventCallback<Operation> OnSubmit { get; set; }
 
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
@@ -45,7 +45,7 @@ public partial class PaymentDialog
     [Inject]
     private IAsyncExpressionFactory Factory { get; set; } = default!;
 
-    public void ToggleOpen(PaymentTypes.Value? type = null)
+    public void ToggleOpen(OperationTypes.Value? type = null)
     {
         IsOpen = !IsOpen;
 
@@ -56,22 +56,22 @@ public partial class PaymentDialog
 
         Input = new InputModel
         {
-            Category = Payment.Category == Category.Empty ? null : Payment.Category,
-            Comment = Payment.Comment,
-            Date = Payment.Date,
-            Place = Payment.Place,
-            Sum = Payment.Sum,
-            CalculationSum = Payment.Sum.ToString(CultureInfo.CurrentCulture),
+            Category = Operation.Category == Category.Empty ? null : Operation.Category,
+            Comment = Operation.Comment,
+            Date = Operation.Date,
+            Place = Operation.Place,
+            Sum = Operation.Sum,
+            CalculationSum = Operation.Sum.ToString(CultureInfo.CurrentCulture),
         };
 
         // todo обработать, если текущая категория удалена.
         if (type == null)
         {
-            Input.CategoryList = [.. Categories.Where(x => x.PaymentType == Payment.Category.PaymentType)];
+            Input.CategoryList = [.. Categories.Where(x => x.OperationType == Operation.Category.OperationType)];
             return;
         }
 
-        Input.CategoryList = [.. Categories.Where(x => x.PaymentType == type)];
+        Input.CategoryList = [.. Categories.Where(x => x.OperationType == type)];
     }
 
     private async Task ToggleSumFieldAsync()
@@ -164,42 +164,42 @@ public partial class PaymentDialog
             await SaveAsync();
             SnackbarService.Add("Операция успешно сохранена!", Severity.Success);
 
-            Payment.Category = Input.Category ?? throw new MoneyException("Категория платежа не может быть null");
-            Payment.Comment = Input.Comment;
-            Payment.Date = Input.Date!.Value;
-            Payment.Place = Input.Place;
-            Payment.Sum = Input.Sum;
+            Operation.Category = Input.Category ?? throw new MoneyException("Категория операции не может быть null");
+            Operation.Comment = Input.Comment;
+            Operation.Date = Input.Date!.Value;
+            Operation.Place = Input.Place;
+            Operation.Sum = Input.Sum;
 
-            await OnSubmit.InvokeAsync(Payment);
+            await OnSubmit.InvokeAsync(Operation);
             ToggleOpen();
         }
         catch (Exception)
         {
             // TODO: добавить логирование ошибки
-            SnackbarService.Add("Не удалось сохранить платеж. Пожалуйста, попробуйте еще раз.", Severity.Error);
+            SnackbarService.Add("Не удалось сохранить операцию. Пожалуйста, попробуйте еще раз.", Severity.Error);
         }
     }
 
     private async Task SaveAsync()
     {
-        PaymentClient.SaveRequest clientCategory = CreateSaveRequest();
+        OperationClient.SaveRequest clientCategory = CreateSaveRequest();
 
-        if (Payment.Id == null)
+        if (Operation.Id == null)
         {
-            ApiClientResponse<int> result = await MoneyClient.Payment.Create(clientCategory);
-            Payment.Id = result.Content;
+            ApiClientResponse<int> result = await MoneyClient.Operation.Create(clientCategory);
+            Operation.Id = result.Content;
         }
         else
         {
-            await MoneyClient.Payment.Update(Payment.Id.Value, clientCategory);
+            await MoneyClient.Operation.Update(Operation.Id.Value, clientCategory);
         }
     }
 
-    private PaymentClient.SaveRequest CreateSaveRequest()
+    private OperationClient.SaveRequest CreateSaveRequest()
     {
-        return new PaymentClient.SaveRequest
+        return new OperationClient.SaveRequest
         {
-            CategoryId = Input.Category?.Id ?? throw new MoneyException("Идентификатор категории отсутствует при сохранении платежа"),
+            CategoryId = Input.Category?.Id ?? throw new MoneyException("Идентификатор категории отсутствует при сохранении операции"),
             Comment = Input.Comment,
             Date = Input.Date!.Value,
             Sum = Input.Sum,

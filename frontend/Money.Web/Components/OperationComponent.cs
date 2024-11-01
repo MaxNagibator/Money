@@ -1,0 +1,28 @@
+using Microsoft.AspNetCore.Components;
+
+namespace Money.Web.Components;
+
+public abstract class OperationComponent : ComponentBase, IDisposable
+{
+    [CascadingParameter]
+    public OperationsFilter OperationsFilter { get; set; } = default!;
+
+    public void Dispose()
+    {
+        OperationsFilter.OnSearch -= OnSearchChanged;
+
+        GC.SuppressFinalize(this);
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender == false)
+        {
+            return;
+        }
+
+        OperationsFilter.OnSearch += OnSearchChanged;
+    }
+
+    protected abstract void OnSearchChanged(object? sender, List<Operation>? operations);
+}

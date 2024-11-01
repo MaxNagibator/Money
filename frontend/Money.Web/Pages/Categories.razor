@@ -21,12 +21,12 @@
 
 <MudTabs Color="@Color.Primary"
          Elevation="4">
-    @foreach (PaymentTypes.Value paymentType in PaymentTypes.Values)
+    @foreach (OperationTypes.Value operationType in OperationTypes.Values)
     {
-        <MudTabPanel Text="@paymentType.Name">
+        <MudTabPanel Text="@operationType.Name">
             <MudTreeView ExpandOnClick
                          Hover
-                         Items="@InitialTreeItems[paymentType.Id]"
+                         Items="@InitialTreeItems[operationType.Id]"
                          ReadOnly
                          Ripple>
                 <ItemTemplate>
@@ -56,7 +56,7 @@
                                 {
                                     <MudIconButton Color="Color.Success"
                                                    Icon="@Icons.Material.Rounded.Add"
-                                                   OnClick="() => Create(paymentType, category.Id)" />
+                                                   OnClick="() => Create(operationType, category.Id)" />
 
                                     <MudIconButton Color="Color.Warning"
                                                    Icon="@Icons.Material.Rounded.Edit"
@@ -84,7 +84,7 @@
                 </ItemTemplate>
             </MudTreeView>
             <MudButton EndIcon="@Icons.Material.Rounded.Add"
-                       OnClick="() => Create(paymentType, null)"
+                       OnClick="() => Create(operationType, null)"
                        Variant="Variant.Filled">
                 Создать
             </MudButton>

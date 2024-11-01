@@ -21,7 +21,7 @@ public class Operation
     ///     Идентификатор родительской регулярной задачи.
     /// </summary>
     /// <remarks>
-    ///     Не null, если платеж создан регулярной задачей.
+    ///     Не null, если операция создана регулярной задачей.
     /// </remarks>
     public int? CreatedTaskId { get; set; }
 }

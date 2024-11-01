@@ -1,7 +1,7 @@
 ﻿namespace Money.Api.Dto.Categories;
 
 /// <summary>
-///     Категория платежа.
+///     Категория операции.
 /// </summary>
 public class CategoryDto
 {
@@ -31,9 +31,9 @@ public class CategoryDto
     public string? Color { get; init; }
 
     /// <summary>
-    ///     Идентификатор типа платежа.
+    ///     Идентификатор типа операции.
     /// </summary>
-    public required int PaymentTypeId { get; init; }
+    public required int OperationTypeId { get; init; }
 
     /// <summary>
     ///     Фабричный метод для создания DTO категории на основе бизнес-модели.
@@ -49,7 +49,7 @@ public class CategoryDto
             ParentId = category.ParentId,
             Order = category.Order,
             Color = category.Color,
-            PaymentTypeId = category.PaymentType,
+            OperationTypeId = category.OperationType,
         };
     }
 }

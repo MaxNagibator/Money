@@ -4,7 +4,7 @@ using Money.ApiClient;
 
 namespace Money.Web.Components;
 
-public partial class PaymentsFilter
+public partial class OperationsFilter
 {
     private static readonly List<DateInterval> DateIntervals =
     [
@@ -16,10 +16,10 @@ public partial class PaymentsFilter
 
     private MudPopover _popover = null!;
 
-    public event EventHandler<List<Payment>?>? OnSearch;
+    public event EventHandler<List<Operation>?>? OnSearch;
 
     public DateInterval? SelectedRange { get; set; }
-    public List<Payment>? FilteredPayments { get; private set; }
+    public List<Operation>? FilteredOperations { get; private set; }
 
     [Inject]
     private ILocalStorageService StorageService { get; set; } = default!;
@@ -44,9 +44,9 @@ public partial class PaymentsFilter
     [Inject]
     private CategoryService CategoryService { get; set; } = default!;
 
-    public PaymentClient.PaymentFilterDto GetFilter()
+    public OperationClient.OperationFilterDto GetFilter()
     {
-        return new PaymentClient.PaymentFilterDto
+        return new OperationClient.OperationFilterDto
         {
             CategoryIds = SelectedCategories?.Select(x => x.Id!.Value).ToList(),
             Comment = Comment,
@@ -66,31 +66,31 @@ public partial class PaymentsFilter
         await GetCategories();
         UpdateCategories(Categories!);
 
-        PaymentClient.PaymentFilterDto filter = GetFilter();
-        ApiClientResponse<PaymentClient.Payment[]> apiPayments = await MoneyClient.Payment.Get(filter);
+        OperationClient.OperationFilterDto filter = GetFilter();
+        ApiClientResponse<OperationClient.Operation[]> apiOperations = await MoneyClient.Operation.Get(filter);
 
-        if (apiPayments.Content == null)
+        if (apiOperations.Content == null)
         {
             return;
         }
 
         Dictionary<int, Category> categoriesDict = Categories!.ToDictionary(x => x.Id!.Value, x => x);
 
-        List<Payment> payments = apiPayments.Content
-            .Select(apiPayment => new Payment
+        List<Operation> operations = apiOperations.Content
+            .Select(apiOperation => new Operation
             {
-                Id = apiPayment.Id,
-                Sum = apiPayment.Sum,
-                Category = categoriesDict[apiPayment.CategoryId],
-                Comment = apiPayment.Comment,
-                Date = apiPayment.Date.Date,
-                CreatedTaskId = apiPayment.CreatedTaskId,
-                Place = apiPayment.Place,
+                Id = apiOperation.Id,
+                Sum = apiOperation.Sum,
+                Category = categoriesDict[apiOperation.CategoryId],
+                Comment = apiOperation.Comment,
+                Date = apiOperation.Date.Date,
+                CreatedTaskId = apiOperation.CreatedTaskId,
+                Place = apiOperation.Place,
             })
             .ToList();
 
-        FilteredPayments = payments;
-        OnSearch?.Invoke(this, payments);
+        FilteredOperations = operations;
+        OnSearch?.Invoke(this, operations);
     }
 
     protected override async Task OnInitializedAsync()

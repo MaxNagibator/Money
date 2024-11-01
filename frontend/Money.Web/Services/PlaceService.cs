@@ -32,7 +32,7 @@ public class PlaceService(MoneyClient moneyClient)
             }
         }
 
-        ApiClientResponse<string[]> response = await moneyClient.Payment.GetPlaces(0, 10, value, token);
+        ApiClientResponse<string[]> response = await moneyClient.Operation.GetPlaces(0, 10, value, token);
 
         if (response.Content == null)
         {

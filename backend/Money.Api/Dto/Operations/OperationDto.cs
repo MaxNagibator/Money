@@ -1,9 +1,9 @@
-﻿namespace Money.Api.Dto.Payments;
+﻿namespace Money.Api.Dto.Operations;
 
 /// <summary>
-///     Платеж.
+///     Операция.
 /// </summary>
-public class PaymentDto
+public class OperationDto
 {
     /// <summary>
     ///     Идентификатор.
@@ -39,7 +39,7 @@ public class PaymentDto
     ///     Идентификатор родительской регулярной задачи.
     /// </summary>
     /// <remarks>
-    ///     Не null, если платеж создан регулярной задачей.
+    ///     Не null, если операция создана регулярной задачей.
     /// </remarks>
     public int? CreatedTaskId { get; set; }
 
@@ -47,10 +47,10 @@ public class PaymentDto
     ///     Фабричный метод для создания DTO на основе бизнес-модели.
     /// </summary>
     /// <param name="business">Бизнес-модель.</param>
-    /// <returns>Новый объект <see cref="PaymentDto" />.</returns>
-    public static PaymentDto FromBusinessModel(Operation business)
+    /// <returns>Новый объект <see cref="OperationDto" />.</returns>
+    public static OperationDto FromBusinessModel(Operation business)
     {
-        return new PaymentDto
+        return new OperationDto
         {
             Id = business.Id,
             CategoryId = business.CategoryId,

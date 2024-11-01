@@ -1,6 +1,6 @@
 ﻿namespace Money.Data.Entities;
 
-public class DomainPayment : UserEntity
+public class DomainOperation : UserEntity
 {
     /// <summary>
     ///     Сумма.
@@ -27,7 +27,7 @@ public class DomainPayment : UserEntity
     ///     Идентификатор регулярной задачи.
     /// </summary>
     /// <remarks>
-    ///     В одной таблице хранятся две сущности: платежи (TaskId=null) и регулярные задачи (TaskId!=null).
+    ///     В одной таблице хранятся две сущности: операции (TaskId=null) и регулярные задачи (TaskId!=null).
     /// </remarks>
     public int? TaskId { get; set; }
 
@@ -35,7 +35,7 @@ public class DomainPayment : UserEntity
     ///     Идентификатор родительской регулярной задачи.
     /// </summary>
     /// <remarks>
-    ///     Не null, если платеж создан регулярной задачей.
+    ///     Не null, если операция создана регулярной задачей.
     /// </remarks>
     public int? CreatedTaskId { get; set; }
 
@@ -45,7 +45,7 @@ public class DomainPayment : UserEntity
     public int? PlaceId { get; set; }
 
     /// <summary>
-    ///     Флаг, указывающий, что платеж был удален.
+    ///     Флаг, указывающий, что операция была удалена.
     /// </summary>
     public bool IsDeleted { get; set; }
 }

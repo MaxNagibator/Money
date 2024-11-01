@@ -1,0 +1,60 @@
+﻿@page "/operations"
+@inherits OperationComponent
+@layout OperationsLayout
+
+<PageTitle>Операции</PageTitle>
+
+<MudStack Spacing="2">
+    <CascadingValue Value="Categories">
+        <MudItem>
+            <OperationDialog OnSubmit="AddNewOperation"
+                             Operation="@(new Operation { Date = DateTime.Now, Category = Category.Empty })"
+                             @ref="_dialog">
+                <MudStack AlignItems="AlignItems.Start"
+                          Row>
+                    @foreach (OperationTypes.Value type in OperationTypes.Values)
+                    {
+                        <MudTooltip Text="@type.AddText">
+                            <MudButton Color="type.Color"
+                                       Disabled="_dialog.IsOpen"
+                                       EndIcon="@type.Icon"
+                                       OnClick="() => _dialog.ToggleOpen(type)"
+                                       Size="Size.Small"
+                                       Variant="Variant.Filled">
+                                @type.AddText
+                            </MudButton>
+                        </MudTooltip>
+                    }
+                    <MudTooltip Text="Быстрое добавление">
+                        <MudButton Color="Color.Info"
+                                   Disabled="_dialog.IsOpen"
+                                   OnClick="() => _dialog.ToggleOpen()"
+                                   Size="Size.Small"
+                                   Variant="Variant.Filled">
+                            Быстрое добавление
+                        </MudButton>
+                    </MudTooltip>
+                    <MudSpacer />
+                    <MudTooltip Text="Найти">
+                        <MudButton Color="Color.Info"
+                                   EndIcon="@Icons.Material.Rounded.Search"
+                                   OnClick="OperationsFilter.Search"
+                                   Size="Size.Small"
+                                   Variant="Variant.Filled">
+                            Найти
+                        </MudButton>
+                    </MudTooltip>
+                </MudStack>
+            </OperationDialog>
+        </MudItem>
+        @foreach (OperationsDay operationsDay in OperationsDays ?? [])
+        {
+            <OperationsDayCard OnAddOperation="x => AddOperation(x, operationsDay)"
+                               OnCanDelete="DeleteDay"
+                               OnDelete="Delete"
+                               OnRestore="Restore"
+                               OperationsDay="@operationsDay"
+                               OperationTypes="@OperationTypes.Values" />
+        }
+    </CascadingValue>
+</MudStack>

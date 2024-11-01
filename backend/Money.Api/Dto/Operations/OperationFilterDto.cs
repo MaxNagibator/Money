@@ -1,9 +1,9 @@
-﻿namespace Money.Api.Dto.Payments;
+﻿namespace Money.Api.Dto.Operations;
 
 /// <summary>
-///     Фильтр для платежей.
+///     Фильтр для операций.
 /// </summary>
-public class PaymentFilterDto
+public class OperationFilterDto
 {
     /// <summary>
     ///     Дата начала периода.
@@ -30,9 +30,9 @@ public class PaymentFilterDto
     /// </summary>
     public string? Place { get; set; }
 
-    public PaymentFilter ToBusinessModel()
+    public OperationFilter ToBusinessModel()
     {
-        return new PaymentFilter
+        return new OperationFilter
         {
             CategoryIds = ParseCategoryIds(CategoryIds),
             Comment = Comment,

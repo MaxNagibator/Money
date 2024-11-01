@@ -9,19 +9,19 @@
                 <MudIcon Icon="@Icons.Material.Rounded.CalendarToday"
                          Size="Size.Small" />
                 <MudText>
-                    @PaymentsDay.Date.ToShortDateString()
+                    @OperationsDay.Date.ToShortDateString()
                 </MudText>
             </MudStack>
         </MudItem>
 
         <MudItem md="2"
                  xs="4">
-            <PaymentDialog OnSubmit="OnSubmit"
-                           Payment="@(new Payment { Date = PaymentsDay.Date, Category = Category.Empty })"
+            <OperationDialog OnSubmit="OnSubmit"
+                           Operation="@(new Operation { Date = OperationsDay.Date, Category = Category.Empty })"
                            @ref="_dialog">
                 <MudStack AlignItems="AlignItems.Center"
                           Row>
-                    @foreach (PaymentTypes.Value type in PaymentTypes)
+                    @foreach (OperationTypes.Value type in OperationTypes)
                     {
                         <MudTooltip Text="@type.AddText">
                             <MudIconButton Color="type.Color"
@@ -39,10 +39,10 @@
                                        Size="Size.Small" />
                     </MudTooltip>
                 </MudStack>
-            </PaymentDialog>
+            </OperationDialog>
         </MudItem>
 
-        @foreach (PaymentTypes.Value paymentType in PaymentTypes)
+        @foreach (OperationTypes.Value operationType in OperationTypes)
         {
             <MudItem md="2"
                      xs="2">
@@ -50,11 +50,11 @@
                           Justify="Justify.FlexEnd"
                           Row
                           StretchItems="StretchItems.End">
-                    <MudIcon Color="@paymentType.Color"
-                             Icon="@paymentType.Icon"
+                    <MudIcon Color="@operationType.Color"
+                             Icon="@operationType.Icon"
                              Size="Size.Small" />
                     <MudText>
-                        @PaymentsDay.CalculateSum(paymentType).ToString("N0")
+                        @OperationsDay.CalculateSum(operationType).ToString("N0")
                     </MudText>
                 </MudStack>
             </MudItem>
@@ -64,32 +64,32 @@
     </MudCardHeader>
     <MudCardContent Class="pa-2">
         <MudStack Spacing="0">
-            @for (int i = 0; i < PaymentsDay.Payments.Count; i++)
+            @for (int i = 0; i < OperationsDay.Operations.Count; i++)
             {
-                Payment payment = PaymentsDay.Payments[i];
+                Operation operation = OperationsDay.Operations[i];
 
-                if (payment.IsDeleted)
+                if (operation.IsDeleted)
                 {
                     <MudStack AlignItems="AlignItems.Center"
                               Row>
                         <MudText Style="text-decoration: line-through;">
-                            @payment.Sum.ToString("N0") - @payment.Category.Name - @payment.Comment
+                            @operation.Sum.ToString("N0") - @operation.Category.Name - @operation.Comment
                         </MudText>
                         <MudSpacer />
                         <MudButton Color="Color.Info"
                                    EndIcon="@Icons.Material.Rounded.Cancel"
-                                   OnClick="() => OnRestore.InvokeAsync(payment)">
+                                   OnClick="() => OnRestore.InvokeAsync(operation)">
                             Восстановить
                         </MudButton>
                     </MudStack>
                 }
                 else
                 {
-                    <PaymentItem OnDelete="() => OnDelete.InvokeAsync(payment)"
+                    <OperationItem OnDelete="() => OnDelete.InvokeAsync(operation)"
                                  OnEdit="OnEdit"
-                                 Payment="@payment" />
+                                 Operation="@operation" />
 
-                    if (Settings.ShowDividers && i != PaymentsDay.Payments.Count - 1)
+                    if (Settings.ShowDividers && i != OperationsDay.Operations.Count - 1)
                     {
                         <MudDivider DividerType="DividerType.FullWidth"
                                     FlexItem />

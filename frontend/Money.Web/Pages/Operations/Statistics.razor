@@ -1,5 +1,6 @@
 ﻿@page "/statistics"
 @using ChartJs.Blazor
+@inherits OperationComponent
 @layout OperationsLayout
 
 <PageTitle>Статистика</PageTitle>
@@ -8,4 +9,4 @@
        @ref="_chart">
 </Chart>
 
-<button @onclick="PaymentsFilter.Search">Randomize Data</button>
+<button @onclick="OperationsFilter.Search">Randomize Data</button>
