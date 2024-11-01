@@ -1,4 +1,5 @@
 ﻿@page "/operations"
+@inherits OperationComponent
 @layout OperationsLayout
 
 <PageTitle>Операции</PageTitle>
@@ -7,8 +8,8 @@
     <CascadingValue Value="Categories">
         <MudItem>
             <OperationDialog OnSubmit="AddNewOperation"
-                           Operation="@(new Operation { Date = DateTime.Now, Category = Category.Empty })"
-                           @ref="_dialog">
+                             Operation="@(new Operation { Date = DateTime.Now, Category = Category.Empty })"
+                             @ref="_dialog">
                 <MudStack AlignItems="AlignItems.Start"
                           Row>
                     @foreach (OperationTypes.Value type in OperationTypes.Values)
@@ -49,11 +50,11 @@
         @foreach (OperationsDay operationsDay in OperationsDays ?? [])
         {
             <OperationsDayCard OnAddOperation="x => AddOperation(x, operationsDay)"
-                             OnCanDelete="DeleteDay"
-                             OnDelete="Delete"
-                             OnRestore="Restore"
-                             OperationsDay="@operationsDay"
-                             OperationTypes="@OperationTypes.Values" />
+                               OnCanDelete="DeleteDay"
+                               OnDelete="Delete"
+                               OnRestore="Restore"
+                               OperationsDay="@operationsDay"
+                               OperationTypes="@OperationTypes.Values" />
         }
     </CascadingValue>
 </MudStack>

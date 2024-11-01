@@ -8,11 +8,6 @@ public partial class ListOperations
 {
     private OperationDialog _dialog = null!;
 
-    [CascadingParameter]
-    public OperationsFilter OperationsFilter { get; set; } = default!;
-
-    public List<Category>? Categories { get; set; }
-
     [Inject]
     private MoneyClient MoneyClient { get; set; } = default!;
 
@@ -22,28 +17,29 @@ public partial class ListOperations
     [Inject]
     private ISnackbar SnackbarService { get; set; } = default!;
 
+    private List<Category>? Categories { get; set; }
     private List<OperationsDay>? OperationsDays { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         Categories = await CategoryService.GetCategories();
+    }
 
-        OperationsFilter.OnSearch += (_, list) =>
+    protected override void OnSearchChanged(object? sender, List<Operation>? operations)
+    {
+        if (operations != null)
         {
-            if (list != null)
-            {
-                OperationsDays = list
-                    .GroupBy(x => x.Date)
-                    .Select(x => new OperationsDay
-                    {
-                        Date = x.Key,
-                        Operations = x.ToList(),
-                    })
-                    .ToList();
-            }
+            OperationsDays = operations
+                .GroupBy(x => x.Date)
+                .Select(x => new OperationsDay
+                {
+                    Date = x.Key,
+                    Operations = x.ToList(),
+                })
+                .ToList();
+        }
 
-            StateHasChanged();
-        };
+        StateHasChanged();
     }
 
     private async Task Delete(Operation operation)
