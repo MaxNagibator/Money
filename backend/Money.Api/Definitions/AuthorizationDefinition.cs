@@ -8,7 +8,7 @@ public class AuthorizationDefinition : AppDefinition
         {
             options.AddPolicy("AllowSpecificOrigin",
                 policyBuilder => policyBuilder
-                    .WithOrigins("https://localhost:7168")
+                    .WithOrigins(builder.Configuration["CORS_ORIGIN"] ?? "https://localhost:7168")
                     .AllowAnyMethod()
                     .AllowAnyHeader());
         });

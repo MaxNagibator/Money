@@ -1,4 +1,6 @@
-﻿using System.Net.Http.Json;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using System.Net.Http.Json;
 
 namespace Money.ApiClient;
 
@@ -10,6 +12,13 @@ public class MoneyClient
         Log = log;
         Category = new CategoryClient(this);
         Operation = new OperationClient(this);
+    }
+
+    [ActivatorUtilitiesConstructor]
+    public MoneyClient(HttpClient client, ILogger<MoneyClient> log) :
+        this(client, p => log.LogInformation(p))
+    {
+
     }
 
     public HttpClient HttpClient { get; }

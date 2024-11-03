@@ -1,6 +1,6 @@
+using Money.CoreLib;
 using NLog;
 using NLog.Web;
-
 Logger? logger = LogManager.Setup()
     .LoadConfigurationFromAppSettings()
     .GetCurrentClassLogger();
@@ -13,13 +13,13 @@ try
 
     builder.Logging.ClearProviders();
     builder.Host.UseNLog();
-
+    builder.AddServiceDefaults();
     builder.AddDefinitions(typeof(Program));
 
     WebApplication app = builder.Build();
 
     app.UseDefinitions();
-
+    app.MapDefaultEndpoints();
     AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
     app.Run();
 }

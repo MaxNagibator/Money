@@ -2,13 +2,23 @@ using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Money.ApiClient;
+using Money.WebAssembly.CoreLib;
 using MudBlazor.Services;
 using MudBlazor.Translations;
 using NCalc.DependencyInjection;
+using System.Collections;
 
 WebAssemblyHostBuilder builder = WebAssemblyHostBuilder.CreateDefault(args);
+Uri apiUri = new Uri("https+http://api/");
+
+builder.AddServiceDefaults();
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
+
+foreach (DictionaryEntry d in Environment.GetEnvironmentVariables())
+{
+    Console.WriteLine($"{d.Key} {d.Value}");
+}
 
 builder.Services.AddMudServices(configuration =>
 {
@@ -24,31 +34,20 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddNCalc();
 builder.Services.AddScoped<AuthenticationStateProvider, AuthStateProvider>();
 builder.Services.AddScoped<AuthenticationService>();
-builder.Services.AddScoped<JwtParser>();
 builder.Services.AddScoped<RefreshTokenService>();
 builder.Services.AddScoped<RefreshTokenService>();
 builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<PlaceService>();
 builder.Services.AddTransient<RefreshTokenHandler>();
 
-builder.Services.AddHttpClient("api")
-    .ConfigureHttpClient(client => client.BaseAddress = new Uri("https://localhost:7124/"))
+builder.Services.AddHttpClient<AuthenticationService>(client =>
+    client.BaseAddress = apiUri);
+
+builder.Services.AddHttpClient<JwtParser>(client =>
+    client.BaseAddress = apiUri);
+
+builder.Services.AddHttpClient<MoneyClient>(client =>
+    client.BaseAddress = apiUri)
     .AddHttpMessageHandler<RefreshTokenHandler>();
-
-builder.Services.AddHttpClient("api_base")
-    .ConfigureHttpClient(client => client.BaseAddress = new Uri("https://localhost:7124/"));
-
-builder.Services.AddScoped(provider =>
-{
-    IHttpClientFactory factory = provider.GetRequiredService<IHttpClientFactory>();
-    return factory.CreateClient("api");
-});
-
-builder.Services.AddScoped(provider =>
-{
-    HttpClient client = provider.GetRequiredService<HttpClient>();
-    MoneyClient moneyClient = new(client, Console.WriteLine);
-    return moneyClient;
-});
 
 await builder.Build().RunAsync();

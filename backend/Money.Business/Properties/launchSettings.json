@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Money.Business": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:52535;http://localhost:52536"
+    }
+  }
+}
