@@ -44,6 +44,16 @@ namespace Money.CoreLib
                 .WithTracing(tracing =>
                 {
                     tracing.AddAspNetCoreInstrumentation()
+                        .AddEntityFrameworkCoreInstrumentation(p =>
+                        {
+                            p.SetDbStatementForText = true;
+                            p.EnrichWithIDbCommand = (activity, command) =>
+                            {
+                                var stateDisplayName = $"{command.CommandType} main";
+                                activity.DisplayName = stateDisplayName;
+                                activity.SetTag("db.name", stateDisplayName);
+                            };
+                        })
                         .AddHttpClientInstrumentation();
                 });
 
