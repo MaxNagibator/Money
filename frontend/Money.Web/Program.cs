@@ -6,7 +6,6 @@ using Money.WebAssembly.CoreLib;
 using MudBlazor.Services;
 using MudBlazor.Translations;
 using NCalc.DependencyInjection;
-using System.Collections;
 
 WebAssemblyHostBuilder builder = WebAssemblyHostBuilder.CreateDefault(args);
 Uri apiUri = new Uri("https+http://api/");
@@ -14,11 +13,6 @@ Uri apiUri = new Uri("https+http://api/");
 builder.AddServiceDefaults();
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
-
-foreach (DictionaryEntry d in Environment.GetEnvironmentVariables())
-{
-    Console.WriteLine($"{d.Key} {d.Value}");
-}
 
 builder.Services.AddMudServices(configuration =>
 {
