@@ -13,9 +13,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Money.Api.Tests", "Money.Ap
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{C048BFE0-0921-416E-999C-2DDE4D278C93}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Money.ApiClient", "Money.ApiClient\Money.ApiClient.csproj", "{6412D321-7428-4A0F-946B-1C88E2ED524D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Money.ApiClient", "Money.ApiClient\Money.ApiClient.csproj", "{6412D321-7428-4A0F-946B-1C88E2ED524D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Money.Business", "Money.Business\Money.Business.csproj", "{337534D0-110A-48F0-8CF8-3A7E6DDCA9C3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Money.Business", "Money.Business\Money.Business.csproj", "{337534D0-110A-48F0-8CF8-3A7E6DDCA9C3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Money.CoreLib", "..\libs\Money.CoreLib\Money.CoreLib.csproj", "{24F8ED76-3DDA-424F-84BD-AE1D2DC9EAB5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -47,6 +49,10 @@ Global
 		{337534D0-110A-48F0-8CF8-3A7E6DDCA9C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{337534D0-110A-48F0-8CF8-3A7E6DDCA9C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{337534D0-110A-48F0-8CF8-3A7E6DDCA9C3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{24F8ED76-3DDA-424F-84BD-AE1D2DC9EAB5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{24F8ED76-3DDA-424F-84BD-AE1D2DC9EAB5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{24F8ED76-3DDA-424F-84BD-AE1D2DC9EAB5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{24F8ED76-3DDA-424F-84BD-AE1D2DC9EAB5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

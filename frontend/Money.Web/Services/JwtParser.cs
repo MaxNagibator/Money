@@ -4,10 +4,8 @@ using System.Security.Claims;
 
 namespace Money.Web.Services;
 
-public class JwtParser(IHttpClientFactory clientFactory)
+public class JwtParser(HttpClient client)
 {
-    private readonly HttpClient _client = clientFactory.CreateClient("api_base");
-
     public async Task<ClaimsPrincipal?> ValidateJwt(string token)
     {
         Dictionary<string, object>? claimsDictionary = await GetUserInfo(token);
@@ -37,12 +35,13 @@ public class JwtParser(IHttpClientFactory clientFactory)
         return new ClaimsPrincipal(claimsIdentity);
     }
 
+    // TODO это точно ответственность JWT парсера?
     private async Task<Dictionary<string, object>?> GetUserInfo(string accessToken)
     {
         HttpRequestMessage request = new(HttpMethod.Get, "connect/userinfo");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
-        HttpResponseMessage response = await _client.SendAsync(request);
+        HttpResponseMessage response = await client.SendAsync(request);
 
         if (response.IsSuccessStatusCode == false)
         {

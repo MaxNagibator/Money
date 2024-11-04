@@ -9,18 +9,16 @@ using AuthData = Money.Web.Models.AuthData;
 namespace Money.Web.Services;
 
 public class AuthenticationService(
-    IHttpClientFactory clientFactory,
+    HttpClient client,
     AuthenticationStateProvider authStateProvider,
     ILocalStorageService localStorage)
 {
     public const string AccessTokenKey = "authToken";
     public const string RefreshTokenKey = "refreshToken";
 
-    private readonly HttpClient _client = clientFactory.CreateClient("api_base");
-
     public async Task<Result> RegisterAsync(UserDto user)
     {
-        HttpResponseMessage response = await _client.PostAsJsonAsync("Account/register", new { user.Email, user.Password });
+        HttpResponseMessage response = await client.PostAsJsonAsync("Account/register", new { user.Email, user.Password });
 
         if (response.IsSuccessStatusCode == false)
         {
@@ -67,15 +65,15 @@ public class AuthenticationService(
             new KeyValuePair<string, string>("refresh_token", refreshToken),
         ]);
 
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         Result<AuthData> result = await AuthenticateAsync(requestContent);
         return result.Map(data => data.AccessToken);
     }
 
     private async Task<Result<AuthData>> AuthenticateAsync(FormUrlEncodedContent requestContent)
     {
-        HttpResponseMessage response = await _client.PostAsync("connect/token", requestContent);
-        _client.DefaultRequestHeaders.Clear();
+        HttpResponseMessage response = await client.PostAsync("connect/token", requestContent);
+        client.DefaultRequestHeaders.Clear();
 
         if (response.IsSuccessStatusCode == false)
         {

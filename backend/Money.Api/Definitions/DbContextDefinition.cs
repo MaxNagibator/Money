@@ -14,4 +14,12 @@ public class DbContextDefinition : AppDefinition
             options.UseOpenIddict();
         });
     }
+
+    public override void ConfigureApplication(WebApplication app)
+    {
+        if (app.Configuration["AUTO_MIGRATE"] == "true")
+        {
+            app.Services.InilializeDbContext();
+        }
+    }
 }
