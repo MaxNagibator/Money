@@ -1,53 +1,45 @@
 ﻿using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.ServiceDiscovery;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 
-namespace Money.WebAssembly.CoreLib
+namespace Money.WebAssembly.CoreLib;
+
+public static class WebAssemblyHostBuilderExtensions
 {
-    public static class WebAssemblyHostBuilderExtensions
+    public static WebAssemblyHostBuilder AddServiceDefaults(this WebAssemblyHostBuilder builder)
     {
-        public static WebAssemblyHostBuilder AddServiceDefaults(this WebAssemblyHostBuilder builder)
-        {
-            builder.ConfigureOpenTelemetry();
-            builder.Services.AddServiceDiscovery();
+        builder.ConfigureOpenTelemetry();
+        builder.Services.AddServiceDiscovery();
 
-            builder.Services.ConfigureHttpClientDefaults(http =>
+        builder.Services.ConfigureHttpClientDefaults(http =>
+        {
+            http.AddStandardResilienceHandler();
+            http.AddServiceDiscovery();
+        });
+
+        builder.Services.Configure<ConfigurationServiceEndpointProviderOptions>(static options =>
+        {
+            options.SectionName = "Services";
+            options.ShouldApplyHostNameMetadata = static endpoint => true;
+        });
+
+        return builder;
+    }
+
+    public static WebAssemblyHostBuilder ConfigureOpenTelemetry(this WebAssemblyHostBuilder builder)
+    {
+        builder.Services.AddOpenTelemetry()
+            .WithMetrics(metrics =>
             {
-                http.AddStandardResilienceHandler();
-                http.AddServiceDiscovery();
-
+                metrics.AddHttpClientInstrumentation();
+            })
+            .WithTracing(tracing =>
+            {
+                tracing.AddHttpClientInstrumentation();
             });
-            builder.Services.Configure<ConfigurationServiceEndpointProviderOptions>(
-                static options =>
-                {
-                    options.SectionName = "Services";
-                    options.ShouldApplyHostNameMetadata = static endpoint =>
-                    {
-                        return true;
-                    };
-                });
-            return builder;
-        }
 
-
-        public static WebAssemblyHostBuilder ConfigureOpenTelemetry(this WebAssemblyHostBuilder builder)
-        {
-            builder.Services.AddOpenTelemetry()
-                .WithMetrics(metrics =>
-                {
-                    metrics.AddHttpClientInstrumentation();
-                })
-                .WithTracing(tracing =>
-                {
-                    tracing.AddHttpClientInstrumentation();
-                });
-
-            return builder;
-        }
-
-
+        return builder;
     }
 }

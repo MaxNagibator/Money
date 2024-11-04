@@ -8,7 +8,7 @@ using MudBlazor.Translations;
 using NCalc.DependencyInjection;
 
 WebAssemblyHostBuilder builder = WebAssemblyHostBuilder.CreateDefault(args);
-Uri apiUri = new Uri("https+http://api/");
+Uri apiUri = new("https+http://api/");
 
 builder.AddServiceDefaults();
 builder.RootComponents.Add<App>("#app");

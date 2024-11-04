@@ -62,7 +62,7 @@ public class BarChart : BaseChart<BarOptions>
         };
     }
 
-    public Task Update(List<Operation>? operations, List<Category> categories, DateRange range)
+    public Task UpdateAsync(List<Operation>? operations, List<Category> categories, DateRange range)
     {
         Config.Data.Datasets.Clear();
         Config.Data.Labels.Clear();
