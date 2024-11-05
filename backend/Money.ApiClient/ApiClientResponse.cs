@@ -1,68 +1,38 @@
-﻿using System.Net;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+﻿using Refit;
+using System.Net;
+using ProblemDetails = Money.Api.Constracts.ProblemDetails;
 
 namespace Money.ApiClient;
 
-public class ApiClientResponse(HttpStatusCode code, string content)
+public class ApiClientResponse<T> : ApiClientResponse
 {
-    /// <summary>
-    ///     HTTP код ответа.
-    /// </summary>
-    public HttpStatusCode Code { get; } = code;
-
-    /// <summary>
-    ///     Код успешный.
-    /// </summary>
-    public bool IsSuccessStatusCode => (int)Code >= 200 && (int)Code <= 299;
-
-    /// <summary>
-    ///     Содержимое ответа в строковом представлении.
-    /// </summary>
-    public string StringContent { get; } = content;
-
-    public ProblemDetails? GetError()
+    public ApiClientResponse(T? response, ApiException? apiException = null)
+        : base(apiException)
     {
-        ProblemDetails? problemDetails = null;
-
-        if (IsSuccessStatusCode)
-        {
-            return problemDetails;
-        }
-
-        problemDetails = JsonSerializer.Deserialize<ProblemDetails>(StringContent);
-        return problemDetails;
+        Result = response;
     }
+
+    public T? Result { get; }
 }
 
-public class ApiClientResponse<T>(HttpStatusCode code, string content) : ApiClientResponse(code, content)
+
+public class ApiClientResponse
 {
-    private readonly JsonSerializerOptions _serializerOptions = new()
+    public ApiClientResponse(ApiException? apiException = null)
     {
-        PropertyNameCaseInsensitive = true,
-    };
-
-    /// <summary>
-    ///     Содержимое ответа.
-    /// </summary>
-    public T? Content => DeserializeContent();
-
-    private T? DeserializeContent()
-    {
-        if (typeof(T) == typeof(string))
-        {
-            return (T)Convert.ChangeType(StringContent, typeof(T));
-        }
-
-        return JsonSerializer.Deserialize<T>(StringContent, _serializerOptions);
+        ApiException = apiException;
     }
-}
 
-public class ProblemDetails(string title, int status)
-{
-    [JsonPropertyName("title")]
-    public string Title { get; init; } = title;
+    protected readonly ApiException? ApiException;
 
-    [JsonPropertyName("status")]
-    public int Status { get; init; } = status;
+    public HttpStatusCode Code => ApiException == null ? HttpStatusCode.OK : ApiException.StatusCode;
+
+    public bool IsSuccessStatusCode => ApiException == null;
+
+    public Task<ProblemDetails?> GetProblemDetails()
+    {
+        // ибегание async для того чтобы лишний раз не разворачивать машину состояний
+        return ApiException?.GetContentAsAsync<ProblemDetails>() ??
+            Task.FromResult((ProblemDetails?)null);
+    }
 }

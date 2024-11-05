@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Money.Api.Constracts;
 using Money.ApiClient;
 using Money.Web.Components;
 
@@ -63,18 +64,18 @@ public partial class Categories
 
     private async Task Update(Category category)
     {
-        await ShowCategoryDialog("Обновить", category);
+        _ = await ShowCategoryDialog("Обновить", category);
         SortTree(category.OperationType.Id);
     }
 
     private async Task Delete(Category category)
     {
-        await ModifyCategory(category, MoneyClient.Category.Delete, true);
+        await ModifyCategory(category, MoneyClient.Categories.DeleteAsync, true);
     }
 
     private async Task Restore(Category category)
     {
-        await ModifyCategory(category, MoneyClient.Category.Restore, false);
+        await ModifyCategory(category, MoneyClient.Categories.RestoreAsync, false);
     }
 
     private async Task<Category?> ShowCategoryDialog(string title, Category category)
@@ -88,21 +89,24 @@ public partial class Categories
         return await dialog.GetReturnValueAsync<Category>();
     }
 
-    private async Task ModifyCategory(Category category, Func<int, Task<ApiClientResponse>> action, bool isDeleted)
+    private async Task ModifyCategory(Category category, Func<int, CancellationToken, Task> action, bool isDeleted)
     {
         if (category.Id == null)
         {
             return;
         }
 
-        ApiClientResponse result = await action(category.Id.Value);
+        ApiClientResponse result = await MoneyClient.ResponseHandle(p => action(category.Id.Value, default));
 
-        if (result.GetError().ShowMessage(SnackbarService).HasError())
+        if (result.IsSuccessStatusCode)
         {
+            category.IsDeleted = isDeleted;
             return;
         }
 
-        category.IsDeleted = isDeleted;
+        ProblemDetails? error = await result.GetProblemDetails();
+
+        error = error.ShowMessage(SnackbarService);
     }
 
     private void AddCategoryToTree(Category createdCategory, int operationTypeId)

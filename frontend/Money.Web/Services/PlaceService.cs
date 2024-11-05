@@ -4,7 +4,7 @@ namespace Money.Web.Services;
 
 public class PlaceService(MoneyClient moneyClient)
 {
-    private static readonly Dictionary<string, string[]> Cache = new();
+    private static readonly Dictionary<string, string[]> Cache = [];
     private string _lastSearchedValue = string.Empty;
 
     public async Task<IEnumerable<string>> SearchPlace(string value, CancellationToken token = default)
@@ -32,14 +32,15 @@ public class PlaceService(MoneyClient moneyClient)
             }
         }
 
-        ApiClientResponse<string[]> response = await moneyClient.Operation.GetPlaces(0, 10, value, token);
+        ApiClientResponse<string[]> response =
+            await moneyClient.ResponseHandle(p => p.Operations.GetPlacesAsync(0, 10, value, token));
 
-        if (response.Content == null)
+        if (response.Result == null)
         {
             return [value];
         }
 
-        string[]? places = response.Content;
+        string[]? places = response.Result;
 
         Cache[value] = places;
         _lastSearchedValue = value;
@@ -49,7 +50,7 @@ public class PlaceService(MoneyClient moneyClient)
 
     private static List<T> EnsureValueInList<T>(IEnumerable<T> list, T value)
     {
-        List<T> newList = [..list];
+        List<T> newList = [.. list];
 
         if (newList.Count == 0 || newList.All(x => !Equals(x, value)))
         {

@@ -1,4 +1,4 @@
-using Money.ApiClient;
+using Money.Api.Constracts;
 
 namespace Money.Web.Common;
 
@@ -11,7 +11,7 @@ public static class ProblemDetailsExtensions
             return null;
         }
 
-        snackbar.Add(problemDetails.Title, Severity.Error);
+        _ = snackbar.Add(problemDetails.Title, Severity.Error);
         return problemDetails;
     }
 

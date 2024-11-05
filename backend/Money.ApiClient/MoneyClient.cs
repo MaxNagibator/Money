@@ -1,63 +1,58 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using System.Net.Http.Json;
+﻿using Microsoft.Extensions.Logging;
+using Money.Api.Constracts.Accounts;
+using Money.Api.Constracts.Auth;
+using Money.Api.Constracts.Categories;
+using Money.Api.Constracts.Operations;
+using Refit;
 
 namespace Money.ApiClient;
 
-public class MoneyClient
+public sealed class MoneyClient
 {
-    public MoneyClient(HttpClient client, Action<string> log)
+    private readonly ILogger<MoneyClient> _logger;
+    private readonly HttpClient _httpClient;
+
+    public MoneyClient(HttpClient client, ILogger<MoneyClient> logger)
     {
-        HttpClient = client;
-        Log = log;
-        Category = new CategoryClient(this);
-        Operation = new OperationClient(this);
+        _httpClient = client;
+        _logger = logger;
+        Accounts = RestService.For<IAccountsResource>(client);
+        Auth = RestService.For<IAuthResource>(client);
+        Categories = RestService.For<ICategoriesResource>(client);
+        Operations = RestService.For<IOperationsResource>(client);
     }
 
-    [ActivatorUtilitiesConstructor]
-    public MoneyClient(HttpClient client, ILogger<MoneyClient> log) :
-        this(client, p => log.LogInformation(p))
+
+    public IAccountsResource Accounts { get; init; }
+    public IAuthResource Auth { get; init; }
+    public ICategoriesResource Categories { get; init; }
+    public IOperationsResource Operations { get; init; }
+
+    public async Task<ApiClientResponse> ResponseHandle(Func<MoneyClient, Task> request)
     {
-
-    }
-
-    public HttpClient HttpClient { get; }
-    public Action<string> Log { get; }
-    public ApiUser? User { get; private set; }
-
-    public CategoryClient Category { get; }
-    public OperationClient Operation { get; }
-
-    public void SetUser(string login, string password)
-    {
-        User = new ApiUser
+        try
         {
-            Username = login,
-            Password = password,
-        };
+            await request(this);
+            return new ApiClientResponse();
+        }
+        catch (ApiException e)
+        {
+            return new ApiClientResponse(e);
+        }
     }
 
-    public async Task RegisterAsync(string email, string password)
+    public async Task<ApiClientResponse<T>> ResponseHandle<T>(Func<MoneyClient, Task<T>> request)
+        where T : class
     {
-        JsonContent requestContent = JsonContent.Create(new { email, password });
-        HttpResponseMessage response = await HttpClient.PostAsync("Account/register", requestContent);
-        response.EnsureSuccessStatusCode();
-
-        string content = await response.Content.ReadAsStringAsync();
-        Log(content);
-    }
-
-    public async Task<AuthData> LoginAsync(string username, string password, CancellationToken token = default)
-    {
-        FormUrlEncodedContent requestContent = new([
-            new KeyValuePair<string, string>("grant_type", "password"),
-            new KeyValuePair<string, string>("username", username),
-            new KeyValuePair<string, string>("password", password),
-        ]);
-
-        HttpResponseMessage response = await HttpClient.PostAsync("connect/token", requestContent, token);
-        response.EnsureSuccessStatusCode();
-
-        return await response.Content.ReadFromJsonAsync<AuthData>(token) ?? throw new InvalidOperationException();
+        T? responseValue = null;
+        try
+        {
+            responseValue = await request(this);
+            return new ApiClientResponse<T>(responseValue, null);
+        }
+        catch (ApiException e)
+        {
+            return new ApiClientResponse<T>(responseValue, e);
+        }
     }
 }

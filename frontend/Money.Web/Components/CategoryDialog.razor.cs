@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Money.Api.Constracts.Categories;
 using Money.ApiClient;
 using System.ComponentModel.DataAnnotations;
 
@@ -48,7 +49,7 @@ public partial class CategoryDialog
         try
         {
             await SaveAsync();
-            SnackbarService.Add("Категория успешно сохранена!", Severity.Success);
+            _ = SnackbarService.Add("Категория успешно сохранена!", Severity.Success);
 
             Category.Name = Input.Name;
             Category.Order = Input.Order;
@@ -59,7 +60,7 @@ public partial class CategoryDialog
         catch (Exception)
         {
             // TODO: добавить логирование ошибки
-            SnackbarService.Add("Не удалось сохранить категорию. Пожалуйста, попробуйте еще раз.", Severity.Error);
+            _ = SnackbarService.Add("Не удалось сохранить категорию. Пожалуйста, попробуйте еще раз.", Severity.Error);
         }
 
         _isProcessing = false;
@@ -67,22 +68,21 @@ public partial class CategoryDialog
 
     private async Task SaveAsync()
     {
-        CategoryClient.SaveRequest clientCategory = CreateSaveRequest();
+        CategoryDetailsDTO clientCategory = CreateCategoryDetailsDTO();
 
         if (Category.Id == null)
         {
-            ApiClientResponse<int> result = await MoneyClient.Category.Create(clientCategory);
-            Category.Id = result.Content;
+            Category.Id = await MoneyClient.Categories.CreateAsync(clientCategory);
         }
         else
         {
-            await MoneyClient.Category.Update(Category.Id.Value, clientCategory);
+            await MoneyClient.Categories.UpdateAsync(Category.Id.Value, clientCategory);
         }
     }
 
-    private CategoryClient.SaveRequest CreateSaveRequest()
+    private CategoryDetailsDTO CreateCategoryDetailsDTO()
     {
-        return new CategoryClient.SaveRequest
+        return new CategoryDetailsDTO
         {
             Name = Input.Name,
             Order = Input.Order,

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Money.Api.Constracts;
 using Money.ApiClient;
 using Money.Web.Components;
 
@@ -44,29 +45,33 @@ public partial class ListOperations
 
     private async Task Delete(Operation operation)
     {
-        await ModifyOperation(operation, MoneyClient.Operation.Delete, true);
+        await ModifyOperation(operation, MoneyClient.Operations.DeleteAsync, true);
     }
 
     private async Task Restore(Operation operation)
     {
-        await ModifyOperation(operation, MoneyClient.Operation.Restore, false);
+        await ModifyOperation(operation, MoneyClient.Operations.RestoreAsync, false);
     }
 
-    private async Task ModifyOperation(Operation operation, Func<int, Task<ApiClientResponse>> action, bool isDeleted)
+    private async Task ModifyOperation(Operation operation, Func<int, CancellationToken, Task> action, bool isDeleted)
     {
         if (operation.Id == null)
         {
             return;
         }
 
-        ApiClientResponse result = await action(operation.Id.Value);
 
-        if (result.GetError().ShowMessage(SnackbarService).HasError())
+        ApiClientResponse result = await MoneyClient.ResponseHandle(p => action(operation.Id.Value, default));
+
+        if (result.IsSuccessStatusCode)
         {
+            operation.IsDeleted = isDeleted;
             return;
         }
 
-        operation.IsDeleted = isDeleted;
+        ProblemDetails? error = await result.GetProblemDetails();
+
+        error = error.ShowMessage(SnackbarService);
     }
 
     private void AddNewOperation(Operation operation)
@@ -108,7 +113,7 @@ public partial class ListOperations
 
     private void DeleteDay(OperationsDay day)
     {
-        OperationsDays?.Remove(day);
+        _ = (OperationsDays?.Remove(day));
         StateHasChanged();
     }
 }

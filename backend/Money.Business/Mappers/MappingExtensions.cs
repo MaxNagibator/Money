@@ -12,7 +12,7 @@ public static class MappingExtensions
             Color = dbCategory.Color,
             ParentId = dbCategory.ParentId,
             Order = dbCategory.Order,
-            OperationType = dbCategory.TypeId,
+            OperationType = dbCategory.TypeId.ToOperationType(),
         };
     }
 

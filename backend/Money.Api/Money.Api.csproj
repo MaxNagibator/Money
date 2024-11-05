@@ -6,7 +6,9 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <UserSecretsId>aspnet-Money.Api-26398e04-77b1-49a9-8839-7af63f49f8bc</UserSecretsId>
         <LangVersion>default</LangVersion>
-    </PropertyGroup>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+	</PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
         <DocumentationFile>bin\Debug\Money.Api.xml</DocumentationFile>
@@ -36,6 +38,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\libs\Money.CoreLib\Money.CoreLib.csproj" />
+        <ProjectReference Include="..\Money.Api.Constracts\Money.Api.Constracts.csproj" />
         <ProjectReference Include="..\Money.Business\Money.Business.csproj" />
         <ProjectReference Include="..\Money.Common\Money.Common.csproj" />
         <ProjectReference Include="..\Money.Data\Money.Data.csproj" />

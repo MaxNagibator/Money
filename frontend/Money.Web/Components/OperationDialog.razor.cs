@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Money.Api.Constracts.Operations;
 using Money.ApiClient;
 using NCalc;
 using NCalc.Factories;
@@ -11,10 +12,10 @@ namespace Money.Web.Components;
 public partial class OperationDialog
 {
     private static readonly HashSet<char> ValidKeys = ['(', ')', '+', '-', '*', '/'];
-    private static readonly Dictionary<string, List<string>> Cache = new();
+    private static readonly Dictionary<string, List<string>> Cache = [];
 
     private bool _isNumericSumVisible = true;
-    private string _lastSearchedValue = string.Empty;
+    private readonly string _lastSearchedValue = string.Empty;
 
     public bool IsOpen { get; private set; }
 
@@ -127,7 +128,7 @@ public partial class OperationDialog
         }
         catch (Exception)
         {
-            SnackbarService.Add("Нераспознано значение в поле 'сумма'.", Severity.Warning);
+            _ = SnackbarService.Add("Нераспознано значение в поле 'сумма'.", Severity.Warning);
         }
 
         return sum;
@@ -162,7 +163,7 @@ public partial class OperationDialog
             }
 
             await SaveAsync();
-            SnackbarService.Add("Операция успешно сохранена!", Severity.Success);
+            _ = SnackbarService.Add("Операция успешно сохранена!", Severity.Success);
 
             Operation.Category = Input.Category ?? throw new MoneyException("Категория операции не может быть null");
             Operation.Comment = Input.Comment;
@@ -176,28 +177,27 @@ public partial class OperationDialog
         catch (Exception)
         {
             // TODO: добавить логирование ошибки
-            SnackbarService.Add("Не удалось сохранить операцию. Пожалуйста, попробуйте еще раз.", Severity.Error);
+            _ = SnackbarService.Add("Не удалось сохранить операцию. Пожалуйста, попробуйте еще раз.", Severity.Error);
         }
     }
 
     private async Task SaveAsync()
     {
-        OperationClient.SaveRequest clientCategory = CreateSaveRequest();
+        OperationDTODetails clientCategory = CreateOperationDTODetails();
 
         if (Operation.Id == null)
         {
-            ApiClientResponse<int> result = await MoneyClient.Operation.Create(clientCategory);
-            Operation.Id = result.Content;
+            Operation.Id = await MoneyClient.Operations.CreateAsync(clientCategory);
         }
         else
         {
-            await MoneyClient.Operation.Update(Operation.Id.Value, clientCategory);
+            await MoneyClient.Operations.UpdateAsync(Operation.Id.Value, clientCategory);
         }
     }
 
-    private OperationClient.SaveRequest CreateSaveRequest()
+    private OperationDTODetails CreateOperationDTODetails()
     {
-        return new OperationClient.SaveRequest
+        return new OperationDTODetails
         {
             CategoryId = Input.Category?.Id ?? throw new MoneyException("Идентификатор категории отсутствует при сохранении операции"),
             Comment = Input.Comment,
@@ -207,14 +207,22 @@ public partial class OperationDialog
         };
     }
 
-    private async Task<IEnumerable<Category>> SearchCategory(string value, CancellationToken token)
+    private Task<IEnumerable<Category>> SearchCategory(string value, CancellationToken token)
     {
+        IEnumerable<Category> result;
         if (string.IsNullOrEmpty(value))
         {
-            return Input.CategoryList ?? [];
+            result = Input.CategoryList ?? [];
+        }
+        else
+        {
+            IEnumerable<Category>? filteredCategories = Input.CategoryList?
+                .Where(category => category.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+
+            result = filteredCategories ?? [];
         }
 
-        return Input.CategoryList?.Where(x => x.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase)) ?? Array.Empty<Category>();
+        return Task.FromResult(result);
     }
 
     private async Task<IEnumerable<string>> SearchPlace(string value, CancellationToken token)

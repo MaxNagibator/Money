@@ -16,13 +16,31 @@ public class OperationTypes(int value, string name, string description) : Enumer
 
     public string Description { get; private set; } = description;
 
-    public static implicit operator OperationTypes(int value)
+    //public static implicit operator OperationTypes(int value)
+    //{
+    //    return FromValue<OperationTypes>(value);
+    //}
+
+    //public static implicit operator OperationTypes(string name)
+    //{
+    //    return FromName<OperationTypes>(name);
+    //}
+}
+
+public static class OperationTypesExtensions
+{
+    public static OperationTypes? ToOperationType(this string? name)
     {
-        return FromValue<OperationTypes>(value);
+        return name == null ? null : Enumeration.FromName<OperationTypes>(name);
     }
 
-    public static implicit operator OperationTypes(string name)
+    public static OperationTypes? ToOperationType(this int? value)
     {
-        return FromName<OperationTypes>(name);
+        return value.HasValue ? null : Enumeration.FromValue<OperationTypes>(value!.Value);
+    }
+
+    public static OperationTypes ToOperationType(this int value)
+    {
+        return Enumeration.FromValue<OperationTypes>(value);
     }
 }

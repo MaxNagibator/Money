@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Money.Api.Dto.Operations;
+using Money.Api.Constracts.Operations;
+using Money.Api.Extensions;
 using OpenIddict.Validation.AspNetCore;
 
 namespace Money.Api.Controllers;
@@ -8,7 +9,7 @@ namespace Money.Api.Controllers;
 [ApiController]
 [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
 [Route("[controller]")]
-public class OperationsController(OperationService operationService) : ControllerBase
+public class OperationsController(OperationService operationService) : ControllerBase, IOperationsResource
 {
     /// <summary>
     ///     Получить список операций.
@@ -18,12 +19,12 @@ public class OperationsController(OperationService operationService) : Controlle
     /// <returns>Массив операций.</returns>
     [HttpGet]
     [Route("")]
-    [ProducesResponseType(typeof(OperationDto[]), StatusCodes.Status200OK)]
-    public async Task<OperationDto[]> Get([FromQuery] OperationFilterDto filter, CancellationToken cancellationToken)
+    [ProducesResponseType(typeof(OperationDTO[]), StatusCodes.Status200OK)]
+    public async Task<IEnumerable<OperationDTO>> GetListAsync([FromQuery] OperationDTOFilter filter, CancellationToken cancellationToken)
     {
-        OperationFilter businessFilter = filter.ToBusinessModel();
+        OperationFilter businessFilter = filter.ToBusinessFilter();
         ICollection<Operation> operations = await operationService.GetAsync(businessFilter, cancellationToken);
-        return operations.Select(OperationDto.FromBusinessModel).ToArray();
+        return operations.Select(OperationExtensions.ToOperationDTO);
     }
 
     /// <summary>
@@ -34,12 +35,12 @@ public class OperationsController(OperationService operationService) : Controlle
     /// <returns>Информация об операции.</returns>
     [HttpGet]
     [Route("{id:int}")]
-    [ProducesResponseType(typeof(OperationDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(OperationDTO), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<OperationDto> GetById(int id, CancellationToken cancellationToken)
+    public async Task<OperationDTO> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
         Operation category = await operationService.GetByIdAsync(id, cancellationToken);
-        return OperationDto.FromBusinessModel(category);
+        return category.ToOperationDTO();
     }
 
     /// <summary>
@@ -51,9 +52,9 @@ public class OperationsController(OperationService operationService) : Controlle
     [HttpPost]
     [Route("")]
     [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
-    public async Task<int> CreateAsync([FromBody] SaveRequest request, CancellationToken cancellationToken)
+    public async Task<int> CreateAsync([FromBody] OperationDTODetails request, CancellationToken cancellationToken)
     {
-        Operation business = request.ToBusinessModel();
+        Operation business = request.ToBusinessOperation();
         int id = await operationService.CreateAsync(business, cancellationToken);
         return id;
     }
@@ -67,10 +68,9 @@ public class OperationsController(OperationService operationService) : Controlle
     [HttpPut]
     [Route("{id:int}")]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task Update(int id, [FromBody] SaveRequest request, CancellationToken cancellationToken)
+    public async Task UpdateAsync(int id, [FromBody] OperationDTODetails request, CancellationToken cancellationToken)
     {
-        Operation business = request.ToBusinessModel();
-        business.Id = id;
+        Operation business = request.ToBusinessOperation(id);
         await operationService.UpdateAsync(business, cancellationToken);
     }
 
@@ -82,7 +82,7 @@ public class OperationsController(OperationService operationService) : Controlle
     [HttpDelete]
     [Route("{id:int}")]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task Delete(int id, CancellationToken cancellationToken)
+    public async Task DeleteAsync(int id, CancellationToken cancellationToken)
     {
         await operationService.DeleteAsync(id, cancellationToken);
     }
@@ -95,7 +95,7 @@ public class OperationsController(OperationService operationService) : Controlle
     [HttpPost]
     [Route("{id:int}/Restore")]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task Restore(int id, CancellationToken cancellationToken)
+    public async Task RestoreAsync(int id, CancellationToken cancellationToken)
     {
         await operationService.RestoreAsync(id, cancellationToken);
     }
@@ -113,9 +113,14 @@ public class OperationsController(OperationService operationService) : Controlle
     [Route("GetPlaces/{offset:int}/{count:int}/{name}")]
     [ProducesResponseType(typeof(string[]), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<string[]> GetPlaces(int offset, int count, string? name = null, CancellationToken cancellationToken = default)
+    public async Task<string[]> GetPlacesAsync(int offset, int count, string? name = null, CancellationToken cancellationToken = default)
     {
         ICollection<Place> places = await operationService.GetPlaces(offset, count, name, cancellationToken);
         return places.Select(x => x.Name).ToArray();
+    }
+
+    Task<string[]> IOperationsResource.GetPlacesAsync(int offset, int count, CancellationToken cancellationToken)
+    {
+        return GetPlacesAsync(offset, count, null, cancellationToken);
     }
 }

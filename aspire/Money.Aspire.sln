@@ -28,6 +28,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Money.WebAssembly.CoreLib",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Money.Api.Tests", "..\backend\Money.Api.Tests\Money.Api.Tests.csproj", "{0370C976-1E5B-4DE4-A65D-31B42169F69A}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Money.Api.Constracts", "..\backend\Money.Api.Constracts\Money.Api.Constracts.csproj", "{BFE31AB5-381E-4629-9511-4F855C54C39C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -74,6 +76,10 @@ Global
 		{0370C976-1E5B-4DE4-A65D-31B42169F69A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0370C976-1E5B-4DE4-A65D-31B42169F69A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0370C976-1E5B-4DE4-A65D-31B42169F69A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BFE31AB5-381E-4629-9511-4F855C54C39C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BFE31AB5-381E-4629-9511-4F855C54C39C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BFE31AB5-381E-4629-9511-4F855C54C39C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BFE31AB5-381E-4629-9511-4F855C54C39C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -85,6 +91,7 @@ Global
 		{75522595-A18A-4CB0-8DA7-156B87757977} = {FD4B84D1-AFC5-4F55-8832-64883493A327}
 		{3E15DECC-CD05-48BC-ADEC-25C17E437AE7} = {100AA6E7-8C1F-4EBF-833D-50B3BD007613}
 		{0370C976-1E5B-4DE4-A65D-31B42169F69A} = {AFB3481F-13DA-46CE-ABD6-4CB1A7697FF6}
+		{BFE31AB5-381E-4629-9511-4F855C54C39C} = {FD4B84D1-AFC5-4F55-8832-64883493A327}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {760EC233-46EC-4056-8F5D-EBF4C02653BB}

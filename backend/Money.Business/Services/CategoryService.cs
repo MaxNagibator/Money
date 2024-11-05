@@ -66,8 +66,8 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
             TypeId = category.OperationType,
         };
 
-        await context.Categories.AddAsync(dbCategory, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
+        _ = await context.Categories.AddAsync(dbCategory, cancellationToken);
+        _ = await context.SaveChangesAsync(cancellationToken);
         return categoryId;
     }
 
@@ -93,8 +93,8 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
         DomainCategory dbCategory = await context.Categories.SingleOrDefaultAsync(environment.UserId, category.Id, cancellationToken)
                                     ?? throw new NotFoundException("категория", category.Id);
 
-        await ValidateParentCategoryAsync(category.ParentId, dbCategory.TypeId, cancellationToken);
-        await ValidateRecursiveParentingAsync(category.Id, category.ParentId, dbCategory.TypeId, cancellationToken);
+        await ValidateParentCategoryAsync(category.ParentId, dbCategory.TypeId.ToOperationType(), cancellationToken);
+        await ValidateRecursiveParentingAsync(category.Id, category.ParentId, dbCategory.TypeId.ToOperationType(), cancellationToken);
 
         dbCategory.ParentId = category.ParentId;
         dbCategory.Color = category.Color;
@@ -102,7 +102,7 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
         dbCategory.Name = category.Name;
         dbCategory.Order = category.Order;
 
-        await context.SaveChangesAsync(cancellationToken);
+        _ = await context.SaveChangesAsync(cancellationToken);
     }
 
     private async Task ValidateRecursiveParentingAsync(int categoryId, int? parentId, OperationTypes typeId, CancellationToken cancellationToken)
@@ -139,7 +139,7 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
         }
 
         dbCategory.IsDeleted = true;
-        await context.SaveChangesAsync(cancellationToken);
+        _ = await context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task RestoreAsync(int id, CancellationToken cancellationToken = default)
@@ -151,11 +151,11 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
 
         if (dbCategory.ParentId != null)
         {
-            await GetByIdInternal(dbCategory.ParentId.Value, cancellationToken);
+            _ = await GetByIdInternal(dbCategory.ParentId.Value, cancellationToken);
         }
 
         dbCategory.IsDeleted = false;
-        await context.SaveChangesAsync(cancellationToken);
+        _ = await context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task LoadDefaultAsync(bool isAdd = true, CancellationToken cancellationToken = default)
@@ -185,6 +185,6 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
         dbUser.NextCategoryId = lastIndex + 1;
 
         await context.Categories.AddRangeAsync(categories, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
+        _ = await context.SaveChangesAsync(cancellationToken);
     }
 }

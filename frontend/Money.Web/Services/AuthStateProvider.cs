@@ -3,7 +3,7 @@ using System.Security.Claims;
 
 namespace Money.Web.Services;
 
-public class AuthStateProvider(ILocalStorageService localStorage, JwtParser jwtParser)
+public class AuthStateProvider(ILocalStorageService localStorage, JwtParser jwtParser, AuthTokensStore authTokensStore)
     : AuthenticationStateProvider
 {
     private readonly AuthenticationState _anonymous = new(new ClaimsPrincipal(new ClaimsIdentity()));
@@ -31,7 +31,7 @@ public class AuthStateProvider(ILocalStorageService localStorage, JwtParser jwtP
             return _cachedUser;
         }
 
-        string? token = await localStorage.GetItemAsync<string>(AuthenticationService.AccessTokenKey);
+        string? token = await authTokensStore.GetAccessToken();
 
         if (string.IsNullOrWhiteSpace(token))
         {
@@ -44,7 +44,7 @@ public class AuthStateProvider(ILocalStorageService localStorage, JwtParser jwtP
 
         if (user == null)
         {
-            await localStorage.RemoveItemsAsync([AuthenticationService.AccessTokenKey, AuthenticationService.RefreshTokenKey]);
+            await authTokensStore.Clear();
             user = _anonymous.User;
         }
 

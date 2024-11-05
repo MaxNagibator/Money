@@ -1,5 +1,6 @@
 ﻿using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components;
+using Money.Api.Constracts.Operations;
 using Money.ApiClient;
 
 namespace Money.Web.Components;
@@ -44,9 +45,9 @@ public partial class OperationsFilter
     [Inject]
     private CategoryService CategoryService { get; set; } = default!;
 
-    public OperationClient.OperationFilterDto GetFilter()
+    public OperationDTOFilter GetFilter()
     {
-        return new OperationClient.OperationFilterDto
+        return new OperationDTOFilter
         {
             CategoryIds = SelectedCategories?.Select(x => x.Id!.Value).ToList(),
             Comment = Comment,
@@ -66,17 +67,18 @@ public partial class OperationsFilter
         await GetCategories();
         UpdateCategories(Categories!);
 
-        OperationClient.OperationFilterDto filter = GetFilter();
-        ApiClientResponse<OperationClient.Operation[]> apiOperations = await MoneyClient.Operation.Get(filter);
+        OperationDTOFilter filter = GetFilter();
+        ApiClientResponse<IEnumerable<OperationDTO>> apiOperations =
+            await MoneyClient.ResponseHandle(p => p.Operations.GetListAsync(filter));
 
-        if (apiOperations.Content == null)
+        if (apiOperations.Result == null)
         {
             return;
         }
 
         Dictionary<int, Category> categoriesDict = Categories!.ToDictionary(x => x.Id!.Value, x => x);
 
-        List<Operation> operations = apiOperations.Content
+        List<Operation> operations = apiOperations.Result
             .Select(apiOperation => new Operation
             {
                 Id = apiOperation.Id,
@@ -119,33 +121,18 @@ public partial class OperationsFilter
 
     private async Task UpdateDateRange(DateInterval value)
     {
-        DateTime start;
-
-        if (DateRange.Start != null)
-        {
-            start = value.Start.Invoke(DateRange.Start.Value);
-        }
-        else if (DateRange.End != null)
-        {
-            start = value.Start.Invoke(DateRange.End.Value);
-        }
-        else
-        {
-            start = value.Start.Invoke(DateTime.Today);
-        }
-
+        DateTime start = DateRange.Start != null
+            ? value.Start.Invoke(DateRange.Start.Value)
+            : DateRange.End != null ? value.Start.Invoke(DateRange.End.Value) : value.Start.Invoke(DateTime.Today);
         DateRange = new DateRange(start, value.End.Invoke(start));
         await Search();
     }
 
     private string GetHelperText()
     {
-        if (SelectedCategories == null || SelectedCategories.Count == 0)
-        {
-            return "Выберите категории";
-        }
-
-        return string.Join(", ", SelectedCategories.Select(x => x.Name));
+        return SelectedCategories == null || SelectedCategories.Count == 0
+            ? "Выберите категории"
+            : string.Join(", ", SelectedCategories.Select(x => x.Name));
     }
 
     private void OnTextChanged(string searchTerm)

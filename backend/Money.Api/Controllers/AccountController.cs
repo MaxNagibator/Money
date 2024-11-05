@@ -1,11 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Money.Api.Constracts.Accounts;
 
 namespace Money.Api.Controllers;
 
 [Authorize]
 [Route("[controller]")]
-public class AccountController(AccountService accountService) : ControllerBase
+public class AccountController(AccountService accountService) : ControllerBase, IAccountsResource
 {
     /// <summary>
     ///     Регистрация нового пользователя.
@@ -20,9 +21,14 @@ public class AccountController(AccountService accountService) : ControllerBase
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Register([FromBody] RegisterModel model, CancellationToken cancellationToken)
+    public Task RegisterAsync([FromBody] AccountRegisterInfo model, CancellationToken cancellationToken = default)
     {
-        await accountService.RegisterAsync(model, cancellationToken);
-        return Ok();
+        RegisterModel bisnessModel = new()
+        {
+            Email = model.Email,
+            Password = model.Password,
+        };
+
+        return accountService.RegisterAsync(bisnessModel, cancellationToken);
     }
 }
