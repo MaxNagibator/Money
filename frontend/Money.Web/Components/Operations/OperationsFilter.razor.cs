@@ -14,7 +14,7 @@ public partial class OperationsFilter
         new("Год", "ий год", time => time.StartOfYear(), time => time.EndOfYear(), (time, direction) => time.AddYears(direction)),
     ];
 
-    private MudPopover _popover = null!;
+    private bool _isCategoriesTreeOpen;
 
     public event EventHandler<List<Operation>?>? OnSearch;
 
@@ -90,9 +90,9 @@ public partial class OperationsFilter
         await SearchAsync();
     }
 
-    private Task<IEnumerable<string>> SearchPlaceAsync(string? value, CancellationToken token)
+    private Task<IEnumerable<string?>> SearchPlaceAsync(string? value, CancellationToken token)
     {
-        return PlaceService.SearchPlace(value, token);
+        return PlaceService.SearchPlace(value, token)!;
     }
 
     private async Task OnDateIntervalChanged(DateInterval? value)
@@ -169,5 +169,11 @@ public partial class OperationsFilter
     private Task IncrementDateRangeAsync()
     {
         return UpdateDateRangeAsync(SelectedRange!.Increment);
+    }
+
+    private void ToggleCategoriesTree(bool? isOpen = null)
+    {
+        isOpen ??= !_isCategoriesTreeOpen;
+        _isCategoriesTreeOpen = isOpen.Value;
     }
 }

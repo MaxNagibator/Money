@@ -132,7 +132,7 @@ public partial class OperationDialog
         return sum;
     }
 
-    private async Task OnSumKeyDown(KeyboardEventArgs args)
+    private async Task OnSumKeyDownAsync(KeyboardEventArgs args)
     {
         char key = args.Key.Length == 1 ? args.Key[0] : '\0';
 
@@ -206,19 +206,18 @@ public partial class OperationDialog
         };
     }
 
-    private async Task<IEnumerable<Category>> SearchCategory(string value, CancellationToken token)
+    private Task<IEnumerable<Category?>> SearchCategoryAsync(string? value, CancellationToken token)
     {
-        if (string.IsNullOrEmpty(value))
-        {
-            return Input.CategoryList ?? [];
-        }
+        IEnumerable<Category>? categories = string.IsNullOrWhiteSpace(value)
+            ? Input.CategoryList
+            : Input.CategoryList?.Where(x => x.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase));
 
-        return Input.CategoryList?.Where(x => x.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase)) ?? Array.Empty<Category>();
+        return Task.FromResult(categories ?? [])!;
     }
 
-    private async Task<IEnumerable<string>> SearchPlace(string value, CancellationToken token)
+    private Task<IEnumerable<string?>> SearchPlaceAsync(string? value, CancellationToken token)
     {
-        return await PlaceService.SearchPlace(value, token);
+        return PlaceService.SearchPlace(value, token)!;
     }
 
     private sealed class InputModel

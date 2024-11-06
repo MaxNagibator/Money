@@ -103,7 +103,7 @@
 
         @*TODO: придумать способ закрытия*@
         <div class="d-flex flex-column"
-             @onblur="() => _popover.Open = false">
+             @onblur="() => ToggleCategoriesTree(false)">
             <MudStack AlignItems="AlignItems.Center"
                       Justify="Justify.FlexStart"
                       Row>
@@ -114,8 +114,8 @@
                               HelperText="@(GetHelperText())"
                               Immediate
                               Label="Категории"
-                              OnAdornmentClick="() => _popover.Open = !_popover.Open"
-                              @onclick="() => _popover.Open = true"
+                              OnAdornmentClick="() => ToggleCategoriesTree()"
+                              @onclick="() => ToggleCategoriesTree(true)"
                               T="string"
                               TextChanged="OnTextChanged" />
                 <MudIconButton Color="Color.Tertiary"
@@ -126,7 +126,7 @@
 
             <MudPopover AnchorOrigin="Origin.BottomLeft"
                         MaxHeight="400"
-                        @ref="_popover"
+                        Open="@_isCategoriesTreeOpen"
                         RelativeWidth
                         TransformOrigin="Origin.TopLeft">
                 <MudTreeView AutoSelectParent
@@ -139,9 +139,12 @@
                              SelectionMode="SelectionMode.MultiSelection"
                              TriState>
                     <ItemTemplate>
+                        @{
+                            List<TreeItemData<Category?>> children = context.Children?.OfType<TreeItemData<Category?>>().ToList() ?? [];
+                        }
                         <MudTreeViewItem @bind-Expanded="@context.Expanded"
                                          Icon="@context.Icon"
-                                         Items="@context.Children"
+                                         Items="@children"
                                          Text="@context.Text"
                                          Value="@context.Value"
                                          Visible="@context.Visible" />

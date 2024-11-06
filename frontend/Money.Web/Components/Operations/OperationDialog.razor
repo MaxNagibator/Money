@@ -25,7 +25,7 @@
                                      Immediate
                                      Label="Сумма"
                                      OnAdornmentClick="ToggleSumFieldAsync"
-                                     OnKeyDown="OnSumKeyDown" />
+                                     OnKeyDown="OnSumKeyDownAsync" />
                 }
                 else
                 {
@@ -64,9 +64,9 @@
                                  For="@(() => Input.Category)"
                                  Label="Категория"
                                  ResetValueOnEmptyText
-                                 SearchFunc="SearchCategory"
+                                 SearchFunc="SearchCategoryAsync"
                                  SelectValueOnTab
-                                 ToStringFunc="@(arg => arg.Name)" />
+                                 ToStringFunc="@(arg => arg?.Name ?? Category.Empty.Name)" />
             </MudItem>
             <MudItem md="6"
                      xs="12">
@@ -82,7 +82,7 @@
                                  Immediate
                                  Label="Место"
                                  ResetValueOnEmptyText="false"
-                                 SearchFunc="SearchPlace"
+                                 SearchFunc="SearchPlaceAsync"
                                  SelectValueOnTab
                                  ShowProgressIndicator />
             </MudItem>
