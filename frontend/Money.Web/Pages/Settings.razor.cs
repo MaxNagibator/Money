@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Money.Web.Components;
 
 namespace Money.Web.Pages;
 

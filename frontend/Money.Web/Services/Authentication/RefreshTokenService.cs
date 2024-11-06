@@ -1,7 +1,7 @@
 using CSharpFunctionalExtensions;
 using System.Security.Claims;
 
-namespace Money.Web.Services;
+namespace Money.Web.Services.Authentication;
 
 public class RefreshTokenService(AuthenticationStateProvider authProvider, AuthenticationService authService)
 {

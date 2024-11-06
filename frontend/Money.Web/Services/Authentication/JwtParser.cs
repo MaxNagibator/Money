@@ -2,13 +2,13 @@
 using System.Net.Http.Json;
 using System.Security.Claims;
 
-namespace Money.Web.Services;
+namespace Money.Web.Services.Authentication;
 
 public class JwtParser(HttpClient client)
 {
     public async Task<ClaimsPrincipal?> ValidateJwt(string token)
     {
-        Dictionary<string, object>? claimsDictionary = await GetUserInfo(token);
+        Dictionary<string, object>? claimsDictionary = await ParseJwt(token);
 
         if (claimsDictionary == null)
         {
@@ -35,8 +35,7 @@ public class JwtParser(HttpClient client)
         return new ClaimsPrincipal(claimsIdentity);
     }
 
-    // TODO это точно ответственность JWT парсера?
-    private async Task<Dictionary<string, object>?> GetUserInfo(string accessToken)
+    private async Task<Dictionary<string, object>?> ParseJwt(string accessToken)
     {
         HttpRequestMessage request = new(HttpMethod.Get, "connect/userinfo");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);

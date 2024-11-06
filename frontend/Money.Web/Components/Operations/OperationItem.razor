@@ -9,8 +9,8 @@
                  Size="Size.Small" />
 
         <OperationDialog OnSubmit="OnEdit"
-                       Operation="@Operation"
-                       @ref="_dialog">
+                         Operation="@Operation"
+                         @ref="_dialog">
             <MudTooltip Text="Редактировать">
                 <MudIconButton Icon="@Icons.Material.Rounded.ModeEdit"
                                OnClick="() => _dialog.ToggleOpen()"

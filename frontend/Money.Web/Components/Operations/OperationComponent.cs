@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components;
 
-namespace Money.Web.Components;
+namespace Money.Web.Components.Operations;
 
 public abstract class OperationComponent : ComponentBase, IDisposable
 {

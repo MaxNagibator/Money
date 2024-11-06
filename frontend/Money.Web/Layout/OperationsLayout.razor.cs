@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Money.Web.Components;
 using System.Globalization;
 
 namespace Money.Web.Layout;
@@ -20,7 +19,7 @@ public partial class OperationsLayout
         {
             if (_operationsFilter != null)
             {
-                await _operationsFilter.Search();
+                await _operationsFilter.SearchAsync();
             }
         };
     }

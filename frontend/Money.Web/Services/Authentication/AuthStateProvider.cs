@@ -1,7 +1,7 @@
 using Blazored.LocalStorage;
 using System.Security.Claims;
 
-namespace Money.Web.Services;
+namespace Money.Web.Services.Authentication;
 
 public class AuthStateProvider(ILocalStorageService localStorage, JwtParser jwtParser)
     : AuthenticationStateProvider

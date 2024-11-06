@@ -1,6 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Money.Web.Services.Authentication;
 using System.ComponentModel.DataAnnotations;
 
 namespace Money.Web.Pages.Account;
@@ -8,10 +9,10 @@ namespace Money.Web.Pages.Account;
 public partial class Register
 {
     [SupplyParameterFromForm]
-    private InputModel Input { get; set; } = new();
+    private InputModel Input { get; } = new();
 
     [SupplyParameterFromQuery]
-    private string? ReturnUrl { get; set; } = null;
+    private string? ReturnUrl { get; } = null;
 
     [Inject]
     private AuthenticationService AuthenticationService { get; set; } = default!;

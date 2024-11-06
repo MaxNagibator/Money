@@ -6,7 +6,7 @@ using NCalc.Factories;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 
-namespace Money.Web.Components;
+namespace Money.Web.Components.Operations;
 
 public partial class OperationDialog
 {
@@ -14,7 +14,6 @@ public partial class OperationDialog
     private static readonly Dictionary<string, List<string>> Cache = new();
 
     private bool _isNumericSumVisible = true;
-    private string _lastSearchedValue = string.Empty;
 
     public bool IsOpen { get; private set; }
 

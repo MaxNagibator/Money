@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Components;
 using Money.ApiClient;
 
-namespace Money.Web.Components;
+namespace Money.Web.Components.Operations;
 
 public partial class OperationsFilter
 {
@@ -18,25 +18,10 @@ public partial class OperationsFilter
 
     public event EventHandler<List<Operation>?>? OnSearch;
 
-    public DateInterval? SelectedRange { get; set; }
-    public List<Operation>? FilteredOperations { get; private set; }
+    public DateRange DateRange { get; private set; } = new();
 
     [Inject]
     private ILocalStorageService StorageService { get; set; } = default!;
-
-    [Inject]
-    private PlaceService PlaceService { get; set; } = default!;
-
-    private List<TreeItemData<Category>> InitialTreeItems { get; set; } = [];
-    private IReadOnlyCollection<Category>? SelectedCategories { get; set; }
-
-    private string? Comment { get; set; }
-    private string? Place { get; set; }
-
-    public DateRange DateRange { get; set; } = new();
-    private bool ShowDateRange { get; set; } = true;
-
-    private List<Category>? Categories { get; set; }
 
     [Inject]
     private MoneyClient MoneyClient { get; set; } = default!;
@@ -44,9 +29,26 @@ public partial class OperationsFilter
     [Inject]
     private CategoryService CategoryService { get; set; } = default!;
 
-    public OperationClient.OperationFilterDto GetFilter()
+    [Inject]
+    private PlaceService PlaceService { get; set; } = default!;
+
+    private List<TreeItemData<Category>> InitialTreeItems { get; set; } = [];
+    private IReadOnlyCollection<Category>? SelectedCategories { get; set; }
+
+    private DateInterval? SelectedRange { get; set; }
+
+    private string? Comment { get; set; }
+    private string? Place { get; set; }
+    private bool ShowDateRange { get; set; } = true;
+
+    private List<Category>? Categories { get; set; }
+
+    public async Task SearchAsync()
     {
-        return new OperationClient.OperationFilterDto
+        Categories ??= await CategoryService.GetCategories() ?? [];
+        InitialTreeItems = Categories.BuildChildren(null).ToList();
+
+        OperationClient.OperationFilterDto filter = new()
         {
             CategoryIds = SelectedCategories?.Select(x => x.Id!.Value).ToList(),
             Comment = Comment,
@@ -54,19 +56,7 @@ public partial class OperationsFilter
             DateFrom = DateRange.Start,
             DateTo = DateRange.End?.AddDays(1),
         };
-    }
 
-    public void UpdateCategories(List<Category> categories)
-    {
-        InitialTreeItems = categories.BuildChildren(null).ToList();
-    }
-
-    public async Task Search()
-    {
-        await GetCategories();
-        UpdateCategories(Categories!);
-
-        OperationClient.OperationFilterDto filter = GetFilter();
         ApiClientResponse<OperationClient.Operation[]> apiOperations = await MoneyClient.Operation.Get(filter);
 
         if (apiOperations.Content == null)
@@ -89,7 +79,6 @@ public partial class OperationsFilter
             })
             .ToList();
 
-        FilteredOperations = operations;
         OnSearch?.Invoke(this, operations);
     }
 
@@ -98,12 +87,12 @@ public partial class OperationsFilter
         string? key = await StorageService.GetItemAsync<string?>(nameof(SelectedRange));
         DateInterval? interval = DateIntervals.FirstOrDefault(interval => interval.DisplayName == key);
         await OnDateIntervalChanged(interval);
-        await Search();
+        await SearchAsync();
     }
 
-    private async Task<IEnumerable<string>> SearchPlace(string value, CancellationToken token)
+    private Task<IEnumerable<string>> SearchPlaceAsync(string? value, CancellationToken token)
     {
-        return await PlaceService.SearchPlace(value, token);
+        return PlaceService.SearchPlace(value, token);
     }
 
     private async Task OnDateIntervalChanged(DateInterval? value)
@@ -112,12 +101,12 @@ public partial class OperationsFilter
 
         if (value != null)
         {
-            await UpdateDateRange(value);
+            await UpdateDateRangeAsync(value);
             await StorageService.SetItemAsync(nameof(SelectedRange), SelectedRange?.DisplayName);
         }
     }
 
-    private async Task UpdateDateRange(DateInterval value)
+    private Task UpdateDateRangeAsync(DateInterval value)
     {
         DateTime start;
 
@@ -135,7 +124,18 @@ public partial class OperationsFilter
         }
 
         DateRange = new DateRange(start, value.End.Invoke(start));
-        await Search();
+        return SearchAsync();
+    }
+
+    private Task UpdateDateRangeAsync(Func<DateRange, DateRange> updateFunction)
+    {
+        if (SelectedRange == null)
+        {
+            return Task.CompletedTask;
+        }
+
+        DateRange = updateFunction.Invoke(DateRange);
+        return SearchAsync();
     }
 
     private string GetHelperText()
@@ -153,37 +153,21 @@ public partial class OperationsFilter
         InitialTreeItems.Filter(searchTerm);
     }
 
-    private async Task Reset()
+    private Task ResetAsync()
     {
         Comment = null;
         Place = null;
         SelectedCategories = null;
-        await Search();
+        return SearchAsync();
     }
 
-    private async Task UpdateDateRange(Func<DateRange, DateRange> updateFunction)
+    private Task DecrementDateRangeAsync()
     {
-        if (SelectedRange == null)
-        {
-            return;
-        }
-
-        DateRange = updateFunction.Invoke(DateRange);
-        await Search();
+        return UpdateDateRangeAsync(SelectedRange!.Decrement);
     }
 
-    private async Task DecrementDateRange()
+    private Task IncrementDateRangeAsync()
     {
-        await UpdateDateRange(SelectedRange!.Decrement);
-    }
-
-    private async Task IncrementDateRange()
-    {
-        await UpdateDateRange(SelectedRange!.Increment);
-    }
-
-    private async Task GetCategories()
-    {
-        Categories ??= await CategoryService.GetCategories();
+        return UpdateDateRangeAsync(SelectedRange!.Increment);
     }
 }

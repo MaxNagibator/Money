@@ -17,8 +17,8 @@
         <MudItem md="2"
                  xs="4">
             <OperationDialog OnSubmit="OnSubmit"
-                           Operation="@(new Operation { Date = OperationsDay.Date, Category = Category.Empty })"
-                           @ref="_dialog">
+                             Operation="@(new Operation { Date = OperationsDay.Date, Category = Category.Empty })"
+                             @ref="_dialog">
                 <MudStack AlignItems="AlignItems.Center"
                           Row>
                     @foreach (OperationTypes.Value type in OperationTypes)
@@ -86,8 +86,8 @@
                 else
                 {
                     <OperationItem OnDelete="() => OnDelete.InvokeAsync(operation)"
-                                 OnEdit="OnEdit"
-                                 Operation="@operation" />
+                                   OnEdit="OnEdit"
+                                   Operation="@operation" />
 
                     if (Settings.ShowDividers && i != OperationsDay.Operations.Count - 1)
                     {

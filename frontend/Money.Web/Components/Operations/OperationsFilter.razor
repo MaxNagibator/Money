@@ -17,7 +17,7 @@
                         <MudIconButton Color="Color.Tertiary"
                                        Disabled="@(SelectedRange == null)"
                                        Icon="@Icons.Material.Rounded.ChevronLeft"
-                                       OnClick="DecrementDateRange"
+                                       OnClick="DecrementDateRangeAsync"
                                        Size="Size.Medium" />
                     </MudTooltip>
 
@@ -39,7 +39,7 @@
                         <MudIconButton Color="Color.Tertiary"
                                        Disabled="@(SelectedRange == null)"
                                        Icon="@Icons.Material.Rounded.ChevronRight"
-                                       OnClick="IncrementDateRange"
+                                       OnClick="IncrementDateRangeAsync"
                                        Size="Size.Medium" />
                     </MudTooltip>
                 </MudStack>
@@ -58,7 +58,10 @@
                                             @bind-DateRange="@DateRange"
                                             Clearable
                                             Color="Color.Tertiary"
+                                            DateFormat="dd.MM.yyyy"
+                                            Editable
                                             Label="Диапазон дат"
+                                            Mask="@(new DateMask("dd.MM.yyyy"))"
                                             PickerVariant="PickerVariant.Inline"
                                             Rounded
                                             ShowWeekNumbers />
@@ -71,7 +74,10 @@
                                        @bind-Date="@DateRange.Start"
                                        Clearable
                                        Color="Color.Tertiary"
+                                       DateFormat="dd.MM.yyyy"
+                                       Editable
                                        Label="Дата с"
+                                       Mask="@(new DateMask("dd.MM.yyyy"))"
                                        MaxDate="@DateRange.End" />
 
                         <MudDatePicker Adornment="Adornment.Start"
@@ -80,7 +86,10 @@
                                        @bind-Date="@DateRange.End"
                                        Clearable
                                        Color="Color.Tertiary"
+                                       DateFormat="dd.MM.yyyy"
+                                       Editable
                                        Label="Дата по"
+                                       Mask="@(new DateMask("dd.MM.yyyy"))"
                                        MinDate="@DateRange.Start" />
                     }
 
@@ -149,16 +158,16 @@
                              AdornmentIcon="@Icons.Material.Rounded.Place"
                              @bind-Value="Place"
                              Clearable
-                             Immediate
-                             ShowProgressIndicator
                              CoerceText="false"
-                             CoerceValue="true"
+                             CoerceValue
                              Counter="0"
-                             ResetValueOnEmptyText="false"
                              DebounceInterval="350"
+                             Immediate
                              Label="Место"
-                             SearchFunc="SearchPlace"
-                             SelectValueOnTab />
+                             ResetValueOnEmptyText="false"
+                             SearchFunc="SearchPlaceAsync"
+                             SelectValueOnTab
+                             ShowProgressIndicator />
 
             <MudTextField Adornment="Adornment.Start"
                           AdornmentColor="Color.Tertiary"
@@ -172,7 +181,7 @@
             <MudTooltip Text="Очистить все фильтры">
                 <MudIconButton Color="Color.Tertiary"
                                Icon="@Icons.Material.Rounded.DeleteSweep"
-                               OnClick="Reset"
+                               OnClick="ResetAsync"
                                Size="Size.Small" />
             </MudTooltip>
         </MudStack>
