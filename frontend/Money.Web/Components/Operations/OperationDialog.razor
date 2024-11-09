@@ -66,7 +66,7 @@
                                  ResetValueOnEmptyText
                                  SearchFunc="SearchCategoryAsync"
                                  SelectValueOnTab
-                                 ToStringFunc="@(arg => arg?.Name ?? Category.Empty.Name)" />
+                                 ToStringFunc="@(arg => arg?.Name ?? string.Empty)" />
             </MudItem>
             <MudItem md="6"
                      xs="12">

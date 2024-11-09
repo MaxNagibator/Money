@@ -26,16 +26,34 @@ public partial class ListOperations
 
     protected override void OnSearchChanged(object? sender, OperationSearchEventArgs args)
     {
-        if (args.Operations != null)
+        if (args.Operations == null)
         {
-            OperationsDays = args.Operations
-                .GroupBy(x => x.Date)
-                .Select(x => new OperationsDay
+            StateHasChanged();
+            return;
+        }
+
+        OperationsDays = [];
+
+        Dictionary<DateTime, List<Operation>> days = args.Operations
+            .GroupBy(x => x.Date)
+            .ToDictionary(x => x.Key, x => x.ToList());
+
+        if (days.Keys.Count != 0)
+        {
+            DateTime start = days.Keys.Last();
+            DateTime end = days.Keys.First();
+
+            for (DateTime date = end; date >= start; date = date.AddDays(-1))
+            {
+                if (days.TryGetValue(date, out List<Operation>? operations) || args.AddZeroDays)
                 {
-                    Date = x.Key,
-                    Operations = x.ToList(),
-                })
-                .ToList();
+                    OperationsDays.Add(new OperationsDay
+                    {
+                        Date = date,
+                        Operations = operations ?? [],
+                    });
+                }
+            }
         }
 
         StateHasChanged();

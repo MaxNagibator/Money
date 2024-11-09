@@ -22,7 +22,7 @@ public partial class Statistics
         _pieCharts = pieCharts;
     }
 
-    protected override async void OnSearchChanged(object? sender, OperationSearchEventArgs args)
+    protected override void OnSearchChanged(object? sender, OperationSearchEventArgs args)
     {
         List<Task> tasks = [];
 
@@ -43,6 +43,6 @@ public partial class Statistics
             tasks.Add(_pieCharts[operationType.Id].UpdateAsync(operationGroups, categories));
         }
 
-        await Task.WhenAll(tasks);
+        _ = Task.WhenAll(tasks);
     }
 }

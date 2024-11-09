@@ -16,6 +16,7 @@ public partial class OperationsFilter
 
     private bool _isCategoriesTreeOpen;
     private bool _showZeroDays;
+    private List<Operation>? _operations;
 
     public event EventHandler<OperationSearchEventArgs>? OnSearch;
 
@@ -85,6 +86,8 @@ public partial class OperationsFilter
             Operations = operations,
             AddZeroDays = _showZeroDays,
         });
+
+        _operations = operations;
     }
 
     protected override async Task OnInitializedAsync()
@@ -185,6 +188,13 @@ public partial class OperationsFilter
     private void OnToggledChanged(bool toggled)
     {
         _showZeroDays = toggled;
+
+        OnSearch?.Invoke(this, new OperationSearchEventArgs
+        {
+            Operations = _operations,
+            AddZeroDays = _showZeroDays,
+        });
+
         StateHasChanged();
     }
 }
