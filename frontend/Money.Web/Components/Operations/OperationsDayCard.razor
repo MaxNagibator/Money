@@ -16,6 +16,7 @@
 
         <MudItem md="2"
                  xs="4">
+            @*TODO Требуется оптимизация. 140ms из 240ms *@
             <OperationDialog OnSubmit="OnSubmit"
                              Operation="@(new Operation { Date = OperationsDay.Date, Category = Category.Empty })"
                              @ref="_dialog">
@@ -23,21 +24,18 @@
                           Row>
                     @foreach (OperationTypes.Value type in OperationTypes)
                     {
-                        <MudTooltip Text="@type.AddText">
-                            <MudIconButton Color="type.Color"
-                                           Disabled="@(_dialog.IsOpen)"
-                                           Icon="@Icons.Material.Rounded.Add"
-                                           OnClick="() => _dialog.ToggleOpen(type)"
-                                           Size="Size.Small" />
-                        </MudTooltip>
-                    }
-                    <MudTooltip Text="Быстрое добавление">
-                        <MudIconButton Color="Color.Info"
+                        <MudIconButton Color="type.Color"
                                        Disabled="@(_dialog.IsOpen)"
                                        Icon="@Icons.Material.Rounded.Add"
-                                       OnClick="() => _dialog.ToggleOpen()"
+                                       @key="type.Id"
+                                       OnClick="() => _dialog.ToggleOpen(type)"
                                        Size="Size.Small" />
-                    </MudTooltip>
+                    }
+                    <MudIconButton Color="Color.Info"
+                                   Disabled="@(_dialog.IsOpen)"
+                                   Icon="@Icons.Material.Rounded.Add"
+                                   OnClick="() => _dialog.ToggleOpen()"
+                                   Size="Size.Small" />
                 </MudStack>
             </OperationDialog>
         </MudItem>
@@ -59,8 +57,6 @@
                 </MudStack>
             </MudItem>
         }
-
-        <MudSpacer />
     </MudCardHeader>
     <MudCardContent Class="pa-2">
         <MudStack Spacing="0">

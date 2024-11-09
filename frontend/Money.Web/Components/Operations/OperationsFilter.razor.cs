@@ -198,4 +198,20 @@ public partial class OperationsFilter
 
         StateHasChanged();
     }
+
+    // Для проверки быстродействия
+    /*
+    private void OnToggledChanged(bool toggled)
+    {
+        _showZeroDays = toggled;
+
+        OnSearch?.Invoke(this, new OperationSearchEventArgs
+        {
+            Operations = _operations,
+            AddZeroDays = _showZeroDays,
+            ShouldRender = false,
+        });
+
+        StateHasChanged();
+    }*/
 }
