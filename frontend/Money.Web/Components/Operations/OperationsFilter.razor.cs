@@ -15,8 +15,9 @@ public partial class OperationsFilter
     ];
 
     private bool _isCategoriesTreeOpen;
+    private bool _showZeroDays;
 
-    public event EventHandler<List<Operation>?>? OnSearch;
+    public event EventHandler<OperationSearchEventArgs>? OnSearch;
 
     public DateRange DateRange { get; private set; } = new();
 
@@ -79,7 +80,11 @@ public partial class OperationsFilter
             })
             .ToList();
 
-        OnSearch?.Invoke(this, operations);
+        OnSearch?.Invoke(this, new OperationSearchEventArgs
+        {
+            Operations = operations,
+            AddZeroDays = _showZeroDays,
+        });
     }
 
     protected override async Task OnInitializedAsync()
@@ -175,5 +180,11 @@ public partial class OperationsFilter
     {
         isOpen ??= !_isCategoriesTreeOpen;
         _isCategoriesTreeOpen = isOpen.Value;
+    }
+
+    private void OnToggledChanged(bool toggled)
+    {
+        _showZeroDays = toggled;
+        StateHasChanged();
     }
 }

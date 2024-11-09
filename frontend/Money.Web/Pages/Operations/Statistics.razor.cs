@@ -22,24 +22,24 @@ public partial class Statistics
         _pieCharts = pieCharts;
     }
 
-    protected override async void OnSearchChanged(object? sender, List<Operation>? operations)
+    protected override async void OnSearchChanged(object? sender, OperationSearchEventArgs args)
     {
         List<Task> tasks = [];
 
-        Dictionary<int, Operation[]>? operationGroups = operations?
+        Dictionary<int, Operation[]>? operationGroups = args.Operations?
             .GroupBy(x => x.Category.Id!.Value)
             .ToDictionary(x => x.Key, x => x.ToArray());
 
         foreach (OperationTypes.Value operationType in OperationTypes.Values)
         {
-            List<Category> categories = operations?
+            List<Category> categories = args.Operations?
                                             .Where(x => x.Category.OperationType.Id == operationType.Id)
                                             .Select(x => x.Category)
                                             .DistinctBy(x => x.Id)
                                             .ToList()
                                         ?? [];
 
-            tasks.Add(_barCharts[operationType.Id].UpdateAsync(operations, categories, OperationsFilter.DateRange));
+            tasks.Add(_barCharts[operationType.Id].UpdateAsync(args.Operations, categories, OperationsFilter.DateRange));
             tasks.Add(_pieCharts[operationType.Id].UpdateAsync(operationGroups, categories));
         }
 

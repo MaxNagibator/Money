@@ -6,7 +6,10 @@
                 <NotAuthorized>
                     @if (context.User.Identity?.IsAuthenticated == true)
                     {
-                        <MudAlert Severity="Severity.Error">Извините, но у вас нет доступа к этой странице. Пожалуйста, свяжитесь с администратором, если вы считаете, что это ошибка.</MudAlert>
+                        <MudAlert Severity="Severity.Error">
+                            Извините, но у вас нет доступа к этой странице.
+                            Пожалуйста, свяжитесь с администратором, если вы считаете, что это ошибка.
+                        </MudAlert>
                     }
                     else
                     {
@@ -20,7 +23,10 @@
         <NotFound>
             <PageTitle>Страница не найдена</PageTitle>
             <LayoutView Layout="@typeof(MainLayout)">
-                <MudAlert Severity="Severity.Warning">Извините, но мы не можем найти запрашиваемую страницу. Пожалуйста, проверьте адрес или вернитесь на главную страницу.</MudAlert>
+                <MudAlert Severity="Severity.Warning">
+                    Извините, но мы не можем найти запрашиваемую страницу.
+                    Пожалуйста, проверьте адрес или вернитесь на главную страницу.
+                </MudAlert>
             </LayoutView>
         </NotFound>
     </Router>

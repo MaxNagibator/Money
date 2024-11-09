@@ -24,11 +24,11 @@ public partial class ListOperations
         Categories = await CategoryService.GetCategories();
     }
 
-    protected override void OnSearchChanged(object? sender, List<Operation>? operations)
+    protected override void OnSearchChanged(object? sender, OperationSearchEventArgs args)
     {
-        if (operations != null)
+        if (args.Operations != null)
         {
-            OperationsDays = operations
+            OperationsDays = args.Operations
                 .GroupBy(x => x.Date)
                 .Select(x => new OperationsDay
                 {
