@@ -15,7 +15,8 @@ public partial class OperationDialog
 
     private bool _isNumericSumVisible = true;
 
-    public bool IsOpen { get; private set; }
+    [CascadingParameter]
+    public List<Category> Categories { get; set; } = default!;
 
     [Parameter]
     public Operation Operation { get; set; } = default!;
@@ -26,8 +27,7 @@ public partial class OperationDialog
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
-    [CascadingParameter]
-    public List<Category> Categories { get; set; } = default!;
+    public bool IsOpen { get; private set; }
 
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = InputModel.Empty;
@@ -43,6 +43,36 @@ public partial class OperationDialog
 
     [Inject]
     private IAsyncExpressionFactory Factory { get; set; } = default!;
+
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        foreach (ParameterValue parameter in parameters)
+        {
+            switch (parameter.Name)
+            {
+                case nameof(Categories):
+                    Categories = (List<Category>)parameter.Value;
+                    break;
+
+                case nameof(Operation):
+                    Operation = (Operation)parameter.Value;
+                    break;
+
+                case nameof(OnSubmit):
+                    OnSubmit = (EventCallback<Operation>)parameter.Value;
+                    break;
+
+                case nameof(ChildContent):
+                    ChildContent = (RenderFragment?)parameter.Value;
+                    break;
+
+                default:
+                    throw new ArgumentException($"Unknown parameter: {parameter.Name}");
+            }
+        }
+
+        return base.SetParametersAsync(ParameterView.Empty);
+    }
 
     public void ToggleOpen(OperationTypes.Value? type = null)
     {

@@ -85,7 +85,8 @@
                 }
                 else
                 {
-                    <OperationItem OnDelete="() => OnDelete.InvokeAsync(operation)"
+                    <OperationItem @key="operation"
+                                   OnDelete="() => OnDelete.InvokeAsync(operation)"
                                    OnEdit="OnEdit"
                                    Operation="@operation" />
 

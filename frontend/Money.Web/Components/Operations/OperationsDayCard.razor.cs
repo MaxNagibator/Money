@@ -27,6 +27,48 @@ public partial class OperationsDayCard
     [Parameter]
     public EventCallback<OperationsDay> OnCanDelete { get; set; }
 
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        foreach (ParameterValue parameter in parameters)
+        {
+            switch (parameter.Name)
+            {
+                case nameof(Settings):
+                    Settings = (AppSettings)parameter.Value;
+                    break;
+
+                case nameof(OperationsDay):
+                    OperationsDay = (OperationsDay)parameter.Value;
+                    break;
+
+                case nameof(OperationTypes):
+                    OperationTypes = (OperationTypes.Value[])parameter.Value;
+                    break;
+
+                case nameof(OnAddOperation):
+                    OnAddOperation = (EventCallback<Operation>)parameter.Value;
+                    break;
+
+                case nameof(OnRestore):
+                    OnRestore = (EventCallback<Operation>)parameter.Value;
+                    break;
+
+                case nameof(OnDelete):
+                    OnDelete = (EventCallback<Operation>)parameter.Value;
+                    break;
+
+                case nameof(OnCanDelete):
+                    OnCanDelete = (EventCallback<OperationsDay>)parameter.Value;
+                    break;
+
+                default:
+                    throw new ArgumentException($"Unknown parameter: {parameter.Name}");
+            }
+        }
+
+        return base.SetParametersAsync(ParameterView.Empty);
+    }
+
     private async Task OnSubmit(Operation operation)
     {
         if (operation.Date == OperationsDay.Date)

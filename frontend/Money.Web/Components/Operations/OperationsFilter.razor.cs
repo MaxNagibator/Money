@@ -185,15 +185,16 @@ public partial class OperationsFilter
         _isCategoriesTreeOpen = isOpen.Value;
     }
 
-    private void OnToggledChanged(bool toggled)
+    private async Task OnToggledChanged(bool toggled)
     {
         _showZeroDays = toggled;
 
-        OnSearch?.Invoke(this, new OperationSearchEventArgs
+        await Task.Run(() => OnSearch?.Invoke(this, new OperationSearchEventArgs
         {
             Operations = _operations,
             AddZeroDays = _showZeroDays,
-        });
+            ShouldRender = false,
+        }));
 
         StateHasChanged();
     }

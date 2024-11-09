@@ -5,7 +5,8 @@
 <PageTitle>Операции</PageTitle>
 
 <MudStack Spacing="2">
-    <CascadingValue Value="Categories">
+    <CascadingValue IsFixed="true"
+                    Value="Categories">
         <MudItem>
             <OperationDialog OnSubmit="AddNewOperation"
                              Operation="@(new Operation { Date = DateTime.Now, Category = Category.Empty })"
@@ -37,14 +38,21 @@
                 </MudStack>
             </OperationDialog>
         </MudItem>
-        @foreach (OperationsDay operationsDay in OperationsDays ?? [])
+        @if (OperationsDays != null && OperationsDays.Count != 0)
         {
-            <OperationsDayCard OnAddOperation="x => AddOperation(x, operationsDay)"
-                               OnCanDelete="DeleteDay"
-                               OnDelete="Delete"
-                               OnRestore="Restore"
-                               OperationsDay="@operationsDay"
-                               OperationTypes="@OperationTypes.Values" />
+            <Virtualize Context="operationsDay"
+                        Items="OperationsDays">
+                <OperationsDayCard @key="operationsDay"
+                                   OnAddOperation="operationsDay.AddAction"
+                                   OnCanDelete="DeleteDay"
+                                   OnDelete="Delete"
+                                   OnRestore="Restore"
+                                   OperationsDay="operationsDay"
+                                   OperationTypes="OperationTypes.Values" />
+            </Virtualize>
         }
     </CascadingValue>
 </MudStack>
+<MudScrollToTop>
+    <MudFab Color="Color.Tertiary" StartIcon="@Icons.Material.Filled.ArrowCircleUp" />
+</MudScrollToTop>

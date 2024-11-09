@@ -32,31 +32,76 @@ public partial class ListOperations
             return;
         }
 
-        OperationsDays = [];
-
-        Dictionary<DateTime, List<Operation>> days = args.Operations
-            .GroupBy(x => x.Date)
-            .ToDictionary(x => x.Key, x => x.ToList());
-
-        if (days.Keys.Count != 0)
+        if (args.ShouldRender == false && OperationsDays != null)
         {
-            DateTime start = days.Keys.Last();
-            DateTime end = days.Keys.First();
-
-            for (DateTime date = end; date >= start; date = date.AddDays(-1))
+            if (args.AddZeroDays)
             {
-                if (days.TryGetValue(date, out List<Operation>? operations) || args.AddZeroDays)
-                {
-                    OperationsDays.Add(new OperationsDay
-                    {
-                        Date = date,
-                        Operations = operations ?? [],
-                    });
-                }
+                FillZeroDays(OperationsDays);
             }
+            else
+            {
+                OperationsDays = OperationsDays.Where(x => x.Operations.Count != 0).ToList();
+            }
+
+            StateHasChanged();
+            return;
         }
 
+        OperationsDays = [];
+
+        List<OperationsDay> days = args.Operations
+            .GroupBy(x => x.Date)
+            .Select(g =>
+            {
+                OperationsDay operationsDay = new()
+                {
+                    Date = g.Key,
+                    Operations = g.ToList(),
+                };
+
+                operationsDay.AddAction = x => AddOperation(x, operationsDay);
+
+                return operationsDay;
+            })
+            .ToList();
+
+        if (args.AddZeroDays)
+        {
+            FillZeroDays(days);
+        }
+
+        OperationsDays = days;
+
         StateHasChanged();
+        return;
+
+        void FillZeroDays(List<OperationsDay> operationsDays)
+        {
+            for (int i = 0; i < operationsDays.Count - 1; i++)
+            {
+                DateTime day = operationsDays[i].Date;
+                DateTime nextDay = operationsDays[i + 1].Date.AddDays(1);
+
+                int shift = 0;
+
+                while (day != nextDay)
+                {
+                    shift++;
+                    day = day.AddDays(-1);
+
+                    OperationsDay operationsDay = new()
+                    {
+                        Date = day,
+                        Operations = [],
+                    };
+
+                    operationsDay.AddAction = x => AddOperation(x, operationsDay);
+                    operationsDays.Insert(i + shift, operationsDay);
+                }
+
+                i += shift;
+            }
+        }
     }
 
     private async Task Delete(Operation operation)
