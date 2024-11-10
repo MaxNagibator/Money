@@ -1,8 +1,5 @@
-﻿<MudStack AlignItems="AlignItems.Center"
-          Row>
-    <MudStack AlignItems="AlignItems.Center"
-              Row
-              Spacing="0">
+﻿<div class="align-center d-flex flex-row gap-4">
+    <div class="align-center d-flex flex-row gap-0">
         <MudIcon Color="@Category.OperationType.Color"
                  Icon="@Category.OperationType.Icon"
                  Size="Size.Small" />
@@ -13,7 +10,7 @@
                            OnClick="() => _dialog.ToggleOpen()"
                            Size="Size.Small" />
         </OperationDialog>
-    </MudStack>
+    </div>
     <MudItem md="1"
              xs="2">
         <MudText Align="Align.Left"
@@ -55,4 +52,4 @@
     <MudIconButton Icon="@Icons.Material.Rounded.Delete"
                    OnClick="() => OnDelete.InvokeAsync(Operation)"
                    Size="Size.Small" />
-</MudStack>
+</div>

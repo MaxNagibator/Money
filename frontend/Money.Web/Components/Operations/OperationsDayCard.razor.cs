@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 
 namespace Money.Web.Components.Operations;
 
@@ -67,6 +68,20 @@ public partial class OperationsDayCard
         }
 
         return base.SetParametersAsync(ParameterView.Empty);
+    }
+
+    private RenderFragment RenderOperationButton(OperationTypes.Value type)
+    {
+        return builder =>
+        {
+            builder.OpenComponent<MudIconButton>(0);
+            builder.AddAttribute(1, "Color", type.Color);
+            builder.AddAttribute(2, "Disabled", _dialog.IsOpen);
+            builder.AddAttribute(3, "Icon", Icons.Material.Rounded.Add);
+            builder.AddAttribute(4, "OnClick", EventCallback.Factory.Create<MouseEventArgs>(this, () => _dialog.ToggleOpen(type)));
+            builder.AddAttribute(5, "Size", Size.Small);
+            builder.CloseComponent();
+        };
     }
 
     private async Task OnSubmit(Operation operation)

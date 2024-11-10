@@ -20,23 +20,18 @@
             <OperationDialog OnSubmit="OnSubmit"
                              Operation="@(new Operation { Date = OperationsDay.Date, Category = Category.Empty })"
                              @ref="_dialog">
-                <MudStack AlignItems="AlignItems.Center"
-                          Row>
+                <div class="align-center d-flex flex-row gap-4">
                     @foreach (OperationTypes.Value type in OperationTypes)
                     {
-                        <MudIconButton Color="type.Color"
-                                       Disabled="@(_dialog.IsOpen)"
-                                       Icon="@Icons.Material.Rounded.Add"
-                                       @key="type.Id"
-                                       OnClick="() => _dialog.ToggleOpen(type)"
-                                       Size="Size.Small" />
+                        @RenderOperationButton(type)
                     }
+
                     <MudIconButton Color="Color.Info"
                                    Disabled="@(_dialog.IsOpen)"
                                    Icon="@Icons.Material.Rounded.Add"
                                    OnClick="() => _dialog.ToggleOpen()"
                                    Size="Size.Small" />
-                </MudStack>
+                </div>
             </OperationDialog>
         </MudItem>
 
@@ -44,17 +39,14 @@
         {
             <MudItem md="2"
                      xs="2">
-                <MudStack AlignItems="AlignItems.Center"
-                          Justify="Justify.FlexEnd"
-                          Row
-                          StretchItems="StretchItems.End">
+                <div class="align-center d-flex flex-row gap-4">
                     <MudIcon Color="@operationType.Color"
                              Icon="@operationType.Icon"
                              Size="Size.Small" />
                     <MudText>
                         @OperationsDay.CalculateSum(operationType).ToString("N0")
                     </MudText>
-                </MudStack>
+                </div>
             </MudItem>
         }
     </MudCardHeader>

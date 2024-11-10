@@ -183,13 +183,13 @@
                     <MudIconButton Color="Color.Tertiary"
                                    Icon="@Icons.Material.Rounded.DeleteSweep"
                                    OnClick="ResetAsync"
-                                   Size="Size.Small"
+                                   Size="Size.Medium"
                                    Variant="Variant.Filled" />
                 </MudTooltip>
                 <MudTooltip Text="@(_showZeroDays ? "Скрыть пустые дни" : "Показать пустые дни")">
                     <MudToggleIconButton Color="Color.Tertiary"
                                          Icon="@Icons.Material.Rounded.Star"
-                                         Size="Size.Small"
+                                         Size="Size.Medium"
                                          Toggled="_showZeroDays"
                                          ToggledChanged="OnToggledChanged"
                                          ToggledIcon="@Icons.Material.Rounded.StarOutline"
@@ -200,7 +200,7 @@
                 <MudButton Color="Color.Info"
                            EndIcon="@Icons.Material.Rounded.Search"
                            OnClick="SearchAsync"
-                           Size="Size.Small"
+                           Size="Size.Medium"
                            Variant="Variant.Filled">
                     Найти
                 </MudButton>
