@@ -211,16 +211,16 @@ public partial class OperationDialog
 
     private async Task SaveAsync()
     {
-        OperationClient.SaveRequest clientCategory = CreateSaveRequest();
+        OperationClient.SaveRequest saveRequest = CreateSaveRequest();
 
         if (Operation.Id == null)
         {
-            ApiClientResponse<int> result = await MoneyClient.Operation.Create(clientCategory);
+            ApiClientResponse<int> result = await MoneyClient.Operation.Create(saveRequest);
             Operation.Id = result.Content;
         }
         else
         {
-            await MoneyClient.Operation.Update(Operation.Id.Value, clientCategory);
+            await MoneyClient.Operation.Update(Operation.Id.Value, saveRequest);
         }
     }
 

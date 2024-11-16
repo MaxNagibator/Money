@@ -14,9 +14,13 @@ public partial class OperationsFilter
         new("Год", "ий год", time => time.StartOfYear(), time => time.EndOfYear(), (time, direction) => time.AddYears(direction)),
     ];
 
-    private bool _isCategoriesTreeOpen;
-    private bool _showZeroDays;
+    private CategorySelector? _categorySelector;
+    private CategorySelector? _changeCategorySelector;
     private List<Operation>? _operations;
+
+    private bool _showZeroDays;
+    private bool _showDateRange = true;
+    private bool _showCategorySelector;
 
     public event EventHandler<OperationSearchEventArgs>? OnSearch;
 
@@ -34,25 +38,19 @@ public partial class OperationsFilter
     [Inject]
     private PlaceService PlaceService { get; set; } = default!;
 
-    private List<TreeItemData<Category>> InitialTreeItems { get; set; } = [];
-    private IReadOnlyCollection<Category>? SelectedCategories { get; set; }
-
-    private DateInterval? SelectedRange { get; set; }
+    private List<Category>? Categories { get; set; }
 
     private string? Comment { get; set; }
     private string? Place { get; set; }
-    private bool ShowDateRange { get; set; } = true;
-
-    private List<Category>? Categories { get; set; }
+    private DateInterval? SelectedRange { get; set; }
 
     public async Task SearchAsync()
     {
         Categories ??= await CategoryService.GetCategories() ?? [];
-        InitialTreeItems = Categories.BuildChildren(null).ToList();
 
         OperationClient.OperationFilterDto filter = new()
         {
-            CategoryIds = SelectedCategories?.Select(x => x.Id!.Value).ToList(),
+            CategoryIds = _categorySelector?.GetSelectedCategories(),
             Comment = Comment,
             Place = Place,
             DateFrom = DateRange.Start,
@@ -146,26 +144,11 @@ public partial class OperationsFilter
         return SearchAsync();
     }
 
-    private string GetHelperText()
-    {
-        if (SelectedCategories == null || SelectedCategories.Count == 0)
-        {
-            return "Выберите категории";
-        }
-
-        return string.Join(", ", SelectedCategories.Select(x => x.Name));
-    }
-
-    private void OnTextChanged(string searchTerm)
-    {
-        InitialTreeItems.Filter(searchTerm);
-    }
-
     private Task ResetAsync()
     {
         Comment = null;
         Place = null;
-        SelectedCategories = null;
+        _categorySelector?.Reset();
         return SearchAsync();
     }
 
@@ -179,10 +162,14 @@ public partial class OperationsFilter
         return UpdateDateRangeAsync(SelectedRange!.Increment);
     }
 
-    private void ToggleCategoriesTree(bool? isOpen = null)
+    private Task TransferOperationsAsync()
     {
-        isOpen ??= !_isCategoriesTreeOpen;
-        _isCategoriesTreeOpen = isOpen.Value;
+        if (_changeCategorySelector is { SelectedCategory.Id: not null } && _operations != null)
+        {
+            //return MoneyClient.Operation.UpdateBatch(_operations?.Select(x => x.Id!.Value).ToList(), _changeCategorySelector.SelectedCategory.Id);
+        }
+
+        return Task.CompletedTask;
     }
 
     private async Task OnToggledChanged(bool toggled)
