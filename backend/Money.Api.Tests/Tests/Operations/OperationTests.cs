@@ -305,6 +305,67 @@ public class OperationTests
     }
 
     [Test]
+    public async Task UpdateBatchTest()
+    {
+        TestCategory initialCategory = _user.WithCategory();
+
+        TestOperation[] operationsToUpdate =
+        [
+            initialCategory.WithOperation(),
+            initialCategory.WithOperation(),
+            initialCategory.WithOperation(),
+        ];
+
+        TestCategory targetCategory = _user.WithCategory();
+        _dbClient.Save();
+
+        OperationClient.UpdateOperationsBatchRequest updateRequest = new()
+        {
+            OperationIds = operationsToUpdate.Select(x => x.Id).ToList(),
+            CategoryId = targetCategory.Id,
+        };
+
+        OperationClient.Operation[]? updatedOperations = await _apiClient.Operation.UpdateBatch(updateRequest).IsSuccessWithContent();
+
+        List<DomainOperation> targetCategoryOperations = await _dbClient.CreateApplicationDbContext()
+            .Operations
+            .IsUserEntity(_user.Id)
+            .Where(x => x.CategoryId == targetCategory.Id)
+            .ToListAsync();
+
+        Assert.That(targetCategoryOperations, Has.Count.EqualTo(operationsToUpdate.Length));
+
+        foreach (DomainOperation operation in targetCategoryOperations)
+        {
+            Assert.That(operation.CategoryId, Is.EqualTo(targetCategory.Id));
+        }
+
+        List<DomainOperation> initialCategoryOperations = await _dbClient.CreateApplicationDbContext()
+            .Operations
+            .IsUserEntity(_user.Id)
+            .Where(x => x.CategoryId == initialCategory.Id)
+            .ToListAsync();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(initialCategoryOperations, Has.Count.EqualTo(0));
+            Assert.That(updatedOperations, Has.Length.EqualTo(operationsToUpdate.Length));
+        });
+
+        foreach (OperationClient.Operation updatedOperation in updatedOperations)
+        {
+            Assert.That(updatedOperation.CategoryId, Is.EqualTo(targetCategory.Id));
+        }
+
+        List<DomainOperation> allUserOperations = await _dbClient.CreateApplicationDbContext()
+            .Operations
+            .IsUserEntity(_user.Id)
+            .ToListAsync();
+
+        Assert.That(allUserOperations, Has.Count.EqualTo(operationsToUpdate.Length));
+    }
+
+    [Test]
     public async Task DeleteTest()
     {
         TestOperation operation = _user.WithOperation();

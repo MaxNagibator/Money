@@ -20,7 +20,7 @@ public partial class OperationsFilter
 
     private bool _showZeroDays;
     private bool _showDateRange = true;
-    private bool _showCategorySelector;
+    private bool _showChangeCategorySelector;
 
     public event EventHandler<OperationSearchEventArgs>? OnSearch;
 
@@ -162,14 +162,24 @@ public partial class OperationsFilter
         return UpdateDateRangeAsync(SelectedRange!.Increment);
     }
 
-    private Task TransferOperationsAsync()
+    private async Task TransferOperationsAsync()
     {
-        if (_changeCategorySelector is { SelectedCategory.Id: not null } && _operations != null)
+        if (_changeCategorySelector is not { SelectedCategory.Id: not null } || _operations == null)
         {
-            //return MoneyClient.Operation.UpdateBatch(_operations?.Select(x => x.Id!.Value).ToList(), _changeCategorySelector.SelectedCategory.Id);
+            return;
         }
 
-        return Task.CompletedTask;
+        OperationClient.UpdateOperationsBatchRequest request = new()
+        {
+            OperationIds = _operations.Select(x => x.Id!.Value).ToList(),
+            CategoryId = _changeCategorySelector.SelectedCategory.Id.Value,
+        };
+
+        await MoneyClient.Operation.UpdateBatch(request);
+        _changeCategorySelector.Reset();
+        _showChangeCategorySelector = false;
+
+        await SearchAsync();
     }
 
     private async Task OnToggledChanged(bool toggled)

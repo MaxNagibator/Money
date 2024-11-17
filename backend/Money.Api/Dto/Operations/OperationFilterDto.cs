@@ -1,4 +1,6 @@
-﻿namespace Money.Api.Dto.Operations;
+﻿using Money.Api.Extensions;
+
+namespace Money.Api.Dto.Operations;
 
 /// <summary>
 ///     Фильтр для операций.
@@ -34,25 +36,11 @@ public class OperationFilterDto
     {
         return new OperationFilter
         {
-            CategoryIds = ParseCategoryIds(CategoryIds),
+            CategoryIds = CategoryIds.ParseIds(),
             Comment = Comment,
             Place = Place,
             DateFrom = DateFrom,
             DateTo = DateTo,
         };
-    }
-
-    private static List<int>? ParseCategoryIds(string? categoryIds)
-    {
-        if (string.IsNullOrWhiteSpace(categoryIds))
-        {
-            return null;
-        }
-
-        return categoryIds.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Select(id => int.TryParse(id, out int parsedId) ? (int?)parsedId : null)
-            .Where(id => id.HasValue)
-            .Select(id => id!.Value)
-            .ToList();
     }
 }

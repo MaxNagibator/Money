@@ -16,7 +16,7 @@ public static class MappingExtensions
         };
     }
 
-    public static Operation Adapt(this DomainOperation dbOperation, IEnumerable<DomainPlace> dbPlaces)
+    public static Operation Adapt(this DomainOperation dbOperation, IEnumerable<DomainPlace>? dbPlaces = null)
     {
         return new Operation
         {
@@ -24,7 +24,7 @@ public static class MappingExtensions
             Sum = dbOperation.Sum,
             Comment = dbOperation.Comment,
             Place = dbOperation.PlaceId.HasValue
-                ? dbPlaces.FirstOrDefault(x => x.Id == dbOperation.PlaceId)?.Name
+                ? dbPlaces?.FirstOrDefault(x => x.Id == dbOperation.PlaceId)?.Name
                 : null,
             Id = dbOperation.Id,
             Date = dbOperation.Date,

@@ -5,7 +5,7 @@ namespace Money.Business.Services;
 
 public class OperationService(RequestEnvironment environment, ApplicationDbContext context, CategoryService categoryService)
 {
-    public async Task<ICollection<Operation>> GetAsync(OperationFilter filter, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Operation>> GetAsync(OperationFilter filter, CancellationToken cancellationToken)
     {
         IQueryable<DomainOperation> dbOperations = FilterOperations(filter);
 
@@ -39,14 +39,15 @@ public class OperationService(RequestEnvironment environment, ApplicationDbConte
     private async Task<DomainOperation> GetByIdInternal(int id, CancellationToken cancellationToken)
     {
         DomainOperation dbCategory = await context.Operations.SingleOrDefaultAsync(environment.UserId, id, cancellationToken)
-                                   ?? throw new NotFoundException("операция", id);
+                                     ?? throw new NotFoundException("операция", id);
 
         return dbCategory;
     }
 
     private IQueryable<DomainOperation> FilterOperations(OperationFilter filter)
     {
-        IQueryable<DomainOperation> dbOperations = context.Operations.IsUserEntity(environment.UserId)
+        IQueryable<DomainOperation> dbOperations = context.Operations
+            .IsUserEntity(environment.UserId)
             .Where(x => x.TaskId == null);
 
         if (filter.DateFrom.HasValue)
@@ -88,7 +89,7 @@ public class OperationService(RequestEnvironment environment, ApplicationDbConte
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<int> CreateAsync(Operation operation, CancellationToken cancellationToken = default)
+    public async Task<int> CreateAsync(Operation operation, CancellationToken cancellationToken)
     {
         if (environment.UserId == null)
         {
@@ -103,7 +104,7 @@ public class OperationService(RequestEnvironment environment, ApplicationDbConte
         int operationId = dbUser.NextOperationId;
         dbUser.NextOperationId++;
 
-        int? placeId = await GetPlaceId(dbUser, operation.Place, cancellationToken);
+        int? placeId = await GetPlaceIdAsync(dbUser, operation.Place, cancellationToken);
 
         DomainOperation dbOperation = new()
         {
@@ -122,7 +123,7 @@ public class OperationService(RequestEnvironment environment, ApplicationDbConte
         return operationId;
     }
 
-    private async Task<int?> GetPlaceId(DomainUser dbUser, string? place, CancellationToken cancellationToken = default)
+    private async Task<int?> GetPlaceIdAsync(DomainUser dbUser, string? place, CancellationToken cancellationToken)
     {
         place = place?.Trim(' ');
 
@@ -159,11 +160,11 @@ public class OperationService(RequestEnvironment environment, ApplicationDbConte
     public async Task UpdateAsync(Operation operation, CancellationToken cancellationToken)
     {
         DomainOperation dbOperation = await context.Operations.SingleOrDefaultAsync(environment.UserId, operation.Id, cancellationToken)
-                                  ?? throw new NotFoundException("операция", operation.Id);
+                                      ?? throw new NotFoundException("операция", operation.Id);
 
         Category category = await categoryService.GetByIdAsync(operation.CategoryId, cancellationToken);
         DomainUser dbUser = await context.DomainUsers.SingleAsync(x => x.Id == environment.UserId, cancellationToken);
-        int? placeId = await GetPlaceId(dbUser, operation.Place, dbOperation, cancellationToken);
+        int? placeId = await GetPlaceIdAsync(dbUser, operation.Place, dbOperation, cancellationToken);
 
         dbOperation.Sum = operation.Sum;
         dbOperation.Comment = operation.Comment;
@@ -174,10 +175,10 @@ public class OperationService(RequestEnvironment environment, ApplicationDbConte
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task<int?> GetPlaceId(DomainUser dbUser, string? place, DomainOperation dbOperation, CancellationToken cancellationToken = default)
+    private async Task<int?> GetPlaceIdAsync(DomainUser dbUser, string? place, DomainOperation dbOperation, CancellationToken cancellationToken)
     {
-        DomainPlace? dbPlace = await GetPlaceById(dbOperation.PlaceId, cancellationToken);
-        bool hasAnyOperations = await IsPlaceBusy(dbPlace, dbOperation.Id, cancellationToken);
+        DomainPlace? dbPlace = await GetPlaceByIdAsync(dbOperation.PlaceId, cancellationToken);
+        bool hasAnyOperations = await IsPlaceBusyAsync(dbPlace, dbOperation.Id, cancellationToken);
 
         if (string.IsNullOrWhiteSpace(place))
         {
@@ -229,7 +230,7 @@ public class OperationService(RequestEnvironment environment, ApplicationDbConte
         return dbNewPlace.Id;
     }
 
-    private Task<bool> IsPlaceBusy(DomainPlace? place, int? operationId, CancellationToken cancellationToken = default)
+    private Task<bool> IsPlaceBusyAsync(DomainPlace? place, int? operationId, CancellationToken cancellationToken)
     {
         if (place == null)
         {
@@ -248,24 +249,24 @@ public class OperationService(RequestEnvironment environment, ApplicationDbConte
         return operations.AnyAsync(cancellationToken);
     }
 
-    public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
+    public async Task DeleteAsync(int id, CancellationToken cancellationToken)
     {
         DomainOperation dbOperation = await GetByIdInternal(id, cancellationToken);
         dbOperation.IsDeleted = true;
-        await CheckRemovePlace(dbOperation.PlaceId, dbOperation.Id, cancellationToken);
+        await CheckRemovePlaceAsync(dbOperation.PlaceId, dbOperation.Id, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task CheckRemovePlace(int? placeId, int? operationId, CancellationToken cancellationToken = default)
+    private async Task CheckRemovePlaceAsync(int? placeId, int? operationId, CancellationToken cancellationToken)
     {
-        DomainPlace? dbPlace = await GetPlaceById(placeId, cancellationToken);
+        DomainPlace? dbPlace = await GetPlaceByIdAsync(placeId, cancellationToken);
 
         if (dbPlace == null)
         {
             return;
         }
 
-        bool hasAnyOperations = await IsPlaceBusy(dbPlace, operationId, cancellationToken);
+        bool hasAnyOperations = await IsPlaceBusyAsync(dbPlace, operationId, cancellationToken);
 
         if (hasAnyOperations == false)
         {
@@ -273,22 +274,22 @@ public class OperationService(RequestEnvironment environment, ApplicationDbConte
         }
     }
 
-    public async Task RestoreAsync(int id, CancellationToken cancellationToken = default)
+    public async Task RestoreAsync(int id, CancellationToken cancellationToken)
     {
         DomainOperation dbOperation = await context.Operations
-                                      .IgnoreQueryFilters()
-                                      .Where(x => x.IsDeleted)
-                                      .SingleOrDefaultAsync(environment.UserId, id, cancellationToken)
-                                  ?? throw new NotFoundException("операция", id);
+                                          .IgnoreQueryFilters()
+                                          .Where(x => x.IsDeleted)
+                                          .SingleOrDefaultAsync(environment.UserId, id, cancellationToken)
+                                      ?? throw new NotFoundException("операция", id);
 
         dbOperation.IsDeleted = false;
-        await CheckRestorePlace(dbOperation.PlaceId, cancellationToken);
+        await CheckRestorePlaceAsync(dbOperation.PlaceId, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task CheckRestorePlace(int? placeId, CancellationToken cancellationToken = default)
+    private async Task CheckRestorePlaceAsync(int? placeId, CancellationToken cancellationToken)
     {
-        DomainPlace? dbPlace = await GetPlaceById(placeId, cancellationToken);
+        DomainPlace? dbPlace = await GetPlaceByIdAsync(placeId, cancellationToken);
 
         if (dbPlace == null)
         {
@@ -298,14 +299,38 @@ public class OperationService(RequestEnvironment environment, ApplicationDbConte
         dbPlace.IsDeleted = false;
     }
 
-    private async Task<DomainPlace?> GetPlaceById(int? placeId, CancellationToken cancellationToken = default)
+    private async Task<DomainPlace?> GetPlaceByIdAsync(int? placeId, CancellationToken cancellationToken)
     {
         return placeId != null
             ? await context.Places.SingleOrDefaultAsync(environment.UserId, placeId, cancellationToken)
             : null;
     }
 
-    public async Task<ICollection<Place>> GetPlaces(int offset, int count, string? name, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Operation>> UpdateBatchAsync(List<int> operationIds, int categoryId, CancellationToken cancellationToken)
+    {
+        Category category = await categoryService.GetByIdAsync(categoryId, cancellationToken);
+
+        List<DomainOperation> dbOperations = await context.Operations
+            .IsUserEntity(environment.UserId)
+            .Where(x => operationIds.Contains(x.Id) && x.TaskId == null)
+            .ToListAsync(cancellationToken);
+
+        if (dbOperations.Count != operationIds.Count)
+        {
+            throw new BusinessException("Одна или несколько операций не найдены");
+        }
+
+        foreach (DomainOperation? operation in dbOperations)
+        {
+            operation.CategoryId = category.Id;
+        }
+
+        await context.SaveChangesAsync(cancellationToken);
+
+        return dbOperations.Select(x => x.Adapt()).ToList();
+    }
+
+    public async Task<IEnumerable<Place>> GetPlacesAsync(int offset, int count, string? name, CancellationToken cancellationToken)
     {
         IQueryable<DomainPlace> dbPlaces = context.Places
             .IsUserEntity(environment.UserId)
@@ -316,14 +341,16 @@ public class OperationService(RequestEnvironment environment, ApplicationDbConte
             dbPlaces = dbPlaces.Where(x => x.Name.Contains(name)); // todo сделать регистронезависимый поиск
         }
 
-        dbPlaces = dbPlaces.OrderByDescending(x => string.IsNullOrWhiteSpace(name) == false && x.Name.StartsWith(name))
+        dbPlaces = dbPlaces
+            .OrderByDescending(x => string.IsNullOrWhiteSpace(name) == false && x.Name.StartsWith(name))
             .ThenByDescending(x => x.LastUsedDate)
             .Skip(offset)
             .Take(count);
 
         List<DomainPlace> places = await dbPlaces.ToListAsync(cancellationToken);
 
-        return places.Select(x => new Place
+        return places
+            .Select(x => new Place
             {
                 Id = x.Id,
                 Name = x.Name,

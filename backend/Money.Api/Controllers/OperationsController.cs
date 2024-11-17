@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Money.Api.Dto.Operations;
+using Money.Api.Extensions;
 using OpenIddict.Validation.AspNetCore;
 
 namespace Money.Api.Controllers;
@@ -22,7 +23,7 @@ public class OperationsController(OperationService operationService) : Controlle
     public async Task<OperationDto[]> Get([FromQuery] OperationFilterDto filter, CancellationToken cancellationToken)
     {
         OperationFilter businessFilter = filter.ToBusinessModel();
-        ICollection<Operation> operations = await operationService.GetAsync(businessFilter, cancellationToken);
+        IEnumerable<Operation> operations = await operationService.GetAsync(businessFilter, cancellationToken);
         return operations.Select(OperationDto.FromBusinessModel).ToArray();
     }
 
@@ -75,6 +76,21 @@ public class OperationsController(OperationService operationService) : Controlle
     }
 
     /// <summary>
+    ///     Обновить категорию у операций.
+    /// </summary>
+    /// <param name="request">Данные для обновления операций.</param>
+    /// <param name="cancellationToken">Токен отмены запроса.</param>
+    [HttpPost]
+    [Route("UpdateBatch")]
+    [ProducesResponseType(typeof(IEnumerable<OperationDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UpdateBatch(UpdateOperationsBatchRequest request, CancellationToken cancellationToken)
+    {
+        IEnumerable<Operation> updatedOperations = await operationService.UpdateBatchAsync(request.OperationIds, request.CategoryId, cancellationToken);
+        return Ok(updatedOperations.Select(OperationDto.FromBusinessModel));
+    }
+
+    /// <summary>
     ///     Удалить категорию операции по идентификатору.
     /// </summary>
     /// <param name="id">Идентификатор категории.</param>
@@ -111,11 +127,11 @@ public class OperationsController(OperationService operationService) : Controlle
     [HttpGet]
     [Route("GetPlaces/{offset:int}/{count:int}")]
     [Route("GetPlaces/{offset:int}/{count:int}/{name}")]
-    [ProducesResponseType(typeof(string[]), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<string[]> GetPlaces(int offset, int count, string? name = null, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> GetPlaces(int offset, int count, string? name = null, CancellationToken cancellationToken = default)
     {
-        ICollection<Place> places = await operationService.GetPlaces(offset, count, name, cancellationToken);
-        return places.Select(x => x.Name).ToArray();
+        IEnumerable<Place> places = await operationService.GetPlacesAsync(offset, count, name, cancellationToken);
+        return Ok(places.Select(x => x.Name));
     }
 }

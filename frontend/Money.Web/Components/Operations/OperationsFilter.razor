@@ -151,17 +151,17 @@
                 <MudStack Row
                           AlignItems="AlignItems.Baseline">
                     <MudTooltip
-                        Text="@(_showCategorySelector ? "Отменить перенос" : "Перекинуть все отображённые на странице операции в выбранную категорию")">
+                        Text="@(_showChangeCategorySelector ? "Отменить перенос" : "Перекинуть все отображённые на странице операции в выбранную категорию")">
                         <MudToggleIconButton Color="Color.Tertiary"
                                              Icon="@Icons.Material.Rounded.MoveToInbox"
                                              Size="Size.Medium"
-                                             @bind-Toggled="_showCategorySelector"
+                                             @bind-Toggled="_showChangeCategorySelector"
                                              ToggledIcon="@Icons.Material.Rounded.Close"
                                              ToggledVariant="Variant.Outlined"
                                              Variant="Variant.Filled" />
                     </MudTooltip>
 
-                    @if (_showCategorySelector)
+                    @if (_showChangeCategorySelector)
                     {
                         <CategorySelector @ref="_changeCategorySelector"
                                           SelectionMode="SelectionMode.SingleSelection" />
