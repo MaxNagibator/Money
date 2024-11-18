@@ -2,33 +2,42 @@
 
 public static class MappingExtensions
 {
-    public static Category Adapt(this DomainCategory dbCategory)
+    public static Category Adapt(this DomainCategory model)
     {
         return new Category
         {
-            Id = dbCategory.Id,
-            Name = dbCategory.Name,
-            Description = dbCategory.Description,
-            Color = dbCategory.Color,
-            ParentId = dbCategory.ParentId,
-            Order = dbCategory.Order,
-            OperationType = dbCategory.TypeId,
+            Id = model.Id,
+            Name = model.Name,
+            Description = model.Description,
+            Color = model.Color,
+            ParentId = model.ParentId,
+            Order = model.Order,
+            OperationType = model.TypeId,
         };
     }
 
-    public static Operation Adapt(this DomainOperation dbOperation, IEnumerable<DomainPlace>? dbPlaces = null)
+    public static Operation Adapt(this DomainOperation model, IEnumerable<Place>? dbPlaces = null)
     {
         return new Operation
         {
-            CategoryId = dbOperation.CategoryId,
-            Sum = dbOperation.Sum,
-            Comment = dbOperation.Comment,
-            Place = dbOperation.PlaceId.HasValue
-                ? dbPlaces?.FirstOrDefault(x => x.Id == dbOperation.PlaceId)?.Name
+            CategoryId = model.CategoryId,
+            Sum = model.Sum,
+            Comment = model.Comment,
+            Place = model.PlaceId.HasValue
+                ? dbPlaces?.FirstOrDefault(x => x.Id == model.PlaceId)?.Name
                 : null,
-            Id = dbOperation.Id,
-            Date = dbOperation.Date,
-            CreatedTaskId = dbOperation.CreatedTaskId,
+            Id = model.Id,
+            Date = model.Date,
+            CreatedTaskId = model.CreatedTaskId,
+        };
+    }
+
+    public static Place Adapt(this DomainPlace model)
+    {
+        return new Place
+        {
+            Id = model.Id,
+            Name = model.Name,
         };
     }
 }

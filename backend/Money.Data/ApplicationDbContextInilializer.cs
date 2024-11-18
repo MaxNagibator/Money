@@ -1,16 +1,16 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
-namespace Money.Data
-{
-    public static class ApplicationDbContextInilializer
-    {
-        public static IServiceProvider InilializeDbContext(this IServiceProvider serviceProvider)
-        {
-            using var scope = serviceProvider.CreateScope();
-            scope.ServiceProvider.GetRequiredService<ApplicationDbContext>()
-                .Database.Migrate();
+namespace Money.Data;
 
-            return serviceProvider;
-        }
+public static class ApplicationDbContextInitializer
+{
+    public static IServiceProvider InitializeDatabaseContext(this IServiceProvider serviceProvider)
+    {
+        using IServiceScope scope = serviceProvider.CreateScope();
+        using ApplicationDbContext applicationDbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        applicationDbContext.Database.Migrate();
+
+        return serviceProvider;
     }
 }

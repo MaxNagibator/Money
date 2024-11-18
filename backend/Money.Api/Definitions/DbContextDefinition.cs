@@ -19,7 +19,7 @@ public class DbContextDefinition : AppDefinition
     {
         if (app.Configuration["AUTO_MIGRATE"] == "true")
         {
-            app.Services.InilializeDbContext();
+            app.Services.InitializeDatabaseContext();
         }
     }
 }
