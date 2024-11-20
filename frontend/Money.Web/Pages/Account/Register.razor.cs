@@ -1,6 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Money.Web.Services.Authentication;
 using System.ComponentModel.DataAnnotations;
 
 namespace Money.Web.Pages.Account;
@@ -8,10 +9,10 @@ namespace Money.Web.Pages.Account;
 public partial class Register
 {
     [SupplyParameterFromForm]
-    private InputModel Input { get; set; } = new();
+    private InputModel Input { get; set; } = default!;
 
     [SupplyParameterFromQuery]
-    private string? ReturnUrl { get; set; } = null;
+    private string? ReturnUrl { get; set; }
 
     [Inject]
     private AuthenticationService AuthenticationService { get; set; } = default!;
@@ -22,17 +23,30 @@ public partial class Register
     [Inject]
     private ISnackbar Snackbar { get; set; } = default!;
 
-    public async Task RegisterUser(EditContext editContext)
+    private InputType PasswordInputType => Input.UseConfirmPassword ? InputType.Password : InputType.Text;
+    private string PasswordIcon => PasswordInputType == InputType.Password ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility;
+
+    public Task RegisterUserAsync(EditContext editContext)
     {
         UserDto user = new(Input.Email, Input.Password);
 
-        await AuthenticationService.RegisterAsync(user)
+        return AuthenticationService.RegisterAsync(user)
             .Map(() => AuthenticationService.LoginAsync(user))
             .TapError(message => Snackbar.Add($"Ошибка во время регистрации {message}", Severity.Error))
             .Tap(() => NavigationManager.ReturnTo(ReturnUrl));
     }
 
-    private sealed class InputModel
+    protected override void OnParametersSet()
+    {
+        Input = new InputModel();
+    }
+
+    private void TogglePasswordVisibility()
+    {
+        Input.UseConfirmPassword = !Input.UseConfirmPassword;
+    }
+
+    private sealed class InputModel : IValidatableObject
     {
         [Required(ErrorMessage = "Email обязателен.")]
         [EmailAddress(ErrorMessage = "Некорректный email.")]
@@ -47,7 +61,16 @@ public partial class Register
 
         [DataType(DataType.Password)]
         [Display(Name = "Подтверждение пароля")]
-        [Compare("Password", ErrorMessage = "Пароли не совпадают.")]
         public string ConfirmPassword { get; set; } = "";
+
+        public bool UseConfirmPassword { get; set; } = true;
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (UseConfirmPassword && Password != ConfirmPassword)
+            {
+                yield return new ValidationResult("Пароли не совпадают.", [nameof(ConfirmPassword)]);
+            }
+        }
     }
 }

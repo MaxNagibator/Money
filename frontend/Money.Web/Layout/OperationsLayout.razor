@@ -1,5 +1,4 @@
 ﻿@inherits LayoutComponentBase
-
 @layout MainLayout
 
 <OperationsFilter @ref="_operationsFilter" />
@@ -7,41 +6,41 @@
 @if (_operationsFilter == null)
 {
     <MudProgressLinear Indeterminate />
-
-    return;
 }
-
-<MudPaper Class="my-1 pa-2">
-    <MudStack Row
-              Wrap="Wrap.Wrap">
-        <MudItem lg="4"
-                 md="7"
-                 sm="7"
-                 xs="7">
-            <MudText>
-                @PeriodString
-            </MudText>
-        </MudItem>
-
-        @foreach ((OperationTypes.Value? type, decimal amount) in Operations)
-        {
-            <MudItem xs="2">
-                <MudStack AlignItems="AlignItems.Center"
-                          Justify="Justify.FlexEnd"
-                          Row
-                          StretchItems="StretchItems.End">
-                    <MudIcon Color="@type.Color"
-                             Icon="@type.Icon"
-                             Size="Size.Small" />
-                    <MudText>
-                        @amount.ToString("N0")
-                    </MudText>
-                </MudStack>
+else
+{
+    <MudPaper Class="my-1 pa-2">
+        <MudStack Row
+                  Wrap="Wrap.Wrap">
+            <MudItem lg="4"
+                     md="7"
+                     sm="7"
+                     xs="7">
+                <MudText>
+                    @PeriodString
+                </MudText>
             </MudItem>
-        }
-    </MudStack>
-</MudPaper>
 
-<CascadingValue Value="_operationsFilter">
-    @Body
-</CascadingValue>
+            @foreach ((OperationTypes.Value? type, decimal amount) in Operations)
+            {
+                <MudItem xs="2">
+                    <MudStack AlignItems="AlignItems.Center"
+                              Justify="Justify.FlexEnd"
+                              Row
+                              StretchItems="StretchItems.End">
+                        <MudIcon Color="@type.Color"
+                                 Icon="@type.Icon"
+                                 Size="Size.Small" />
+                        <MudText>
+                            @amount.ToString("N0")
+                        </MudText>
+                    </MudStack>
+                </MudItem>
+            }
+        </MudStack>
+    </MudPaper>
+
+    <CascadingValue Value="_operationsFilter">
+        @Body
+    </CascadingValue>
+}

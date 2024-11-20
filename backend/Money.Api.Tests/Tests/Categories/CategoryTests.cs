@@ -189,4 +189,35 @@ public class CategoryTests
         Assert.That(dbCategory, Is.Not.Null);
         Assert.That(dbCategory.IsDeleted, Is.EqualTo(false));
     }
+
+    [Test]
+    public async Task RestoreFail_WhenNotDeletedTest()
+    {
+        TestCategory category = _user.WithCategory();
+        _dbClient.Save();
+
+        await _apiClient.Category.Restore(category.Id).IsBadRequest();
+    }
+
+    [Test]
+    public async Task RestoreFail_WhenNotExistTest()
+    {
+        _dbClient.Save();
+
+        await _apiClient.Category.Restore(-1).IsNotFound();
+    }
+
+    [Test]
+    public async Task RestoreFail_WhenParentDeletedTest()
+    {
+        TestCategory parent = _user.WithCategory();
+        TestCategory child = _user.WithCategory();
+        child.SetParent(parent);
+        _dbClient.Save();
+
+        await _apiClient.Category.Delete(child.Id).IsSuccess();
+        await _apiClient.Category.Delete(parent.Id).IsSuccess();
+
+        await _apiClient.Category.Restore(child.Id).IsBadRequest();
+    }
 }

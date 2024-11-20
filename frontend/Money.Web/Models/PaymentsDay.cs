@@ -6,6 +6,8 @@ public class OperationsDay
 
     public List<Operation> Operations { get; set; } = [];
 
+    public Action<Operation> AddAction { get; set; } = _ => { };
+
     public decimal CalculateSum(OperationTypes.Value operationType)
     {
         return Operations.Where(x => x.IsDeleted == false && x.Category.OperationType == operationType)

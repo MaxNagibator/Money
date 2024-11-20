@@ -8,107 +8,103 @@ using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 
-namespace Money.CoreLib
+namespace Money.CoreLib;
+
+public static class HostApplicationBuilderExtensions
 {
-    public static class HostApplicationBuilderExtensions
+    public static IHostApplicationBuilder AddServiceDefaults(this IHostApplicationBuilder builder)
     {
-        public static IHostApplicationBuilder AddServiceDefaults(this IHostApplicationBuilder builder)
+        builder.ConfigureOpenTelemetry();
+
+        builder.AddDefaultHealthChecks();
+
+        builder.Services.AddServiceDiscovery();
+
+        builder.Services.ConfigureHttpClientDefaults(http =>
         {
-            builder.ConfigureOpenTelemetry();
+            http.AddStandardResilienceHandler();
+            http.AddServiceDiscovery();
+        });
 
-            builder.AddDefaultHealthChecks();
+        return builder;
+    }
 
-            builder.Services.AddServiceDiscovery();
+    public static IHostApplicationBuilder ConfigureOpenTelemetry(this IHostApplicationBuilder builder)
+    {
+        builder.Logging.AddOpenTelemetryDefaults();
 
-            builder.Services.ConfigureHttpClientDefaults(http =>
+        builder.Services.AddOpenTelemetry()
+            .WithMetrics(metrics =>
             {
-                http.AddStandardResilienceHandler();
-                http.AddServiceDiscovery();
-            });
+                metrics.AddAspNetCoreInstrumentation()
+                    .AddHttpClientInstrumentation()
+                    .AddRuntimeInstrumentation();
+            })
+            .WithTracing(tracing =>
+            {
+                tracing.AddAspNetCoreInstrumentation()
+                    .AddEntityFrameworkCoreInstrumentation(p =>
+                    {
+                        p.SetDbStatementForText = true;
 
-            return builder;
-        }
-
-
-        public static IHostApplicationBuilder ConfigureOpenTelemetry(this IHostApplicationBuilder builder)
-        {
-            builder.Logging.AddOpenTelemetryDefaults();
-
-            builder.Services.AddOpenTelemetry()
-                .WithMetrics(metrics =>
-                {
-                    metrics.AddAspNetCoreInstrumentation()
-                        .AddHttpClientInstrumentation()
-                        .AddRuntimeInstrumentation();
-                })
-                .WithTracing(tracing =>
-                {
-                    tracing.AddAspNetCoreInstrumentation()
-                        .AddEntityFrameworkCoreInstrumentation(p =>
+                        p.EnrichWithIDbCommand = (activity, command) =>
                         {
-                            p.SetDbStatementForText = true;
-                            p.EnrichWithIDbCommand = (activity, command) =>
-                            {
-                                var stateDisplayName = $"{command.CommandType} main";
-                                activity.DisplayName = stateDisplayName;
-                                activity.SetTag("db.name", stateDisplayName);
-                            };
-                        })
-                        .AddHttpClientInstrumentation();
-                });
-
-            builder.AddOpenTelemetryExporters();
-
-            return builder;
-        }
-
-        public static ILoggingBuilder AddOpenTelemetryDefaults(this ILoggingBuilder logging)
-        {
-            logging.AddOpenTelemetry(logging =>
-            {
-                logging.IncludeFormattedMessage = true;
-                logging.IncludeScopes = true;
+                            string stateDisplayName = $"{command.CommandType} main";
+                            activity.DisplayName = stateDisplayName;
+                            activity.SetTag("db.name", stateDisplayName);
+                        };
+                    })
+                    .AddHttpClientInstrumentation();
             });
 
-            return logging;
+        builder.AddOpenTelemetryExporters();
+
+        return builder;
+    }
+
+    public static ILoggingBuilder AddOpenTelemetryDefaults(this ILoggingBuilder logging)
+    {
+        logging.AddOpenTelemetry(options =>
+        {
+            options.IncludeFormattedMessage = true;
+            options.IncludeScopes = true;
+        });
+
+        return logging;
+    }
+
+    private static IHostApplicationBuilder AddOpenTelemetryExporters(this IHostApplicationBuilder builder)
+    {
+        bool useOtlpExporter = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
+
+        if (useOtlpExporter)
+        {
+            builder.Services.AddOpenTelemetry().UseOtlpExporter();
         }
 
+        return builder;
+    }
 
-        private static IHostApplicationBuilder AddOpenTelemetryExporters(this IHostApplicationBuilder builder)
+    public static IHostApplicationBuilder AddDefaultHealthChecks(this IHostApplicationBuilder builder)
+    {
+        builder.Services.AddHealthChecks()
+            .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
+
+        return builder;
+    }
+
+    public static WebApplication MapDefaultEndpoints(this WebApplication app)
+    {
+        if (app.Environment.IsDevelopment())
         {
-            var useOtlpExporter = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
+            app.MapHealthChecks("/health");
 
-            if (useOtlpExporter)
+            app.MapHealthChecks("/alive", new HealthCheckOptions
             {
-                builder.Services.AddOpenTelemetry().UseOtlpExporter();
-            }
-
-            return builder;
+                Predicate = r => r.Tags.Contains("live"),
+            });
         }
 
-
-        public static IHostApplicationBuilder AddDefaultHealthChecks(this IHostApplicationBuilder builder)
-        {
-            builder.Services.AddHealthChecks()
-                .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
-
-            return builder;
-        }
-
-        public static WebApplication MapDefaultEndpoints(this WebApplication app)
-        {
-            if (app.Environment.IsDevelopment())
-            {
-                app.MapHealthChecks("/health");
-
-                app.MapHealthChecks("/alive", new HealthCheckOptions
-                {
-                    Predicate = r => r.Tags.Contains("live")
-                });
-            }
-
-            return app;
-        }
-
+        return app;
     }
 }

@@ -5,7 +5,7 @@ namespace Money.Business.Services;
 
 public class CategoryService(RequestEnvironment environment, ApplicationDbContext context)
 {
-    public async Task<ICollection<Category>> GetAsync(OperationTypes? type = null, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Category>> GetAsync(OperationTypes? type = null, CancellationToken cancellationToken = default)
     {
         IQueryable<DomainCategory> query = context.Categories.IsUserEntity(environment.UserId);
 
@@ -14,26 +14,27 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
             query = query.Where(x => x.TypeId == type);
         }
 
-        List<DomainCategory> dbCategories = await query
+        List<Category> categories = await query
             .OrderBy(x => x.Order == null)
             .ThenBy(x => x.Order)
             .ThenBy(x => x.Name)
+            .Select(x => x.Adapt())
             .ToListAsync(cancellationToken);
 
-        List<Category> categories = dbCategories.Select(x => x.Adapt()).ToList();
         return categories;
     }
 
     public async Task<Category> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
         DomainCategory dbCategory = await GetByIdInternal(id, cancellationToken);
-        Category category = dbCategory.Adapt();
-        return category;
+        return dbCategory.Adapt();
     }
 
     private async Task<DomainCategory> GetByIdInternal(int id, CancellationToken cancellationToken)
     {
-        DomainCategory dbCategory = await context.Categories.SingleOrDefaultAsync(environment.UserId, id, cancellationToken)
+        DomainCategory dbCategory = await context.Categories
+                                        .IsUserEntity(environment.UserId, id)
+                                        .FirstOrDefaultAsync(cancellationToken)
                                     ?? throw new NotFoundException("категория", id);
 
         return dbCategory;
@@ -144,18 +145,41 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
 
     public async Task RestoreAsync(int id, CancellationToken cancellationToken = default)
     {
-        DomainCategory dbCategory = await context.Categories.IgnoreQueryFilters()
-                                        .Where(x => x.IsDeleted)
-                                        .SingleOrDefaultAsync(environment.UserId, id, cancellationToken)
-                                    ?? throw new NotFoundException("категория", id);
+        DomainCategory dbCategory = await GetCategory(id);
+
+        if (dbCategory.IsDeleted == false)
+        {
+            throw new BusinessException("Извините, но невозможно восстановить неудаленную категорию");
+        }
 
         if (dbCategory.ParentId != null)
         {
-            await GetByIdInternal(dbCategory.ParentId.Value, cancellationToken);
+            DomainCategory dbParentCategory = await GetCategory(dbCategory.ParentId.Value);
+
+            if (dbParentCategory.IsDeleted)
+            {
+                throw new BusinessException("Извините, но невозможно восстановить дочернюю категорию у удаленной родительской категории");
+            }
         }
 
         dbCategory.IsDeleted = false;
         await context.SaveChangesAsync(cancellationToken);
+        return;
+
+        async Task<DomainCategory> GetCategory(int categoryId)
+        {
+            DomainCategory? domainCategory = await context.Categories
+                .IgnoreQueryFilters()
+                .IsUserEntity(environment.UserId, categoryId)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (domainCategory == null)
+            {
+                throw new NotFoundException("категория", categoryId);
+            }
+
+            return domainCategory;
+        }
     }
 
     public async Task LoadDefaultAsync(bool isAdd = true, CancellationToken cancellationToken = default)

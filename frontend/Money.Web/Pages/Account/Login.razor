@@ -1,4 +1,5 @@
 ﻿@page "/Account/Login"
+@attribute [AllowAnonymous]
 
 <PageTitle>Вход</PageTitle>
 
@@ -15,7 +16,7 @@
         <EditForm FormName="login"
                   method="post"
                   Model="Input"
-                  OnValidSubmit="LoginUser">
+                  OnValidSubmit="LoginUserAsync">
             <DataAnnotationsValidator />
 
             <MudText GutterBottom

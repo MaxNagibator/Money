@@ -1,0 +1,190 @@
+﻿<MudPaper Class="pa-2">
+    <MudGrid Spacing="2">
+        <MudItem md="6"
+                 xs="12">
+            <MudStack AlignItems="AlignItems.Center"
+                      Row
+                      Spacing="0"
+                      StretchItems="StretchItems.Middle">
+                <MudTooltip Arrow
+                            Delay="100"
+                            Placement="Placement.Bottom"
+                            Text="@(SelectedRange == null ? "Не выбран диапазон" : "Предыдущ" + SelectedRange.ChangeName)">
+                    <MudIconButton Color="Color.Tertiary"
+                                   Disabled="@(SelectedRange == null)"
+                                   Icon="@Icons.Material.Rounded.ChevronLeft"
+                                   OnClick="DecrementDateRangeAsync"
+                                   Size="Size.Medium" />
+                </MudTooltip>
+
+                <MudToggleGroup Color="Color.Tertiary"
+                                SelectionMode="SelectionMode.ToggleSelection"
+                                T="DateInterval?"
+                                Value="SelectedRange"
+                                ValueChanged="@(OnDateIntervalChanged)">
+                    @foreach (DateInterval interval in DateIntervals)
+                    {
+                        <MudToggleItem Value="interval">@interval.DisplayName</MudToggleItem>
+                    }
+                </MudToggleGroup>
+
+                <MudTooltip Arrow
+                            Delay="100"
+                            Placement="Placement.Bottom"
+                            Text="@(SelectedRange == null ? "Не выбран диапазон" : "Следующ" + SelectedRange.ChangeName)">
+                    <MudIconButton Color="Color.Tertiary"
+                                   Disabled="@(SelectedRange == null)"
+                                   Icon="@Icons.Material.Rounded.ChevronRight"
+                                   OnClick="IncrementDateRangeAsync"
+                                   Size="Size.Medium" />
+                </MudTooltip>
+            </MudStack>
+        </MudItem>
+        <MudItem md="6"
+                 xs="12">
+            <MudStack AlignItems="AlignItems.Center"
+                      Row
+                      StretchItems="StretchItems.None">
+                @if (_showDateRange)
+                {
+                    <MudDateRangePicker Adornment="Adornment.Start"
+                                        AdornmentColor="Color.Tertiary"
+                                        @bind-DateRange="@DateRange"
+                                        Clearable
+                                        Color="Color.Tertiary"
+                                        DateFormat="dd.MM.yyyy"
+                                        Editable
+                                        Label="Диапазон дат"
+                                        Mask="@(new DateMask("dd.MM.yyyy"))"
+                                        PickerVariant="PickerVariant.Inline"
+                                        Rounded
+                                        ShowWeekNumbers />
+                }
+                else
+                {
+                    <MudDatePicker Adornment="Adornment.Start"
+                                   AdornmentColor="Color.Tertiary"
+                                   AnchorOrigin="Origin.BottomLeft"
+                                   @bind-Date="@DateRange.Start"
+                                   Clearable
+                                   Color="Color.Tertiary"
+                                   DateFormat="dd.MM.yyyy"
+                                   Editable
+                                   Label="Дата с"
+                                   Mask="@(new DateMask("dd.MM.yyyy"))"
+                                   MaxDate="@DateRange.End" />
+
+                    <MudDatePicker Adornment="Adornment.Start"
+                                   AdornmentColor="Color.Tertiary"
+                                   AnchorOrigin="Origin.BottomRight"
+                                   @bind-Date="@DateRange.End"
+                                   Clearable
+                                   Color="Color.Tertiary"
+                                   DateFormat="dd.MM.yyyy"
+                                   Editable
+                                   Label="Дата по"
+                                   Mask="@(new DateMask("dd.MM.yyyy"))"
+                                   MinDate="@DateRange.Start" />
+                }
+
+                <MudIconButton Color="Color.Tertiary"
+                               Icon="@Icons.Material.Rounded.SwapHoriz"
+                               OnClick="() => _showDateRange = !_showDateRange"
+                               Size="Size.Small" />
+            </MudStack>
+        </MudItem>
+        <MudItem md="6"
+                 xs="12">
+            <MudAutocomplete Adornment="Adornment.Start"
+                             AdornmentColor="Color.Tertiary"
+                             AdornmentIcon="@Icons.Material.Rounded.Place"
+                             @bind-Value="Place"
+                             Clearable
+                             CoerceText="false"
+                             CoerceValue
+                             Counter="0"
+                             DebounceInterval="350"
+                             Immediate
+                             Label="Место"
+                             ResetValueOnEmptyText="false"
+                             SearchFunc="SearchPlaceAsync"
+                             SelectValueOnTab
+                             ShowProgressIndicator />
+        </MudItem>
+        <MudItem md="6"
+                 xs="12">
+            <CategorySelector @ref="_categorySelector" />
+        </MudItem>
+        <MudItem md="6"
+                 xs="12">
+            <MudTextField Adornment="Adornment.Start"
+                          AdornmentColor="Color.Tertiary"
+                          AdornmentIcon="@Icons.Material.Rounded.Comment"
+                          AutoGrow
+                          @bind-Value="Comment"
+                          Clearable
+                          Immediate
+                          Label="Комментарий" />
+        </MudItem>
+        <MudItem md="6"
+                 xs="12">
+            <MudStack AlignItems="AlignItems.Baseline"
+                      Row>
+                <MudTooltip Text="Очистить все фильтры">
+                    <MudIconButton Color="Color.Tertiary"
+                                   Icon="@Icons.Material.Rounded.DeleteSweep"
+                                   OnClick="ResetAsync"
+                                   Size="Size.Medium"
+                                   Variant="Variant.Filled" />
+                </MudTooltip>
+                <MudTooltip Text="@(_showZeroDays ? "Скрыть пустые дни" : "Показать пустые дни")">
+                    <MudToggleIconButton Color="Color.Tertiary"
+                                         Icon="@Icons.Material.Rounded.Star"
+                                         Size="Size.Medium"
+                                         Toggled="_showZeroDays"
+                                         ToggledChanged="OnToggledChanged"
+                                         ToggledIcon="@Icons.Material.Rounded.StarOutline"
+                                         ToggledVariant="Variant.Outlined"
+                                         Variant="Variant.Filled" />
+                </MudTooltip>
+
+                <MudStack Row
+                          AlignItems="AlignItems.Baseline">
+                    <MudTooltip
+                        Text="@(_showChangeCategorySelector ? "Отменить перенос" : "Перекинуть все отображённые на странице операции в выбранную категорию")">
+                        <MudToggleIconButton Color="Color.Tertiary"
+                                             Icon="@Icons.Material.Rounded.MoveToInbox"
+                                             Size="Size.Medium"
+                                             @bind-Toggled="_showChangeCategorySelector"
+                                             ToggledIcon="@Icons.Material.Rounded.Close"
+                                             ToggledVariant="Variant.Outlined"
+                                             Variant="Variant.Filled" />
+                    </MudTooltip>
+
+                    @if (_showChangeCategorySelector)
+                    {
+                        <CategorySelector @ref="_changeCategorySelector"
+                                          SelectionMode="SelectionMode.SingleSelection" />
+
+                        <MudTooltip Text="Подтвердить перенос">
+                            <MudIconButton Color="Color.Tertiary"
+                                           Disabled="@(_changeCategorySelector?.SelectedCategory == null)"
+                                           Icon="@Icons.Material.Rounded.Check"
+                                           OnClick="TransferOperationsAsync"
+                                           Size="Size.Medium"
+                                           Variant="Variant.Filled" />
+                        </MudTooltip>
+                    }
+                </MudStack>
+                <MudSpacer />
+                <MudButton Color="Color.Info"
+                           EndIcon="@Icons.Material.Rounded.Search"
+                           OnClick="SearchAsync"
+                           Size="Size.Medium"
+                           Variant="Variant.Filled">
+                    Найти
+                </MudButton>
+            </MudStack>
+        </MudItem>
+    </MudGrid>
+</MudPaper>

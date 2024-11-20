@@ -1,7 +1,8 @@
 using Blazored.LocalStorage;
+using CSharpFunctionalExtensions;
 using System.Net.Http.Headers;
 
-namespace Money.Web.Services;
+namespace Money.Web.Services.Authentication;
 
 public class RefreshTokenHandler(RefreshTokenService refreshTokenService, ILocalStorageService localStorage) : DelegatingHandler
 {
@@ -9,14 +10,19 @@ public class RefreshTokenHandler(RefreshTokenService refreshTokenService, ILocal
         HttpRequestMessage request,
         CancellationToken cancellationToken)
     {
-        string? absPath = request.RequestUri?.AbsolutePath;
+        string? absolutePath = request.RequestUri?.AbsolutePath;
 
-        if (absPath != null && (absPath.Contains("token") || absPath.Contains("register")))
+        if (absolutePath != null && (absolutePath.Contains("token") || absolutePath.Contains("register")))
         {
             return await base.SendAsync(request, cancellationToken);
         }
 
-        await refreshTokenService.TryRefreshToken();
+        Result<string> result = await refreshTokenService.TryRefreshToken();
+
+        if (result.IsSuccess == false)
+        {
+            return await base.SendAsync(request, cancellationToken);
+        }
 
         string? token = await localStorage.GetItemAsync<string>("authToken", cancellationToken);
 

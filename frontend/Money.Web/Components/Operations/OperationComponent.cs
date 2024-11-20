@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components;
 
-namespace Money.Web.Components;
+namespace Money.Web.Components.Operations;
 
 public abstract class OperationComponent : ComponentBase, IDisposable
 {
@@ -24,5 +24,5 @@ public abstract class OperationComponent : ComponentBase, IDisposable
         OperationsFilter.OnSearch += OnSearchChanged;
     }
 
-    protected abstract void OnSearchChanged(object? sender, List<Operation>? operations);
+    protected abstract void OnSearchChanged(object? sender, OperationSearchEventArgs args);
 }

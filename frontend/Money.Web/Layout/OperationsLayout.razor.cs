@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Money.Web.Components;
+using Microsoft.AspNetCore.Components.Routing;
 using System.Globalization;
 
 namespace Money.Web.Layout;
 
-public partial class OperationsLayout
+public partial class OperationsLayout : IDisposable
 {
     private OperationsFilter? _operationsFilter;
 
@@ -14,15 +14,16 @@ public partial class OperationsLayout
     private string PeriodString { get; set; } = GetPeriodString(null, null);
     private List<(OperationTypes.Value type, decimal amount)> Operations { get; } = [];
 
-    protected override void OnInitialized()
+    public void Dispose()
     {
-        NavigationManager.LocationChanged += async (_, _) =>
+        if (_operationsFilter != null)
         {
-            if (_operationsFilter != null)
-            {
-                await _operationsFilter.Search();
-            }
-        };
+            _operationsFilter.OnSearch -= OnSearchChanged;
+        }
+
+        NavigationManager.LocationChanged -= OnLocationChanged;
+
+        GC.SuppressFinalize(this);
     }
 
     protected override void OnAfterRender(bool firstRender)
@@ -34,20 +35,32 @@ public partial class OperationsLayout
 
         if (_operationsFilter != null)
         {
-            _operationsFilter.OnSearch += (_, list) =>
-            {
-                Operations.Clear();
-
-                foreach (OperationTypes.Value operationType in OperationTypes.Values)
-                {
-                    decimal? amount = list?.Where(x => x.Category.OperationType == operationType).Sum(operation => operation.Sum);
-                    Operations.Add((operationType, amount ?? 0));
-                }
-
-                PeriodString = GetPeriodString(_operationsFilter.DateRange.Start, _operationsFilter.DateRange.End);
-                StateHasChanged();
-            };
+            _operationsFilter.OnSearch += OnSearchChanged;
         }
+
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs args)
+    {
+        _ = _operationsFilter?.SearchAsync();
+    }
+
+    private void OnSearchChanged(object? sender, OperationSearchEventArgs args)
+    {
+        Operations.Clear();
+
+        foreach (OperationTypes.Value operationType in OperationTypes.Values)
+        {
+            decimal? amount = args.Operations?
+                .Where(x => x.Category.OperationType == operationType)
+                .Sum(operation => operation.Sum);
+
+            Operations.Add((operationType, amount ?? 0));
+        }
+
+        PeriodString = GetPeriodString(_operationsFilter?.DateRange.Start, _operationsFilter?.DateRange.End);
+        StateHasChanged();
     }
 
     private static string GetPeriodString(DateTime? dateFrom, DateTime? dateTo)

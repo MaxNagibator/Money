@@ -7,12 +7,9 @@ public class PlaceService(MoneyClient moneyClient)
     private static readonly Dictionary<string, string[]> Cache = new();
     private string _lastSearchedValue = string.Empty;
 
-    public async Task<IEnumerable<string>> SearchPlace(string value, CancellationToken token = default)
+    public async Task<IEnumerable<string>> SearchPlace(string? value, CancellationToken token = default)
     {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return Array.Empty<string>();
-        }
+        value ??= string.Empty;
 
         if (Cache.TryGetValue(value, out string[]? cachedResults))
         {
@@ -47,15 +44,16 @@ public class PlaceService(MoneyClient moneyClient)
         return EnsureValueInList(places, value);
     }
 
-    private static List<T> EnsureValueInList<T>(IEnumerable<T> list, T value)
+    private static List<string> EnsureValueInList(IEnumerable<string> list, string value)
     {
-        List<T> newList = [..list];
+        List<string> newList = [..list];
 
-        if (newList.Count == 0 || newList.All(x => !Equals(x, value)))
+        if (string.IsNullOrWhiteSpace(value) && newList.Count != 0 && newList.Any(x => Equals(x, value)))
         {
-            newList.Insert(0, value);
+            return newList;
         }
 
+        newList.Insert(0, value);
         return newList;
     }
 }

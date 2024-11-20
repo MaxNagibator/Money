@@ -2,7 +2,7 @@
 
 <MudThemeProvider IsDarkMode="@_appSettings.IsDarkMode"
                   @ref="@_mudThemeProvider"
-                  Theme="_defaultTheme"  />
+                  Theme="_defaultTheme" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
@@ -38,8 +38,10 @@
     <MudMainContent Class="pt-3 px-8">
         <MudContainer Gutters
                       MaxWidth="MaxWidth.Large">
-            <CascadingValue Value="_appSettings">
-                <CascadingValue Value="_darkModeToggle">
+            <CascadingValue IsFixed="true"
+                            Value="_appSettings">
+                <CascadingValue IsFixed="true"
+                                Value="_darkModeToggle">
                     @Body
                 </CascadingValue>
             </CascadingValue>

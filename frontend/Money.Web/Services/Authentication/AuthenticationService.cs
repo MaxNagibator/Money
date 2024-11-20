@@ -6,7 +6,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using AuthData = Money.Web.Models.AuthData;
 
-namespace Money.Web.Services;
+namespace Money.Web.Services.Authentication;
 
 public class AuthenticationService(
     HttpClient client,

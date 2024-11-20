@@ -1,23 +1,16 @@
-﻿<MudStack AlignItems="AlignItems.Center"
-          Row>
-
-    <MudStack AlignItems="AlignItems.Center"
-              Row
-              Spacing="0">
+﻿<div class="align-center d-flex flex-row gap-4">
+    <div class="align-center d-flex flex-row gap-0">
         <MudIcon Color="@Category.OperationType.Color"
                  Icon="@Category.OperationType.Icon"
                  Size="Size.Small" />
-
         <OperationDialog OnSubmit="OnEdit"
-                       Operation="@Operation"
-                       @ref="_dialog">
-            <MudTooltip Text="Редактировать">
-                <MudIconButton Icon="@Icons.Material.Rounded.ModeEdit"
-                               OnClick="() => _dialog.ToggleOpen()"
-                               Size="Size.Small" />
-            </MudTooltip>
+                         Operation="@Operation"
+                         @ref="_dialog">
+            <MudIconButton Icon="@Icons.Material.Rounded.ModeEdit"
+                           OnClick="() => _dialog.ToggleOpen()"
+                           Size="Size.Small" />
         </OperationDialog>
-    </MudStack>
+    </div>
     <MudItem md="1"
              xs="2">
         <MudText Align="Align.Left"
@@ -56,9 +49,7 @@
         </MudText>
     </MudItem>
     <MudSpacer />
-    <MudTooltip Text="Удалить">
-        <MudIconButton Icon="@Icons.Material.Rounded.Delete"
-                       OnClick="() => OnDelete.InvokeAsync(Operation)"
-                       Size="Size.Small" />
-    </MudTooltip>
-</MudStack>
+    <MudIconButton Icon="@Icons.Material.Rounded.Delete"
+                   OnClick="() => OnDelete.InvokeAsync(Operation)"
+                   Size="Size.Small" />
+</div>

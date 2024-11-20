@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Money.ApiClient;
-using Money.Web.Components;
 
 namespace Money.Web.Pages.Operations;
 
@@ -25,21 +24,84 @@ public partial class ListOperations
         Categories = await CategoryService.GetCategories();
     }
 
-    protected override void OnSearchChanged(object? sender, List<Operation>? operations)
+    protected override void OnSearchChanged(object? sender, OperationSearchEventArgs args)
     {
-        if (operations != null)
+        if (args.Operations == null)
         {
-            OperationsDays = operations
-                .GroupBy(x => x.Date)
-                .Select(x => new OperationsDay
-                {
-                    Date = x.Key,
-                    Operations = x.ToList(),
-                })
-                .ToList();
+            StateHasChanged();
+            return;
         }
 
+        if (args.ShouldRender == false && OperationsDays != null)
+        {
+            if (args.AddZeroDays)
+            {
+                FillZeroDays(OperationsDays);
+            }
+            else
+            {
+                OperationsDays = OperationsDays.Where(x => x.Operations.Count != 0).ToList();
+            }
+
+            StateHasChanged();
+            return;
+        }
+
+        OperationsDays = [];
+
+        List<OperationsDay> days = args.Operations
+            .GroupBy(x => x.Date)
+            .Select(g =>
+            {
+                OperationsDay operationsDay = new()
+                {
+                    Date = g.Key,
+                    Operations = g.ToList(),
+                };
+
+                operationsDay.AddAction = x => AddOperation(x, operationsDay);
+
+                return operationsDay;
+            })
+            .ToList();
+
+        if (args.AddZeroDays)
+        {
+            FillZeroDays(days);
+        }
+
+        OperationsDays = days;
+
         StateHasChanged();
+        return;
+
+        void FillZeroDays(List<OperationsDay> operationsDays)
+        {
+            for (int i = 0; i < operationsDays.Count - 1; i++)
+            {
+                DateTime day = operationsDays[i].Date;
+                DateTime nextDay = operationsDays[i + 1].Date.AddDays(1);
+
+                int shift = 0;
+
+                while (day != nextDay)
+                {
+                    shift++;
+                    day = day.AddDays(-1);
+
+                    OperationsDay operationsDay = new()
+                    {
+                        Date = day,
+                        Operations = [],
+                    };
+
+                    operationsDay.AddAction = x => AddOperation(x, operationsDay);
+                    operationsDays.Insert(i + shift, operationsDay);
+                }
+
+                i += shift;
+            }
+        }
     }
 
     private async Task Delete(Operation operation)

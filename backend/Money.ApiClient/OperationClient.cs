@@ -8,41 +8,46 @@ public class OperationClient(MoneyClient apiClient) : ApiClientExecutor(apiClien
 
     protected override string ApiPrefix => "";
 
-    public async Task<ApiClientResponse<Operation[]>> Get(OperationFilterDto? filter = null)
+    public Task<ApiClientResponse<Operation[]>> Get(OperationFilterDto? filter = null)
     {
-        return await GetAsync<Operation[]>(ToUriParameters(filter));
+        return GetAsync<Operation[]>(ToUriParameters(filter));
     }
 
-    public async Task<ApiClientResponse<Operation>> GetById(int id)
+    public Task<ApiClientResponse<Operation>> GetById(int id)
     {
-        return await GetAsync<Operation>($"{BaseUri}/{id}");
+        return GetAsync<Operation>($"{BaseUri}/{id}");
     }
 
-    public async Task<ApiClientResponse<int>> Create(SaveRequest request)
+    public Task<ApiClientResponse<int>> Create(SaveRequest request)
     {
-        return await PostAsync<int>(BaseUri, request);
+        return PostAsync<int>(BaseUri, request);
     }
 
-    public async Task<ApiClientResponse> Update(int id, SaveRequest request)
+    public Task<ApiClientResponse> Update(int id, SaveRequest request)
     {
-        return await PutAsync($"{BaseUri}/{id}", request);
+        return PutAsync($"{BaseUri}/{id}", request);
     }
 
-    public async Task<ApiClientResponse> Delete(int id)
+    public Task<ApiClientResponse> Delete(int id)
     {
-        return await DeleteAsync($"{BaseUri}/{id}");
+        return DeleteAsync($"{BaseUri}/{id}");
     }
 
-    public async Task<ApiClientResponse> Restore(int id)
+    public Task<ApiClientResponse> Restore(int id)
     {
-        return await PostAsync($"{BaseUri}/{id}/Restore");
+        return PostAsync($"{BaseUri}/{id}/Restore");
     }
 
-    public async Task<ApiClientResponse<string[]>> GetPlaces(int offset, int count, string? name = null, CancellationToken token = default)
+    public Task<ApiClientResponse<Operation[]>> UpdateBatch(UpdateOperationsBatchRequest request)
+    {
+        return PostAsync<Operation[]>($"{BaseUri}/UpdateBatch", request);
+    }
+
+    public Task<ApiClientResponse<string[]>> GetPlaces(int offset, int count, string? name = null, CancellationToken token = default)
     {
         string postfixUri = string.IsNullOrWhiteSpace(name) ? string.Empty : $"/{name}";
 
-        return await GetAsync<string[]>($"{BaseUri}/GetPlaces/{offset}/{count}{postfixUri}", token);
+        return GetAsync<string[]>($"{BaseUri}/GetPlaces/{offset}/{count}{postfixUri}", token);
     }
 
     private string ToUriParameters(OperationFilterDto? filter)
@@ -118,6 +123,12 @@ public class OperationClient(MoneyClient apiClient) : ApiClientExecutor(apiClien
         ///     Место.
         /// </summary>
         public string? Place { get; set; }
+    }
+
+    public class UpdateOperationsBatchRequest
+    {
+        public required List<int> OperationIds { get; init; }
+        public required int CategoryId { get; init; }
     }
 
     public class Operation

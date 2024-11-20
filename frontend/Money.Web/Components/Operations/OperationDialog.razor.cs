@@ -6,7 +6,7 @@ using NCalc.Factories;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 
-namespace Money.Web.Components;
+namespace Money.Web.Components.Operations;
 
 public partial class OperationDialog
 {
@@ -14,9 +14,9 @@ public partial class OperationDialog
     private static readonly Dictionary<string, List<string>> Cache = new();
 
     private bool _isNumericSumVisible = true;
-    private string _lastSearchedValue = string.Empty;
 
-    public bool IsOpen { get; private set; }
+    [CascadingParameter]
+    public List<Category> Categories { get; set; } = default!;
 
     [Parameter]
     public Operation Operation { get; set; } = default!;
@@ -27,8 +27,7 @@ public partial class OperationDialog
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
-    [CascadingParameter]
-    public List<Category> Categories { get; set; } = default!;
+    public bool IsOpen { get; private set; }
 
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = InputModel.Empty;
@@ -44,6 +43,36 @@ public partial class OperationDialog
 
     [Inject]
     private IAsyncExpressionFactory Factory { get; set; } = default!;
+
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        foreach (ParameterValue parameter in parameters)
+        {
+            switch (parameter.Name)
+            {
+                case nameof(Categories):
+                    Categories = (List<Category>)parameter.Value;
+                    break;
+
+                case nameof(Operation):
+                    Operation = (Operation)parameter.Value;
+                    break;
+
+                case nameof(OnSubmit):
+                    OnSubmit = (EventCallback<Operation>)parameter.Value;
+                    break;
+
+                case nameof(ChildContent):
+                    ChildContent = (RenderFragment?)parameter.Value;
+                    break;
+
+                default:
+                    throw new ArgumentException($"Unknown parameter: {parameter.Name}");
+            }
+        }
+
+        return base.SetParametersAsync(ParameterView.Empty);
+    }
 
     public void ToggleOpen(OperationTypes.Value? type = null)
     {
@@ -133,7 +162,7 @@ public partial class OperationDialog
         return sum;
     }
 
-    private async Task OnSumKeyDown(KeyboardEventArgs args)
+    private async Task OnSumKeyDownAsync(KeyboardEventArgs args)
     {
         char key = args.Key.Length == 1 ? args.Key[0] : '\0';
 
@@ -182,16 +211,16 @@ public partial class OperationDialog
 
     private async Task SaveAsync()
     {
-        OperationClient.SaveRequest clientCategory = CreateSaveRequest();
+        OperationClient.SaveRequest saveRequest = CreateSaveRequest();
 
         if (Operation.Id == null)
         {
-            ApiClientResponse<int> result = await MoneyClient.Operation.Create(clientCategory);
+            ApiClientResponse<int> result = await MoneyClient.Operation.Create(saveRequest);
             Operation.Id = result.Content;
         }
         else
         {
-            await MoneyClient.Operation.Update(Operation.Id.Value, clientCategory);
+            await MoneyClient.Operation.Update(Operation.Id.Value, saveRequest);
         }
     }
 
@@ -207,19 +236,18 @@ public partial class OperationDialog
         };
     }
 
-    private async Task<IEnumerable<Category>> SearchCategory(string value, CancellationToken token)
+    private Task<IEnumerable<Category?>> SearchCategoryAsync(string? value, CancellationToken token)
     {
-        if (string.IsNullOrEmpty(value))
-        {
-            return Input.CategoryList ?? [];
-        }
+        IEnumerable<Category>? categories = string.IsNullOrWhiteSpace(value)
+            ? Input.CategoryList
+            : Input.CategoryList?.Where(x => x.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase));
 
-        return Input.CategoryList?.Where(x => x.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase)) ?? Array.Empty<Category>();
+        return Task.FromResult(categories ?? [])!;
     }
 
-    private async Task<IEnumerable<string>> SearchPlace(string value, CancellationToken token)
+    private Task<IEnumerable<string?>> SearchPlaceAsync(string? value, CancellationToken token)
     {
-        return await PlaceService.SearchPlace(value, token);
+        return PlaceService.SearchPlace(value, token)!;
     }
 
     private sealed class InputModel

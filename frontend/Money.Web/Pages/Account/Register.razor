@@ -1,4 +1,5 @@
 ﻿@page "/Account/Register"
+@attribute [AllowAnonymous]
 
 <PageTitle>Регистрация</PageTitle>
 
@@ -15,7 +16,7 @@
                   FormName="register"
                   method="post"
                   Model="Input"
-                  OnValidSubmit="RegisterUser">
+                  OnValidSubmit="RegisterUserAsync">
             <DataAnnotationsValidator />
 
             <MudText GutterBottom
@@ -32,21 +33,27 @@
                                   UserAttributes="@(new Dictionary<string, object?> { { "autocomplete", "true" }, { "aria-required", "true" } })" />
                 </MudItem>
                 <MudItem md="12">
-                    <MudTextField @bind-Value="Input.Password"
+                    <MudTextField Adornment="Adornment.End"
+                                  AdornmentIcon="@PasswordIcon"
+                                  @bind-Value="Input.Password"
                                   For="@(() => Input.Password)"
-                                  InputType="InputType.Password"
+                                  InputType="@PasswordInputType"
                                   Label="Пароль"
+                                  OnAdornmentClick="TogglePasswordVisibility"
                                   Placeholder="пароль"
                                   UserAttributes="@(new Dictionary<string, object?> { { "autocomplete", "new-password" }, { "aria-required", "true" } })" />
                 </MudItem>
-                <MudItem md="12">
-                    <MudTextField @bind-Value="Input.ConfirmPassword"
-                                  For="@(() => Input.ConfirmPassword)"
-                                  InputType="InputType.Password"
-                                  Label="Подтвердите пароль"
-                                  Placeholder="подтвердите пароль"
-                                  UserAttributes="@(new Dictionary<string, object?> { { "autocomplete", "new-password" }, { "aria-required", "true" } })" />
-                </MudItem>
+                @if (Input.UseConfirmPassword)
+                {
+                    <MudItem md="12">
+                        <MudTextField @bind-Value="Input.ConfirmPassword"
+                                      For="@(() => Input.ConfirmPassword)"
+                                      InputType="InputType.Password"
+                                      Label="Подтвердите пароль"
+                                      Placeholder="подтвердите пароль"
+                                      UserAttributes="@(new Dictionary<string, object?> { { "autocomplete", "new-password" }, { "aria-required", "true" } })" />
+                    </MudItem>
+                }
                 <MudItem md="12">
                     <MudButton ButtonType="ButtonType.Submit"
                                Color="Color.Primary"
