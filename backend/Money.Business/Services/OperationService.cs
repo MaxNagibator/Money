@@ -51,8 +51,7 @@ public class OperationService(RequestEnvironment environment, ApplicationDbConte
     private IQueryable<DomainOperation> FilterOperations(OperationFilter filter)
     {
         IQueryable<DomainOperation> dbOperations = context.Operations
-            .IsUserEntity(environment.UserId)
-            .Where(x => x.TaskId == null);
+            .IsUserEntity(environment.UserId);
 
         if (filter.DateFrom.HasValue)
         {
@@ -128,6 +127,7 @@ public class OperationService(RequestEnvironment environment, ApplicationDbConte
         return operationId;
     }
 
+    PlaceService выкинуть приватные методы и заюзать (+ проверить что конструктор работает с одним и тем жи контекстом)
     private async Task<int?> GetPlaceIdAsync(DomainUser dbUser, string? place, CancellationToken cancellationToken)
     {
         place = place?.Trim(' ');
@@ -322,7 +322,7 @@ public class OperationService(RequestEnvironment environment, ApplicationDbConte
 
         List<DomainOperation> dbOperations = await context.Operations
             .IsUserEntity(environment.UserId)
-            .Where(x => operationIds.Contains(x.Id) && x.TaskId == null)
+            .Where(x => operationIds.Contains(x.Id))
             .ToListAsync(cancellationToken);
 
         if (dbOperations.Count != operationIds.Count)

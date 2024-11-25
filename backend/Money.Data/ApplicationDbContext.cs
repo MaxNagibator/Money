@@ -8,6 +8,8 @@ public class ApplicationDbContext(DbContextOptions options) : IdentityDbContext<
     public DbSet<DomainCategory> Categories { get; set; } = null!;
     public DbSet<DomainUser> DomainUsers { get; set; } = null!;
     public DbSet<DomainOperation> Operations { get; set; } = null!;
+    public DbSet<DomainFastOperation> FastOperations { get; set; } = null!;
+    public DbSet<DomainRegularOperation> RegularOperations { get; set; } = null!;
     public DbSet<DomainPlace> Places { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -26,5 +28,7 @@ public class ApplicationDbContext(DbContextOptions options) : IdentityDbContext<
 
         builder.Entity<DomainCategory>().HasQueryFilter(x => x.IsDeleted == false);
         builder.Entity<DomainOperation>().HasQueryFilter(x => x.IsDeleted == false);
+        builder.Entity<DomainFastOperation>().HasQueryFilter(x => x.IsDeleted == false);
+        builder.Entity<DomainRegularOperation>().HasQueryFilter(x => x.IsDeleted == false);
     }
 }

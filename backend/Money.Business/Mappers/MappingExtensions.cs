@@ -32,6 +32,22 @@ public static class MappingExtensions
         };
     }
 
+    public static FastOperation Adapt(this DomainFastOperation model, IEnumerable<Place>? dbPlaces = null)
+    {
+        return new FastOperation
+        {
+            CategoryId = model.CategoryId,
+            Sum = model.Sum,
+            Comment = model.Comment,
+            Place = model.PlaceId.HasValue
+                ? dbPlaces?.FirstOrDefault(x => x.Id == model.PlaceId)?.Name
+                : null,
+            Id = model.Id,
+            Name = model.Name,
+            Order = model.Order,
+        };
+    }
+
     public static Place Adapt(this DomainPlace model)
     {
         return new Place
