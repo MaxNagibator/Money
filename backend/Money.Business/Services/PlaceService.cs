@@ -1,19 +1,44 @@
 ﻿using Money.Business.Mappers;
 using Money.Data.Extensions;
+using Place = Money.Business.Models.Place;
 
 namespace Money.Business.Services;
 
-public class PlaceService(RequestEnvironment environment, ApplicationDbContext context)
+public class PlaceService(
+    RequestEnvironment environment,
+    ApplicationDbContext context,
+    UserService userService)
 {
-    private Task<List<Place>> GetPlacesAsync(List<int> placeIds, CancellationToken cancellationToken)
+    public Task<List<Place>> GetPlacesAsync(int offset, int count, string? name, CancellationToken cancellationToken)
     {
-        return context.Places
-            .Where(x => x.UserId == environment.UserId && placeIds.Contains(x.Id))
+        IQueryable<Data.Entities.Place> dbPlaces = context.Places
+            .IsUserEntity(environment.UserId)
+            .Where(x => x.IsDeleted == false);
+
+        if (string.IsNullOrWhiteSpace(name) == false)
+        {
+            dbPlaces = dbPlaces.Where(x => x.Name.Contains(name)); // todo сделать регистронезависимый поиск
+        }
+
+        return dbPlaces
+            .OrderByDescending(x => string.IsNullOrWhiteSpace(name) == false && x.Name.StartsWith(name))
+            .ThenByDescending(x => x.LastUsedDate)
+            .Skip(offset)
+            .Take(count)
             .Select(x => x.Adapt())
             .ToListAsync(cancellationToken);
     }
 
-    private async Task<int?> GetPlaceIdAsync(DomainUser dbUser, string? place, CancellationToken cancellationToken)
+    public Task<List<Place>> GetPlacesAsync(List<int> placeIds, CancellationToken cancellationToken)
+    {
+        return context.Places
+            .IsUserEntity(environment.UserId)
+            .Where(x => placeIds.Contains(x.Id))
+            .Select(x => x.Adapt())
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<int?> GetPlaceIdAsync(string? place, CancellationToken cancellationToken)
     {
         place = place?.Trim(' ');
 
@@ -22,16 +47,17 @@ public class PlaceService(RequestEnvironment environment, ApplicationDbContext c
             return null;
         }
 
-        DomainPlace? dbPlace = await context.Places
+        Data.Entities.Place? dbPlace = await context.Places
             .IsUserEntity(environment.UserId)
             .FirstOrDefaultAsync(x => x.Name == place, cancellationToken);
 
         if (dbPlace == null)
         {
+            DomainUser dbUser = await userService.GetCurrent(cancellationToken);
             int newPlaceId = dbUser.NextPlaceId;
             dbUser.NextPlaceId++;
 
-            dbPlace = new DomainPlace
+            dbPlace = new Data.Entities.Place
             {
                 UserId = dbUser.Id,
                 Id = newPlaceId,
@@ -47,9 +73,9 @@ public class PlaceService(RequestEnvironment environment, ApplicationDbContext c
         return dbPlace.Id;
     }
 
-    private async Task<int?> GetPlaceIdAsync(DomainUser dbUser, string? place, DomainOperation dbOperation, CancellationToken cancellationToken)
+    public async Task<int?> GetPlaceIdAsync(string? place, Data.Entities.OperationBase dbOperation, CancellationToken cancellationToken)
     {
-        DomainPlace? dbPlace = await GetPlaceByIdAsync(dbOperation.PlaceId, cancellationToken);
+        Data.Entities.Place? dbPlace = await GetPlaceByIdAsync(dbOperation.PlaceId, cancellationToken);
         bool hasAnyOperations = await IsPlaceBusyAsync(dbPlace, dbOperation.Id, cancellationToken);
 
         if (string.IsNullOrWhiteSpace(place))
@@ -62,9 +88,9 @@ public class PlaceService(RequestEnvironment environment, ApplicationDbContext c
             return null;
         }
 
-        DomainPlace? dbNewPlace = await context.Places
-            .IsUserEntity(dbUser.Id)
-            .SingleOrDefaultAsync(x => x.Name == place, cancellationToken);
+        Data.Entities.Place? dbNewPlace = await context.Places
+            .IsUserEntity(environment.UserId)
+            .FirstOrDefaultAsync(x => x.Name == place, cancellationToken);
 
         if (dbNewPlace != null)
         {
@@ -81,10 +107,11 @@ public class PlaceService(RequestEnvironment environment, ApplicationDbContext c
             }
             else
             {
+                DomainUser dbUser = await userService.GetCurrent(cancellationToken);
                 int newPlaceId = dbUser.NextPlaceId;
                 dbUser.NextPlaceId++;
 
-                dbNewPlace = new DomainPlace
+                dbNewPlace = new Data.Entities.Place
                 {
                     Name = "",
                     UserId = dbUser.Id,
@@ -102,14 +129,14 @@ public class PlaceService(RequestEnvironment environment, ApplicationDbContext c
         return dbNewPlace.Id;
     }
 
-    private Task<bool> IsPlaceBusyAsync(DomainPlace? place, int? operationId, CancellationToken cancellationToken)
+    private Task<bool> IsPlaceBusyAsync(Data.Entities.Place? place, int? operationId, CancellationToken cancellationToken)
     {
         if (place == null)
         {
             return Task.FromResult(false);
         }
 
-        IQueryable<DomainOperation> operations = context.Operations
+        IQueryable<Data.Entities.Operation> operations = context.Operations
             .IsUserEntity(place.UserId)
             .Where(x => x.PlaceId == place.Id);
 
@@ -121,9 +148,9 @@ public class PlaceService(RequestEnvironment environment, ApplicationDbContext c
         return operations.AnyAsync(cancellationToken);
     }
 
-    private async Task CheckRemovePlaceAsync(int? placeId, int? operationId, CancellationToken cancellationToken)
+    public async Task CheckRemovePlaceAsync(int? placeId, int? operationId, CancellationToken cancellationToken)
     {
-        DomainPlace? dbPlace = await GetPlaceByIdAsync(placeId, cancellationToken);
+        Data.Entities.Place? dbPlace = await GetPlaceByIdAsync(placeId, cancellationToken);
 
         if (dbPlace == null)
         {
@@ -138,9 +165,9 @@ public class PlaceService(RequestEnvironment environment, ApplicationDbContext c
         }
     }
 
-    private async Task CheckRestorePlaceAsync(int? placeId, CancellationToken cancellationToken)
+    public async Task CheckRestorePlaceAsync(int? placeId, CancellationToken cancellationToken)
     {
-        DomainPlace? dbPlace = await GetPlaceByIdAsync(placeId, cancellationToken);
+        Data.Entities.Place? dbPlace = await GetPlaceByIdAsync(placeId, cancellationToken);
 
         if (dbPlace == null)
         {
@@ -150,7 +177,7 @@ public class PlaceService(RequestEnvironment environment, ApplicationDbContext c
         dbPlace.IsDeleted = false;
     }
 
-    private Task<DomainPlace?> GetPlaceByIdAsync(int? placeId, CancellationToken cancellationToken)
+    private Task<Data.Entities.Place?> GetPlaceByIdAsync(int? placeId, CancellationToken cancellationToken)
     {
         if (placeId != null)
         {
@@ -159,6 +186,6 @@ public class PlaceService(RequestEnvironment environment, ApplicationDbContext c
                 .FirstOrDefaultAsync(cancellationToken);
         }
 
-        return Task.FromResult<DomainPlace?>(null);
+        return Task.FromResult<Data.Entities.Place?>(null);
     }
 }

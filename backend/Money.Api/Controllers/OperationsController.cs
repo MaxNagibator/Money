@@ -8,7 +8,7 @@ namespace Money.Api.Controllers;
 [ApiController]
 [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
 [Route("[controller]")]
-public class OperationsController(OperationService operationService) : ControllerBase
+public class OperationsController(OperationService operationService, PlaceService placeService) : ControllerBase
 {
     /// <summary>
     ///     Получить список операций.
@@ -140,7 +140,7 @@ public class OperationsController(OperationService operationService) : Controlle
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetPlaces(int offset, int count, string? name = null, CancellationToken cancellationToken = default)
     {
-        IEnumerable<Place> places = await operationService.GetPlacesAsync(offset, count, name, cancellationToken);
+        IEnumerable<Place> places = await placeService.GetPlacesAsync(offset, count, name, cancellationToken);
         return Ok(places.Select(x => x.Name));
     }
 }

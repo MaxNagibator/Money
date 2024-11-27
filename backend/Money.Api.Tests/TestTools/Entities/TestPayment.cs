@@ -86,7 +86,7 @@ public class TestOperation : TestObject
         return this;
     }
 
-    private void FillDbProperties(DomainOperation obj)
+    private void FillDbProperties(Operation obj)
     {
         obj.Comment = Comment;
         obj.Sum = Sum;
@@ -105,7 +105,7 @@ public class TestOperation : TestObject
             int operationId = dbUser.NextOperationId;
             dbUser.NextOperationId++; // todo обработать канкаренси
 
-            DomainOperation obj = new()
+            Operation obj = new()
             {
                 Id = operationId,
             };
@@ -118,7 +118,7 @@ public class TestOperation : TestObject
         }
         else
         {
-            DomainOperation obj = Environment.Context.Operations.First(x => x.UserId == User.Id && x.Id == Id);
+            Operation obj = Environment.Context.Operations.First(x => x.UserId == User.Id && x.Id == Id);
             FillDbProperties(obj);
             Environment.Context.SaveChanges();
         }

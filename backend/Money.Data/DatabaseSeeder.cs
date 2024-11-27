@@ -4,9 +4,9 @@ namespace Money.Data;
 
 public static class DatabaseSeeder
 {
-    public static List<DomainCategory> SeedCategories(int userId, out int lastIndex, int startIndex = 1)
+    public static List<Category> SeedCategories(int userId, out int lastIndex, int startIndex = 1)
     {
-        List<DomainCategory> categories =
+        List<Category> categories =
         [
             new()
             {
@@ -17,7 +17,7 @@ public static class DatabaseSeeder
                 Color = "#FFCC00",
                 SubCategories =
                 [
-                    new DomainCategory
+                    new Category
                     {
                         UserId = userId,
                         Name = "Фрукты и овощи",
@@ -26,7 +26,7 @@ public static class DatabaseSeeder
                         Color = "#FF9900",
                     },
 
-                    new DomainCategory
+                    new Category
                     {
                         UserId = userId,
                         Name = "Мясо и рыба",
@@ -46,7 +46,7 @@ public static class DatabaseSeeder
                 Color = "#0099CC",
                 SubCategories =
                 [
-                    new DomainCategory
+                    new Category
                     {
                         UserId = userId,
                         Name = "Общественный транспорт",
@@ -55,7 +55,7 @@ public static class DatabaseSeeder
                         Color = "#007ACC",
                     },
 
-                    new DomainCategory
+                    new Category
                     {
                         UserId = userId,
                         Name = "Такси",
@@ -75,7 +75,7 @@ public static class DatabaseSeeder
                 Color = "#FF3366",
                 SubCategories =
                 [
-                    new DomainCategory
+                    new Category
                     {
                         UserId = userId,
                         Name = "Кино",
@@ -84,7 +84,7 @@ public static class DatabaseSeeder
                         Color = "#FF3366",
                     },
 
-                    new DomainCategory
+                    new Category
                     {
                         UserId = userId,
                         Name = "Концерты",
@@ -104,7 +104,7 @@ public static class DatabaseSeeder
                 Color = "#66CC66",
                 SubCategories =
                 [
-                    new DomainCategory
+                    new Category
                     {
                         UserId = userId,
                         Name = "Электричество",
@@ -113,7 +113,7 @@ public static class DatabaseSeeder
                         Color = "#FFCC00",
                     },
 
-                    new DomainCategory
+                    new Category
                     {
                         UserId = userId,
                         Name = "Вода",
@@ -133,7 +133,7 @@ public static class DatabaseSeeder
                 Color = "#FF6600",
                 SubCategories =
                 [
-                    new DomainCategory
+                    new Category
                     {
                         UserId = userId,
                         Name = "Одежда для детей",
@@ -142,7 +142,7 @@ public static class DatabaseSeeder
                         Color = "#FF9966",
                     },
 
-                    new DomainCategory
+                    new Category
                     {
                         UserId = userId,
                         Name = "Одежда для взрослых",
@@ -180,7 +180,7 @@ public static class DatabaseSeeder
                 Color = "#66B3FF",
                 SubCategories =
                 [
-                    new DomainCategory
+                    new Category
                     {
                         UserId = userId,
                         Name = "Бонусы",
@@ -200,7 +200,7 @@ public static class DatabaseSeeder
                 Color = "#FFB366",
                 SubCategories =
                 [
-                    new DomainCategory
+                    new Category
                     {
                         UserId = userId,
                         Name = "Фриланс",
@@ -208,7 +208,7 @@ public static class DatabaseSeeder
                         TypeId = 2,
                         Color = "#FFB366",
                     },
-                    new DomainCategory
+                    new Category
                     {
                         UserId = userId,
                         Name = "Курсы и тренинги",
@@ -228,7 +228,7 @@ public static class DatabaseSeeder
                 Color = "#66FF66",
                 SubCategories =
                 [
-                    new DomainCategory
+                    new Category
                     {
                         UserId = userId,
                         Name = "Дивиденды",
@@ -248,7 +248,7 @@ public static class DatabaseSeeder
                 Color = "#FF6666",
                 SubCategories =
                 [
-                    new DomainCategory
+                    new Category
                     {
                         UserId = userId,
                         Name = "Аренда недвижимости",
@@ -268,7 +268,7 @@ public static class DatabaseSeeder
                 Color = "#FFCC00",
                 SubCategories =
                 [
-                    new DomainCategory
+                    new Category
                     {
                         UserId = userId,
                         Name = "Премии за достижения",
@@ -284,14 +284,14 @@ public static class DatabaseSeeder
         return categories;
     }
 
-    public static (List<DomainOperation> operations, List<DomainPlace> places) SeedOperations(int userId, List<DomainCategory> categories, int startIndex = 0, int placeStartIndex = 0)
+    public static (List<Operation> operations, List<Place> places) SeedOperations(int userId, List<Category> categories, int startIndex = 0, int placeStartIndex = 0)
     {
-        List<DomainPlace> places = SeedPlaces(userId, placeStartIndex);
+        List<Place> places = SeedPlaces(userId, placeStartIndex);
 
         Dictionary<string, int> categoryDictionary = GetAllCategories(categories).ToDictionary(x => x.Name, x => x.Id);
         Dictionary<string, int> placeDictionary = places.ToDictionary(x => x.Name, x => x.Id);
 
-        List<DomainOperation> operations =
+        List<Operation> operations =
         [
             new()
             {
@@ -519,9 +519,9 @@ public static class DatabaseSeeder
         int? GetPlaceId(string name) => placeDictionary.TryGetValue(name, out int id) ? id : null;
     }
 
-    private static List<DomainPlace> SeedPlaces(int userId, int startIndex = 0)
+    private static List<Place> SeedPlaces(int userId, int startIndex = 0)
     {
-        List<DomainPlace> places =
+        List<Place> places =
         [
             new()
             {
@@ -599,9 +599,9 @@ public static class DatabaseSeeder
         return places;
     }
 
-    private static int SetCategoryIds(List<DomainCategory> categories, ref int currentIndex)
+    private static int SetCategoryIds(List<Category> categories, ref int currentIndex)
     {
-        foreach (DomainCategory category in categories)
+        foreach (Category category in categories)
         {
             category.Id = currentIndex++;
 
@@ -614,16 +614,16 @@ public static class DatabaseSeeder
         return currentIndex;
     }
 
-    private static List<DomainCategory> GetAllCategories(List<DomainCategory> categories)
+    private static List<Category> GetAllCategories(List<Category> categories)
     {
-        List<DomainCategory> allCategories = [];
+        List<Category> allCategories = [];
         GetAllCategoriesRecursive(categories, allCategories);
         return allCategories;
     }
 
-    private static void GetAllCategoriesRecursive(List<DomainCategory> categories, List<DomainCategory> allCategories)
+    private static void GetAllCategoriesRecursive(List<Category> categories, List<Category> allCategories)
     {
-        foreach (DomainCategory category in categories)
+        foreach (Category category in categories)
         {
             allCategories.Add(category);
 

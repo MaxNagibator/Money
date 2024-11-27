@@ -1,10 +1,12 @@
 ﻿namespace Money.Data.Entities;
 
-public class DomainRegularOperation : DomainOperationBase
+public class RegularOperation : OperationBase
 {
     /// <summary>
     /// Наименование.
     /// </summary>
+    [Required]
+    [StringLength(500)]
     public required string Name { get; set; }
 
     //public int TypeId { get; set; }

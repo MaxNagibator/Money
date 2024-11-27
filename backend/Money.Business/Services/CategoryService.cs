@@ -1,13 +1,17 @@
 ﻿using Money.Business.Mappers;
 using Money.Data.Extensions;
+using Category = Money.Business.Models.Category;
 
 namespace Money.Business.Services;
 
-public class CategoryService(RequestEnvironment environment, ApplicationDbContext context)
+public class CategoryService(
+    RequestEnvironment environment,
+    ApplicationDbContext context,
+    UserService userService)
 {
     public async Task<IEnumerable<Category>> GetAsync(OperationTypes? type = null, CancellationToken cancellationToken = default)
     {
-        IQueryable<DomainCategory> query = context.Categories.IsUserEntity(environment.UserId);
+        IQueryable<Data.Entities.Category> query = context.Categories.IsUserEntity(environment.UserId);
 
         if (type != null)
         {
@@ -26,18 +30,8 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
 
     public async Task<Category> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
-        DomainCategory dbCategory = await GetByIdInternal(id, cancellationToken);
+        Data.Entities.Category dbCategory = await GetByIdInternal(id, cancellationToken);
         return dbCategory.Adapt();
-    }
-
-    private async Task<DomainCategory> GetByIdInternal(int id, CancellationToken cancellationToken)
-    {
-        DomainCategory dbCategory = await context.Categories
-                                        .IsUserEntity(environment.UserId, id)
-                                        .FirstOrDefaultAsync(cancellationToken)
-                                    ?? throw new NotFoundException("категория", id);
-
-        return dbCategory;
     }
 
     public async Task<int> CreateAsync(Category category, CancellationToken cancellationToken = default)
@@ -49,13 +43,12 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
 
         await ValidateParentCategoryAsync(category.ParentId, category.OperationType, cancellationToken);
 
-        DomainUser dbUser = await context.DomainUsers.SingleAsync(x => x.Id == environment.UserId, cancellationToken)
-                            ?? throw new BusinessException("Извините, но пользователь не найден.");
+        DomainUser dbUser = await userService.GetCurrent(cancellationToken);
 
         int categoryId = dbUser.NextCategoryId;
         dbUser.NextCategoryId++;
 
-        DomainCategory dbCategory = new()
+        Data.Entities.Category dbCategory = new()
         {
             Id = categoryId,
             UserId = environment.UserId.Value,
@@ -72,27 +65,10 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
         return categoryId;
     }
 
-    private async Task ValidateParentCategoryAsync(int? parentId, OperationTypes operationType, CancellationToken cancellationToken)
-    {
-        if (parentId == null)
-        {
-            return;
-        }
-
-        bool parentExists = await context.Categories
-            .IsUserEntity(environment.UserId, parentId)
-            .AnyAsync(x => x.TypeId == operationType, cancellationToken);
-
-        if (parentExists == false)
-        {
-            throw new BusinessException("Извините, но родительская категория не найдена. Пожалуйста, проверьте правильность введенных данных.");
-        }
-    }
-
     public async Task UpdateAsync(Category category, CancellationToken cancellationToken)
     {
-        DomainCategory dbCategory = await context.Categories.SingleOrDefaultAsync(environment.UserId, category.Id, cancellationToken)
-                                    ?? throw new NotFoundException("категория", category.Id);
+        Data.Entities.Category dbCategory = await context.Categories.SingleOrDefaultAsync(environment.UserId, category.Id, cancellationToken)
+                                            ?? throw new NotFoundException("категория", category.Id);
 
         await ValidateParentCategoryAsync(category.ParentId, dbCategory.TypeId, cancellationToken);
         await ValidateRecursiveParentingAsync(category.Id, category.ParentId, dbCategory.TypeId, cancellationToken);
@@ -106,33 +82,9 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task ValidateRecursiveParentingAsync(int categoryId, int? parentId, OperationTypes typeId, CancellationToken cancellationToken)
-    {
-        int? nextParentId = parentId;
-
-        while (nextParentId != null)
-        {
-            DomainCategory? parent = await context.Categories
-                .Where(x => x.TypeId == typeId)
-                .SingleOrDefaultAsync(environment.UserId, nextParentId.Value, cancellationToken);
-
-            if (parent == null)
-            {
-                break;
-            }
-
-            nextParentId = parent.ParentId;
-
-            if (nextParentId == categoryId)
-            {
-                throw new BusinessException("Извините, но обнаружена рекурсивная зависимость родительских категорий. Пожалуйста, проверьте структуру категорий и внесите необходимые изменения.");
-            }
-        }
-    }
-
     public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
-        DomainCategory dbCategory = await GetByIdInternal(id, cancellationToken);
+        Data.Entities.Category dbCategory = await GetByIdInternal(id, cancellationToken);
 
         if (await context.Categories.AnyAsync(x => x.ParentId == id && x.UserId == environment.UserId, cancellationToken))
         {
@@ -145,7 +97,7 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
 
     public async Task RestoreAsync(int id, CancellationToken cancellationToken = default)
     {
-        DomainCategory dbCategory = await GetCategory(id);
+        Data.Entities.Category dbCategory = await GetCategory(id);
 
         if (dbCategory.IsDeleted == false)
         {
@@ -154,7 +106,7 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
 
         if (dbCategory.ParentId != null)
         {
-            DomainCategory dbParentCategory = await GetCategory(dbCategory.ParentId.Value);
+            Data.Entities.Category dbParentCategory = await GetCategory(dbCategory.ParentId.Value);
 
             if (dbParentCategory.IsDeleted)
             {
@@ -166,9 +118,9 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
         await context.SaveChangesAsync(cancellationToken);
         return;
 
-        async Task<DomainCategory> GetCategory(int categoryId)
+        async Task<Data.Entities.Category> GetCategory(int categoryId)
         {
-            DomainCategory? domainCategory = await context.Categories
+            Data.Entities.Category? domainCategory = await context.Categories
                 .IgnoreQueryFilters()
                 .IsUserEntity(environment.UserId, categoryId)
                 .FirstOrDefaultAsync(cancellationToken);
@@ -191,8 +143,7 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
 
         int categoryId = 1;
 
-        DomainUser dbUser = await context.DomainUsers.SingleAsync(x => x.Id == environment.UserId, cancellationToken)
-                            ?? throw new BusinessException("Извините, но пользователь не найден.");
+        DomainUser dbUser = await userService.GetCurrent(cancellationToken);
 
         if (isAdd)
         {
@@ -205,10 +156,61 @@ public class CategoryService(RequestEnvironment environment, ApplicationDbContex
             context.Categories.RemoveRange(context.Categories.IgnoreQueryFilters().IsUserEntity(environment.UserId));
         }
 
-        List<DomainCategory> categories = DatabaseSeeder.SeedCategories(environment.UserId.Value, out int lastIndex, categoryId);
+        List<Data.Entities.Category> categories = DatabaseSeeder.SeedCategories(environment.UserId.Value, out int lastIndex, categoryId);
         dbUser.NextCategoryId = lastIndex + 1;
 
         await context.Categories.AddRangeAsync(categories, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task<Data.Entities.Category> GetByIdInternal(int id, CancellationToken cancellationToken)
+    {
+        Data.Entities.Category dbCategory = await context.Categories
+                                                .IsUserEntity(environment.UserId, id)
+                                                .FirstOrDefaultAsync(cancellationToken)
+                                            ?? throw new NotFoundException("категория", id);
+
+        return dbCategory;
+    }
+
+    private async Task ValidateParentCategoryAsync(int? parentId, OperationTypes operationType, CancellationToken cancellationToken)
+    {
+        if (parentId == null)
+        {
+            return;
+        }
+
+        bool parentExists = await context.Categories
+            .IsUserEntity(environment.UserId, parentId)
+            .AnyAsync(x => x.TypeId == operationType, cancellationToken);
+
+        if (parentExists == false)
+        {
+            throw new BusinessException("Извините, но родительская категория не найдена. Пожалуйста, проверьте правильность введенных данных.");
+        }
+    }
+
+    private async Task ValidateRecursiveParentingAsync(int categoryId, int? parentId, OperationTypes typeId, CancellationToken cancellationToken)
+    {
+        int? nextParentId = parentId;
+
+        while (nextParentId != null)
+        {
+            Data.Entities.Category? parent = await context.Categories
+                .Where(x => x.TypeId == typeId)
+                .SingleOrDefaultAsync(environment.UserId, nextParentId.Value, cancellationToken);
+
+            if (parent == null)
+            {
+                break;
+            }
+
+            nextParentId = parent.ParentId;
+
+            if (nextParentId == categoryId)
+            {
+                throw new BusinessException("Извините, но обнаружена рекурсивная зависимость родительских категорий. Пожалуйста, проверьте структуру категорий и внесите необходимые изменения.");
+            }
+        }
     }
 }

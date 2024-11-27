@@ -1,6 +1,6 @@
 ﻿namespace Money.Data.Entities;
 
-public class DomainOperation : DomainOperationBase
+public class Operation : OperationBase
 {
     /// <summary>
     ///     Дата.

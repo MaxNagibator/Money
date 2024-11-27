@@ -1,6 +1,6 @@
 ﻿namespace Money.Data.Entities;
 
-public class DomainCategory : UserEntity
+public class Category : UserEntity
 {
     [Required]
     [StringLength(500)]
@@ -20,6 +20,6 @@ public class DomainCategory : UserEntity
 
     public bool IsDeleted { get; set; }
 
-    public virtual DomainCategory? ParentCategory { get; set; }
-    public virtual List<DomainCategory>? SubCategories { get; set; }
+    public virtual Category? ParentCategory { get; set; }
+    public virtual List<Category>? SubCategories { get; set; }
 }

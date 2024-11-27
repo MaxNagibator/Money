@@ -1,6 +1,6 @@
 namespace Money.Data.Entities;
 
-public class DomainPlace : UserEntity
+public class Place : UserEntity
 {
     [StringLength(500)]
     public required string Name { get; set; }

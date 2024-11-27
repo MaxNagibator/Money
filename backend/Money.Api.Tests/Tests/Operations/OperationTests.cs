@@ -246,8 +246,8 @@ public class OperationTests
         };
 
         int createdId = await _apiClient.Operation.Create(request).IsSuccessWithContent();
-        DomainOperation? dbOperation = _dbClient.CreateApplicationDbContext().Operations.SingleOrDefault(_user.Id, createdId);
-        DomainPlace? dbPlace = _dbClient.CreateApplicationDbContext().Places.FirstOrDefault(x => x.UserId == _user.Id && x.Name == place.Name);
+        Operation? dbOperation = _dbClient.CreateApplicationDbContext().Operations.SingleOrDefault(_user.Id, createdId);
+        Place? dbPlace = _dbClient.CreateApplicationDbContext().Places.FirstOrDefault(x => x.UserId == _user.Id && x.Name == place.Name);
 
         Assert.Multiple(() =>
         {
@@ -285,8 +285,8 @@ public class OperationTests
         };
 
         await _apiClient.Operation.Update(operation.Id, request).IsSuccess();
-        DomainOperation? dbOperation = _dbClient.CreateApplicationDbContext().Operations.SingleOrDefault(_user.Id, operation.Id);
-        DomainPlace? dbPlace = _dbClient.CreateApplicationDbContext().Places.FirstOrDefault(x => x.UserId == _user.Id && x.Name == place.Name);
+        Operation? dbOperation = _dbClient.CreateApplicationDbContext().Operations.SingleOrDefault(_user.Id, operation.Id);
+        Place? dbPlace = _dbClient.CreateApplicationDbContext().Places.FirstOrDefault(x => x.UserId == _user.Id && x.Name == place.Name);
 
         Assert.Multiple(() =>
         {
@@ -327,7 +327,7 @@ public class OperationTests
 
         OperationClient.Operation[]? updatedOperations = await _apiClient.Operation.UpdateBatch(updateRequest).IsSuccessWithContent();
 
-        List<DomainOperation> targetCategoryOperations = await _dbClient.CreateApplicationDbContext()
+        List<Operation> targetCategoryOperations = await _dbClient.CreateApplicationDbContext()
             .Operations
             .IsUserEntity(_user.Id)
             .Where(x => x.CategoryId == targetCategory.Id)
@@ -335,12 +335,12 @@ public class OperationTests
 
         Assert.That(targetCategoryOperations, Has.Count.EqualTo(operationsToUpdate.Length));
 
-        foreach (DomainOperation operation in targetCategoryOperations)
+        foreach (Operation operation in targetCategoryOperations)
         {
             Assert.That(operation.CategoryId, Is.EqualTo(targetCategory.Id));
         }
 
-        List<DomainOperation> initialCategoryOperations = await _dbClient.CreateApplicationDbContext()
+        List<Operation> initialCategoryOperations = await _dbClient.CreateApplicationDbContext()
             .Operations
             .IsUserEntity(_user.Id)
             .Where(x => x.CategoryId == initialCategory.Id)
@@ -357,7 +357,7 @@ public class OperationTests
             Assert.That(updatedOperation.CategoryId, Is.EqualTo(targetCategory.Id));
         }
 
-        List<DomainOperation> allUserOperations = await _dbClient.CreateApplicationDbContext()
+        List<Operation> allUserOperations = await _dbClient.CreateApplicationDbContext()
             .Operations
             .IsUserEntity(_user.Id)
             .ToListAsync();
@@ -375,7 +375,7 @@ public class OperationTests
 
         await using ApplicationDbContext context = _dbClient.CreateApplicationDbContext();
 
-        DomainOperation? dbOperation = context.Operations.SingleOrDefault(_user.Id, operation.Id);
+        Operation? dbOperation = context.Operations.SingleOrDefault(_user.Id, operation.Id);
 
         Assert.That(dbOperation, Is.Null);
 
@@ -397,7 +397,7 @@ public class OperationTests
 
         await using ApplicationDbContext context = _dbClient.CreateApplicationDbContext();
 
-        DomainOperation? dbOperation = context.Operations.SingleOrDefault(_user.Id, operation.Id);
+        Operation? dbOperation = context.Operations.SingleOrDefault(_user.Id, operation.Id);
         Assert.That(dbOperation, Is.Not.Null);
         Assert.That(dbOperation.IsDeleted, Is.EqualTo(false));
     }

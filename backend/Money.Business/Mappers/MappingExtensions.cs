@@ -1,8 +1,13 @@
-﻿namespace Money.Business.Mappers;
+﻿using Category = Money.Business.Models.Category;
+using FastOperation = Money.Business.Models.FastOperation;
+using Operation = Money.Business.Models.Operation;
+using Place = Money.Business.Models.Place;
+
+namespace Money.Business.Mappers;
 
 public static class MappingExtensions
 {
-    public static Category Adapt(this DomainCategory model)
+    public static Category Adapt(this Data.Entities.Category model)
     {
         return new Category
         {
@@ -16,7 +21,7 @@ public static class MappingExtensions
         };
     }
 
-    public static Operation Adapt(this DomainOperation model, IEnumerable<Place>? dbPlaces = null)
+    public static Operation Adapt(this Data.Entities.Operation model, IEnumerable<Place>? dbPlaces = null)
     {
         return new Operation
         {
@@ -32,7 +37,7 @@ public static class MappingExtensions
         };
     }
 
-    public static FastOperation Adapt(this DomainFastOperation model, IEnumerable<Place>? dbPlaces = null)
+    public static FastOperation Adapt(this Data.Entities.FastOperation model, IEnumerable<Place>? dbPlaces = null)
     {
         return new FastOperation
         {
@@ -48,7 +53,7 @@ public static class MappingExtensions
         };
     }
 
-    public static Place Adapt(this DomainPlace model)
+    public static Place Adapt(this Data.Entities.Place model)
     {
         return new Place
         {

@@ -1,6 +1,6 @@
 ﻿namespace Money.Data.Entities;
 
-public abstract class DomainOperationBase : UserEntity
+public abstract class OperationBase : UserEntity
 {
     /// <summary>
     ///     Сумма.
