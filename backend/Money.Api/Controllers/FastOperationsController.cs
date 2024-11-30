@@ -8,10 +8,10 @@ namespace Money.Api.Controllers;
 [ApiController]
 [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
 [Route("[controller]")]
-public class OperationsController(OperationService operationService, PlaceService placeService) : ControllerBase
+public class FastOperationsController(FastOperationService fastOperationService) : ControllerBase
 {
     /// <summary>
-    ///     Получить список операций.
+    ///     Получить список быстрых операций.
     /// </summary>
     /// <param name="filter">Фильтр.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
@@ -22,12 +22,12 @@ public class OperationsController(OperationService operationService, PlaceServic
     public async Task<IActionResult> Get([FromQuery] OperationFilterDto filter, CancellationToken cancellationToken)
     {
         OperationFilter businessFilter = filter.ToBusinessModel();
-        IEnumerable<Operation> operations = await operationService.GetAsync(businessFilter, cancellationToken);
+        IEnumerable<FastOperation> operations = await fastOperationService.GetAsync(cancellationToken);
         return Ok(operations.Select(FastOperationDto.FromBusinessModel));
     }
 
     /// <summary>
-    ///     Получить операцию по идентификатору.
+    ///     Получить быструю операцию по идентификатору.
     /// </summary>
     /// <param name="id">Идентификатор.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
@@ -38,14 +38,14 @@ public class OperationsController(OperationService operationService, PlaceServic
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
     {
-        Operation category = await operationService.GetByIdAsync(id, cancellationToken);
-        return Ok(FastOperationDto.FromBusinessModel(category));
+        FastOperation operation = await fastOperationService.GetByIdAsync(id, cancellationToken);
+        return Ok(FastOperationDto.FromBusinessModel(operation));
     }
 
     /// <summary>
-    ///     Создать новую операцию.
+    ///     Создать новую быструю операцию.
     /// </summary>
-    /// <param name="request">Данные для создания новой операции.</param>
+    /// <param name="request">Данные для создания новой быстрой операции.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     /// <returns>Идентификатор созданной операции.</returns>
     [HttpPost("")]
@@ -55,13 +55,13 @@ public class OperationsController(OperationService operationService, PlaceServic
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> CreateAsync([FromBody] SaveRequest request, CancellationToken cancellationToken)
     {
-        Operation business = request.ToBusinessModel();
-        int result = await operationService.CreateAsync(business, cancellationToken);
+        FastOperation business = request.ToBusinessModel();
+        int result = await fastOperationService.CreateAsync(business, cancellationToken);
         return CreatedAtRoute(nameof(OperationsController) + nameof(GetById), new { id = result }, result);
     }
 
     /// <summary>
-    ///     Обновить существующую операцию.
+    ///     Обновить существующую быструю операцию.
     /// </summary>
     /// <param name="id">Идентификатор операции.</param>
     /// <param name="request">Данные для обновления операции.</param>
@@ -72,29 +72,14 @@ public class OperationsController(OperationService operationService, PlaceServic
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(int id, [FromBody] SaveRequest request, CancellationToken cancellationToken)
     {
-        Operation business = request.ToBusinessModel();
+        FastOperation business = request.ToBusinessModel();
         business.Id = id;
-        await operationService.UpdateAsync(business, cancellationToken);
+        await fastOperationService.UpdateAsync(business, cancellationToken);
         return Ok();
     }
 
     /// <summary>
-    ///     Обновить категорию у операций.
-    /// </summary>
-    /// <param name="request">Данные для обновления операций.</param>
-    /// <param name="cancellationToken">Токен отмены запроса.</param>
-    [HttpPost("UpdateBatch")]
-    [ProducesResponseType(typeof(IEnumerable<FastOperationDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> UpdateBatch(UpdateOperationsBatchRequest request, CancellationToken cancellationToken)
-    {
-        IEnumerable<Operation> updatedOperations = await operationService.UpdateBatchAsync(request.OperationIds, request.CategoryId, cancellationToken);
-        return Ok(updatedOperations.Select(FastOperationDto.FromBusinessModel));
-    }
-
-    /// <summary>
-    ///     Удалить операцию по идентификатору.
+    ///     Удалить быструю операцию по идентификатору.
     /// </summary>
     /// <param name="id">Идентификатор категории.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
@@ -104,12 +89,12 @@ public class OperationsController(OperationService operationService, PlaceServic
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
-        await operationService.DeleteAsync(id, cancellationToken);
+        await fastOperationService.DeleteAsync(id, cancellationToken);
         return Ok();
     }
 
     /// <summary>
-    ///     Восстановить операцию по идентификатору.
+    ///     Восстановить быструю операцию по идентификатору.
     /// </summary>
     /// <param name="id">Идентификатор категории.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
@@ -120,27 +105,7 @@ public class OperationsController(OperationService operationService, PlaceServic
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Restore(int id, CancellationToken cancellationToken)
     {
-        await operationService.RestoreAsync(id, cancellationToken);
+        await fastOperationService.RestoreAsync(id, cancellationToken);
         return Ok();
-    }
-
-    /// <summary>
-    ///     Получить список мест на основе указанного сдвига, количества и необязательной фильтрации по имени.
-    /// </summary>
-    /// <param name="offset">Сдвиг.</param>
-    /// <param name="count">Количество.</param>
-    /// <param name="name">Необязательный фильтр по имени.</param>
-    /// <param name="cancellationToken">Токен отмены запроса.</param>
-    /// <returns>Список мест.</returns>
-    [HttpGet("GetPlaces/{offset:int}/{count:int}")]
-    [HttpGet("GetPlaces/{offset:int}/{count:int}/{name}")]
-    [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetPlaces(int offset, int count, string? name = null, CancellationToken cancellationToken = default)
-    {
-        IEnumerable<Place> places = await placeService.GetPlacesAsync(offset, count, name, cancellationToken);
-        return Ok(places.Select(x => x.Name));
     }
 }

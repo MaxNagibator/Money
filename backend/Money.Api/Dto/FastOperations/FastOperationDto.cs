@@ -1,4 +1,4 @@
-﻿namespace Money.Api.Dto.Operations;
+﻿namespace Money.Api.Dto.FastOperations;
 
 /// <summary>
 ///     Операция.
