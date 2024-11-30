@@ -3,18 +3,8 @@
 /// <summary>
 ///     Операция.
 /// </summary>
-public class Operation
+public class Operation : OperationBase
 {
-    public int Id { get; set; }
-
-    public required int CategoryId { get; set; }
-
-    public decimal Sum { get; set; }
-
-    public string? Comment { get; set; }
-
-    public string? Place { get; set; }
-
     public DateTime Date { get; set; }
 
     /// <summary>

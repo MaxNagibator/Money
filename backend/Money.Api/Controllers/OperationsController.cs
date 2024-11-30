@@ -17,13 +17,13 @@ public class OperationsController(OperationService operationService, PlaceServic
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     /// <returns>Массив операций.</returns>
     [HttpGet("")]
-    [ProducesResponseType(typeof(IEnumerable<FastOperationDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<OperationDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Get([FromQuery] OperationFilterDto filter, CancellationToken cancellationToken)
     {
         OperationFilter businessFilter = filter.ToBusinessModel();
         IEnumerable<Operation> operations = await operationService.GetAsync(businessFilter, cancellationToken);
-        return Ok(operations.Select(FastOperationDto.FromBusinessModel));
+        return Ok(operations.Select(OperationDto.FromBusinessModel));
     }
 
     /// <summary>
@@ -32,14 +32,14 @@ public class OperationsController(OperationService operationService, PlaceServic
     /// <param name="id">Идентификатор.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     /// <returns>Информация об операции.</returns>
-    [HttpGet("{id:int}", Name = nameof(OperationsController) + nameof(GetById))]
-    [ProducesResponseType(typeof(FastOperationDto), StatusCodes.Status200OK)]
+    [HttpGet("{id:int}")]
+    [ProducesResponseType(typeof(OperationDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
     {
         Operation category = await operationService.GetByIdAsync(id, cancellationToken);
-        return Ok(FastOperationDto.FromBusinessModel(category));
+        return Ok(OperationDto.FromBusinessModel(category));
     }
 
     /// <summary>
@@ -49,15 +49,15 @@ public class OperationsController(OperationService operationService, PlaceServic
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     /// <returns>Идентификатор созданной операции.</returns>
     [HttpPost("")]
-    [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(int), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> CreateAsync([FromBody] SaveRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Create([FromBody] OperationSaveRequest request, CancellationToken cancellationToken)
     {
         Operation business = request.ToBusinessModel();
         int result = await operationService.CreateAsync(business, cancellationToken);
-        return CreatedAtRoute(nameof(OperationsController) + nameof(GetById), new { id = result }, result);
+        return CreatedAtAction(nameof(GetById), new { id = result }, result);
     }
 
     /// <summary>
@@ -70,7 +70,7 @@ public class OperationsController(OperationService operationService, PlaceServic
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Update(int id, [FromBody] SaveRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Update(int id, [FromBody] OperationSaveRequest request, CancellationToken cancellationToken)
     {
         Operation business = request.ToBusinessModel();
         business.Id = id;
@@ -84,17 +84,17 @@ public class OperationsController(OperationService operationService, PlaceServic
     /// <param name="request">Данные для обновления операций.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     [HttpPost("UpdateBatch")]
-    [ProducesResponseType(typeof(IEnumerable<FastOperationDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<OperationDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> UpdateBatch(UpdateOperationsBatchRequest request, CancellationToken cancellationToken)
     {
         IEnumerable<Operation> updatedOperations = await operationService.UpdateBatchAsync(request.OperationIds, request.CategoryId, cancellationToken);
-        return Ok(updatedOperations.Select(FastOperationDto.FromBusinessModel));
+        return Ok(updatedOperations.Select(OperationDto.FromBusinessModel));
     }
 
     /// <summary>
-    ///     Удалить операцию по идентификатору.
+    ///     Удалить категорию операции по идентификатору.
     /// </summary>
     /// <param name="id">Идентификатор категории.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
@@ -109,7 +109,7 @@ public class OperationsController(OperationService operationService, PlaceServic
     }
 
     /// <summary>
-    ///     Восстановить операцию по идентификатору.
+    ///     Восстановить категорию операции по идентификатору.
     /// </summary>
     /// <param name="id">Идентификатор категории.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>

@@ -3,7 +3,7 @@
 /// <summary>
 ///     Запрос на сохранение операции.
 /// </summary>
-public class SaveRequest
+public class OperationSaveRequest
 {
     /// <summary>
     ///     Идентификатор категории.
@@ -36,9 +36,9 @@ public class SaveRequest
     /// <returns>
     ///     Экземпляр <see cref="Business.Models.Operation" />, который представляет бизнес-модель.
     /// </returns>
-    public FastOperation ToBusinessModel()
+    public Operation ToBusinessModel()
     {
-        return new FastOperation
+        return new Operation
         {
             CategoryId = CategoryId,
             Sum = Sum,

@@ -31,7 +31,7 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     /// <param name="id">Идентификатор категории.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     /// <returns>Информация о категории.</returns>
-    [HttpGet("{id:int}", Name = nameof(CategoriesController) + nameof(GetById))]
+    [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(CategoryDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -51,11 +51,11 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     [ProducesResponseType(typeof(int), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> CreateAsync([FromBody] SaveRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Create([FromBody] CategorySaveRequest request, CancellationToken cancellationToken)
     {
         Category business = request.ToBusinessModel();
         int result = await categoryService.CreateAsync(business, cancellationToken);
-        return CreatedAtRoute(nameof(CategoriesController) + nameof(GetById), new { id = result }, result);
+        return CreatedAtAction(nameof(GetById), new { id = result }, result);
     }
 
     /// <summary>
@@ -69,7 +69,7 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Update(int id, [FromBody] SaveRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Update(int id, [FromBody] CategorySaveRequest request, CancellationToken cancellationToken)
     {
         Category business = request.ToBusinessModel();
         business.Id = id;
