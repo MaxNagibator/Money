@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Money.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Money.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241125144930_CreateFastOperationTable")]
+    partial class CreateFastOperationTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -265,7 +268,7 @@ namespace Money.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("Money.Data.Entities.Category", b =>
+            modelBuilder.Entity("Money.Data.Entities.DomainCategory", b =>
                 {
                     b.Property<int>("UserId")
                         .HasColumnType("integer")
@@ -318,38 +321,7 @@ namespace Money.Data.Migrations
                     b.ToTable("categories", (string)null);
                 });
 
-            modelBuilder.Entity("Money.Data.Entities.DomainUser", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<Guid>("AuthUserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("auth_user_id");
-
-                    b.Property<int>("NextCategoryId")
-                        .HasColumnType("integer")
-                        .HasColumnName("next_category_id");
-
-                    b.Property<int>("NextOperationId")
-                        .HasColumnType("integer")
-                        .HasColumnName("next_operation_id");
-
-                    b.Property<int>("NextPlaceId")
-                        .HasColumnType("integer")
-                        .HasColumnName("next_place_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_domain_users");
-
-                    b.ToTable("domain_users", (string)null);
-                });
-
-            modelBuilder.Entity("Money.Data.Entities.FastOperation", b =>
+            modelBuilder.Entity("Money.Data.Entities.DomainFastOperation", b =>
                 {
                     b.Property<int>("UserId")
                         .HasColumnType("integer")
@@ -376,11 +348,10 @@ namespace Money.Data.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
+                        .HasColumnType("text")
                         .HasColumnName("name");
 
-                    b.Property<int?>("Order")
+                    b.Property<int>("Order")
                         .HasColumnType("integer")
                         .HasColumnName("order");
 
@@ -398,7 +369,7 @@ namespace Money.Data.Migrations
                     b.ToTable("fast_operations", (string)null);
                 });
 
-            modelBuilder.Entity("Money.Data.Entities.Operation", b =>
+            modelBuilder.Entity("Money.Data.Entities.DomainOperation", b =>
                 {
                     b.Property<int>("UserId")
                         .HasColumnType("integer")
@@ -445,7 +416,7 @@ namespace Money.Data.Migrations
                     b.ToTable("operations", (string)null);
                 });
 
-            modelBuilder.Entity("Money.Data.Entities.Place", b =>
+            modelBuilder.Entity("Money.Data.Entities.DomainPlace", b =>
                 {
                     b.Property<int>("UserId")
                         .HasColumnType("integer")
@@ -477,7 +448,7 @@ namespace Money.Data.Migrations
                     b.ToTable("places", (string)null);
                 });
 
-            modelBuilder.Entity("Money.Data.Entities.RegularOperation", b =>
+            modelBuilder.Entity("Money.Data.Entities.DomainRegularOperation", b =>
                 {
                     b.Property<int>("UserId")
                         .HasColumnType("integer")
@@ -504,8 +475,7 @@ namespace Money.Data.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
+                        .HasColumnType("text")
                         .HasColumnName("name");
 
                     b.Property<int?>("PlaceId")
@@ -520,6 +490,37 @@ namespace Money.Data.Migrations
                         .HasName("pk_regular_operations");
 
                     b.ToTable("regular_operations", (string)null);
+                });
+
+            modelBuilder.Entity("Money.Data.Entities.DomainUser", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<Guid>("AuthUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("auth_user_id");
+
+                    b.Property<int>("NextCategoryId")
+                        .HasColumnType("integer")
+                        .HasColumnName("next_category_id");
+
+                    b.Property<int>("NextOperationId")
+                        .HasColumnType("integer")
+                        .HasColumnName("next_operation_id");
+
+                    b.Property<int>("NextPlaceId")
+                        .HasColumnType("integer")
+                        .HasColumnName("next_place_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_domain_users");
+
+                    b.ToTable("domain_users", (string)null);
                 });
 
             modelBuilder.Entity("OpenIddict.EntityFrameworkCore.Models.OpenIddictEntityFrameworkCoreApplication", b =>
@@ -844,7 +845,7 @@ namespace Money.Data.Migrations
                         .HasConstraintName("fk_asp_net_user_tokens_asp_net_users_user_id");
                 });
 
-            modelBuilder.Entity("Money.Data.Entities.Category", b =>
+            modelBuilder.Entity("Money.Data.Entities.DomainCategory", b =>
                 {
                     b.HasOne("Money.Data.Entities.DomainUser", "User")
                         .WithMany()
@@ -853,7 +854,7 @@ namespace Money.Data.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_categories_domain_users_user_id");
 
-                    b.HasOne("Money.Data.Entities.Category", "ParentCategory")
+                    b.HasOne("Money.Data.Entities.DomainCategory", "ParentCategory")
                         .WithMany("SubCategories")
                         .HasForeignKey("UserId", "ParentId")
                         .HasConstraintName("fk_categories_categories_user_id_parent_id");
@@ -863,7 +864,7 @@ namespace Money.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Money.Data.Entities.FastOperation", b =>
+            modelBuilder.Entity("Money.Data.Entities.DomainFastOperation", b =>
                 {
                     b.HasOne("Money.Data.Entities.DomainUser", "User")
                         .WithMany()
@@ -875,7 +876,7 @@ namespace Money.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Money.Data.Entities.Operation", b =>
+            modelBuilder.Entity("Money.Data.Entities.DomainOperation", b =>
                 {
                     b.HasOne("Money.Data.Entities.DomainUser", "User")
                         .WithMany()
@@ -887,7 +888,7 @@ namespace Money.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Money.Data.Entities.Place", b =>
+            modelBuilder.Entity("Money.Data.Entities.DomainPlace", b =>
                 {
                     b.HasOne("Money.Data.Entities.DomainUser", "User")
                         .WithMany()
@@ -899,7 +900,7 @@ namespace Money.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Money.Data.Entities.RegularOperation", b =>
+            modelBuilder.Entity("Money.Data.Entities.DomainRegularOperation", b =>
                 {
                     b.HasOne("Money.Data.Entities.DomainUser", "User")
                         .WithMany()
@@ -938,7 +939,7 @@ namespace Money.Data.Migrations
                     b.Navigation("Authorization");
                 });
 
-            modelBuilder.Entity("Money.Data.Entities.Category", b =>
+            modelBuilder.Entity("Money.Data.Entities.DomainCategory", b =>
                 {
                     b.Navigation("SubCategories");
                 });

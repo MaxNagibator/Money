@@ -40,7 +40,7 @@ public class OperationPlaceTests
 
         await _apiClient.Operation.Create(request).IsSuccess();
 
-        DomainPlace[] dbPlaces = _dbClient.CreateApplicationDbContext()
+        Place[] dbPlaces = _dbClient.CreateApplicationDbContext()
             .Places
             .IsUserEntity(_user.Id)
             .ToArray();
@@ -78,7 +78,7 @@ public class OperationPlaceTests
         request.Place = updatedPlace;
         await _apiClient.Operation.Update(operationId, request).IsSuccess();
 
-        DomainPlace[] dbPlaces = _dbClient.CreateApplicationDbContext()
+        Place[] dbPlaces = _dbClient.CreateApplicationDbContext()
             .Places
             .Where(x => x.UserId == _user.Id)
             .ToArray();
@@ -113,7 +113,7 @@ public class OperationPlaceTests
         request.Place = null;
         await _apiClient.Operation.Update(operationId2, request).IsSuccess();
 
-        DomainPlace[] dbPlaces = _dbClient.CreateApplicationDbContext()
+        Place[] dbPlaces = _dbClient.CreateApplicationDbContext()
             .Places
             .Where(x => x.UserId == _user.Id)
             .ToArray();
@@ -149,7 +149,7 @@ public class OperationPlaceTests
         await _apiClient.Operation.Update(operationId1, request).IsSuccess();
         await _apiClient.Operation.Update(operationId2, request).IsSuccess();
 
-        DomainPlace[] dbPlaces = _dbClient.CreateApplicationDbContext()
+        Place[] dbPlaces = _dbClient.CreateApplicationDbContext()
             .Places
             .Where(x => x.UserId == _user.Id)
             .ToArray();
@@ -182,7 +182,7 @@ public class OperationPlaceTests
         int operationId = await _apiClient.Operation.Create(request).IsSuccessWithContent();
         await _apiClient.Operation.Delete(operationId).IsSuccess();
 
-        DomainPlace[] dbPlaces = _dbClient.CreateApplicationDbContext()
+        Place[] dbPlaces = _dbClient.CreateApplicationDbContext()
             .Places
             .Where(x => x.UserId == _user.Id)
             .ToArray();
@@ -217,7 +217,7 @@ public class OperationPlaceTests
         await _apiClient.Operation.Delete(operationId).IsSuccess();
         await _apiClient.Operation.Restore(operationId).IsSuccess();
 
-        DomainPlace[] dbPlaces = _dbClient.CreateApplicationDbContext()
+        Place[] dbPlaces = _dbClient.CreateApplicationDbContext()
             .Places
             .Where(x => x.UserId == _user.Id)
             .ToArray();
@@ -253,7 +253,7 @@ public class OperationPlaceTests
         await _apiClient.Operation.Delete(operationId1).IsSuccess();
         int operationId2 = await _apiClient.Operation.Create(request).IsSuccessWithContent();
 
-        DomainPlace[] dbPlaces = _dbClient.CreateApplicationDbContext()
+        Place[] dbPlaces = _dbClient.CreateApplicationDbContext()
             .Places
             .Where(x => x.UserId == _user.Id)
             .ToArray();

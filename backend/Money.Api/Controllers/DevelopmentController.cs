@@ -7,6 +7,9 @@ using Money.Data;
 using Money.Data.Entities;
 using Money.Data.Extensions;
 using OpenIddict.Validation.AspNetCore;
+using Category = Money.Data.Entities.Category;
+using Operation = Money.Data.Entities.Operation;
+using Place = Money.Data.Entities.Place;
 
 namespace Money.Api.Controllers;
 
@@ -41,8 +44,8 @@ public class DevelopmentController(RequestEnvironment environment, ApplicationDb
         context.Operations.RemoveRange(context.Operations.IgnoreQueryFilters().IsUserEntity(environment.UserId));
         context.Places.RemoveRange(context.Places.IsUserEntity(environment.UserId));
 
-        List<DomainCategory> categories = DatabaseSeeder.SeedCategories(environment.UserId.Value, out int lastIndex);
-        (List<DomainOperation> operations, List<DomainPlace> places) = DatabaseSeeder.SeedOperations(environment.UserId.Value, categories);
+        List<Category> categories = DatabaseSeeder.SeedCategories(environment.UserId.Value, out int lastIndex);
+        (List<Operation> operations, List<Place> places) = DatabaseSeeder.SeedOperations(environment.UserId.Value, categories);
 
         dbUser.NextCategoryId = lastIndex + 1;
         dbUser.NextPlaceId = places.Last().Id + 1;

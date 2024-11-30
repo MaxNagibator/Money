@@ -28,7 +28,7 @@ public class TestPlace : TestObject
         return this;
     }
 
-    private void FillDbProperties(DomainPlace obj)
+    private void FillDbProperties(Place obj)
     {
         obj.Name = Name;
         obj.LastUsedDate = LastUsedDate;
@@ -42,7 +42,7 @@ public class TestPlace : TestObject
             int id = dbUser.NextPlaceId;
             dbUser.NextPlaceId++; // todo обработать канкаренси
 
-            DomainPlace obj = new()
+            Place obj = new()
             {
                 Id = id,
                 Name = "",
@@ -57,7 +57,7 @@ public class TestPlace : TestObject
         }
         else
         {
-            DomainPlace obj = Environment.Context.Places.First(x => x.UserId == User.Id && x.Id == Id);
+            Place obj = Environment.Context.Places.First(x => x.UserId == User.Id && x.Id == Id);
             FillDbProperties(obj);
             Environment.Context.SaveChanges();
         }

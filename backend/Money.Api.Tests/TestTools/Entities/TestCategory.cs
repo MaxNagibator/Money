@@ -65,7 +65,7 @@ public class TestCategory : TestObject
         return obj;
     }
 
-    private void FillDbProperties(DomainCategory obj)
+    private void FillDbProperties(Category obj)
     {
         obj.Name = Name;
         obj.TypeId = OperationType;
@@ -82,7 +82,7 @@ public class TestCategory : TestObject
             int categoryId = dbUser.NextCategoryId;
             dbUser.NextCategoryId++; // todo обработать канкаренси
 
-            DomainCategory obj = new()
+            Category obj = new()
             {
                 Id = categoryId,
                 Name = "",
@@ -96,7 +96,7 @@ public class TestCategory : TestObject
         }
         else
         {
-            DomainCategory obj = Environment.Context.Categories.First(x => x.UserId == User.Id && x.Id == Id);
+            Category obj = Environment.Context.Categories.First(x => x.UserId == User.Id && x.Id == Id);
             FillDbProperties(obj);
             Environment.Context.SaveChanges();
         }
