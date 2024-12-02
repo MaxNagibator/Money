@@ -32,7 +32,7 @@ public class OperationsController(OperationService operationService, PlaceServic
     /// <param name="id">Идентификатор.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     /// <returns>Информация об операции.</returns>
-    [HttpGet("{id:int}", Name = nameof(OperationsController) + nameof(GetById))]
+    [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(OperationDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -49,15 +49,15 @@ public class OperationsController(OperationService operationService, PlaceServic
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     /// <returns>Идентификатор созданной операции.</returns>
     [HttpPost("")]
-    [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(int), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> CreateAsync([FromBody] SaveRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Create([FromBody] OperationSaveRequest request, CancellationToken cancellationToken)
     {
         Operation business = request.ToBusinessModel();
         int result = await operationService.CreateAsync(business, cancellationToken);
-        return CreatedAtRoute(nameof(OperationsController) + nameof(GetById), new { id = result }, result);
+        return CreatedAtAction(nameof(GetById), new { id = result }, result);
     }
 
     /// <summary>
@@ -70,7 +70,7 @@ public class OperationsController(OperationService operationService, PlaceServic
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Update(int id, [FromBody] SaveRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Update(int id, [FromBody] OperationSaveRequest request, CancellationToken cancellationToken)
     {
         Operation business = request.ToBusinessModel();
         business.Id = id;

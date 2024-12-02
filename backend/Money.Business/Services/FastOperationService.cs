@@ -92,6 +92,8 @@ public class FastOperationService(
         dbOperation.Comment = operation.Comment;
         dbOperation.CategoryId = category.Id;
         dbOperation.PlaceId = placeId;
+        dbOperation.Order = operation.Order;
+        dbOperation.Name = operation.Name;
 
         await context.SaveChangesAsync(cancellationToken);
     }

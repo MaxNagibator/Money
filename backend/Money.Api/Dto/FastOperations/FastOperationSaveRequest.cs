@@ -1,9 +1,9 @@
-﻿namespace Money.Api.Dto.Operations;
+﻿namespace Money.Api.Dto.FastOperations;
 
 /// <summary>
 ///     Запрос на сохранение операции.
 /// </summary>
-public class SaveRequest
+public class FastOperationSaveRequest
 {
     /// <summary>
     ///     Идентификатор категории.
@@ -26,25 +26,31 @@ public class SaveRequest
     public string? Place { get; set; }
 
     /// <summary>
-    ///     Дата.
+    ///     Наименование.
     /// </summary>
-    public DateTime Date { get; set; }
+    public required string Name { get; set; }
+
+    /// <summary>
+    ///     Значение сортировки.
+    /// </summary>
+    public int? Order { get; set; }
 
     /// <summary>
     ///     Преобразует текущую DTO-модель в бизнес-модель.
     /// </summary>
     /// <returns>
-    ///     Экземпляр <see cref="Business.Models.Operation" />, который представляет бизнес-модель.
+    ///     Экземпляр <see cref="Business.Models.FastOperation" />, который представляет бизнес-модель.
     /// </returns>
-    public Operation ToBusinessModel()
+    public FastOperation ToBusinessModel()
     {
-        return new Operation
+        return new FastOperation
         {
-            CategoryId = CategoryId,
             Sum = Sum,
+            Name = Name,
+            Order = Order,
+            CategoryId = CategoryId,
             Comment = Comment,
             Place = Place,
-            Date = Date,
         };
     }
 }

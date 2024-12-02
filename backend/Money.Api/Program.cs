@@ -1,6 +1,7 @@
 using Money.CoreLib;
 using NLog;
 using NLog.Web;
+
 Logger? logger = LogManager.Setup()
     .LoadConfigurationFromAppSettings()
     .GetCurrentClassLogger();

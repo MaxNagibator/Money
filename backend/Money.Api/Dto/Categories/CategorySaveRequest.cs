@@ -3,7 +3,7 @@
 /// <summary>
 ///     Запрос на сохранение категории операции.
 /// </summary>
-public class SaveRequest
+public class CategorySaveRequest
 {
     /// <summary>
     ///     Цвет категории операции.
