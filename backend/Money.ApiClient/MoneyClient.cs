@@ -12,6 +12,7 @@ public class MoneyClient
         Log = log;
         Category = new CategoryClient(this);
         Operation = new OperationClient(this);
+        FastOperation = new FastOperationClient(this);
     }
 
     [ActivatorUtilitiesConstructor]
@@ -27,6 +28,7 @@ public class MoneyClient
 
     public CategoryClient Category { get; }
     public OperationClient Operation { get; }
+    public FastOperationClient FastOperation { get; }
 
     public void SetUser(string login, string password)
     {

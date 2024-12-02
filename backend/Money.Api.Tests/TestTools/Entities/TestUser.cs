@@ -43,6 +43,13 @@ public class TestUser : TestObject
         return obj;
     }
 
+    public TestFastOperation WithFastOperation()
+    {
+        TestFastOperation obj = new(WithCategory());
+        obj.Attach(Environment);
+        return obj;
+    }
+
     public TestPlace WithPlace()
     {
         TestPlace obj = new(this);

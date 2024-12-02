@@ -50,18 +50,8 @@ public class CategoryClient(MoneyClient apiClient) : ApiClientExecutor(apiClient
         public string? Color { get; set; }
     }
 
-    public class Category
+    public class Category : SaveRequest
     {
         public required int Id { get; set; }
-
-        public required string Name { get; set; }
-
-        public required int OperationTypeId { get; set; }
-
-        public int? ParentId { get; set; }
-
-        public int? Order { get; set; }
-
-        public string? Color { get; set; }
     }
 }
