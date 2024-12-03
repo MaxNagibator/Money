@@ -32,7 +32,7 @@ public class PieChart : BaseChart<PieOptions>
         };
     }
 
-    public Task UpdateAsync(Dictionary<int, Operation[]>? operations, List<Category> categories)
+    public Task UpdateAsync(List<OperationCategorySum> operations)
     {
         ChartData configData = Config.Data;
         configData.Datasets.Clear();
@@ -40,16 +40,14 @@ public class PieChart : BaseChart<PieOptions>
 
         if (operations != null)
         {
-            FillPieChart(configData, operations, categories);
+            FillPieChart(configData, operations);
         }
 
         return Chart.Update();
     }
 
-    private void FillPieChart(ChartData configData, Dictionary<int, Operation[]> operations, List<Category> categories)
+    private void FillPieChart(ChartData configData, List<OperationCategorySum> categorySums)
     {
-        List<OperationCategorySum> categorySums = CalculateCategorySums(categories, operations, null);
-
         PieDataset<decimal> dataset = [];
         configData.Datasets.Add(dataset);
 
@@ -63,51 +61,5 @@ public class PieChart : BaseChart<PieOptions>
         }
 
         dataset.BackgroundColor = colors.ToArray();
-    }
-
-    private List<OperationCategorySum> CalculateCategorySums(List<Category> categories, Dictionary<int, Operation[]> operations, int? parentId)
-    {
-        List<OperationCategorySum> categorySums = [];
-
-        foreach (Category category in categories.Where(x => x.ParentId == parentId))
-        {
-            decimal totalMainSum = category.Id != null && operations.TryGetValue(category.Id.Value, out Operation[]? operationGroup)
-                ? operationGroup.Sum(op => op.Sum)
-                : 0;
-
-            List<OperationCategorySum> childCategorySums = CalculateCategorySums(categories, operations, category.Id);
-
-            OperationCategorySum operationCategorySum = new()
-            {
-                Name = category.Name,
-                Color = category.Color,
-                ParentId = parentId,
-                TotalSum = totalMainSum + childCategorySums.Sum(x => x.TotalSum),
-                SubCategories = childCategorySums,
-            };
-
-            if (childCategorySums.Count > 0)
-            {
-                operationCategorySum.SubCategories.Add(new OperationCategorySum
-                {
-                    Name = category.Name,
-                    TotalSum = totalMainSum,
-                });
-            }
-
-            categorySums.Add(operationCategorySum);
-        }
-
-        return categorySums;
-    }
-
-    private class OperationCategorySum
-    {
-        public required string Name { get; init; }
-        public string? Color { get; init; }
-        public decimal MainSum { get; init; }
-        public decimal TotalSum { get; init; }
-        public int? ParentId { get; init; }
-        public List<OperationCategorySum>? SubCategories { get; init; }
     }
 }

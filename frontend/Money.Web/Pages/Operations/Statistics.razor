@@ -11,21 +11,6 @@
 }
 
 <MudExpansionPanels MultiExpansion>
-    <MudExpansionPanel Expanded
-                       Text="Пирожки">
-        <MudGrid>
-            @foreach (OperationTypes.Value operationType in OperationTypes.Values)
-            {
-                <MudItem md="6"
-                         xs="12">
-                    <Chart Config="_pieCharts[operationType.Id].Config"
-                           @ref="_pieCharts[operationType.Id].Chart">
-                    </Chart>
-                </MudItem>
-            }
-        </MudGrid>
-    </MudExpansionPanel>
-
     @foreach (OperationTypes.Value operationType in OperationTypes.Values)
     {
         <MudExpansionPanel Expanded
@@ -33,6 +18,42 @@
             <Chart Config="_barCharts[operationType.Id].Config"
                    @ref="_barCharts[operationType.Id].Chart">
             </Chart>
+            <MudItem md="6"
+                     xs="12">
+                @if (_sums.ContainsKey(operationType.Id))
+                {
+                    <MudTreeView ExpandOnClick
+                                 Hover
+                                 Items="_sums[operationType.Id]"
+                                 ReadOnly
+                                 Ripple>
+                        <ItemTemplate>
+                            @{
+                                OperationCategorySum catSum = context.Value!;
+                                List<TreeItemData<OperationCategorySum?>> children = context.Children?.OfType<TreeItemData<OperationCategorySum?>>().ToList() ?? [];
+                            }
+                            <MudStack Row
+                                      StretchItems="StretchItems.Start">
+                                <MudTreeViewItem @bind-Expanded="@context.Expanded"
+                                                 Items="@children"
+                                                 Value="@context.Value">
+                                    <Content>
+                                        <MudTreeViewItemToggleButton @bind-Expanded="@context.Expanded"
+                                                                     Visible="@context.HasChildren" />
+                                        <MudText>@catSum.Name @catSum.TotalSum</MudText>
+                                    </Content>
+                                </MudTreeViewItem>
+                            </MudStack>
+                        </ItemTemplate>
+                    </MudTreeView>
+                }
+            </MudItem>
+            <MudItem md="6"
+                     xs="12"> @*todo чёт пока незасплитилось попалам ))*@
+                <Chart Config="_pieCharts[operationType.Id].Config"
+                       @ref="_pieCharts[operationType.Id].Chart">
+                </Chart>
+            </MudItem>
         </MudExpansionPanel>
     }
 </MudExpansionPanels>
