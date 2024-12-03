@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Money.Web.Models;
 using Money.Web.Models.Charts;
 
 namespace Money.Web.Pages.Operations;
@@ -8,9 +7,9 @@ public partial class Statistics
 {
     private Dictionary<int, BarChart> _barCharts = default!;
     private Dictionary<int, PieChart> _pieCharts = default!;
-    public List<Category>? Categories { get; private set; }
+    private List<Category>? _categories;
 
-    private Dictionary<int, List<TreeItemData<OperationCategorySum>>> _sums { get; } = [];
+    private Dictionary<int, List<TreeItemData<OperationCategorySum>>> Sums { get; } = [];
 
     [Inject]
     private CategoryService CategoryService { get; set; } = default!;
@@ -28,7 +27,7 @@ public partial class Statistics
 
         _barCharts = barCharts;
         _pieCharts = pieCharts;
-        Categories = await CategoryService.GetCategories();
+        _categories = await CategoryService.GetCategories();
     }
 
     protected override void OnSearchChanged(object? sender, OperationSearchEventArgs args)
@@ -50,28 +49,33 @@ public partial class Statistics
 
             tasks.Add(_barCharts[operationType.Id].UpdateAsync(args.Operations, categories, OperationsFilter.DateRange));
 
-            if (Categories != null)
+            if (_categories == null || operationGroups == null)
             {
-                // todo над жать найти, чтоб отрисовалось :)
-                var cats = Categories.Where(x => x.OperationType.Id == operationType.Id).ToList();
-                Console.WriteLine(cats.Count);
-                List<OperationCategorySum> categorySums = CalculateCategorySums(cats, operationGroups, null);
-                Console.WriteLine(categorySums.Count);
-
-                tasks.Add(_pieCharts[operationType.Id].UpdateAsync(categorySums));
-                var sums = BuildChildren(categorySums);
-                _sums[operationType.Id] = new List<TreeItemData<OperationCategorySum>>
-                {
-                    new TreeItemData<OperationCategorySum>
-                    {
-                        Value = new OperationCategorySum { TotalSum = sums.Sum(x => x.Value.TotalSum), Name = "Всего" },
-                        Children = sums,
-                    }
-                };
+                continue;
             }
+
+            List<Category> cats = _categories.Where(x => x.OperationType.Id == operationType.Id).ToList();
+            List<OperationCategorySum> categorySums = CalculateCategorySums(cats, operationGroups, null);
+
+            tasks.Add(_pieCharts[operationType.Id].UpdateAsync(categorySums));
+            List<TreeItemData<OperationCategorySum>> sums = BuildChildren(categorySums);
+
+            Sums[operationType.Id] =
+            [
+                new TreeItemData<OperationCategorySum>
+                {
+                    Value = new OperationCategorySum
+                    {
+                        Name = "Всего",
+                        TotalSum = sums.Sum(x => x.Value?.TotalSum ?? 0),
+                    },
+                    Children = sums,
+                },
+            ];
         }
 
         _ = Task.WhenAll(tasks);
+        StateHasChanged();
     }
 
     private List<TreeItemData<OperationCategorySum>> BuildChildren(List<OperationCategorySum> categories)

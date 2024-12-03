@@ -7,6 +7,8 @@ namespace Money.Web.Models.Charts;
 
 public class PieChart : BaseChart<PieOptions>
 {
+    private ChartData Data => Config.Data;
+
     public static PieChart Create(int operationTypeId)
     {
         return new PieChart
@@ -34,28 +36,24 @@ public class PieChart : BaseChart<PieOptions>
 
     public Task UpdateAsync(List<OperationCategorySum> operations)
     {
-        ChartData configData = Config.Data;
-        configData.Datasets.Clear();
-        configData.Labels.Clear();
+        Data.Datasets.Clear();
+        Data.Labels.Clear();
 
-        if (operations != null)
-        {
-            FillPieChart(configData, operations);
-        }
+        FillPieChart(operations);
 
         return Chart.Update();
     }
 
-    private void FillPieChart(ChartData configData, List<OperationCategorySum> categorySums)
+    private void FillPieChart(List<OperationCategorySum> categorySums)
     {
         PieDataset<decimal> dataset = [];
-        configData.Datasets.Add(dataset);
+        Data.Datasets.Add(dataset);
 
         List<string> colors = [];
 
         foreach (OperationCategorySum category in categorySums.Where(x => x.ParentId == null && x.TotalSum != 0))
         {
-            configData.Labels.Add(category.Name);
+            Data.Labels.Add(category.Name);
             colors.Add(category.Color ?? Random.Shared.NextColor());
             dataset.Add(category.TotalSum);
         }

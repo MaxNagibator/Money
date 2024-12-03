@@ -16,44 +16,54 @@
         <MudExpansionPanel Expanded
                            Text="@operationType.Name">
             <Chart Config="_barCharts[operationType.Id].Config"
-                   @ref="_barCharts[operationType.Id].Chart">
-            </Chart>
-            <MudItem md="6"
-                     xs="12">
-                @if (_sums.ContainsKey(operationType.Id))
-                {
-                    <MudTreeView ExpandOnClick
-                                 Hover
-                                 Items="_sums[operationType.Id]"
-                                 ReadOnly
-                                 Ripple>
-                        <ItemTemplate>
-                            @{
-                                OperationCategorySum catSum = context.Value!;
-                                List<TreeItemData<OperationCategorySum?>> children = context.Children?.OfType<TreeItemData<OperationCategorySum?>>().ToList() ?? [];
-                            }
-                            <MudStack Row
-                                      StretchItems="StretchItems.Start">
+                   @ref="_barCharts[operationType.Id].Chart" />
+            <MudGrid>
+                <MudItem md="6"
+                         xs="12">
+                    <Chart Config="_pieCharts[operationType.Id].Config"
+                           @ref="_pieCharts[operationType.Id].Chart" />
+                </MudItem>
+                <MudItem md="6"
+                         xs="12">
+                    @if (Sums.TryGetValue(operationType.Id, out List<TreeItemData<OperationCategorySum>>? sum))
+                    {
+                        <MudTreeView ExpandOnClick
+                                     Hover
+                                     Dense
+                                     Items="sum"
+                                     ReadOnly
+                                     Ripple>
+                            <ItemTemplate>
+                                @{
+                                    OperationCategorySum catSum = context.Value!;
+                                    List<TreeItemData<OperationCategorySum?>> children = context.Children?.OfType<TreeItemData<OperationCategorySum?>>().ToList() ?? [];
+                                }
+
                                 <MudTreeViewItem @bind-Expanded="@context.Expanded"
                                                  Items="@children"
                                                  Value="@context.Value">
                                     <Content>
                                         <MudTreeViewItemToggleButton @bind-Expanded="@context.Expanded"
                                                                      Visible="@context.HasChildren" />
-                                        <MudText>@catSum.Name @catSum.TotalSum</MudText>
+                                        <MudText>@catSum.Name</MudText>
+                                        <MudSpacer />
+                                        <MudChip>
+                                            <MudStack Spacing="0"
+                                                      AlignItems="AlignItems.Center"
+                                                      Row>
+                                                @catSum.TotalSum.ToString("N2")
+                                                <MudIcon Style="width: 14px;"
+                                                         Size="Size.Small"
+                                                         Icon="@Icons.Material.Rounded.CurrencyRuble" />
+                                            </MudStack>
+                                        </MudChip>
                                     </Content>
                                 </MudTreeViewItem>
-                            </MudStack>
-                        </ItemTemplate>
-                    </MudTreeView>
-                }
-            </MudItem>
-            <MudItem md="6"
-                     xs="12"> @*todo чёт пока незасплитилось попалам ))*@
-                <Chart Config="_pieCharts[operationType.Id].Config"
-                       @ref="_pieCharts[operationType.Id].Chart">
-                </Chart>
-            </MudItem>
+                            </ItemTemplate>
+                        </MudTreeView>
+                    }
+                </MudItem>
+            </MudGrid>
         </MudExpansionPanel>
     }
 </MudExpansionPanels>

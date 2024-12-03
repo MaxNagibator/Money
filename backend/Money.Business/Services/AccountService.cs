@@ -1,6 +1,4 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Money.Data.Entities;
-using System.Threading;
 
 namespace Money.Business.Services;
 
@@ -45,7 +43,7 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
 
     private async Task<int> AddNewUser(Guid authUserId, CancellationToken cancellationToken)
     {
-        var domainUser = new DomainUser
+        DomainUser domainUser = new()
         {
             AuthUserId = authUserId,
             NextCategoryId = 1,
@@ -54,8 +52,10 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
             NextRegularOperationId = 1,
             NextPlaceId = 1,
         };
+
         await context.DomainUsers.AddAsync(domainUser, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
+
         return domainUser.Id;
     }
 }
