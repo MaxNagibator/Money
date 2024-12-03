@@ -56,8 +56,8 @@ public class FastOperationService(
         DomainUser dbUser = await userService.GetCurrent(cancellationToken);
         Category category = await categoryService.GetByIdAsync(operation.CategoryId, cancellationToken);
 
-        int operationId = dbUser.NextOperationId;
-        dbUser.NextOperationId++;
+        int operationId = dbUser.NextFastOperationId;
+        dbUser.NextFastOperationId++;
 
         int? placeId = await placeService.GetPlaceIdAsync(operation.Place, cancellationToken);
 

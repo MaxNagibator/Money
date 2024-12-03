@@ -16,4 +16,8 @@ public class DomainUser
     public int NextOperationId { get; set; }
 
     public int NextPlaceId { get; set; }
+
+    public int NextFastOperationId { get; set; }
+
+    public int NextRegularOperationId { get; set; }
 }

@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Money.Data.Entities;
+using System.Threading;
 
 namespace Money.Business.Services;
 
@@ -26,15 +28,7 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
             throw new IncorrectDataException($"Ошибки: {string.Join("; ", result.Errors.Select(error => error.Description))}");
         }
 
-        await context.DomainUsers.AddAsync(new DomainUser
-        {
-            AuthUserId = user.Id,
-            NextCategoryId = 1,
-            NextOperationId = 1,
-            NextPlaceId = 1,
-        }, cancellationToken);
-
-        await context.SaveChangesAsync(cancellationToken);
+        await AddNewUser(user.Id, cancellationToken);
     }
 
     public async Task<int> EnsureUserIdAsync(Guid authUserId, CancellationToken cancellationToken = default)
@@ -46,17 +40,22 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
             return domainUser.Id;
         }
 
-        domainUser = new DomainUser
+        return await AddNewUser(authUserId, cancellationToken);
+    }
+
+    private async Task<int> AddNewUser(Guid authUserId, CancellationToken cancellationToken)
+    {
+        var domainUser = new DomainUser
         {
             AuthUserId = authUserId,
             NextCategoryId = 1,
             NextOperationId = 1,
+            NextFastOperationId = 1,
+            NextRegularOperationId = 1,
             NextPlaceId = 1,
         };
-
         await context.DomainUsers.AddAsync(domainUser, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
-
         return domainUser.Id;
     }
 }

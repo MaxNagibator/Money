@@ -8,7 +8,7 @@ using Money.Data.Extensions;
 
 namespace Money.Api.Tests.Operations;
 
-public class FastOperationTests
+public class OperationTests
 {
     private DatabaseClient _dbClient;
     private TestUser _user;

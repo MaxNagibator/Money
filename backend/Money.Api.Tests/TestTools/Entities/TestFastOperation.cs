@@ -114,8 +114,8 @@ public class TestFastOperation : TestObject
         if (IsNew)
         {
             DomainUser dbUser = Environment.Context.DomainUsers.Single(x => x.Id == User.Id);
-            int operationId = dbUser.NextOperationId;
-            dbUser.NextOperationId++; // todo обработать канкаренси
+            int operationId = dbUser.NextFastOperationId;
+            dbUser.NextFastOperationId++; // todo обработать канкаренси
 
             FastOperation obj = new()
             {
