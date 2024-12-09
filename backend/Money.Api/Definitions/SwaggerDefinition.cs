@@ -63,7 +63,8 @@ public class SwaggerDefinition : AppDefinition
 
     public override void ConfigureApplication(WebApplication app)
     {
-        if (app.Environment.IsDevelopment() == false)
+        var swaggerForEveryOneHome = true;
+        if (!swaggerForEveryOneHome && app.Environment.IsDevelopment() == false)
         {
             return;
         }
