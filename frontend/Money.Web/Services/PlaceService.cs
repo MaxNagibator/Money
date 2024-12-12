@@ -9,6 +9,7 @@ public class PlaceService(MoneyClient moneyClient)
 
     public async Task<IEnumerable<string>> SearchPlace(string? value, CancellationToken token = default)
     {
+        // todo если выбрать место, а потом ещё раз попробовать выбрать место то крашиться страница
         value ??= string.Empty;
 
         if (Cache.TryGetValue(value, out string[]? cachedResults))

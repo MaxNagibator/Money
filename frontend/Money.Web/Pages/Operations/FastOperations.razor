@@ -1,0 +1,136 @@
+﻿@page "/fast-operations"
+@using Money.ApiClient
+@using Money.Web.Components.FastOperations
+
+<PageTitle>Быстрые операции</PageTitle>
+@if (Operations == null)
+{
+    return;
+}
+<MudStack Spacing="2">
+    <CascadingValue IsFixed="true"
+                    Value="Categories">
+        <MudItem>
+            <FastOperationDialog OnSubmit="AddNewOperation"
+                                 FastOperation="@(new FastOperation {Name = "", Category = Category.Empty })"
+                                 @ref="_dialog">
+                <MudStack AlignItems="AlignItems.Start" Row>
+                    @foreach (OperationTypes.Value type in OperationTypes.Values)
+                    {
+                        <MudTooltip Text="@type.AddText">
+                            <MudButton Color="type.Color"
+                                       Disabled="_dialog.IsOpen"
+                                       EndIcon="@type.Icon"
+                                       OnClick="() => _dialog.ToggleOpen(type)"
+                                       Size="Size.Small"
+                                       Variant="Variant.Filled">
+                                @type.AddText
+                            </MudButton>
+                        </MudTooltip>
+                    }
+                </MudStack>
+            </FastOperationDialog>
+        </MudItem>
+        @foreach (FastOperation fastOperation in Operations)
+        {
+            <MudStack Row
+                      StretchItems="StretchItems.Start">
+                <MudItem Disabled="fastOperation.IsDeleted">
+                    <MudText>@fastOperation.Name</MudText>
+                    <MudSpacer />
+
+
+                    @if (fastOperation.IsDeleted == false)
+                    {
+                        <FastOperationDialog OnSubmit="OnEdit"
+                                             FastOperation="@fastOperation"
+                                             @ref="_dialog">
+                            <MudIconButton Icon="@Icons.Material.Rounded.Edit"
+                                           OnClick="() => _dialog.ToggleOpen()"
+                                           Size="Size.Small" />
+                        </FastOperationDialog>
+
+                        <MudIconButton Color="Color.Error"
+                                       Icon="@Icons.Material.Rounded.Delete"
+                                       OnClick="() => Delete(fastOperation)" />
+                    }
+                </MudItem>
+
+                @if (fastOperation.IsDeleted)
+                {
+                    <MudSpacer />
+
+                    <MudButton Color="Color.Info"
+                               EndIcon="@Icons.Material.Rounded.Cancel"
+                               OnClick="() => Restore(fastOperation)"
+                               Size="Size.Large">
+                        Восстановить
+                    </MudButton>
+                }
+            </MudStack>
+        }
+    </CascadingValue>
+</MudStack>
+@code {
+    private FastOperationDialog _dialog = null!; // todo диалог сделать как в категориях, ну или чтото другое (редактирование при добавлении)
+
+    private List<Category>? Categories { get; set; }
+
+    private List<FastOperation>? Operations { get; set; }
+
+    [Inject]
+    private MoneyClient MoneyClient { get; set; } = default!;
+
+    [Inject]
+    private CategoryService CategoryService { get; set; } = default!;
+
+    [Inject]
+    private FastOperationService FastOperationService { get; set; } = default!;
+
+    [Inject]
+    private ISnackbar SnackbarService { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Categories = await CategoryService.GetCategories();
+        Operations = await FastOperationService.GetFastOperations(Categories!);
+    }
+
+    private void AddNewOperation(FastOperation operation)
+    {
+        Operations!.Insert(0, operation);
+        StateHasChanged();
+    }
+
+    private void OnEdit(FastOperation operation)
+    {
+        StateHasChanged();
+    }
+
+    private async Task Delete(FastOperation fastOperation)
+    {
+        await ModifiyEntity(fastOperation, MoneyClient.FastOperation.Delete, true);
+    }
+
+    private async Task Restore(FastOperation fastOperation)
+    {
+        await ModifiyEntity(fastOperation, MoneyClient.FastOperation.Restore, false);
+    }
+
+    private async Task ModifiyEntity(FastOperation fastOperation, Func<int, Task<ApiClientResponse>> action, bool isDeleted)
+    {
+        if (fastOperation.Id == null)
+        {
+            return;
+        }
+
+        ApiClientResponse result = await action(fastOperation.Id.Value);
+
+        if (result.GetError().ShowMessage(SnackbarService).HasError())
+        {
+            return;
+        }
+
+        fastOperation.IsDeleted = isDeleted;
+    }
+}

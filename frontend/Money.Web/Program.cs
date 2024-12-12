@@ -30,6 +30,7 @@ builder.Services.AddScoped<AuthenticationStateProvider, AuthStateProvider>();
 builder.Services.AddScoped<AuthenticationService>();
 builder.Services.AddScoped<RefreshTokenService>();
 builder.Services.AddScoped<CategoryService>();
+builder.Services.AddScoped<FastOperationService>();
 builder.Services.AddScoped<PlaceService>();
 builder.Services.AddTransient<RefreshTokenHandler>();
 

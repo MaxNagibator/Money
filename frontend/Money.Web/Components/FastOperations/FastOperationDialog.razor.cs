@@ -6,9 +6,9 @@ using NCalc.Factories;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 
-namespace Money.Web.Components.Operations;
+namespace Money.Web.Components.FastOperations;
 
-public partial class OperationDialog
+public partial class FastOperationDialog
 {
     private static readonly HashSet<char> ValidKeys = ['(', ')', '+', '-', '*', '/'];
     private static readonly Dictionary<string, List<string>> Cache = new();
@@ -19,10 +19,10 @@ public partial class OperationDialog
     public List<Category> Categories { get; set; } = default!;
 
     [Parameter]
-    public Operation Operation { get; set; } = default!;
+    public FastOperation FastOperation { get; set; } = default!;
 
     [Parameter]
-    public EventCallback<Operation> OnSubmit { get; set; }
+    public EventCallback<FastOperation> OnSubmit { get; set; }
 
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
@@ -54,12 +54,12 @@ public partial class OperationDialog
                     Categories = (List<Category>)parameter.Value;
                     break;
 
-                case nameof(Operation):
-                    Operation = (Operation)parameter.Value;
+                case nameof(FastOperation):
+                    FastOperation = (FastOperation)parameter.Value;
                     break;
 
                 case nameof(OnSubmit):
-                    OnSubmit = (EventCallback<Operation>)parameter.Value;
+                    OnSubmit = (EventCallback<FastOperation>)parameter.Value;
                     break;
 
                 case nameof(ChildContent):
@@ -85,18 +85,19 @@ public partial class OperationDialog
 
         Input = new InputModel
         {
-            Category = Operation.Category == Category.Empty ? null : Operation.Category,
-            Comment = Operation.Comment,
-            Date = Operation.Date,
-            Place = Operation.Place,
-            Sum = Operation.Sum,
-            CalculationSum = Operation.Sum.ToString(CultureInfo.CurrentCulture),
+            Category = FastOperation.Category == Category.Empty ? null : FastOperation.Category,
+            Comment = FastOperation.Comment,
+            Name = FastOperation.Name,
+            Order = FastOperation.Order,
+            Place = FastOperation.Place,
+            Sum = FastOperation.Sum,
+            CalculationSum = FastOperation.Sum.ToString(CultureInfo.CurrentCulture),
         };
 
         // todo обработать, если текущая категория удалена.
         if (type == null)
         {
-            Input.CategoryList = [.. Categories.Where(x => x.OperationType == Operation.Category.OperationType)];
+            Input.CategoryList = [.. Categories.Where(x => x.OperationType == FastOperation.Category.OperationType)];
             return;
         }
 
@@ -193,13 +194,14 @@ public partial class OperationDialog
             await SaveAsync();
             SnackbarService.Add("Успех!", Severity.Success);
 
-            Operation.Category = Input.Category ?? throw new MoneyException("Категория операции не может быть null");
-            Operation.Comment = Input.Comment;
-            Operation.Date = Input.Date!.Value;
-            Operation.Place = Input.Place;
-            Operation.Sum = Input.Sum;
+            FastOperation.Category = Input.Category ?? throw new MoneyException("Категория операции не может быть null");
+            FastOperation.Comment = Input.Comment;
+            FastOperation.Name = Input.Name!;
+            FastOperation.Name = Input.Name!;
+            FastOperation.Place = Input.Place;
+            FastOperation.Sum = Input.Sum;
 
-            await OnSubmit.InvokeAsync(Operation);
+            await OnSubmit.InvokeAsync(FastOperation);
             ToggleOpen();
         }
         catch (Exception)
@@ -211,28 +213,29 @@ public partial class OperationDialog
 
     private async Task SaveAsync()
     {
-        OperationClient.SaveRequest saveRequest = CreateSaveRequest();
+        FastOperationClient.SaveRequest saveRequest = CreateSaveRequest();
 
-        if (Operation.Id == null)
+        if (FastOperation.Id == null)
         {
-            ApiClientResponse<int> result = await MoneyClient.Operation.Create(saveRequest);
-            Operation.Id = result.Content;
+            ApiClientResponse<int> result = await MoneyClient.FastOperation.Create(saveRequest);
+            FastOperation.Id = result.Content;
         }
         else
         {
-            await MoneyClient.Operation.Update(Operation.Id.Value, saveRequest);
+            await MoneyClient.FastOperation.Update(FastOperation.Id.Value, saveRequest);
         }
     }
 
-    private OperationClient.SaveRequest CreateSaveRequest()
+    private FastOperationClient.SaveRequest CreateSaveRequest()
     {
-        return new OperationClient.SaveRequest
+        return new FastOperationClient.SaveRequest
         {
             CategoryId = Input.Category?.Id ?? throw new MoneyException("Идентификатор отсутствует при сохранении операции"),
             Comment = Input.Comment,
-            Date = Input.Date!.Value,
+            Name = Input.Name!,
             Sum = Input.Sum,
             Place = Input.Place,
+            Order = Input.Order,
         };
     }
 
@@ -257,12 +260,15 @@ public partial class OperationDialog
             Category = Category.Empty,
         };
 
-        [Required(ErrorMessage = "Категория обязательна")]
+        [Required(ErrorMessage = "Заполни меня")]
         public Category? Category { get; set; }
 
         public List<Category>? CategoryList { get; set; }
 
-        [Required(ErrorMessage = "Требуется сумма")]
+        [Required(ErrorMessage = "Заполни меня")]
+        public string? Name { get; set; }
+
+        [Required(ErrorMessage = "Заполни меня")]
         [Range(double.MinValue, double.MaxValue, ErrorMessage = "Сумма вне допустимого диапазона")]
         public decimal Sum { get; set; }
 
@@ -272,7 +278,6 @@ public partial class OperationDialog
 
         public string? Place { get; set; }
 
-        [Required(ErrorMessage = "Укажите дату")]
-        public DateTime? Date { get; set; }
+        public int? Order { get; set; }
     }
 }
