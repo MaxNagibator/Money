@@ -16,10 +16,10 @@ public partial class FastOperationDialog
     private bool _isNumericSumVisible = true;
 
     [CascadingParameter]
-    public List<Category> Categories { get; set; } = default!;
+    public List<Category> Categories { get; set; } = null!;
 
     [Parameter]
-    public FastOperation FastOperation { get; set; } = default!;
+    public FastOperation FastOperation { get; set; } = null!;
 
     [Parameter]
     public EventCallback<FastOperation> OnSubmit { get; set; }
@@ -33,16 +33,16 @@ public partial class FastOperationDialog
     private InputModel Input { get; set; } = InputModel.Empty;
 
     [Inject]
-    private MoneyClient MoneyClient { get; set; } = default!;
+    private MoneyClient MoneyClient { get; set; } = null!;
 
     [Inject]
-    private PlaceService PlaceService { get; set; } = default!;
+    private PlaceService PlaceService { get; set; } = null!;
 
     [Inject]
-    private ISnackbar SnackbarService { get; set; } = default!;
+    private ISnackbar SnackbarService { get; set; } = null!;
 
     [Inject]
-    private IAsyncExpressionFactory Factory { get; set; } = default!;
+    private IAsyncExpressionFactory Factory { get; set; } = null!;
 
     public override Task SetParametersAsync(ParameterView parameters)
     {

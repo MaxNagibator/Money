@@ -7,9 +7,11 @@ public class PlaceService(MoneyClient moneyClient)
     private static readonly Dictionary<string, string[]> Cache = new();
     private string _lastSearchedValue = string.Empty;
 
+    // TODO: если выбрать место, а потом ещё раз попробовать выбрать место, то крашиться страница
+    // More than one sibling of component 'MudBlazor.MudListItem`1[System.String]' has the same key value, 'sdfdf'. Key values must be unique.
+    // System.InvalidOperationException: More than one sibling of component 'MudBlazor.MudListItem`1[System.String]' has the same key value, 'sdfdf'. Key values must be unique
     public async Task<IEnumerable<string>> SearchPlace(string? value, CancellationToken token = default)
     {
-        // todo если выбрать место, а потом ещё раз попробовать выбрать место то крашиться страница
         value ??= string.Empty;
 
         if (Cache.TryGetValue(value, out string[]? cachedResults))

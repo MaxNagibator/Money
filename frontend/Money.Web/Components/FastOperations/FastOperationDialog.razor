@@ -3,6 +3,10 @@
     @ChildContent
 }
 
+@*
+TODO: Переделать на диалог.
+TODO: Выделить компонент умной суммы.
+*@
 <MudPopover AnchorOrigin="Origin.BottomLeft"
             Class="mt-4 mx-4 pa-4"
             Open="IsOpen"
@@ -25,7 +29,7 @@
             </MudItem>
             <MudItem md="6"
                      xs="12">
-                @if (_isNumericSumVisible) // todo жирная копипаста. в компонет вынести, или просто обычным полем сделать
+                @if (_isNumericSumVisible)
                 {
                     <MudNumericField Adornment="Adornment.Start"
                                      AdornmentColor="Color.Tertiary"
