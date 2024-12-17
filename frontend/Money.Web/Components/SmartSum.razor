@@ -1,0 +1,27 @@
+﻿@if (_isNumericSumVisible)
+{
+    <MudNumericField Adornment="Adornment.Start"
+                     AdornmentColor="Color.Tertiary"
+                     AdornmentIcon="@Icons.Material.Rounded.Calculate"
+                     @bind-Value="Sum"
+                     For="@(() => Sum)"
+                     Immediate
+                     Label="Сумма"
+                     OnAdornmentClick="ToggleSumFieldAsync"
+                     OnKeyDown="OnSumKeyDownAsync" />
+}
+else
+{
+    <MudTextField Adornment="Adornment.Start"
+                  AdornmentColor="Color.Tertiary"
+                  AdornmentIcon="@Icons.Material.Rounded.Numbers"
+                  AutoFocus
+                  @bind-Value="_calculationSum"
+                  Clearable
+                  Counter="0"
+                  For="@(() => _calculationSum)"
+                  Immediate
+                  Label="Сумма"
+                  OnAdornmentClick="ToggleSumFieldAsync"
+                  OnBlur="ToggleSumFieldAsync" />
+}

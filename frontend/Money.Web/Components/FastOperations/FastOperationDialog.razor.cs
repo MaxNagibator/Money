@@ -1,19 +1,12 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using Money.ApiClient;
-using NCalc;
-using NCalc.Factories;
 using System.ComponentModel.DataAnnotations;
-using System.Globalization;
 
 namespace Money.Web.Components.FastOperations;
 
 public partial class FastOperationDialog
 {
-    private static readonly HashSet<char> ValidKeys = ['(', ')', '+', '-', '*', '/'];
-    private static readonly Dictionary<string, List<string>> Cache = new();
-
-    private bool _isNumericSumVisible = true;
+    private SmartSum _smartSum = null!;
 
     [CascadingParameter]
     public List<Category> Categories { get; set; } = null!;
@@ -41,39 +34,6 @@ public partial class FastOperationDialog
     [Inject]
     private ISnackbar SnackbarService { get; set; } = null!;
 
-    [Inject]
-    private IAsyncExpressionFactory Factory { get; set; } = null!;
-
-    public override Task SetParametersAsync(ParameterView parameters)
-    {
-        foreach (ParameterValue parameter in parameters)
-        {
-            switch (parameter.Name)
-            {
-                case nameof(Categories):
-                    Categories = (List<Category>)parameter.Value;
-                    break;
-
-                case nameof(FastOperation):
-                    FastOperation = (FastOperation)parameter.Value;
-                    break;
-
-                case nameof(OnSubmit):
-                    OnSubmit = (EventCallback<FastOperation>)parameter.Value;
-                    break;
-
-                case nameof(ChildContent):
-                    ChildContent = (RenderFragment?)parameter.Value;
-                    break;
-
-                default:
-                    throw new ArgumentException($"Unknown parameter: {parameter.Name}");
-            }
-        }
-
-        return base.SetParametersAsync(ParameterView.Empty);
-    }
-
     public void ToggleOpen(OperationTypes.Value? type = null)
     {
         IsOpen = !IsOpen;
@@ -90,8 +50,6 @@ public partial class FastOperationDialog
             Name = FastOperation.Name,
             Order = FastOperation.Order,
             Place = FastOperation.Place,
-            Sum = FastOperation.Sum,
-            CalculationSum = FastOperation.Sum.ToString(CultureInfo.CurrentCulture),
         };
 
         // todo обработать, если текущая категория удалена.
@@ -102,92 +60,19 @@ public partial class FastOperationDialog
         }
 
         Input.CategoryList = [.. Categories.Where(x => x.OperationType == type)];
-    }
 
-    private async Task ToggleSumFieldAsync()
-    {
-        if (_isNumericSumVisible)
-        {
-            Input.CalculationSum = Input.Sum.ToString(CultureInfo.CurrentCulture);
-        }
-        else if (await ValidateSumAsync() == false)
-        {
-            return;
-        }
-
-        _isNumericSumVisible = !_isNumericSumVisible;
-    }
-
-    private async Task<bool> ValidateSumAsync()
-    {
-        if (_isNumericSumVisible)
-        {
-            return true;
-        }
-
-        decimal? sum = await CalculateAsync();
-
-        if (sum == null)
-        {
-            return false;
-        }
-
-        Input.Sum = sum.Value;
-        Input.CalculationSum = Input.Sum.ToString(CultureInfo.CurrentCulture);
-
-        return true;
-    }
-
-    private async Task<decimal?> CalculateAsync()
-    {
-        decimal? sum = null;
-
-        if (string.IsNullOrWhiteSpace(Input.CalculationSum))
-        {
-            return sum;
-        }
-
-        try
-        {
-            string rawSum = Input.CalculationSum.Replace(',', '.');
-            AsyncExpression expression = Factory.Create(rawSum, ExpressionOptions.DecimalAsDefault);
-
-            object? rawResult = await expression.EvaluateAsync();
-            sum = Convert.ToDecimal(rawResult);
-        }
-        catch (Exception)
-        {
-            SnackbarService.Add("Нераспознано значение в поле 'сумма'.", Severity.Warning);
-        }
-
-        return sum;
-    }
-
-    private async Task OnSumKeyDownAsync(KeyboardEventArgs args)
-    {
-        char key = args.Key.Length == 1 ? args.Key[0] : '\0';
-
-        if (key == '\0' || !ValidKeys.Contains(key))
-        {
-            return;
-        }
-
-        await ToggleSumFieldAsync();
-
-        // Костыль, но ‘-’ валидный символ для NumericField, поэтому происходит его повторное добавление
-        // InputMode.@decimal / https://developer.mozilla.org/ru/docs/Web/HTML/Global_attributes/inputmode#decimal
-        if (key != '-')
-        {
-            Input.CalculationSum += key;
-        }
+        _smartSum.UpdateSum(FastOperation.Sum);
     }
 
     private async Task SubmitAsync()
     {
         try
         {
-            if (await ValidateSumAsync() == false)
+            decimal? sum = await _smartSum.ValidateSumAsync();
+
+            if (sum == null)
             {
+                SnackbarService.Add("Нераспознано значение в поле 'сумма'.", Severity.Warning);
                 return;
             }
 
@@ -199,7 +84,7 @@ public partial class FastOperationDialog
             FastOperation.Name = Input.Name!;
             FastOperation.Name = Input.Name!;
             FastOperation.Place = Input.Place;
-            FastOperation.Sum = Input.Sum;
+            FastOperation.Sum = sum.Value;
 
             await OnSubmit.InvokeAsync(FastOperation);
             ToggleOpen();
@@ -233,7 +118,7 @@ public partial class FastOperationDialog
             CategoryId = Input.Category?.Id ?? throw new MoneyException("Идентификатор отсутствует при сохранении операции"),
             Comment = Input.Comment,
             Name = Input.Name!,
-            Sum = Input.Sum,
+            Sum = _smartSum.Sum,
             Place = Input.Place,
             Order = Input.Order,
         };
@@ -267,12 +152,6 @@ public partial class FastOperationDialog
 
         [Required(ErrorMessage = "Заполни меня")]
         public string? Name { get; set; }
-
-        [Required(ErrorMessage = "Заполни меня")]
-        [Range(double.MinValue, double.MaxValue, ErrorMessage = "Сумма вне допустимого диапазона")]
-        public decimal Sum { get; set; }
-
-        public string? CalculationSum { get; set; }
 
         public string? Comment { get; set; }
 
