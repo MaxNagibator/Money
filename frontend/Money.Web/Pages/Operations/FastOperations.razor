@@ -2,72 +2,54 @@
 
 <PageTitle>Быстрые операции</PageTitle>
 
+<MudText GutterBottom
+         Typo="Typo.h3">
+    Быстрые операции
+</MudText>
+
+
 @if (Operations == null)
 {
     return;
 }
 
+<MudStack Class="mb-3"
+          Row>
+    @*TODO: Добавить кнопки создания с определенным типом*@
+    <MudButton Color="Color.Primary"
+               EndIcon="@Icons.Material.Rounded.Add"
+               OnClick="() => Create()"
+               Variant="Variant.Filled">
+        Добавить
+    </MudButton>
+</MudStack>
+
 <MudStack Spacing="2">
-    <CascadingValue IsFixed="true"
-                    Value="Categories">
-        <MudItem>
-            <FastOperationDialog OnSubmit="AddNewOperation"
-                                 FastOperation="@(new FastOperation { Name = "", Category = Category.Empty })"
-                                 @ref="_dialog">
-                <MudStack AlignItems="AlignItems.Start"
-                          Row>
-                    @foreach (OperationTypes.Value type in OperationTypes.Values)
-                    {
-                        <MudTooltip Text="@type.AddText">
-                            <MudButton Color="type.Color"
-                                       Disabled="_dialog.IsOpen"
-                                       EndIcon="@type.Icon"
-                                       OnClick="() => _dialog.ToggleOpen(type)"
-                                       Size="Size.Small"
-                                       Variant="Variant.Filled">
-                                @type.AddText
-                            </MudButton>
-                        </MudTooltip>
-                    }
-                </MudStack>
-            </FastOperationDialog>
-        </MudItem>
-        @foreach (FastOperation fastOperation in Operations)
-        {
-            <MudStack Row
-                      StretchItems="StretchItems.Start">
-                <MudItem Disabled="fastOperation.IsDeleted">
-                    <MudText>@fastOperation.Name</MudText>
-                    <MudSpacer />
+    @foreach (FastOperation fastOperation in Operations)
+    {
+        <MudStack Row
+                  StretchItems="StretchItems.Start">
+            <MudText>@fastOperation.Name</MudText>
+            <MudSpacer />
 
-                    @if (fastOperation.IsDeleted == false)
-                    {
-                        <FastOperationDialog OnSubmit="OnEdit"
-                                             FastOperation="@fastOperation"
-                                             @ref="_dialog">
-                            <MudIconButton Icon="@Icons.Material.Rounded.Edit"
-                                           OnClick="() => _dialog.ToggleOpen()"
-                                           Size="Size.Small" />
-                        </FastOperationDialog>
+            @if (fastOperation.IsDeleted)
+            {
+                <MudButton Color="Color.Info"
+                           EndIcon="@Icons.Material.Rounded.Cancel"
+                           OnClick="() => Restore(fastOperation)"
+                           Size="Size.Large">
+                    Восстановить
+                </MudButton>
+            }
+            else
+            {
+                <MudIconButton Color="Color.Warning"
+                               Icon="@Icons.Material.Rounded.Edit"
+                               OnClick="() => Update(fastOperation)" />
 
-                        <MudIconButton Color="Color.Error"
-                                       Icon="@Icons.Material.Rounded.Delete"
-                                       OnClick="() => Delete(fastOperation)" />
-                    }
-                </MudItem>
-
-                @if (fastOperation.IsDeleted)
-                {
-                    <MudSpacer />
-
-                    <MudButton Color="Color.Info"
-                               EndIcon="@Icons.Material.Rounded.Cancel"
-                               OnClick="() => Restore(fastOperation)"
-                               Size="Size.Large">
-                        Восстановить
-                    </MudButton>
-                }
-            </MudStack>
-        }
-    </CascadingValue>
+                <MudIconButton Icon="@Icons.Material.Rounded.Delete"
+                               OnClick="() => Delete(fastOperation)" />
+            }
+        </MudStack>
+    }
 </MudStack>

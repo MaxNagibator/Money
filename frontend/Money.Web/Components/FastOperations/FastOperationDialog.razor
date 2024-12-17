@@ -1,103 +1,98 @@
-﻿@if (ChildContent != null)
-{
-    @ChildContent
-}
-
-@*
-TODO: Переделать на диалог.
-TODO: Выделить компонент умной суммы.
-*@
-<MudPopover AnchorOrigin="Origin.BottomLeft"
-            Class="mt-4 mx-4 pa-4"
-            Open="IsOpen"
-            Style="max-width: 600px"
-            TransformOrigin="Origin.TopLeft">
-    <EditForm Model="@Input"
-              OnValidSubmit="SubmitAsync">
-        <DataAnnotationsValidator />
-
-        <MudGrid>
-            <MudItem md="12"
-                     xs="12">
-                <MudTextField AdornmentColor="Color.Tertiary"
-                              AdornmentIcon="@Icons.Material.Rounded.Comment"
-                              AutoGrow
-                              @bind-Value="Input.Name"
-                              Counter="0"
-                              For="@(() => Input.Name)"
-                              Label="Наименование" />
-            </MudItem>
-            <MudItem md="6"
-                     xs="12">
-                <SmartSum @ref="_smartSum" />
-            </MudItem>
-            <MudItem md="6"
-                     xs="12">
-                <MudTextField AdornmentColor="Color.Tertiary"
-                              @bind-Value="Input.Order"
-                              Clearable
-                              Immediate
-                              Counter="0"
-                              For="@(() => Input.Order)"
-                              Label="Приоритет сортировки" />
-            </MudItem>
-            <MudItem md="6"
-                     xs="12">
-                <MudAutocomplete AdornmentColor="Color.Tertiary"
-                                 AdornmentIcon="@Icons.Material.Rounded.Search"
-                                 @bind-Value="Input.Category"
-                                 Clearable
-                                 Counter="0"
-                                 For="@(() => Input.Category)"
-                                 Label="Категория"
-                                 ResetValueOnEmptyText
-                                 SearchFunc="SearchCategoryAsync"
-                                 SelectValueOnTab
-                                 ToStringFunc="@(arg => arg?.Name ?? string.Empty)" />
-            </MudItem>
-            <MudItem md="6"
-                     xs="12">
-                <MudAutocomplete AdornmentColor="Color.Tertiary"
-                                 AdornmentIcon="@Icons.Material.Rounded.Place"
-                                 @bind-Value="Input.Place"
-                                 Clearable
-                                 CoerceText="false"
-                                 CoerceValue="true"
-                                 Counter="0"
-                                 DebounceInterval="350"
-                                 For="@(() => Input.Place)"
-                                 Immediate
-                                 Label="Место"
-                                 ResetValueOnEmptyText="false"
-                                 SearchFunc="SearchPlaceAsync"
-                                 SelectValueOnTab
-                                 ShowProgressIndicator />
-            </MudItem>
-            <MudItem md="12"
-                     xs="12">
-                <MudTextField AdornmentColor="Color.Tertiary"
-                              AdornmentIcon="@Icons.Material.Rounded.Comment"
-                              AutoGrow
-                              @bind-Value="Input.Comment"
-                              Counter="0"
-                              For="@(() => Input.Comment)"
-                              Label="Комментарий" />
-            </MudItem>
-        </MudGrid>
-
-        <MudStack AlignItems="AlignItems.Center"
-                  Class="mt-3"
-                  Justify="Justify.SpaceBetween"
-                  Row>
-            <MudButton Color="Color.Error"
-                       OnClick="() => ToggleOpen()">
-                Закрыть
-            </MudButton>
+﻿<EditForm Model="@Input"
+          OnValidSubmit="SubmitAsync">
+    <DataAnnotationsValidator />
+    <MudDialog>
+        <TitleContent>
+            <MudText Typo="Typo.h6">
+                @MudDialog.Title
+            </MudText>
+        </TitleContent>
+        <DialogContent>
+            <MudGrid>
+                <MudItem md="12"
+                         xs="12">
+                    <MudTextField AdornmentColor="Color.Tertiary"
+                                  AdornmentIcon="@Icons.Material.Rounded.Comment"
+                                  AutoGrow
+                                  @bind-Value="Input.Name"
+                                  Counter="0"
+                                  For="@(() => Input.Name)"
+                                  Label="Наименование" />
+                </MudItem>
+                <MudItem md="6"
+                         xs="12">
+                    <SmartSum @ref="_smartSum" />
+                </MudItem>
+                <MudItem md="6"
+                         xs="12">
+                    <MudTextField AdornmentColor="Color.Tertiary"
+                                  @bind-Value="Input.Order"
+                                  Clearable
+                                  Immediate
+                                  Counter="0"
+                                  For="@(() => Input.Order)"
+                                  Label="Приоритет сортировки" />
+                </MudItem>
+                <MudItem md="6"
+                         xs="12">
+                    <MudAutocomplete AdornmentColor="Color.Tertiary"
+                                     AdornmentIcon="@Icons.Material.Rounded.Search"
+                                     @bind-Value="Input.Category"
+                                     Clearable
+                                     Counter="0"
+                                     For="@(() => Input.Category)"
+                                     Label="Категория"
+                                     ResetValueOnEmptyText
+                                     SearchFunc="SearchCategoryAsync"
+                                     SelectValueOnTab
+                                     ToStringFunc="@(arg => arg?.Name ?? string.Empty)" />
+                </MudItem>
+                <MudItem md="6"
+                         xs="12">
+                    <MudAutocomplete AdornmentColor="Color.Tertiary"
+                                     AdornmentIcon="@Icons.Material.Rounded.Place"
+                                     @bind-Value="Input.Place"
+                                     Clearable
+                                     CoerceText="false"
+                                     CoerceValue="true"
+                                     Counter="0"
+                                     DebounceInterval="350"
+                                     For="@(() => Input.Place)"
+                                     Immediate
+                                     Label="Место"
+                                     ResetValueOnEmptyText="false"
+                                     SearchFunc="SearchPlaceAsync"
+                                     SelectValueOnTab
+                                     ShowProgressIndicator />
+                </MudItem>
+                <MudItem md="12"
+                         xs="12">
+                    <MudTextField AdornmentColor="Color.Tertiary"
+                                  AdornmentIcon="@Icons.Material.Rounded.Comment"
+                                  AutoGrow
+                                  @bind-Value="Input.Comment"
+                                  Counter="0"
+                                  For="@(() => Input.Comment)"
+                                  Label="Комментарий" />
+                </MudItem>
+            </MudGrid>
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="Cancel">Отмена</MudButton>
             <MudButton ButtonType="ButtonType.Submit"
-                       Color="Color.Tertiary"
-                       Variant="Variant.Filled">
-                Сохранить
+                       Color="Color.Success"
+                       Disabled="@_isProcessing">
+                @if (_isProcessing)
+                {
+                    <MudProgressCircular Class="ms-n1"
+                                         Indeterminate="true"
+                                         Size="Size.Small" />
+                }
+                else
+                {
+                    <MudText Typo="Typo.button">Сохранить</MudText>
+                }
             </MudButton>
-        </MudStack>
-    </EditForm>
-</MudPopover>
+        </DialogActions>
+    </MudDialog>
+</EditForm>

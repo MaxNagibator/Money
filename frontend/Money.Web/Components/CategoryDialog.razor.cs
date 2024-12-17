@@ -15,19 +15,19 @@ public partial class CategoryDialog
     private bool _isProcessing;
 
     [Parameter]
-    public Category Category { get; set; } = default!;
+    public Category Category { get; set; } = null!;
 
     [CascadingParameter]
-    public MudDialogInstance MudDialog { get; set; } = default!;
+    public MudDialogInstance MudDialog { get; set; } = null!;
 
     [SupplyParameterFromForm]
-    private InputModel Input { get; set; } = default!;
+    private InputModel Input { get; set; } = null!;
 
     [Inject]
-    private MoneyClient MoneyClient { get; set; } = default!;
+    private MoneyClient MoneyClient { get; set; } = null!;
 
     [Inject]
-    private ISnackbar SnackbarService { get; set; } = default!;
+    private ISnackbar SnackbarService { get; set; } = null!;
 
     protected override void OnParametersSet()
     {
@@ -99,7 +99,7 @@ public partial class CategoryDialog
 
     private sealed class InputModel
     {
-        [Display(Name = "Наименование")] // todo подумать как красивее
+        [Display(Name = "Наименование")] // TODO: подумать как красивее
         [Required(ErrorMessage = "Необходимо указать наименование")]
         public required string Name { get; set; }
 

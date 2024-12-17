@@ -6,9 +6,6 @@ namespace Money.Web.Pages.Operations;
 
 public partial class FastOperations
 {
-    // TODO: Добавить диалог для быстрых операций как в категориях.
-    private FastOperationDialog _dialog = null!;
-
     [Inject]
     private MoneyClient MoneyClient { get; set; } = null!;
 
@@ -21,6 +18,9 @@ public partial class FastOperations
     [Inject]
     private ISnackbar SnackbarService { get; set; } = null!;
 
+    [Inject]
+    private IDialogService DialogService { get; set; } = null!;
+
     private List<Category>? Categories { get; set; }
     private List<FastOperation>? Operations { get; set; }
 
@@ -30,28 +30,40 @@ public partial class FastOperations
         Operations = await FastOperationService.GetFastOperations(Categories!);
     }
 
-    private void AddNewOperation(FastOperation operation)
+    private async Task Create()
     {
-        Operations!.Insert(0, operation);
-        StateHasChanged();
+        FastOperation input = new()
+        {
+            Name = string.Empty,
+            Category = Category.Empty,
+        };
+
+        FastOperation? created = await ShowDialog("Создать", input);
+
+        if (created == null)
+        {
+            return;
+        }
+
+        Operations!.Insert(0, created);
     }
 
-    private void OnEdit(FastOperation operation)
+    private Task Update(FastOperation fastOperation)
     {
-        StateHasChanged();
+        return ShowDialog("Обновить", fastOperation);
     }
 
-    private async Task Delete(FastOperation fastOperation)
+    private Task Delete(FastOperation fastOperation)
     {
-        await ModifiyEntity(fastOperation, MoneyClient.FastOperation.Delete, true);
+        return Modify(fastOperation, MoneyClient.FastOperation.Delete, true);
     }
 
-    private async Task Restore(FastOperation fastOperation)
+    private Task Restore(FastOperation fastOperation)
     {
-        await ModifiyEntity(fastOperation, MoneyClient.FastOperation.Restore, false);
+        return Modify(fastOperation, MoneyClient.FastOperation.Restore, false);
     }
 
-    private async Task ModifiyEntity(FastOperation fastOperation, Func<int, Task<ApiClientResponse>> action, bool isDeleted)
+    private async Task Modify(FastOperation fastOperation, Func<int, Task<ApiClientResponse>> action, bool isDeleted)
     {
         if (fastOperation.Id == null)
         {
@@ -66,5 +78,18 @@ public partial class FastOperations
         }
 
         fastOperation.IsDeleted = isDeleted;
+    }
+
+    private async Task<FastOperation?> ShowDialog(string title, FastOperation fastOperation)
+    {
+        DialogParameters<FastOperationDialog> parameters = new()
+        {
+            { dialog => dialog.FastOperation, fastOperation },
+            // TODO: Подумать над инжектом CategoryService в FastOperationDialog
+            { dialog => dialog.Categories, Categories },
+        };
+
+        IDialogReference dialog = await DialogService.ShowAsync<FastOperationDialog>(title, parameters);
+        return await dialog.GetReturnValueAsync<FastOperation>();
     }
 }

@@ -6,21 +6,27 @@ namespace Money.Web.Components.FastOperations;
 
 public partial class FastOperationDialog
 {
+    private readonly DialogOptions _dialogOptions = new()
+    {
+        CloseButton = true,
+        BackdropClick = false,
+    };
+
     private SmartSum _smartSum = null!;
 
+    private bool _isProcessing;
+
     [CascadingParameter]
+    public MudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public Category Category { get; set; } = null!;
+
+    [Parameter]
     public List<Category> Categories { get; set; } = null!;
 
     [Parameter]
     public FastOperation FastOperation { get; set; } = null!;
-
-    [Parameter]
-    public EventCallback<FastOperation> OnSubmit { get; set; }
-
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
-
-    public bool IsOpen { get; private set; }
 
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = InputModel.Empty;
@@ -34,15 +40,8 @@ public partial class FastOperationDialog
     [Inject]
     private ISnackbar SnackbarService { get; set; } = null!;
 
-    public void ToggleOpen(OperationTypes.Value? type = null)
+    protected override void OnParametersSet()
     {
-        IsOpen = !IsOpen;
-
-        if (IsOpen == false)
-        {
-            return;
-        }
-
         Input = new InputModel
         {
             Category = FastOperation.Category == Category.Empty ? null : FastOperation.Category,
@@ -52,26 +51,37 @@ public partial class FastOperationDialog
             Place = FastOperation.Place,
         };
 
-        // todo обработать, если текущая категория удалена.
-        if (type == null)
+        MudDialog.SetOptions(_dialogOptions);
+
+        if (Input.Category == null)
+        {
+            Input.CategoryList = [.. Categories];
+        }
+        else
         {
             Input.CategoryList = [.. Categories.Where(x => x.OperationType == FastOperation.Category.OperationType)];
-            return;
         }
+    }
 
-        Input.CategoryList = [.. Categories.Where(x => x.OperationType == type)];
-
-        _smartSum.UpdateSum(FastOperation.Sum);
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _smartSum.UpdateSum(FastOperation.Sum);
+        }
     }
 
     private async Task SubmitAsync()
     {
+        _isProcessing = true;
+
         try
         {
             decimal? sum = await _smartSum.ValidateSumAsync();
 
             if (sum == null)
             {
+                _isProcessing = false;
                 SnackbarService.Add("Нераспознано значение в поле 'сумма'.", Severity.Warning);
                 return;
             }
@@ -86,14 +96,15 @@ public partial class FastOperationDialog
             FastOperation.Place = Input.Place;
             FastOperation.Sum = sum.Value;
 
-            await OnSubmit.InvokeAsync(FastOperation);
-            ToggleOpen();
+            MudDialog.Close(DialogResult.Ok(FastOperation));
         }
         catch (Exception)
         {
             // TODO: добавить логирование ошибки
             SnackbarService.Add("Ошибка. Пожалуйста, попробуйте еще раз.", Severity.Error);
         }
+
+        _isProcessing = false;
     }
 
     private async Task SaveAsync()
@@ -136,6 +147,11 @@ public partial class FastOperationDialog
     private Task<IEnumerable<string?>> SearchPlaceAsync(string? value, CancellationToken token)
     {
         return PlaceService.SearchPlace(value, token)!;
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
     }
 
     private sealed class InputModel
