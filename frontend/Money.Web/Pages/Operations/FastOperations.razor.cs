@@ -6,6 +6,12 @@ namespace Money.Web.Pages.Operations;
 
 public partial class FastOperations
 {
+    private List<Category>? _categories;
+
+    // TODO: Возможно не лучший шаг с двумя списками
+    private List<FastOperation>? _operations;
+    private List<FastOperation>? _deletedOperations;
+
     [Inject]
     private MoneyClient MoneyClient { get; set; } = null!;
 
@@ -21,13 +27,11 @@ public partial class FastOperations
     [Inject]
     private IDialogService DialogService { get; set; } = null!;
 
-    private List<Category>? Categories { get; set; }
-    private List<FastOperation>? Operations { get; set; }
-
     protected override async Task OnInitializedAsync()
     {
-        Categories = await CategoryService.GetCategories();
-        Operations = await FastOperationService.GetFastOperations(Categories!);
+        _categories = await CategoryService.GetCategories();
+        _operations = await FastOperationService.GetFastOperations(_categories!);
+        _deletedOperations = [];
     }
 
     private async Task Create()
@@ -45,10 +49,10 @@ public partial class FastOperations
             return;
         }
 
-        Operations!.Insert(0, created);
+        _operations!.Insert(0, created);
     }
 
-    private Task Update(FastOperation fastOperation)
+    private Task<FastOperation?> Update(FastOperation fastOperation)
     {
         return ShowDialog("Обновить", fastOperation);
     }
@@ -78,6 +82,17 @@ public partial class FastOperations
         }
 
         fastOperation.IsDeleted = isDeleted;
+
+        if (isDeleted)
+        {
+            _operations!.Remove(fastOperation);
+            _deletedOperations!.Insert(0, fastOperation);
+        }
+        else
+        {
+            _deletedOperations!.Remove(fastOperation);
+            _operations!.Insert(0, fastOperation);
+        }
     }
 
     private async Task<FastOperation?> ShowDialog(string title, FastOperation fastOperation)
@@ -86,7 +101,7 @@ public partial class FastOperations
         {
             { dialog => dialog.FastOperation, fastOperation },
             // TODO: Подумать над инжектом CategoryService в FastOperationDialog
-            { dialog => dialog.Categories, Categories },
+            { dialog => dialog.Categories, _categories },
         };
 
         IDialogReference dialog = await DialogService.ShowAsync<FastOperationDialog>(title, parameters);

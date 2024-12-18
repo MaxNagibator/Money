@@ -7,49 +7,161 @@
     Быстрые операции
 </MudText>
 
+<MudGrid Spacing="2"
+         Class="mb-2">
+    @*TODO: Добавить кнопки создания с определенным типом*@
+    <MudItem lg="3"
+             md="4"
+             xs="12">
+        <MudButton Color="Color.Primary"
+                   EndIcon="@Icons.Material.Filled.Add"
+                   OnClick="Create"
+                   FullWidth
+                   Variant="Variant.Outlined">
+            Добавить
+        </MudButton>
+    </MudItem>
+</MudGrid>
 
-@if (Operations == null)
+<MudDivider Class="mt-4 mb-4" />
+
+@if (_operations == null)
 {
     return;
 }
 
-<MudStack Class="mb-3"
-          Row>
-    @*TODO: Добавить кнопки создания с определенным типом*@
-    <MudButton Color="Color.Primary"
-               EndIcon="@Icons.Material.Rounded.Add"
-               OnClick="() => Create()"
-               Variant="Variant.Filled">
-        Добавить
-    </MudButton>
-</MudStack>
-
-<MudStack Spacing="2">
-    @foreach (FastOperation fastOperation in Operations)
+<MudGrid Spacing="2">
+    @foreach (FastOperation? operation in _operations)
     {
-        <MudStack Row
-                  StretchItems="StretchItems.Start">
-            <MudText>@fastOperation.Name</MudText>
-            <MudSpacer />
+        // TODO: Подумать как более грамотно сделать
+        string className = operation.Category.OperationType.Id == 1 ? "expense-operation-card" : "income-operation-card";
 
-            @if (fastOperation.IsDeleted)
-            {
-                <MudButton Color="Color.Info"
-                           EndIcon="@Icons.Material.Rounded.Cancel"
-                           OnClick="() => Restore(fastOperation)"
-                           Size="Size.Large">
-                    Восстановить
-                </MudButton>
-            }
-            else
-            {
-                <MudIconButton Color="Color.Warning"
-                               Icon="@Icons.Material.Rounded.Edit"
-                               OnClick="() => Update(fastOperation)" />
+        <MudItem class="mb-1"
+                 lg="3"
+                 md="4"
+                 xs="12">
+            <MudCard Class="@className">
+                <MudCardHeader>
+                    <MudText Typo="Typo.h6">@operation.Name</MudText>
+                    <MudSpacer />
+                    <MudChip Class="sort-chip"
+                             Icon="@Icons.Material.Filled.Sort"
+                             Size="Size.Small"
+                             Style="background-color: #1976d2; color: white;"
+                             Value="@operation.Order.ToString()" />
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText Typo="Typo.subtitle2">Категория: @operation.Category.Name</MudText>
+                    <MudText Typo="Typo.body2">Сумма: @operation.Sum</MudText>
+                    @if (string.IsNullOrEmpty(operation.Comment) == false)
+                    {
+                        <MudText Typo="Typo.body2">Комментарий: @operation.Comment</MudText>
+                    }
 
-                <MudIconButton Icon="@Icons.Material.Rounded.Delete"
-                               OnClick="() => Delete(fastOperation)" />
-            }
-        </MudStack>
+                    @if (string.IsNullOrEmpty(operation.Place) == false)
+                    {
+                        <MudText Typo="Typo.body2">Место: @operation.Place</MudText>
+                    }
+                </MudCardContent>
+                <MudCardActions>
+                    <MudSpacer />
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                   Color="Color.Warning"
+                                   OnClick="() => Update(operation)" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                   Color="Color.Default"
+                                   OnClick="() => Delete(operation)" />
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
     }
-</MudStack>
+</MudGrid>
+
+<MudDivider Class="mt-4 mb-4" />
+
+@if (_deletedOperations != null && _deletedOperations.Count != 0)
+{
+    <MudGrid>
+        @foreach (FastOperation? operation in _deletedOperations)
+        {
+            <MudItem class="mb-2"
+                     lg="3"
+                     md="4"
+                     xs="12">
+                <MudCard Class="deleted-operation-card">
+                    <MudCardHeader>
+                        <MudText Typo="Typo.h6">@operation.Name</MudText>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText Typo="Typo.subtitle2">Категория: @operation.Category.Name</MudText>
+                        <MudText Typo="Typo.body2">Сумма: @operation.Sum</MudText>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudSpacer />
+                        <MudIconButton Icon="@Icons.Material.Filled.Restore"
+                                       Color="Color.Success"
+                                       OnClick="() => Restore(operation)" />
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+<style>
+
+    .income-operation-card {
+        height: 100%;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid rgba(76, 175, 80, 0.5);
+        border-radius: 8px;
+        background-color: rgba(76, 175, 80, 0.1);
+    }
+
+    .income-operation-card:hover {
+        transform: scale(1.03);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .income-operation-card .mud-card-header {
+        border-bottom: 1px solid rgba(76, 175, 80, 0.5);
+        background-color: rgba(76, 175, 80, 0.2);
+    }
+
+    .expense-operation-card {
+        height: 100%;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid rgba(255, 193, 7, 0.5);
+        border-radius: 8px;
+        background-color: rgba(255, 193, 7, 0.1);
+    }
+
+    .expense-operation-card:hover {
+        transform: scale(1.03);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .expense-operation-card .mud-card-header {
+        border-bottom: 1px solid rgba(255, 193, 7, 0.5);
+        background-color: rgba(255, 193, 7, 0.2);
+    }
+
+    .deleted-operation-card {
+        height: 100%;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid rgba(128, 128, 128, 0.5);
+        border-radius: 8px;
+        background-color: rgba(128, 128, 128, 0.1);
+    }
+
+    .deleted-operation-card:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .deleted-operation-card .mud-card-header {
+        border-bottom: 1px solid rgba(128, 128, 128, 0.5);
+        background-color: rgba(128, 128, 128, 0.2);
+    }
+
+</style>
