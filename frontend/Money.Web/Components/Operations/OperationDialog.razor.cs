@@ -7,6 +7,7 @@ namespace Money.Web.Components.Operations;
 public partial class OperationDialog
 {
     private SmartSum _smartSum = null!;
+    private decimal _sum;
 
     [CascadingParameter]
     public List<Category> Categories { get; set; } = null!;
@@ -36,6 +37,8 @@ public partial class OperationDialog
 
     public void ToggleOpen(OperationTypes.Value? type = null)
     {
+        _sum = Operation.Sum;
+
         IsOpen = !IsOpen;
 
         if (IsOpen == false)
@@ -59,8 +62,6 @@ public partial class OperationDialog
         }
 
         Input.CategoryList = [.. Categories.Where(x => x.OperationType == type)];
-
-        _smartSum.UpdateSum(Operation.Sum);
     }
 
     private async Task SubmitAsync()

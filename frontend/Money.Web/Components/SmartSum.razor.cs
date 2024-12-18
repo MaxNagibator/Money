@@ -15,6 +15,10 @@ public partial class SmartSum : ComponentBase
 
     public decimal Sum { get; set; }
 
+    // TODO: Костыль для корректной работы Popover
+    [Parameter]
+    public Func<decimal>? GetInitialSum { get; set; }
+
     [Inject]
     private IAsyncExpressionFactory Factory { get; set; } = null!;
 
@@ -46,6 +50,14 @@ public partial class SmartSum : ComponentBase
         _calculationSum = Sum.ToString(CultureInfo.CurrentCulture);
 
         return sum;
+    }
+
+    protected override void OnInitialized()
+    {
+        if (GetInitialSum != null)
+        {
+            UpdateSum(GetInitialSum.Invoke());
+        }
     }
 
     private async Task ToggleSumFieldAsync()

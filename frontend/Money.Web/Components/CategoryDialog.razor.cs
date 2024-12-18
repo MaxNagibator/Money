@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
-using Money.ApiClient;
+﻿using CSharpFunctionalExtensions;
+using Microsoft.AspNetCore.Components;
 using System.ComponentModel.DataAnnotations;
 
 namespace Money.Web.Components;
@@ -24,7 +24,7 @@ public partial class CategoryDialog
     private InputModel Input { get; set; } = null!;
 
     [Inject]
-    private MoneyClient MoneyClient { get; set; } = null!;
+    private CategoryService CategoryService { get; set; } = null!;
 
     [Inject]
     private ISnackbar SnackbarService { get; set; } = null!;
@@ -45,51 +45,32 @@ public partial class CategoryDialog
     {
         _isProcessing = true;
 
-        try
-        {
-            await SaveAsync();
-            SnackbarService.Add("Категория успешно сохранена!", Severity.Success);
-
-            Category.Name = Input.Name;
-            Category.Order = Input.Order;
-            Category.Color = Input.Color;
-
-            MudDialog.Close(DialogResult.Ok(Category));
-        }
-        catch (Exception)
-        {
-            // TODO: добавить логирование ошибки
-            SnackbarService.Add("Не удалось сохранить категорию. Пожалуйста, попробуйте еще раз.", Severity.Error);
-        }
-
-        _isProcessing = false;
-    }
-
-    private async Task SaveAsync()
-    {
-        CategoryClient.SaveRequest clientCategory = CreateSaveRequest();
-
-        if (Category.Id == null)
-        {
-            ApiClientResponse<int> result = await MoneyClient.Category.Create(clientCategory);
-            Category.Id = result.Content;
-        }
-        else
-        {
-            await MoneyClient.Category.Update(Category.Id.Value, clientCategory);
-        }
-    }
-
-    private CategoryClient.SaveRequest CreateSaveRequest()
-    {
-        return new CategoryClient.SaveRequest
+        Category saved = new()
         {
             Name = Input.Name,
             Order = Input.Order,
             Color = Input.Color,
             ParentId = Category.ParentId,
-            OperationTypeId = Category.OperationType.Id,
+            OperationType = Category.OperationType,
         };
+
+        Result result = await CategoryService.SaveAsync(saved);
+
+        if (result.IsFailure)
+        {
+            SnackbarService.Add(result.Error, Severity.Warning);
+            return;
+        }
+
+        SnackbarService.Add("Категория успешно сохранена!", Severity.Success);
+
+        Category.Name = Input.Name;
+        Category.Order = Input.Order;
+        Category.Color = Input.Color;
+
+        MudDialog.Close(DialogResult.Ok(Category));
+
+        _isProcessing = false;
     }
 
     private void Cancel()
@@ -99,8 +80,8 @@ public partial class CategoryDialog
 
     private sealed class InputModel
     {
-        [Display(Name = "Наименование")] // TODO: подумать как красивее
-        [Required(ErrorMessage = "Необходимо указать наименование")]
+        [Display(Name = "Наименование")]
+        [Required(ErrorMessage = "Заполни меня")]
         public required string Name { get; set; }
 
         public int? Order { get; set; }

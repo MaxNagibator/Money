@@ -15,7 +15,8 @@
         <MudGrid>
             <MudItem md="6"
                      xs="12">
-                <SmartSum @ref="_smartSum" />
+                <SmartSum @ref="_smartSum"
+                          GetInitialSum="() => _sum" />
             </MudItem>
             <MudItem md="6"
                      xs="12">

@@ -23,9 +23,9 @@ public partial class Categories
 
     protected override async Task OnInitializedAsync()
     {
-        List<Category>? categories = await CategoryService.GetCategories();
+        List<Category> categories = await CategoryService.GetAllAsync();
 
-        if (categories == null)
+        if (categories.Count == 0)
         {
             return;
         }

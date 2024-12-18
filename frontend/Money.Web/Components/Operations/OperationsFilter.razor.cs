@@ -27,18 +27,16 @@ public partial class OperationsFilter
     public DateRange DateRange { get; private set; } = new();
 
     [Inject]
-    private ILocalStorageService StorageService { get; set; } = default!;
+    private ILocalStorageService StorageService { get; set; } = null!;
 
     [Inject]
-    private MoneyClient MoneyClient { get; set; } = default!;
+    private MoneyClient MoneyClient { get; set; } = null!;
 
     [Inject]
-    private CategoryService CategoryService { get; set; } = default!;
+    private CategoryService CategoryService { get; set; } = null!;
 
     [Inject]
-    private PlaceService PlaceService { get; set; } = default!;
-
-    private List<Category>? Categories { get; set; }
+    private PlaceService PlaceService { get; set; } = null!;
 
     private string? Comment { get; set; }
     private string? Place { get; set; }
@@ -46,7 +44,7 @@ public partial class OperationsFilter
 
     public async Task SearchAsync()
     {
-        Categories ??= await CategoryService.GetCategories() ?? [];
+        List<Category> categories = await CategoryService.GetAllAsync();
 
         OperationClient.OperationFilterDto filter = new()
         {
@@ -64,7 +62,7 @@ public partial class OperationsFilter
             return;
         }
 
-        Dictionary<int, Category> categoriesDict = Categories!.ToDictionary(x => x.Id!.Value, x => x);
+        Dictionary<int, Category> categoriesDict = categories.ToDictionary(x => x.Id!.Value, x => x);
 
         List<Operation> operations = apiOperations.Content
             .Select(apiOperation => new Operation

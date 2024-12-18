@@ -23,9 +23,6 @@ public partial class FastOperationDialog
     public Category Category { get; set; } = null!;
 
     [Parameter]
-    public List<Category> Categories { get; set; } = null!;
-
-    [Parameter]
     public FastOperation FastOperation { get; set; } = null!;
 
     [SupplyParameterFromForm]
@@ -38,9 +35,12 @@ public partial class FastOperationDialog
     private PlaceService PlaceService { get; set; } = null!;
 
     [Inject]
+    private CategoryService CategoryService { get; set; } = null!;
+
+    [Inject]
     private ISnackbar SnackbarService { get; set; } = null!;
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
         Input = new InputModel
         {
@@ -53,21 +53,15 @@ public partial class FastOperationDialog
 
         MudDialog.SetOptions(_dialogOptions);
 
+        List<Category> categories = await CategoryService.GetAllAsync();
+
         if (Input.Category == null)
         {
-            Input.CategoryList = [.. Categories];
+            Input.CategoryList = [.. categories];
         }
         else
         {
-            Input.CategoryList = [.. Categories.Where(x => x.OperationType == FastOperation.Category.OperationType)];
-        }
-    }
-
-    protected override void OnAfterRender(bool firstRender)
-    {
-        if (firstRender)
-        {
-            _smartSum.UpdateSum(FastOperation.Sum);
+            Input.CategoryList = [.. categories.Where(x => x.OperationType == FastOperation.Category.OperationType)];
         }
     }
 

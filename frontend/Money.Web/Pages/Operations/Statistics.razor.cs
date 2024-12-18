@@ -5,14 +5,14 @@ namespace Money.Web.Pages.Operations;
 
 public partial class Statistics
 {
-    private Dictionary<int, BarChart> _barCharts = default!;
-    private Dictionary<int, PieChart> _pieCharts = default!;
+    private Dictionary<int, BarChart> _barCharts = null!;
+    private Dictionary<int, PieChart> _pieCharts = null!;
     private List<Category>? _categories;
 
     private Dictionary<int, List<TreeItemData<OperationCategorySum>>> Sums { get; } = [];
 
     [Inject]
-    private CategoryService CategoryService { get; set; } = default!;
+    private CategoryService CategoryService { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -27,7 +27,7 @@ public partial class Statistics
 
         _barCharts = barCharts;
         _pieCharts = pieCharts;
-        _categories = await CategoryService.GetCategories();
+        _categories = await CategoryService.GetAllAsync();
     }
 
     protected override void OnSearchChanged(object? sender, OperationSearchEventArgs args)
@@ -49,7 +49,7 @@ public partial class Statistics
 
             tasks.Add(_barCharts[operationType.Id].UpdateAsync(args.Operations, categories, OperationsFilter.DateRange));
 
-            if (_categories == null || operationGroups == null)
+            if (_categories is not { Count: not 0 } || operationGroups == null)
             {
                 continue;
             }

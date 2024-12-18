@@ -29,8 +29,8 @@ public partial class FastOperations
 
     protected override async Task OnInitializedAsync()
     {
-        _categories = await CategoryService.GetCategories();
-        _operations = await FastOperationService.GetFastOperations(_categories!);
+        _categories = await CategoryService.GetAllAsync();
+        _operations = await FastOperationService.GetAllAsync();
         _deletedOperations = [];
     }
 
@@ -86,12 +86,12 @@ public partial class FastOperations
         if (isDeleted)
         {
             _operations!.Remove(fastOperation);
-            _deletedOperations!.Insert(0, fastOperation);
+            _deletedOperations!.Add(fastOperation);
         }
         else
         {
             _deletedOperations!.Remove(fastOperation);
-            _operations!.Insert(0, fastOperation);
+            _operations!.Add(fastOperation);
         }
     }
 
@@ -100,8 +100,6 @@ public partial class FastOperations
         DialogParameters<FastOperationDialog> parameters = new()
         {
             { dialog => dialog.FastOperation, fastOperation },
-            // TODO: Подумать над инжектом CategoryService в FastOperationDialog
-            { dialog => dialog.Categories, _categories },
         };
 
         IDialogReference dialog = await DialogService.ShowAsync<FastOperationDialog>(title, parameters);
