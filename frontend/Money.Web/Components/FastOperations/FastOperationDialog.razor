@@ -15,7 +15,6 @@
                                   AdornmentIcon="@Icons.Material.Rounded.Comment"
                                   AutoGrow
                                   @bind-Value="Input.Name"
-                                  Counter="0"
                                   For="@(() => Input.Name)"
                                   Label="Наименование" />
                 </MudItem>
@@ -25,13 +24,12 @@
                 </MudItem>
                 <MudItem md="6"
                          xs="12">
-                    <MudTextField AdornmentColor="Color.Tertiary"
-                                  @bind-Value="Input.Order"
-                                  Clearable
-                                  Immediate
-                                  Counter="0"
-                                  For="@(() => Input.Order)"
-                                  Label="Приоритет сортировки" />
+                    <MudNumericField AdornmentColor="Color.Tertiary"
+                                     @bind-Value="Input.Order"
+                                     Clearable
+                                     Immediate
+                                     For="@(() => Input.Order)"
+                                     Label="Приоритет сортировки" />
                 </MudItem>
                 <MudItem md="6"
                          xs="12">

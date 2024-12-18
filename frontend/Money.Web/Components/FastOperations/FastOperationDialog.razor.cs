@@ -89,12 +89,12 @@ public partial class FastOperationDialog
             await SaveAsync();
             SnackbarService.Add("Успех!", Severity.Success);
 
+            FastOperation.Name = Input.Name!;
             FastOperation.Category = Input.Category ?? throw new MoneyException("Категория операции не может быть null");
-            FastOperation.Comment = Input.Comment;
-            FastOperation.Name = Input.Name!;
-            FastOperation.Name = Input.Name!;
-            FastOperation.Place = Input.Place;
             FastOperation.Sum = sum.Value;
+            FastOperation.Comment = Input.Comment;
+            FastOperation.Place = Input.Place;
+            FastOperation.Order = Input.Order;
 
             MudDialog.Close(DialogResult.Ok(FastOperation));
         }

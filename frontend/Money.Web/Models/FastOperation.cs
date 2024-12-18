@@ -33,7 +33,7 @@ public class FastOperation
     public string? Place { get; set; }
 
     /// <summary>
-    ///     Значение сортировки.
+    ///     Приоритет сортировки.
     /// </summary>
     public int? Order { get; set; }
 
