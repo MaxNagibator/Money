@@ -51,7 +51,7 @@ public class PlaceService(MoneyClient moneyClient)
     {
         List<string> newList = [..list];
 
-        if (string.IsNullOrWhiteSpace(value) && newList.Count != 0 && newList.Any(x => Equals(x, value)))
+        if (string.IsNullOrWhiteSpace(value) || (newList.Count != 0 && newList.Any(x => Equals(x, value))))
         {
             return newList;
         }

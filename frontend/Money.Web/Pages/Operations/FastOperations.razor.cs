@@ -8,9 +8,7 @@ public partial class FastOperations
 {
     private List<Category>? _categories;
 
-    // TODO: Возможно не лучший шаг с двумя списками
     private List<FastOperation>? _operations;
-    private List<FastOperation>? _deletedOperations;
 
     [Inject]
     private MoneyClient MoneyClient { get; set; } = null!;
@@ -31,7 +29,6 @@ public partial class FastOperations
     {
         _categories = await CategoryService.GetAllAsync();
         _operations = await FastOperationService.GetAllAsync();
-        _deletedOperations = [];
     }
 
     private async Task Create()
@@ -82,17 +79,6 @@ public partial class FastOperations
         }
 
         fastOperation.IsDeleted = isDeleted;
-
-        if (isDeleted)
-        {
-            _operations!.Remove(fastOperation);
-            _deletedOperations!.Add(fastOperation);
-        }
-        else
-        {
-            _deletedOperations!.Remove(fastOperation);
-            _operations!.Add(fastOperation);
-        }
     }
 
     private async Task<FastOperation?> ShowDialog(string title, FastOperation fastOperation)

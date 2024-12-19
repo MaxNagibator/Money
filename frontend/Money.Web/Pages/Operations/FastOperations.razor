@@ -35,7 +35,10 @@
     {
         // TODO: Подумать как более грамотно сделать
         string className = operation.Category.OperationType.Id == 1 ? "expense-operation-card" : "income-operation-card";
-
+        if (operation.IsDeleted)
+        {
+            className = "deleted-operation-card";
+        }
         <MudItem class="mb-1"
                  lg="3"
                  md="4"
@@ -100,64 +103,37 @@
 
                     <MudSpacer />
 
-                    <MudTooltip Text="Редактировать">
-                        <MudIconButton Color="Color.Warning"
-                                       Icon="@Icons.Material.Filled.Edit"
-                                       OnClick="() => Update(operation)"
-                                       Size="Size.Small" />
-                    </MudTooltip>
 
-                    <MudTooltip Text="Удалить">
-                        <MudIconButton Color="Color.Default"
-                                       Icon="@Icons.Material.Filled.Delete"
-                                       OnClick="() => Delete(operation)"
+                    @if (!operation.IsDeleted)
+                    {
+                        <MudTooltip Text="Редактировать">
+                            <MudIconButton Color="Color.Warning"
+                                           Icon="@Icons.Material.Filled.Edit"
+                                           OnClick="() => Update(operation)"
+                                           Size="Size.Small" />
+                        </MudTooltip>
+                        <MudTooltip Text="Удалить">
+                            <MudIconButton Color="Color.Default"
+                            Icon="@Icons.Material.Filled.Delete"
+                            OnClick="() => Delete(operation)"
+                            Size="Size.Small" />
+                        </MudTooltip>
+                    }
+                    else
+                    {
+                        <MudTooltip Text="Восстановить">
+                            <MudIconButton Color="Color.Success"
+                                       Icon="@Icons.Material.Filled.Restore"
+                                       OnClick="() => Restore(operation)"
                                        Size="Size.Small" />
-                    </MudTooltip>
+                        </MudTooltip>
+                    }
                 </MudCardActions>
             </MudCard>
         </MudItem>
     }
 </MudGrid>
 
-<MudDivider Class="my-4" />
-
-@if (_deletedOperations != null && _deletedOperations.Count != 0)
-{
-    <MudGrid>
-        @foreach (FastOperation? operation in _deletedOperations)
-        {
-            <MudItem class="mb-2"
-                     lg="3"
-                     md="4"
-                     xs="12">
-                <MudCard Class="deleted-operation-card">
-                    <MudCardHeader Style="padding: 4px 6px;">
-                        <MudTooltip RootClass="mud-card-header-text"
-                                    Text="@operation.Name">
-                            <MudText Class="mud-card-header-text"
-                                     Typo="Typo.h6">
-                                @operation.Name
-                            </MudText>
-                        </MudTooltip>
-                    </MudCardHeader>
-                    <MudCardContent Style="padding: 4px 6px">
-                        <MudText Typo="Typo.subtitle2">Категория: @operation.Category.Name</MudText>
-                        <MudText Typo="Typo.body2">Сумма: @operation.Sum</MudText>
-                    </MudCardContent>
-                    <MudCardActions Style="padding: 4px 2px">
-                        <MudSpacer />
-                        <MudTooltip Text="Восстановить">
-                            <MudIconButton Color="Color.Success"
-                                           Icon="@Icons.Material.Filled.Restore"
-                                           OnClick="() => Restore(operation)"
-                                           Size="Size.Small" />
-                        </MudTooltip>
-                    </MudCardActions>
-                </MudCard>
-            </MudItem>
-        }
-    </MudGrid>
-}
 
 <style>
 
