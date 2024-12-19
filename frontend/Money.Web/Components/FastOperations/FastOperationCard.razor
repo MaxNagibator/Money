@@ -1,0 +1,158 @@
+﻿<MudCard Class="@ClassName">
+    <MudCardHeader Style="padding: 4px 6px;">
+        <MudTooltip RootClass="mud-card-header-text"
+                    Text="@Operation.Name">
+            <MudText Class="mud-card-header-text"
+                     Typo="Typo.h6">
+                @Operation.Name
+            </MudText>
+        </MudTooltip>
+    </MudCardHeader>
+    <MudCardContent Style="padding: 4px 6px">
+        <MudTooltip Arrow
+                    Placement="Placement.Right"
+                    Text="Категория">
+            <MudText Typo="Typo.subtitle2">@Operation.Category.Name</MudText>
+        </MudTooltip>
+
+        <MudDivider Class="mb-1" />
+
+        <MudTooltip Arrow
+                    Placement="Placement.Right"
+                    Text="Сумма">
+            <MudText Typo="Typo.body2">@Operation.Sum</MudText>
+        </MudTooltip>
+
+        @if (string.IsNullOrEmpty(Operation.Place) == false)
+        {
+            <MudDivider Class="mb-1" />
+
+            <MudTooltip Arrow
+                        Placement="Placement.Right"
+                        Text="Место">
+                <MudText Typo="Typo.body2">@Operation.Place</MudText>
+            </MudTooltip>
+        }
+
+        @if (string.IsNullOrEmpty(Operation.Comment) == false)
+        {
+            <MudDivider Class="mb-1" />
+
+            <MudTooltip Arrow
+                        Placement="Placement.Right"
+                        Text="Комментарий">
+                <MudText Typo="Typo.body2">@Operation.Comment</MudText>
+            </MudTooltip>
+        }
+    </MudCardContent>
+    <MudCardActions Style="padding: 4px 2px">
+        @if (Operation.Order != null)
+        {
+            <MudTooltip Text="Приоритет сортировки">
+                <MudChip Class="sort-chip"
+                         Icon="@Icons.Material.Filled.Sort"
+                         Size="Size.Small"
+                         Value="@Operation.Order.ToString()" />
+            </MudTooltip>
+        }
+
+        <MudSpacer />
+
+        @if (Operation.IsDeleted)
+        {
+            <MudTooltip Text="Восстановить">
+                <MudIconButton Color="Color.Success"
+                               Icon="@Icons.Material.Filled.Restore"
+                               OnClick="() => Restore(Operation)"
+                               Size="Size.Small" />
+            </MudTooltip>
+        }
+        else
+        {
+            <MudTooltip Text="Редактировать">
+                <MudIconButton Color="Color.Warning"
+                               Icon="@Icons.Material.Filled.Edit"
+                               OnClick="() => Update(Operation)"
+                               Size="Size.Small" />
+            </MudTooltip>
+
+            <MudTooltip Text="Удалить">
+                <MudIconButton Color="Color.Default"
+                               Icon="@Icons.Material.Filled.Delete"
+                               OnClick="() => Delete(Operation)"
+                               Size="Size.Small" />
+            </MudTooltip>
+        }
+    </MudCardActions>
+</MudCard>
+
+<style>
+
+    .income-operation-card {
+        height: 100%;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid rgba(76, 175, 80, 0.5);
+        border-radius: 8px;
+        background-color: rgba(76, 175, 80, 0.1);
+    }
+
+    .income-operation-card:hover {
+        transform: scale(1.03);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .income-operation-card .mud-card-header {
+        border-bottom: 1px solid rgba(76, 175, 80, 0.5);
+        background-color: rgba(76, 175, 80, 0.2);
+    }
+
+    .expense-operation-card {
+        height: 100%;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid rgba(255, 193, 7, 0.5);
+        border-radius: 8px;
+        background-color: rgba(255, 193, 7, 0.1);
+    }
+
+    .expense-operation-card:hover {
+        transform: scale(1.03);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .expense-operation-card .mud-card-header {
+        border-bottom: 1px solid rgba(255, 193, 7, 0.5);
+        background-color: rgba(255, 193, 7, 0.2);
+    }
+
+    .mud-card-header-text {
+        max-width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .deleted-operation-card {
+        height: 100%;
+        transform: scale(0.95);
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid rgba(128, 128, 128, 0.5);
+        border-radius: 8px;
+        background-color: rgba(128, 128, 128, 0.1);
+    }
+
+    .deleted-operation-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        background-color: rgba(128, 128, 128, 0.15);
+    }
+
+    .deleted-operation-card .mud-card-header {
+        border-bottom: 1px solid rgba(128, 128, 128, 0.5);
+        background-color: rgba(128, 128, 128, 0.2);
+    }
+
+    .sort-chip {
+        color: white;
+        background-color: #1976d2;
+    }
+
+</style>
