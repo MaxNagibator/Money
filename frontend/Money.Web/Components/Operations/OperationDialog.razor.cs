@@ -35,6 +35,8 @@ public partial class OperationDialog
     [Inject]
     private ISnackbar SnackbarService { get; set; } = null!;
 
+    private bool IsAutoFocus { get; set; }
+
     public void ToggleOpen(OperationTypes.Value? type = null)
     {
         _sum = Operation.Sum;
@@ -43,6 +45,7 @@ public partial class OperationDialog
 
         if (IsOpen == false)
         {
+            IsAutoFocus = false;
             return;
         }
 
@@ -62,6 +65,21 @@ public partial class OperationDialog
         }
 
         Input.CategoryList = [.. Categories.Where(x => x.OperationType == type)];
+    }
+
+    public void ToggleOpen(FastOperation fastOperation)
+    {
+        Operation = new Operation
+        {
+            Category = fastOperation.Category,
+            Sum = fastOperation.Sum,
+            Comment = fastOperation.Comment,
+            Place = fastOperation.Place,
+            Date = Operation.Date,
+        };
+
+        IsAutoFocus = true;
+        ToggleOpen();
     }
 
     private async Task SubmitAsync()
