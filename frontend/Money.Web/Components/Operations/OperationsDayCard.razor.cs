@@ -17,6 +17,9 @@ public partial class OperationsDayCard
     public required OperationTypes.Value[] OperationTypes { get; set; }
 
     [Parameter]
+    public required List<FastOperation> FastOperations { get; set; }
+
+    [Parameter]
     public EventCallback<Operation> OnAddOperation { get; set; }
 
     [Parameter]
@@ -60,6 +63,10 @@ public partial class OperationsDayCard
 
                 case nameof(OnCanDelete):
                     OnCanDelete = (EventCallback<OperationsDay>)parameter.Value;
+                    break;
+
+                case nameof(FastOperations):
+                    FastOperations = (List<FastOperation>)parameter.Value;
                     break;
 
                 default:

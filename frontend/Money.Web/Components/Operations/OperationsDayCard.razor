@@ -26,11 +26,21 @@
                         @RenderOperationButton(type)
                     }
 
-                    <MudIconButton Color="Color.Info"
-                                   Disabled="@(_dialog.IsOpen)"
-                                   Icon="@Icons.Material.Rounded.Add"
-                                   OnClick="() => _dialog.ToggleOpen()"
-                                   Size="Size.Small" />
+                    <MudMenu AnchorOrigin="Origin.BottomCenter"
+                             Color="Color.Info"
+                             Dense
+                             Disabled="_dialog.IsOpen"
+                             Icon="@Icons.Material.Rounded.Add"
+                             MaxHeight="500"
+                             Size="Size.Small"
+                             TransformOrigin="Origin.TopCenter">
+                        <Virtualize Context="fastOperation"
+                                    Items="FastOperations">
+                            <MudMenuItem OnClick="() => _dialog.ToggleOpen(fastOperation)">
+                                @fastOperation.Name
+                            </MudMenuItem>
+                        </Virtualize>
+                    </MudMenu>
                 </div>
             </OperationDialog>
         </MudItem>

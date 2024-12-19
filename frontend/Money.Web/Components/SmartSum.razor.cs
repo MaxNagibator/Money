@@ -19,17 +19,14 @@ public partial class SmartSum : ComponentBase
     [Parameter]
     public Func<decimal>? GetInitialSum { get; set; }
 
+    [Parameter]
+    public bool IsAutoFocus { get; set; }
+
     [Inject]
     private IAsyncExpressionFactory Factory { get; set; } = null!;
 
     [Inject]
     private ILogger<SmartSum> Logger { get; set; } = null!;
-
-    public void UpdateSum(decimal sum)
-    {
-        Sum = sum;
-        _calculationSum = sum.ToString(CultureInfo.CurrentCulture);
-    }
 
     // TODO: Подумать над ребрендингом метода
     public async Task<decimal?> ValidateSumAsync()
@@ -58,6 +55,12 @@ public partial class SmartSum : ComponentBase
         {
             UpdateSum(GetInitialSum.Invoke());
         }
+    }
+
+    private void UpdateSum(decimal sum)
+    {
+        Sum = sum;
+        _calculationSum = sum.ToString(CultureInfo.CurrentCulture);
     }
 
     private async Task ToggleSumFieldAsync()
