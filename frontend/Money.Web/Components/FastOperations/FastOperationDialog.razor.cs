@@ -1,88 +1,47 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using Money.ApiClient;
-using NCalc;
-using NCalc.Factories;
 using System.ComponentModel.DataAnnotations;
-using System.Globalization;
 
 namespace Money.Web.Components.FastOperations;
 
 public partial class FastOperationDialog
 {
-    private static readonly HashSet<char> ValidKeys = ['(', ')', '+', '-', '*', '/'];
-    private static readonly Dictionary<string, List<string>> Cache = new();
+    private readonly DialogOptions _dialogOptions = new()
+    {
+        CloseButton = true,
+        BackdropClick = false,
+    };
 
-    private bool _isNumericSumVisible = true;
+    private SmartSum _smartSum = null!;
+
+    private bool _isProcessing;
 
     [CascadingParameter]
-    public List<Category> Categories { get; set; } = default!;
+    public MudDialogInstance MudDialog { get; set; } = null!;
 
     [Parameter]
-    public FastOperation FastOperation { get; set; } = default!;
+    public Category Category { get; set; } = null!;
 
     [Parameter]
-    public EventCallback<FastOperation> OnSubmit { get; set; }
-
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
-
-    public bool IsOpen { get; private set; }
+    public FastOperation FastOperation { get; set; } = null!;
 
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = InputModel.Empty;
 
     [Inject]
-    private MoneyClient MoneyClient { get; set; } = default!;
+    private MoneyClient MoneyClient { get; set; } = null!;
 
     [Inject]
-    private PlaceService PlaceService { get; set; } = default!;
+    private PlaceService PlaceService { get; set; } = null!;
 
     [Inject]
-    private ISnackbar SnackbarService { get; set; } = default!;
+    private CategoryService CategoryService { get; set; } = null!;
 
     [Inject]
-    private IAsyncExpressionFactory Factory { get; set; } = default!;
+    private ISnackbar SnackbarService { get; set; } = null!;
 
-    public override Task SetParametersAsync(ParameterView parameters)
+    protected override async Task OnParametersSetAsync()
     {
-        foreach (ParameterValue parameter in parameters)
-        {
-            switch (parameter.Name)
-            {
-                case nameof(Categories):
-                    Categories = (List<Category>)parameter.Value;
-                    break;
-
-                case nameof(FastOperation):
-                    FastOperation = (FastOperation)parameter.Value;
-                    break;
-
-                case nameof(OnSubmit):
-                    OnSubmit = (EventCallback<FastOperation>)parameter.Value;
-                    break;
-
-                case nameof(ChildContent):
-                    ChildContent = (RenderFragment?)parameter.Value;
-                    break;
-
-                default:
-                    throw new ArgumentException($"Unknown parameter: {parameter.Name}");
-            }
-        }
-
-        return base.SetParametersAsync(ParameterView.Empty);
-    }
-
-    public void ToggleOpen(OperationTypes.Value? type = null)
-    {
-        IsOpen = !IsOpen;
-
-        if (IsOpen == false)
-        {
-            return;
-        }
-
         Input = new InputModel
         {
             Category = FastOperation.Category == Category.Empty ? null : FastOperation.Category,
@@ -90,125 +49,56 @@ public partial class FastOperationDialog
             Name = FastOperation.Name,
             Order = FastOperation.Order,
             Place = FastOperation.Place,
-            Sum = FastOperation.Sum,
-            CalculationSum = FastOperation.Sum.ToString(CultureInfo.CurrentCulture),
         };
 
-        // todo обработать, если текущая категория удалена.
-        if (type == null)
+        MudDialog.SetOptions(_dialogOptions);
+
+        List<Category> categories = await CategoryService.GetAllAsync();
+
+        if (Input.Category == null)
         {
-            Input.CategoryList = [.. Categories.Where(x => x.OperationType == FastOperation.Category.OperationType)];
-            return;
+            Input.CategoryList = [.. categories];
         }
-
-        Input.CategoryList = [.. Categories.Where(x => x.OperationType == type)];
-    }
-
-    private async Task ToggleSumFieldAsync()
-    {
-        if (_isNumericSumVisible)
+        else
         {
-            Input.CalculationSum = Input.Sum.ToString(CultureInfo.CurrentCulture);
-        }
-        else if (await ValidateSumAsync() == false)
-        {
-            return;
-        }
-
-        _isNumericSumVisible = !_isNumericSumVisible;
-    }
-
-    private async Task<bool> ValidateSumAsync()
-    {
-        if (_isNumericSumVisible)
-        {
-            return true;
-        }
-
-        decimal? sum = await CalculateAsync();
-
-        if (sum == null)
-        {
-            return false;
-        }
-
-        Input.Sum = sum.Value;
-        Input.CalculationSum = Input.Sum.ToString(CultureInfo.CurrentCulture);
-
-        return true;
-    }
-
-    private async Task<decimal?> CalculateAsync()
-    {
-        decimal? sum = null;
-
-        if (string.IsNullOrWhiteSpace(Input.CalculationSum))
-        {
-            return sum;
-        }
-
-        try
-        {
-            string rawSum = Input.CalculationSum.Replace(',', '.');
-            AsyncExpression expression = Factory.Create(rawSum, ExpressionOptions.DecimalAsDefault);
-
-            object? rawResult = await expression.EvaluateAsync();
-            sum = Convert.ToDecimal(rawResult);
-        }
-        catch (Exception)
-        {
-            SnackbarService.Add("Нераспознано значение в поле 'сумма'.", Severity.Warning);
-        }
-
-        return sum;
-    }
-
-    private async Task OnSumKeyDownAsync(KeyboardEventArgs args)
-    {
-        char key = args.Key.Length == 1 ? args.Key[0] : '\0';
-
-        if (key == '\0' || !ValidKeys.Contains(key))
-        {
-            return;
-        }
-
-        await ToggleSumFieldAsync();
-
-        // Костыль, но ‘-’ валидный символ для NumericField, поэтому происходит его повторное добавление
-        // InputMode.@decimal / https://developer.mozilla.org/ru/docs/Web/HTML/Global_attributes/inputmode#decimal
-        if (key != '-')
-        {
-            Input.CalculationSum += key;
+            Input.CategoryList = [.. categories.Where(x => x.OperationType == FastOperation.Category.OperationType)];
         }
     }
 
     private async Task SubmitAsync()
     {
+        _isProcessing = true;
+
         try
         {
-            if (await ValidateSumAsync() == false)
+            decimal? sum = await _smartSum.ValidateSumAsync();
+
+            if (sum == null)
             {
+                _isProcessing = false;
+                SnackbarService.Add("Нераспознано значение в поле 'сумма'.", Severity.Warning);
                 return;
             }
 
             await SaveAsync();
             SnackbarService.Add("Успех!", Severity.Success);
 
+            FastOperation.Name = Input.Name!;
             FastOperation.Category = Input.Category ?? throw new MoneyException("Категория операции не может быть null");
+            FastOperation.Sum = sum.Value;
             FastOperation.Comment = Input.Comment;
-            FastOperation.Name = Input.Name!;
-            FastOperation.Name = Input.Name!;
             FastOperation.Place = Input.Place;
-            FastOperation.Sum = Input.Sum;
+            FastOperation.Order = Input.Order;
 
-            await OnSubmit.InvokeAsync(FastOperation);
-            ToggleOpen();
+            MudDialog.Close(DialogResult.Ok(FastOperation));
         }
         catch (Exception)
         {
             // TODO: добавить логирование ошибки
             SnackbarService.Add("Ошибка. Пожалуйста, попробуйте еще раз.", Severity.Error);
         }
+
+        _isProcessing = false;
     }
 
     private async Task SaveAsync()
@@ -233,7 +123,7 @@ public partial class FastOperationDialog
             CategoryId = Input.Category?.Id ?? throw new MoneyException("Идентификатор отсутствует при сохранении операции"),
             Comment = Input.Comment,
             Name = Input.Name!,
-            Sum = Input.Sum,
+            Sum = _smartSum.Sum,
             Place = Input.Place,
             Order = Input.Order,
         };
@@ -253,6 +143,11 @@ public partial class FastOperationDialog
         return PlaceService.SearchPlace(value, token)!;
     }
 
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
     private sealed class InputModel
     {
         public static readonly InputModel Empty = new()
@@ -267,12 +162,6 @@ public partial class FastOperationDialog
 
         [Required(ErrorMessage = "Заполни меня")]
         public string? Name { get; set; }
-
-        [Required(ErrorMessage = "Заполни меня")]
-        [Range(double.MinValue, double.MaxValue, ErrorMessage = "Сумма вне допустимого диапазона")]
-        public decimal Sum { get; set; }
-
-        public string? CalculationSum { get; set; }
 
         public string? Comment { get; set; }
 

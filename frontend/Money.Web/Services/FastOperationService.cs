@@ -2,22 +2,30 @@
 
 namespace Money.Web.Services;
 
-public class FastOperationService(MoneyClient moneyClient)
+public class FastOperationService(MoneyClient moneyClient, CategoryService categoryService)
 {
-    public async Task<List<FastOperation>?> GetFastOperations(List<Category> categories)
+    // TODO: Подумать над вынесением ToDictionary() в CategoryService.
+    public async Task<List<FastOperation>> GetAllAsync()
     {
-        ApiClientResponse<FastOperationClient.FastOperation[]> apiCategories = await moneyClient.FastOperation.Get();
-        var cats = categories.ToDictionary(x => x.Id!.Value, x => x);
-        return apiCategories.Content?.Select(apiCategory => new FastOperation
-        {
-            Id = apiCategory.Id,
-            Sum = apiCategory.Sum,
-            Name = apiCategory.Name,
-            Comment = apiCategory.Comment,
-            Order = apiCategory.Order,
-            Category = cats[apiCategory.CategoryId], // todo а если удалённая категория? 
-            Place = apiCategory.Place,
-        })
-        .ToList();
+        ApiClientResponse<FastOperationClient.FastOperation[]> fastOperations = await moneyClient.FastOperation.Get();
+        Dictionary<int, Category> categories = (await categoryService.GetAllAsync()).ToDictionary(x => x.Id!.Value, x => x);
+
+        return fastOperations.Content?
+                   .Select(apiCategory => new FastOperation
+                   {
+                       Id = apiCategory.Id,
+                       Sum = apiCategory.Sum,
+                       Name = apiCategory.Name,
+                       Comment = apiCategory.Comment,
+                       Order = apiCategory.Order,
+                       Category = categories.GetValueOrDefault(apiCategory.CategoryId, Category.Empty),
+                       Place = apiCategory.Place,
+                   })
+                   .OrderBy(x => x.Order == null)
+                   .ThenBy(x => x.Order)
+                   .ThenBy(x => x.Category.Name)
+                   .ThenBy(x => x.Name)
+                   .ToList()
+               ?? [];
     }
 }

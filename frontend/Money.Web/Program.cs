@@ -20,6 +20,7 @@ builder.Services.AddMudServices(configuration =>
     configuration.SnackbarConfiguration.PreventDuplicates = false;
 });
 
+builder.Services.AddMemoryCache();
 builder.Services.AddMudTranslations();
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddLocalization();

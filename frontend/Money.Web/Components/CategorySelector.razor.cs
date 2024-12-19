@@ -12,9 +12,7 @@ public partial class CategorySelector : ComponentBase
     public Category? SelectedCategory { get; private set; }
 
     [Inject]
-    private CategoryService CategoryService { get; set; } = default!;
-
-    private List<Category>? Categories { get; set; }
+    private CategoryService CategoryService { get; set; } = null!;
 
     private List<TreeItemData<Category>> InitialTreeItems { get; set; } = [];
     private IReadOnlyCollection<Category>? SelectedCategories { get; set; }
@@ -33,8 +31,8 @@ public partial class CategorySelector : ComponentBase
 
     protected override async Task OnInitializedAsync()
     {
-        Categories ??= await CategoryService.GetCategories() ?? [];
-        InitialTreeItems = Categories.BuildChildren(null).ToList();
+        List<Category> categories = await CategoryService.GetAllAsync();
+        InitialTreeItems = categories.BuildChildren(null).ToList();
     }
 
     private string GetHelperText()

@@ -21,7 +21,7 @@ public partial class ListOperations
 
     protected override async Task OnInitializedAsync()
     {
-        Categories = await CategoryService.GetCategories();
+        Categories = await CategoryService.GetAllAsync();
     }
 
     protected override void OnSearchChanged(object? sender, OperationSearchEventArgs args)

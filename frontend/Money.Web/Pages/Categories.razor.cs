@@ -10,22 +10,22 @@ public partial class Categories
     private Dictionary<int, List<TreeItemData<Category>>> InitialTreeItems { get; } = [];
 
     [Inject]
-    private MoneyClient MoneyClient { get; set; } = default!;
+    private MoneyClient MoneyClient { get; set; } = null!;
 
     [Inject]
-    private CategoryService CategoryService { get; set; } = default!;
+    private CategoryService CategoryService { get; set; } = null!;
 
     [Inject]
-    private IDialogService DialogService { get; set; } = default!;
+    private IDialogService DialogService { get; set; } = null!;
 
     [Inject]
-    private ISnackbar SnackbarService { get; set; } = default!;
+    private ISnackbar SnackbarService { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
-        List<Category>? categories = await CategoryService.GetCategories();
+        List<Category> categories = await CategoryService.GetAllAsync();
 
-        if (categories == null)
+        if (categories.Count == 0)
         {
             return;
         }

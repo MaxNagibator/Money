@@ -15,33 +15,8 @@
         <MudGrid>
             <MudItem md="6"
                      xs="12">
-                @if (_isNumericSumVisible)
-                {
-                    <MudNumericField Adornment="Adornment.Start"
-                                     AdornmentColor="Color.Tertiary"
-                                     AdornmentIcon="@Icons.Material.Rounded.Calculate"
-                                     @bind-Value="Input.Sum"
-                                     For="@(() => Input.Sum)"
-                                     Immediate
-                                     Label="Сумма"
-                                     OnAdornmentClick="ToggleSumFieldAsync"
-                                     OnKeyDown="OnSumKeyDownAsync" />
-                }
-                else
-                {
-                    <MudTextField Adornment="Adornment.Start"
-                                  AdornmentColor="Color.Tertiary"
-                                  AdornmentIcon="@Icons.Material.Rounded.Numbers"
-                                  AutoFocus
-                                  @bind-Value="Input.CalculationSum"
-                                  Clearable
-                                  Counter="0"
-                                  For="@(() => Input.CalculationSum)"
-                                  Immediate
-                                  Label="Сумма"
-                                  OnAdornmentClick="ToggleSumFieldAsync"
-                                  OnBlur="ToggleSumFieldAsync" />
-                }
+                <SmartSum @ref="_smartSum"
+                          GetInitialSum="() => _sum" />
             </MudItem>
             <MudItem md="6"
                      xs="12">

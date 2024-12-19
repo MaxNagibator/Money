@@ -1,136 +1,230 @@
 ﻿@page "/fast-operations"
-@using Money.ApiClient
-@using Money.Web.Components.FastOperations
 
 <PageTitle>Быстрые операции</PageTitle>
-@if (Operations == null)
+
+<MudText GutterBottom
+         Typo="Typo.h3">
+    Быстрые операции
+</MudText>
+
+<MudGrid Spacing="2"
+         Class="mb-2">
+    @*TODO: Добавить кнопки создания с определенным типом*@
+    <MudItem lg="3"
+             md="4"
+             xs="12">
+        <MudButton Color="Color.Primary"
+                   EndIcon="@Icons.Material.Filled.Add"
+                   OnClick="Create"
+                   FullWidth
+                   Variant="Variant.Outlined">
+            Добавить
+        </MudButton>
+    </MudItem>
+</MudGrid>
+
+<MudDivider Class="mt-4 mb-4" />
+
+@if (_operations == null)
 {
     return;
 }
-<MudStack Spacing="2">
-    <CascadingValue IsFixed="true"
-                    Value="Categories">
-        <MudItem>
-            <FastOperationDialog OnSubmit="AddNewOperation"
-                                 FastOperation="@(new FastOperation {Name = "", Category = Category.Empty })"
-                                 @ref="_dialog">
-                <MudStack AlignItems="AlignItems.Start" Row>
-                    @foreach (OperationTypes.Value type in OperationTypes.Values)
+
+<MudGrid Spacing="2">
+    @foreach (FastOperation? operation in _operations)
+    {
+        // TODO: Подумать как более грамотно сделать
+        string className = operation.Category.OperationType.Id == 1 ? "expense-operation-card" : "income-operation-card";
+
+        <MudItem class="mb-1"
+                 lg="3"
+                 md="4"
+                 xs="12">
+            <MudCard Class="@className">
+                <MudCardHeader Style="padding: 4px 6px;">
+                    <MudTooltip RootClass="mud-card-header-text"
+                                Text="@operation.Name">
+                        <MudText Class="mud-card-header-text"
+                                 Typo="Typo.h6">
+                            @operation.Name
+                        </MudText>
+                    </MudTooltip>
+                </MudCardHeader>
+                <MudCardContent Style="padding: 4px 6px">
+                    <MudTooltip Arrow
+                                Placement="Placement.Right"
+                                Text="Категория">
+                        <MudText Typo="Typo.subtitle2">@operation.Category.Name</MudText>
+                    </MudTooltip>
+
+                    <MudDivider Class="mb-1" />
+
+                    <MudTooltip Arrow
+                                Placement="Placement.Right"
+                                Text="Сумма">
+                        <MudText Typo="Typo.body2">@operation.Sum</MudText>
+                    </MudTooltip>
+
+                    @if (string.IsNullOrEmpty(operation.Place) == false)
                     {
-                        <MudTooltip Text="@type.AddText">
-                            <MudButton Color="type.Color"
-                                       Disabled="_dialog.IsOpen"
-                                       EndIcon="@type.Icon"
-                                       OnClick="() => _dialog.ToggleOpen(type)"
-                                       Size="Size.Small"
-                                       Variant="Variant.Filled">
-                                @type.AddText
-                            </MudButton>
+                        <MudDivider Class="mb-1" />
+
+                        <MudTooltip Arrow
+                                    Placement="Placement.Right"
+                                    Text="Место">
+                            <MudText Typo="Typo.body2">@operation.Place</MudText>
                         </MudTooltip>
                     }
-                </MudStack>
-            </FastOperationDialog>
-        </MudItem>
-        @foreach (FastOperation fastOperation in Operations)
-        {
-            <MudStack Row
-                      StretchItems="StretchItems.Start">
-                <MudItem Disabled="fastOperation.IsDeleted">
-                    <MudText>@fastOperation.Name</MudText>
-                    <MudSpacer />
 
-
-                    @if (fastOperation.IsDeleted == false)
+                    @if (string.IsNullOrEmpty(operation.Comment) == false)
                     {
-                        <FastOperationDialog OnSubmit="OnEdit"
-                                             FastOperation="@fastOperation"
-                                             @ref="_dialog">
-                            <MudIconButton Icon="@Icons.Material.Rounded.Edit"
-                                           OnClick="() => _dialog.ToggleOpen()"
-                                           Size="Size.Small" />
-                        </FastOperationDialog>
+                        <MudDivider Class="mb-1" />
 
-                        <MudIconButton Color="Color.Error"
-                                       Icon="@Icons.Material.Rounded.Delete"
-                                       OnClick="() => Delete(fastOperation)" />
+                        <MudTooltip Arrow
+                                    Placement="Placement.Right"
+                                    Text="Комментарий">
+                            <MudText Typo="Typo.body2">@operation.Comment</MudText>
+                        </MudTooltip>
                     }
-                </MudItem>
+                </MudCardContent>
+                <MudCardActions Style="padding: 4px 2px">
+                    @if (operation.Order != null)
+                    {
+                        <MudTooltip Text="Приоритет сортировки">
+                            <MudChip Class="sort-chip"
+                                     Icon="@Icons.Material.Filled.Sort"
+                                     Size="Size.Small"
+                                     Value="@operation.Order.ToString()" />
+                        </MudTooltip>
+                    }
 
-                @if (fastOperation.IsDeleted)
-                {
                     <MudSpacer />
 
-                    <MudButton Color="Color.Info"
-                               EndIcon="@Icons.Material.Rounded.Cancel"
-                               OnClick="() => Restore(fastOperation)"
-                               Size="Size.Large">
-                        Восстановить
-                    </MudButton>
-                }
-            </MudStack>
-        }
-    </CascadingValue>
-</MudStack>
-@code {
-    private FastOperationDialog _dialog = null!; // todo диалог сделать как в категориях, ну или чтото другое (редактирование при добавлении)
+                    <MudTooltip Text="Редактировать">
+                        <MudIconButton Color="Color.Warning"
+                                       Icon="@Icons.Material.Filled.Edit"
+                                       OnClick="() => Update(operation)"
+                                       Size="Size.Small" />
+                    </MudTooltip>
 
-    private List<Category>? Categories { get; set; }
-
-    private List<FastOperation>? Operations { get; set; }
-
-    [Inject]
-    private MoneyClient MoneyClient { get; set; } = default!;
-
-    [Inject]
-    private CategoryService CategoryService { get; set; } = default!;
-
-    [Inject]
-    private FastOperationService FastOperationService { get; set; } = default!;
-
-    [Inject]
-    private ISnackbar SnackbarService { get; set; } = default!;
-
-    protected override async Task OnInitializedAsync()
-    {
-        Categories = await CategoryService.GetCategories();
-        Operations = await FastOperationService.GetFastOperations(Categories!);
+                    <MudTooltip Text="Удалить">
+                        <MudIconButton Color="Color.Default"
+                                       Icon="@Icons.Material.Filled.Delete"
+                                       OnClick="() => Delete(operation)"
+                                       Size="Size.Small" />
+                    </MudTooltip>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
     }
+</MudGrid>
 
-    private void AddNewOperation(FastOperation operation)
-    {
-        Operations!.Insert(0, operation);
-        StateHasChanged();
-    }
+<MudDivider Class="my-4" />
 
-    private void OnEdit(FastOperation operation)
-    {
-        StateHasChanged();
-    }
-
-    private async Task Delete(FastOperation fastOperation)
-    {
-        await ModifiyEntity(fastOperation, MoneyClient.FastOperation.Delete, true);
-    }
-
-    private async Task Restore(FastOperation fastOperation)
-    {
-        await ModifiyEntity(fastOperation, MoneyClient.FastOperation.Restore, false);
-    }
-
-    private async Task ModifiyEntity(FastOperation fastOperation, Func<int, Task<ApiClientResponse>> action, bool isDeleted)
-    {
-        if (fastOperation.Id == null)
+@if (_deletedOperations != null && _deletedOperations.Count != 0)
+{
+    <MudGrid>
+        @foreach (FastOperation? operation in _deletedOperations)
         {
-            return;
+            <MudItem class="mb-2"
+                     lg="3"
+                     md="4"
+                     xs="12">
+                <MudCard Class="deleted-operation-card">
+                    <MudCardHeader Style="padding: 4px 6px;">
+                        <MudTooltip RootClass="mud-card-header-text"
+                                    Text="@operation.Name">
+                            <MudText Class="mud-card-header-text"
+                                     Typo="Typo.h6">
+                                @operation.Name
+                            </MudText>
+                        </MudTooltip>
+                    </MudCardHeader>
+                    <MudCardContent Style="padding: 4px 6px">
+                        <MudText Typo="Typo.subtitle2">Категория: @operation.Category.Name</MudText>
+                        <MudText Typo="Typo.body2">Сумма: @operation.Sum</MudText>
+                    </MudCardContent>
+                    <MudCardActions Style="padding: 4px 2px">
+                        <MudSpacer />
+                        <MudTooltip Text="Восстановить">
+                            <MudIconButton Color="Color.Success"
+                                           Icon="@Icons.Material.Filled.Restore"
+                                           OnClick="() => Restore(operation)"
+                                           Size="Size.Small" />
+                        </MudTooltip>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
         }
-
-        ApiClientResponse result = await action(fastOperation.Id.Value);
-
-        if (result.GetError().ShowMessage(SnackbarService).HasError())
-        {
-            return;
-        }
-
-        fastOperation.IsDeleted = isDeleted;
-    }
+    </MudGrid>
 }
+
+<style>
+
+    .income-operation-card {
+        height: 100%;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid rgba(76, 175, 80, 0.5);
+        border-radius: 8px;
+        background-color: rgba(76, 175, 80, 0.1);
+    }
+
+    .income-operation-card:hover {
+        transform: scale(1.03);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .income-operation-card .mud-card-header {
+        border-bottom: 1px solid rgba(76, 175, 80, 0.5);
+        background-color: rgba(76, 175, 80, 0.2);
+    }
+
+    .expense-operation-card {
+        height: 100%;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid rgba(255, 193, 7, 0.5);
+        border-radius: 8px;
+        background-color: rgba(255, 193, 7, 0.1);
+    }
+
+    .expense-operation-card:hover {
+        transform: scale(1.03);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .expense-operation-card .mud-card-header {
+        border-bottom: 1px solid rgba(255, 193, 7, 0.5);
+        background-color: rgba(255, 193, 7, 0.2);
+    }
+
+    .mud-card-header-text {
+        max-width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .deleted-operation-card {
+        height: 100%;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid rgba(128, 128, 128, 0.5);
+        border-radius: 8px;
+        background-color: rgba(128, 128, 128, 0.1);
+    }
+
+    .deleted-operation-card:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .deleted-operation-card .mud-card-header {
+        border-bottom: 1px solid rgba(128, 128, 128, 0.5);
+        background-color: rgba(128, 128, 128, 0.2);
+    }
+
+    .sort-chip {
+        color: white;
+        background-color: #1976d2;
+    }
+
+</style>
