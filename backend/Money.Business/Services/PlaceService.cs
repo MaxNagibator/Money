@@ -53,7 +53,7 @@ public class PlaceService(
 
         if (dbPlace == null)
         {
-            DomainUser dbUser = await userService.GetCurrent(cancellationToken);
+            Data.Entities.DomainUser dbUser = await userService.GetCurrent(cancellationToken);
             int newPlaceId = dbUser.NextPlaceId;
             dbUser.NextPlaceId++;
 
@@ -107,7 +107,7 @@ public class PlaceService(
             }
             else
             {
-                DomainUser dbUser = await userService.GetCurrent(cancellationToken);
+                Data.Entities.DomainUser dbUser = await userService.GetCurrent(cancellationToken);
                 int newPlaceId = dbUser.NextPlaceId;
                 dbUser.NextPlaceId++;
 

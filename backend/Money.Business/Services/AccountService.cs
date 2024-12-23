@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Money.Data.Entities;
 
 namespace Money.Business.Services;
 

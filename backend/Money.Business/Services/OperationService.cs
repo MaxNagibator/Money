@@ -1,9 +1,5 @@
 ﻿using Money.Business.Mappers;
 using Money.Data.Extensions;
-using Category = Money.Business.Models.Category;
-using Operation = Money.Business.Models.Operation;
-using Place = Money.Business.Models.Place;
-
 namespace Money.Business.Services;
 
 // TODO: PlaceService выкинуть приватные методы и заюзать (+ проверить что конструктор работает с одним и тем жи контекстом)
@@ -54,13 +50,13 @@ public class OperationService(
             throw new BusinessException("Извините, но идентификатор пользователя не указан.");
         }
 
-        DomainUser dbUser = await userService.GetCurrent(cancellationToken);
+        Data.Entities.DomainUser dbUser = await userService.GetCurrent(cancellationToken);
         Category category = await categoryService.GetByIdAsync(operation.CategoryId, cancellationToken);
 
         int operationId = dbUser.NextOperationId;
         dbUser.NextOperationId++;
 
-        int? placeId = await placeService.GetPlaceIdAsync(operation.Place, cancellationToken);
+        int? placeId = operation.PlaceId ?? await placeService.GetPlaceIdAsync(operation.Place, cancellationToken);
 
         Data.Entities.Operation dbOperation = new()
         {

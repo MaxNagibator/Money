@@ -1,15 +1,14 @@
-﻿namespace Money.Data.Entities;
+﻿namespace Money.Business.Models;
 
+/// <summary>
+///     Регулярная операция.
+/// </summary>
 public class RegularOperation : OperationBase
 {
-    /// <summary>
-    /// Наименование.
-    /// </summary>
-    [Required]
-    [StringLength(500)]
     public required string Name { get; set; }
 
-    public int TimeId { get; set; }
+    // todo потом на регекс переделаем, пока так походит
+    public RegularTaskTimeTypes TimeType { get; set; }
 
     public int? TimeValue { get; set; }
 

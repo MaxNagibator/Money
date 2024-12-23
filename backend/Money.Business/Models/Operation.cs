@@ -14,4 +14,9 @@ public class Operation : OperationBase
     ///     Не null, если операция создана регулярной задачей.
     /// </remarks>
     public int? CreatedTaskId { get; set; }
+
+    /// <summary>
+    /// Идентификатор места.
+    /// </summary>
+    public int? PlaceId { get;  set; }
 }

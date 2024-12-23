@@ -1,6 +1,5 @@
 ﻿using Money.Business.Mappers;
 using Money.Data.Extensions;
-using Category = Money.Business.Models.Category;
 
 namespace Money.Business.Services;
 
@@ -43,7 +42,7 @@ public class CategoryService(
 
         await ValidateParentCategoryAsync(category.ParentId, category.OperationType, cancellationToken);
 
-        DomainUser dbUser = await userService.GetCurrent(cancellationToken);
+        Data.Entities.DomainUser dbUser = await userService.GetCurrent(cancellationToken);
 
         int categoryId = dbUser.NextCategoryId;
         dbUser.NextCategoryId++;
@@ -143,7 +142,7 @@ public class CategoryService(
 
         int categoryId = 1;
 
-        DomainUser dbUser = await userService.GetCurrent(cancellationToken);
+        Data.Entities.DomainUser dbUser = await userService.GetCurrent(cancellationToken);
 
         if (isAdd)
         {

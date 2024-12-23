@@ -30,5 +30,13 @@ public class ApplicationDbContext(DbContextOptions options) : IdentityDbContext<
         builder.Entity<Operation>().HasQueryFilter(x => x.IsDeleted == false);
         builder.Entity<FastOperation>().HasQueryFilter(x => x.IsDeleted == false);
         builder.Entity<RegularOperation>().HasQueryFilter(x => x.IsDeleted == false);
+
+        builder.Entity<RegularOperation>()
+            .Property(e => e.DateFrom)
+            .HasColumnType("date");
+
+        builder.Entity<RegularOperation>()
+            .Property(e => e.DateTo)
+            .HasColumnType("date");
     }
 }

@@ -1,8 +1,5 @@
 ﻿using Money.Business.Mappers;
 using Money.Data.Extensions;
-using Category = Money.Business.Models.Category;
-using FastOperation = Money.Business.Models.FastOperation;
-using Place = Money.Business.Models.Place;
 
 namespace Money.Business.Services;
 
@@ -53,7 +50,7 @@ public class FastOperationService(
             throw new BusinessException("Извините, но идентификатор пользователя не указан.");
         }
 
-        DomainUser dbUser = await userService.GetCurrent(cancellationToken);
+        Data.Entities.DomainUser dbUser = await userService.GetCurrent(cancellationToken);
         Category category = await categoryService.GetByIdAsync(operation.CategoryId, cancellationToken);
 
         int operationId = dbUser.NextFastOperationId;
@@ -125,7 +122,7 @@ public class FastOperationService(
         Data.Entities.FastOperation dbOperation = await context.FastOperations
                                                       .IsUserEntity(environment.UserId, id)
                                                       .FirstOrDefaultAsync(cancellationToken)
-                                                  ?? throw new NotFoundException("операция", id);
+                                                  ?? throw new NotFoundException("Быстрая операция", id);
 
         return dbOperation;
     }
