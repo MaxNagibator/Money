@@ -50,6 +50,13 @@ public class TestUser : TestObject
         return obj;
     }
 
+    public TestRegularOperation WithRegularOperation()
+    {
+        TestRegularOperation obj = new(WithCategory());
+        obj.Attach(Environment);
+        return obj;
+    }
+
     public TestPlace WithPlace()
     {
         TestPlace obj = new(this);

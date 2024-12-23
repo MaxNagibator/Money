@@ -64,6 +64,7 @@ public class RegularOperationDto
             DateTo = business.DateTo,
             TimeTypeId = (int)business.TimeType,
             TimeValue = business.TimeValue,
+            RunTime = business.RunTime,
         };
     }
 }

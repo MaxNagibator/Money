@@ -38,5 +38,9 @@ public class ApplicationDbContext(DbContextOptions options) : IdentityDbContext<
         builder.Entity<RegularOperation>()
             .Property(e => e.DateTo)
             .HasColumnType("date");
+
+        builder.Entity<RegularOperation>()
+            .Property(e => e.RunTime)
+            .HasColumnType("date");
     }
 }

@@ -40,8 +40,6 @@ public class RegularOperationSaveRequest
 
     public DateTime? DateTo { get; set; }
 
-    public DateTime? RunTime { get; set; }
-
     /// <summary>
     ///     Преобразует текущую DTO-модель в бизнес-модель.
     /// </summary>

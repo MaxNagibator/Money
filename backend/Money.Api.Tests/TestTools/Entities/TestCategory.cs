@@ -72,6 +72,13 @@ public class TestCategory : TestObject
         return obj;
     }
 
+    public TestRegularOperation WithRegularOperation()
+    {
+        TestRegularOperation obj = new(this);
+        obj.Attach(Environment);
+        return obj;
+    }
+
     private void FillDbProperties(Category obj)
     {
         obj.Name = Name;

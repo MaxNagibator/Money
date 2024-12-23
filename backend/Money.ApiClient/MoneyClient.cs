@@ -13,6 +13,7 @@ public class MoneyClient
         Category = new CategoryClient(this);
         Operation = new OperationClient(this);
         FastOperation = new FastOperationClient(this);
+        RegularOperation = new RegularOperationClient(this);
     }
 
     [ActivatorUtilitiesConstructor]
@@ -29,6 +30,7 @@ public class MoneyClient
     public CategoryClient Category { get; }
     public OperationClient Operation { get; }
     public FastOperationClient FastOperation { get; }
+    public RegularOperationClient RegularOperation { get; }
 
     public void SetUser(string login, string password)
     {

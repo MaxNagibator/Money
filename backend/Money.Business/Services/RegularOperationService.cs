@@ -70,7 +70,7 @@ public class RegularOperationService(
             PlaceId = placeId,
             DateFrom = operation.DateFrom,
             DateTo = operation.DateTo,
-            TimeId = (int)operation.TimeType,
+            TimeTypeId = (int)operation.TimeType,
             TimeValue = operation.TimeValue,
         };
 
@@ -100,7 +100,7 @@ public class RegularOperationService(
         dbOperation.Name = operation.Name;
         dbOperation.DateFrom = operation.DateFrom;
         dbOperation.DateTo = operation.DateTo;
-        dbOperation.TimeId = (int)operation.TimeType;
+        dbOperation.TimeTypeId = (int)operation.TimeType;
         dbOperation.TimeValue = operation.TimeValue;
 
         SetRegularTaskRunTime(dbOperation, DateTime.Now.Date);
@@ -148,7 +148,7 @@ public class RegularOperationService(
             };
             await operationService.CreateAsync(operation, cancellationToken);
 
-            dbTask.RunTime = GetRegularTaskRunTime(dbTask.DateFrom, dbTask.DateTo, dbTask.RunTime.Value, (RegularTaskTimeTypes)dbTask.TimeId, dbTask.TimeValue);
+            dbTask.RunTime = GetRegularTaskRunTime(dbTask.DateFrom, dbTask.DateTo, dbTask.RunTime.Value, (RegularTaskTimeTypes)dbTask.TimeTypeId, dbTask.TimeValue);
             context.SaveChanges();
         }
     }
@@ -178,7 +178,7 @@ public class RegularOperationService(
             DateFrom = model.DateFrom,
             DateTo = model.DateTo,
             RunTime = model.RunTime,
-            TimeType = (RegularTaskTimeTypes)model.TimeId,
+            TimeType = (RegularTaskTimeTypes)model.TimeTypeId,
             TimeValue = model.TimeValue,
         };
     }
@@ -212,7 +212,7 @@ public class RegularOperationService(
 
     private void SetRegularTaskRunTime(Data.Entities.RegularOperation dbTask, DateTime dateNow)
     {
-        dbTask.RunTime = GetRegularTaskRunTime(dbTask.DateFrom, dbTask.DateTo, dateNow, (RegularTaskTimeTypes)dbTask.TimeId, dbTask.TimeValue);
+        dbTask.RunTime = GetRegularTaskRunTime(dbTask.DateFrom, dbTask.DateTo, dateNow, (RegularTaskTimeTypes)dbTask.TimeTypeId, dbTask.TimeValue);
     }
 
     private DateTime? GetRegularTaskRunTime(DateTime dateFrom, DateTime? dateTo, DateTime dateNow, RegularTaskTimeTypes timeType, int? timeValue)

@@ -4,6 +4,12 @@ namespace Money.Data.Extensions;
 
 public static class QueryableExtensions
 {
+    public static T Single<T>(this IQueryable<T> queryable, int? userId, int? entityId)
+        where T : UserEntity
+    {
+        return queryable.Single(GetUserEntity<T>(userId, entityId));
+    }
+
     public static T? SingleOrDefault<T>(this IQueryable<T> queryable, int? userId, int? entityId)
         where T : UserEntity
     {

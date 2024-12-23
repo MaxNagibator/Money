@@ -9,7 +9,7 @@ public class RegularOperation : OperationBase
     [StringLength(500)]
     public required string Name { get; set; }
 
-    public int TimeId { get; set; }
+    public int TimeTypeId { get; set; }
 
     public int? TimeValue { get; set; }
 
