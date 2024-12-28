@@ -7,21 +7,26 @@ public partial class ListOperations
 {
     private OperationDialog _dialog = null!;
 
-    [Inject]
-    private MoneyClient MoneyClient { get; set; } = default!;
+    private List<Category>? _categories;
+    private List<FastOperation>? _fastOperations;
+    private List<OperationsDay>? _operationsDays;
 
     [Inject]
-    private CategoryService CategoryService { get; set; } = default!;
+    private MoneyClient MoneyClient { get; set; } = null!;
 
     [Inject]
-    private ISnackbar SnackbarService { get; set; } = default!;
+    private CategoryService CategoryService { get; set; } = null!;
 
-    private List<Category>? Categories { get; set; }
-    private List<OperationsDay>? OperationsDays { get; set; }
+    [Inject]
+    private FastOperationService FastOperationService { get; set; } = null!;
+
+    [Inject]
+    private ISnackbar SnackbarService { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
-        Categories = await CategoryService.GetAllAsync();
+        _categories = await CategoryService.GetAllAsync();
+        _fastOperations = await FastOperationService.GetAllAsync();
     }
 
     protected override void OnSearchChanged(object? sender, OperationSearchEventArgs args)
@@ -32,22 +37,22 @@ public partial class ListOperations
             return;
         }
 
-        if (args.ShouldRender == false && OperationsDays != null)
+        if (args.ShouldRender == false && _operationsDays != null)
         {
             if (args.AddZeroDays)
             {
-                FillZeroDays(OperationsDays);
+                FillZeroDays(_operationsDays);
             }
             else
             {
-                OperationsDays = OperationsDays.Where(x => x.Operations.Count != 0).ToList();
+                _operationsDays = _operationsDays.Where(x => x.Operations.Count != 0).ToList();
             }
 
             StateHasChanged();
             return;
         }
 
-        OperationsDays = [];
+        _operationsDays = [];
 
         List<OperationsDay> days = args.Operations
             .GroupBy(x => x.Date)
@@ -70,7 +75,7 @@ public partial class ListOperations
             FillZeroDays(days);
         }
 
-        OperationsDays = days;
+        _operationsDays = days;
 
         StateHasChanged();
         return;
@@ -133,10 +138,10 @@ public partial class ListOperations
 
     private void AddNewOperation(Operation operation)
     {
-        OperationsDays ??= [];
+        _operationsDays ??= [];
 
         DateTime operationDate = operation.Date.Date;
-        OperationsDay? operationsDay = OperationsDays.FirstOrDefault(x => x.Date == operationDate);
+        OperationsDay? operationsDay = _operationsDays.FirstOrDefault(x => x.Date == operationDate);
 
         if (operationsDay != null)
         {
@@ -150,8 +155,8 @@ public partial class ListOperations
             Operations = [operation],
         };
 
-        int index = OperationsDays.FindIndex(x => x.Date < operationDate);
-        OperationsDays.Insert(index == -1 ? 0 : index, operationsDay);
+        int index = _operationsDays.FindIndex(x => x.Date < operationDate);
+        _operationsDays.Insert(index == -1 ? 0 : index, operationsDay);
 
         StateHasChanged();
     }
@@ -170,7 +175,7 @@ public partial class ListOperations
 
     private void DeleteDay(OperationsDay day)
     {
-        OperationsDays?.Remove(day);
+        _operationsDays?.Remove(day);
         StateHasChanged();
     }
 }
