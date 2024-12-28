@@ -138,7 +138,7 @@ public class RegularOperationTests
             Place = place.Name,
             DateFrom = DateTime.Now.Date.AddDays(1),
             DateTo = DateTime.Now.Date.AddDays(1),
-            TimeTypeId = (int)RegularTaskTimeTypes.EveryWeek,
+            TimeTypeId = (int)RegularOperationTimeTypes.EveryWeek,
             TimeValue = 3,
         };
 
@@ -205,13 +205,13 @@ public class RegularOperationTests
     }
 
     [Test]
-    [TestCase(RegularTaskTimeTypes.EveryDay, null)]
-    [TestCase(RegularTaskTimeTypes.EveryWeek, 1)]
-    [TestCase(RegularTaskTimeTypes.EveryWeek, 2)]
-    [TestCase(RegularTaskTimeTypes.EveryMonth, 1)]
-    [TestCase(RegularTaskTimeTypes.EveryMonth, 15)]
-    [TestCase(RegularTaskTimeTypes.EveryMonth, 31)]
-    public async Task RunTimeTest(RegularTaskTimeTypes timeType, int? timeValue)
+    [TestCase(RegularOperationTimeTypes.EveryDay, null)]
+    [TestCase(RegularOperationTimeTypes.EveryWeek, 1)]
+    [TestCase(RegularOperationTimeTypes.EveryWeek, 2)]
+    [TestCase(RegularOperationTimeTypes.EveryMonth, 1)]
+    [TestCase(RegularOperationTimeTypes.EveryMonth, 15)]
+    [TestCase(RegularOperationTimeTypes.EveryMonth, 31)]
+    public async Task RunTimeTest(RegularOperationTimeTypes timeType, int? timeValue)
     {
         TestCategory category = _user.WithCategory();
         _dbClient.Save();
@@ -231,16 +231,16 @@ public class RegularOperationTests
         };
 
         DateTime runTime;
-        if (timeType == RegularTaskTimeTypes.EveryDay)
+        if (timeType == RegularOperationTimeTypes.EveryDay)
         {
             runTime = DateTime.Now.Date.AddDays(1);
         }
-        else if (timeType == RegularTaskTimeTypes.EveryWeek)
+        else if (timeType == RegularOperationTimeTypes.EveryWeek)
         {
             int daysToAdd = ((int)timeValue - (int)DateTime.Now.Date.AddDays(1).DayOfWeek + 7) % 7;
             runTime = DateTime.Now.Date.AddDays(1).AddDays(daysToAdd);
         }
-        else if (timeType == RegularTaskTimeTypes.EveryMonth)
+        else if (timeType == RegularOperationTimeTypes.EveryMonth)
         {
             if (DateTime.Now.Day < timeValue)
             {

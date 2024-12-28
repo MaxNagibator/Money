@@ -57,7 +57,7 @@ public class RegularOperationSaveRequest
             Place = Place,
             DateFrom = DateFrom,
             DateTo = DateTo,
-            TimeType = (RegularTaskTimeTypes)TimeTypeId,
+            TimeType = (RegularOperationTimeTypes)TimeTypeId,
             TimeValue = TimeValue,
         };
     }

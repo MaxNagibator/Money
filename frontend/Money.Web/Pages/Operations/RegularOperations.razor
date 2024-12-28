@@ -1,6 +1,38 @@
 ﻿@page "/regular-operations"
 <PageTitle>Регулярные операции</PageTitle>
 
-@code {
+<MudText GutterBottom
+         Typo="Typo.h3">
+    Регулярные операции
+</MudText>
 
-}
+<MudGrid Spacing="2"
+         Class="mb-2">
+    @*TODO: Добавить кнопки создания с определенным типом*@
+    <MudItem lg="3"
+             md="4"
+             xs="12">
+        <MudButton Color="Color.Primary"
+                   EndIcon="@Icons.Material.Filled.Add"
+                   OnClick="Create"
+                   FullWidth
+                   Variant="Variant.Outlined">
+            Добавить
+        </MudButton>
+    </MudItem>
+</MudGrid>
+
+<MudDivider Class="mt-4 mb-4" />
+<MudGrid Spacing="2">
+    <Virtualize Context="operation"
+                Items="_operations">
+        <MudItem Class="mb-1"
+                 lg="3"
+                 md="4"
+                 xs="12">
+            <RegularOperationCard OnUpdate="Update"
+                               Operation="operation" />
+        </MudItem>
+    </Virtualize>
+</MudGrid>
+

@@ -50,7 +50,7 @@ public partial class OperationsLayout : IDisposable
     {
         Operations.Clear();
 
-        foreach (OperationTypes.Value operationType in OperationTypes.Values)
+        foreach (var operationType in OperationTypes.Values)
         {
             decimal? amount = args.Operations?
                 .Where(x => x.Category.OperationType == operationType)

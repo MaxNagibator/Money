@@ -18,7 +18,7 @@ public class TestRegularOperation : TestObject
         DateFrom = DateTime.Now.Date;
         DateTo = DateTime.Now.Date;
         RunTime = DateTime.Now.Date;
-        TimeType = RegularTaskTimeTypes.EveryMonth;
+        TimeType = RegularOperationTimeTypes.EveryMonth;
         TimeValue = 1;
     }
 
@@ -57,7 +57,7 @@ public class TestRegularOperation : TestObject
     /// </summary>
     public TestPlace Place { get; private set; } = null!;
 
-    public RegularTaskTimeTypes TimeType { get; set; }
+    public RegularOperationTimeTypes TimeType { get; set; }
 
     public int? TimeValue { get; set; }
 

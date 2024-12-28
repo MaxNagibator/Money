@@ -8,7 +8,7 @@ public class RegularOperation : OperationBase
     public required string Name { get; set; }
 
     // todo потом на регекс переделаем, пока так походит
-    public RegularTaskTimeTypes TimeType { get; set; }
+    public RegularOperationTimeTypes TimeType { get; set; }
 
     public int? TimeValue { get; set; }
 

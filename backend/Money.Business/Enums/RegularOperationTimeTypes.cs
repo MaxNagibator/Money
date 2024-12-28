@@ -1,9 +1,8 @@
-﻿using Money.Common;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 
 namespace Money.Business.Enums;
 
-public enum RegularTaskTimeTypes
+public enum RegularOperationTimeTypes
 {
     [Description("Каждый день")]
     EveryDay = 1,

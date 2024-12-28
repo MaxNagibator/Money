@@ -33,6 +33,7 @@ builder.Services.AddScoped<RefreshTokenService>();
 builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<FastOperationService>();
 builder.Services.AddScoped<PlaceService>();
+builder.Services.AddScoped<RegularOperationService>();
 builder.Services.AddTransient<RefreshTokenHandler>();
 
 builder.Services.AddHttpClient<AuthenticationService>(client => client.BaseAddress = apiUri);

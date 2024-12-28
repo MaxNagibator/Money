@@ -148,7 +148,7 @@ public class RegularOperationService(
             };
             await operationService.CreateAsync(operation, cancellationToken);
 
-            dbTask.RunTime = GetRegularTaskRunTime(dbTask.DateFrom, dbTask.DateTo, dbTask.RunTime.Value, (RegularTaskTimeTypes)dbTask.TimeTypeId, dbTask.TimeValue);
+            dbTask.RunTime = GetRegularTaskRunTime(dbTask.DateFrom, dbTask.DateTo, dbTask.RunTime.Value, (RegularOperationTimeTypes)dbTask.TimeTypeId, dbTask.TimeValue);
             context.SaveChanges();
         }
     }
@@ -178,14 +178,14 @@ public class RegularOperationService(
             DateFrom = model.DateFrom,
             DateTo = model.DateTo,
             RunTime = model.RunTime,
-            TimeType = (RegularTaskTimeTypes)model.TimeTypeId,
+            TimeType = (RegularOperationTimeTypes)model.TimeTypeId,
             TimeValue = model.TimeValue,
         };
     }
 
-    private void CheckTime(RegularTaskTimeTypes timeType, int? timeValue)
+    private void CheckTime(RegularOperationTimeTypes timeType, int? timeValue)
     {
-        if (timeType == RegularTaskTimeTypes.EveryDay)
+        if (timeType == RegularOperationTimeTypes.EveryDay)
         {
             if (timeValue != null)
             {
@@ -193,7 +193,7 @@ public class RegularOperationService(
             }
         }
 
-        if (timeType == RegularTaskTimeTypes.EveryWeek)
+        if (timeType == RegularOperationTimeTypes.EveryWeek)
         {
             if (timeValue == null || timeValue < 1 || timeValue > 7)
             {
@@ -201,7 +201,7 @@ public class RegularOperationService(
             }
         }
 
-        if (timeType == RegularTaskTimeTypes.EveryMonth)
+        if (timeType == RegularOperationTimeTypes.EveryMonth)
         {
             if (timeValue == null || timeValue < 1 || timeValue > 31)
             {
@@ -212,10 +212,10 @@ public class RegularOperationService(
 
     private void SetRegularTaskRunTime(Data.Entities.RegularOperation dbTask, DateTime dateNow)
     {
-        dbTask.RunTime = GetRegularTaskRunTime(dbTask.DateFrom, dbTask.DateTo, dateNow, (RegularTaskTimeTypes)dbTask.TimeTypeId, dbTask.TimeValue);
+        dbTask.RunTime = GetRegularTaskRunTime(dbTask.DateFrom, dbTask.DateTo, dateNow, (RegularOperationTimeTypes)dbTask.TimeTypeId, dbTask.TimeValue);
     }
 
-    private DateTime? GetRegularTaskRunTime(DateTime dateFrom, DateTime? dateTo, DateTime dateNow, RegularTaskTimeTypes timeType, int? timeValue)
+    private DateTime? GetRegularTaskRunTime(DateTime dateFrom, DateTime? dateTo, DateTime dateNow, RegularOperationTimeTypes timeType, int? timeValue)
     {
 
         var dn = dateNow;
@@ -230,13 +230,13 @@ public class RegularOperationService(
             return null;
         }
 
-        if (timeType == RegularTaskTimeTypes.EveryDay)
+        if (timeType == RegularOperationTimeTypes.EveryDay)
         {
             date = date.AddDays(1);
             return date.Date;
         }
 
-        if (timeType == RegularTaskTimeTypes.EveryWeek)
+        if (timeType == RegularOperationTimeTypes.EveryWeek)
         {
             date = date.AddDays(1);
             if (timeValue == 7)
@@ -246,7 +246,7 @@ public class RegularOperationService(
             return GetNextWeekday(date.Date, (DayOfWeek)timeValue);
         }
 
-        if (timeType == RegularTaskTimeTypes.EveryMonth)
+        if (timeType == RegularOperationTimeTypes.EveryMonth)
         {
             var dt = date.Date;
             if (dt.Day < timeValue)
