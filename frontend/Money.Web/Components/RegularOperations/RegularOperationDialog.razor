@@ -18,12 +18,7 @@
                                   For="@(() => Input.Name)"
                                   Label="Наименование" />
                 </MudItem>
-                <MudItem md="6"
-                         xs="12">
-                    <SmartSum @ref="_smartSum"
-                              GetInitialSum="() => RegularOperation.Sum" />
-                </MudItem>
-                
+
                 <MudItem md="6"
                          xs="12">
                     <MudDatePicker AdornmentColor="Color.Tertiary"
@@ -32,7 +27,7 @@
                                    DateFormat="dd.MM.yyyy"
                                    Editable
                                    For="@(() => Input.DateFrom)"
-                                   Label="Дата"
+                                   Label="Действует с"
                                    Mask="@(new DateMask("dd.MM.yyyy"))" />
                 </MudItem>
                 <MudItem md="6"
@@ -43,8 +38,34 @@
                                    DateFormat="dd.MM.yyyy"
                                    Editable
                                    For="@(() => Input.DateTo)"
-                                   Label="Дата"
+                                   Label="Действует по"
                                    Mask="@(new DateMask("dd.MM.yyyy"))" />
+                </MudItem>
+
+                <MudItem md="6"
+                         xs="12">
+                    <MudSelect @bind-Value="Input.TimeType">
+                        @foreach (var state in RegularOperationTimeTypes.Values.Values)
+                        {
+                            <MudSelectItem Value="state">@state.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem md="6"
+                         xs="12">
+                    @if (Input.TimeType != RegularOperationTimeTypes.Values.First().Value)
+                    {
+                        <MudTextField AdornmentColor="Color.Tertiary"
+                                      AdornmentIcon="@Icons.Material.Rounded.Comment"
+                                      AutoGrow
+                                      @bind-Value="Input.TimeValue"
+                                      For="@(() => Input.TimeValue)" />
+                    }
+                </MudItem>
+                <MudItem md="6"
+                         xs="12">
+                    <SmartSum @ref="_smartSum"
+                              GetInitialSum="() => RegularOperation.Sum" />
                 </MudItem>
                 <MudItem md="6"
                          xs="12">
@@ -60,7 +81,7 @@
                                      SelectValueOnTab
                                      ToStringFunc="@(arg => arg?.Name ?? string.Empty)" />
                 </MudItem>
-                <MudItem md="6"
+                <MudItem md="12"
                          xs="12">
                     <MudAutocomplete AdornmentColor="Color.Tertiary"
                                      AdornmentIcon="@Icons.Material.Rounded.Place"

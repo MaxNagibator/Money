@@ -24,6 +24,9 @@ public partial class RegularOperations
         {
             Name = string.Empty,
             Category = Category.Empty,
+            DateFrom = DateTime.Now,
+            TimeType = RegularOperationTimeTypes.Values.Skip(2).First().Value,
+            TimeValue = 1,
         };
 
         RegularOperation? created = await ShowDialog("Создать", input);

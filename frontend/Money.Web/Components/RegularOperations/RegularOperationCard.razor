@@ -4,7 +4,7 @@
                     Text="@Operation.Name">
             <MudText Class="mud-card-header-text"
                      Typo="Typo.h6">
-                @Operation.Name
+                @Operation.Name (@Operation.RunTime!.Value.ToShortDateString())
             </MudText>
         </MudTooltip>
     </MudCardHeader>
@@ -78,7 +78,7 @@
 </MudCard>
 
 <style>
-
+    /*копипаста, обобщить*/
     .income-operation-card {
         height: 100%;
         transition: transform 0.2s, box-shadow 0.2s;

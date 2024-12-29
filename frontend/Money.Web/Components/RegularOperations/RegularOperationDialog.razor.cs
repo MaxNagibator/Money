@@ -121,6 +121,8 @@ public partial class RegularOperationDialog
         {
             await MoneyClient.RegularOperation.Update(RegularOperation.Id.Value, saveRequest);
         }
+        var getOperations = await MoneyClient.RegularOperation.GetById(RegularOperation.Id.Value);
+        RegularOperation.RunTime = getOperations.Content!.RunTime;
     }
 
     private RegularOperationClient.SaveRequest CreateSaveRequest()
@@ -134,8 +136,8 @@ public partial class RegularOperationDialog
             Place = Input.Place,
             DateFrom = Input.DateFrom!.Value,
             DateTo = Input.DateTo,
-            TimeTypeId = 2,//Input.TimeType.Id,
-            TimeValue = 1,//Input.TimeValue,
+            TimeTypeId = Input.TimeType.Id,
+            TimeValue = Input.TimeValue,
         };
     }
 
