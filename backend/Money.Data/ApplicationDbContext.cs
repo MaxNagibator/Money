@@ -11,6 +11,8 @@ public class ApplicationDbContext(DbContextOptions options) : IdentityDbContext<
     public DbSet<FastOperation> FastOperations { get; set; } = null!;
     public DbSet<RegularOperation> RegularOperations { get; set; } = null!;
     public DbSet<Place> Places { get; set; } = null!;
+    public DbSet<Debt> Debts { get; set; } = null!;
+    public DbSet<DebtUser> DebtUsers { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -30,6 +32,7 @@ public class ApplicationDbContext(DbContextOptions options) : IdentityDbContext<
         builder.Entity<Operation>().HasQueryFilter(x => x.IsDeleted == false);
         builder.Entity<FastOperation>().HasQueryFilter(x => x.IsDeleted == false);
         builder.Entity<RegularOperation>().HasQueryFilter(x => x.IsDeleted == false);
+        builder.Entity<Debt>().HasQueryFilter(x => x.IsDeleted == false);
 
         builder.Entity<RegularOperation>()
             .Property(e => e.DateFrom)
@@ -41,6 +44,10 @@ public class ApplicationDbContext(DbContextOptions options) : IdentityDbContext<
 
         builder.Entity<RegularOperation>()
             .Property(e => e.RunTime)
+            .HasColumnType("date");
+
+        builder.Entity<Debt>()
+            .Property(e => e.Date)
             .HasColumnType("date");
     }
 }
