@@ -64,6 +64,13 @@ public class TestUser : TestObject
         return obj;
     }
 
+    public TestDebt WithDebt()
+    {
+        TestDebt obj = new(this);
+        obj.Attach(Environment);
+        return obj;
+    }
+
     public override void LocalSave()
     {
         if (IsNew)

@@ -10,6 +10,7 @@ public class MoneyClient
     {
         HttpClient = client;
         Log = log;
+        Debt = new DebtClient(this);
         Category = new CategoryClient(this);
         Operation = new OperationClient(this);
         FastOperation = new FastOperationClient(this);
@@ -27,6 +28,7 @@ public class MoneyClient
     public Action<string> Log { get; }
     public ApiUser? User { get; private set; }
 
+    public DebtClient Debt { get; }
     public CategoryClient Category { get; }
     public OperationClient Operation { get; }
     public FastOperationClient FastOperation { get; }

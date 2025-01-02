@@ -20,4 +20,8 @@ public class DomainUser
     public int NextFastOperationId { get; set; }
 
     public int NextRegularOperationId { get; set; }
+
+    public int NextDebtId { get; set; }
+
+    public int NextDebtUserId { get; set; }
 }

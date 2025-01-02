@@ -52,6 +52,8 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
             NextFastOperationId = 1,
             NextRegularOperationId = 1,
             NextPlaceId = 1,
+            NextDebtId = 1,
+            NextDebtUserId = 1,
         };
 
         await context.DomainUsers.AddAsync(domainUser, cancellationToken);
