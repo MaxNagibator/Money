@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Money.Api.Tests.TestTools;
-using Money.ApiClient;
 using Money.Data;
 using System.Collections.Concurrent;
 
@@ -18,24 +17,24 @@ public class Integration
 
     public static DatabaseClient GetDatabaseClient()
     {
-        IConfigurationRoot config = TestServer.Services.GetRequiredService<IConfigurationRoot>();
-        string? connectionString = config.GetConnectionString(nameof(ApplicationDbContext));
+        var config = TestServer.Services.GetRequiredService<IConfigurationRoot>();
+        var connectionString = config.GetConnectionString(nameof(ApplicationDbContext));
 
-        return new DatabaseClient(CreateDbContext, new MoneyClient(GetHttpClient(), Console.WriteLine));
+        return new(CreateDbContext, new(GetHttpClient(), Console.WriteLine));
 
         ApplicationDbContext CreateDbContext()
         {
             DbContextOptionsBuilder<ApplicationDbContext> optionsBuilder = new();
             optionsBuilder.UseNpgsql(connectionString);
             optionsBuilder.UseSnakeCaseNamingConvention();
-            ApplicationDbContext context = new(optionsBuilder.Options);
+            var context = new ApplicationDbContext(optionsBuilder.Options);
             return context;
         }
     }
 
     public static HttpClient GetHttpClient()
     {
-        HttpClient client = TestServer.CreateClient();
+        var client = TestServer.CreateClient();
         HttpClients.Add(client);
         return client;
     }
@@ -54,7 +53,7 @@ public class Integration
     {
         TestServer.Dispose();
 
-        foreach (HttpClient httpClient in HttpClients.ToArray())
+        foreach (var httpClient in HttpClients.ToArray())
         {
             httpClient.Dispose();
         }

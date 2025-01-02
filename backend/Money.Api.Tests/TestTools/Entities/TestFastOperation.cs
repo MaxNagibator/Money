@@ -3,7 +3,7 @@
 namespace Money.Api.Tests.TestTools.Entities;
 
 /// <summary>
-///     Быстрая операция.
+/// Быстрая операция.
 /// </summary>
 public class TestFastOperation : TestObject
 {
@@ -17,47 +17,47 @@ public class TestFastOperation : TestObject
     }
 
     /// <summary>
-    ///     Идентификатор.
+    /// Идентификатор.
     /// </summary>
     public int Id { get; private set; }
 
     /// <summary>
-    ///     Сумма.
+    /// Сумма.
     /// </summary>
     public decimal Sum { get; private set; }
 
     /// <summary>
-    ///     Наименование.
+    /// Наименование.
     /// </summary>
     public string Name { get; private set; }
 
     /// <summary>
-    ///     Порядок сортировки.
+    /// Порядок сортировки.
     /// </summary>
     public int? Order { get; private set; }
 
     /// <summary>
-    ///     Комментарий.
+    /// Комментарий.
     /// </summary>
     public string Comment { get; private set; }
 
     /// <summary>
-    ///     Категория.
+    /// Категория.
     /// </summary>
     public TestCategory Category { get; }
 
     /// <summary>
-    ///     Пользователь.
+    /// Пользователь.
     /// </summary>
     public TestUser User => Category.User;
 
     /// <summary>
-    ///     Место.
+    /// Место.
     /// </summary>
     public TestPlace Place { get; private set; } = null!;
 
     /// <summary>
-    ///     Удалена.
+    /// Удалена.
     /// </summary>
     public bool IsDeleted { get; private set; }
 
@@ -113,11 +113,11 @@ public class TestFastOperation : TestObject
     {
         if (IsNew)
         {
-            DomainUser dbUser = Environment.Context.DomainUsers.Single(x => x.Id == User.Id);
-            int operationId = dbUser.NextFastOperationId;
+            var dbUser = Environment.Context.DomainUsers.Single(x => x.Id == User.Id);
+            var operationId = dbUser.NextFastOperationId;
             dbUser.NextFastOperationId++; // todo обработать канкаренси
 
-            FastOperation obj = new()
+            var obj = new FastOperation
             {
                 Id = operationId,
                 Name = "new",
@@ -131,7 +131,7 @@ public class TestFastOperation : TestObject
         }
         else
         {
-            FastOperation obj = Environment.Context.FastOperations.First(x => x.UserId == User.Id && x.Id == Id);
+            var obj = Environment.Context.FastOperations.First(x => x.UserId == User.Id && x.Id == Id);
             FillDbProperties(obj);
             Environment.Context.SaveChanges();
         }

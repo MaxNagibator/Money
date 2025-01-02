@@ -2,8 +2,6 @@
 using Money.Api.Tests.TestTools;
 using Money.Api.Tests.TestTools.Entities;
 using Money.ApiClient;
-using Money.Data;
-using Money.Data.Entities;
 using Money.Data.Extensions;
 
 namespace Money.Api.Tests.Operations;
@@ -19,14 +17,14 @@ public class OperationTests
     {
         _dbClient = Integration.GetDatabaseClient();
         _user = _dbClient.WithUser();
-        _apiClient = new MoneyClient(Integration.GetHttpClient(), Console.WriteLine);
+        _apiClient = new(Integration.GetHttpClient(), Console.WriteLine);
         _apiClient.SetUser(_user);
     }
 
     [Test]
     public async Task GetTest()
     {
-        TestCategory category = _user.WithCategory();
+        var category = _user.WithCategory();
 
         TestOperation[] operations =
         [
@@ -37,11 +35,11 @@ public class OperationTests
 
         _dbClient.Save();
 
-        OperationClient.Operation[]? apiOperations = await _apiClient.Operation.Get().IsSuccessWithContent();
+        var apiOperations = await _apiClient.Operation.Get().IsSuccessWithContent();
         Assert.That(apiOperations, Is.Not.Null);
         Assert.That(apiOperations, Has.Length.GreaterThanOrEqualTo(operations.Length));
 
-        TestOperation[] testCategories = operations.ExceptBy(apiOperations.Select(x => x.Id), operation => operation.Id).ToArray();
+        var testCategories = operations.ExceptBy(apiOperations.Select(x => x.Id), operation => operation.Id).ToArray();
         Assert.That(testCategories, Is.Not.Null);
         Assert.That(testCategories, Is.Empty);
     }
@@ -49,22 +47,19 @@ public class OperationTests
     [Test]
     public async Task GetByDateFromTest()
     {
-        TestCategory category = _user.WithCategory();
+        var category = _user.WithCategory();
 
-        TestOperation[] operations =
-        [
-            category.WithOperation().SetDate(DateTime.Now.Date.AddMonths(1)),
-            category.WithOperation(),
-        ];
+        category.WithOperation().SetDate(DateTime.Now.Date.AddMonths(1));
+        category.WithOperation();
 
         _dbClient.Save();
 
-        OperationClient.OperationFilterDto filter = new()
+        var filter = new OperationClient.OperationFilterDto
         {
             DateFrom = DateTime.Now.Date.AddMonths(1),
         };
 
-        OperationClient.Operation[]? apiOperations = await _apiClient.Operation.Get(filter).IsSuccessWithContent();
+        var apiOperations = await _apiClient.Operation.Get(filter).IsSuccessWithContent();
         Assert.That(apiOperations, Is.Not.Null);
         Assert.That(apiOperations, Has.Length.EqualTo(1));
         Assert.That(apiOperations[0].Date, Is.GreaterThanOrEqualTo(DateTime.Now.Date));
@@ -73,22 +68,19 @@ public class OperationTests
     [Test]
     public async Task GetByDateToTest()
     {
-        TestCategory category = _user.WithCategory();
+        var category = _user.WithCategory();
 
-        TestOperation[] operations =
-        [
-            category.WithOperation().SetDate(DateTime.Now.Date.AddMonths(1)),
-            category.WithOperation().SetDate(DateTime.Now.Date),
-        ];
+        category.WithOperation().SetDate(DateTime.Now.Date.AddMonths(1));
+        category.WithOperation().SetDate(DateTime.Now.Date);
 
         _dbClient.Save();
 
-        OperationClient.OperationFilterDto filter = new()
+        var filter = new OperationClient.OperationFilterDto
         {
             DateTo = DateTime.Now.Date.AddDays(1),
         };
 
-        OperationClient.Operation[]? apiOperations = await _apiClient.Operation.Get(filter).IsSuccessWithContent();
+        var apiOperations = await _apiClient.Operation.Get(filter).IsSuccessWithContent();
         Assert.That(apiOperations, Is.Not.Null);
         Assert.That(apiOperations, Has.Length.EqualTo(1));
         Assert.That(apiOperations[0].Date, Is.GreaterThanOrEqualTo(DateTime.Now.Date));
@@ -98,19 +90,19 @@ public class OperationTests
     [Test]
     public async Task GetByDateRangeTest()
     {
-        TestCategory category = _user.WithCategory();
+        var category = _user.WithCategory();
         category.WithOperation().SetDate(DateTime.Now.Date.AddDays(-1));
         category.WithOperation().SetDate(DateTime.Now.Date);
         category.WithOperation().SetDate(DateTime.Now.Date.AddDays(1));
         _dbClient.Save();
 
-        OperationClient.OperationFilterDto filter = new()
+        var filter = new OperationClient.OperationFilterDto
         {
             DateFrom = DateTime.Now.Date.AddDays(-1),
             DateTo = DateTime.Now.Date.AddDays(2),
         };
 
-        OperationClient.Operation[]? apiOperations = await _apiClient.Operation.Get(filter).IsSuccessWithContent();
+        var apiOperations = await _apiClient.Operation.Get(filter).IsSuccessWithContent();
         Assert.That(apiOperations, Is.Not.Null);
         Assert.That(apiOperations, Has.Length.EqualTo(3));
     }
@@ -119,15 +111,15 @@ public class OperationTests
     public async Task GetByCategoryIdsTest()
     {
         _user.WithCategory().WithOperation();
-        TestCategory category = _user.WithCategory().WithOperation().Category;
+        var category = _user.WithCategory().WithOperation().Category;
         _dbClient.Save();
 
-        OperationClient.OperationFilterDto filter = new()
+        var filter = new OperationClient.OperationFilterDto
         {
             CategoryIds = [category.Id],
         };
 
-        OperationClient.Operation[]? apiOperations = await _apiClient.Operation.Get(filter).IsSuccessWithContent();
+        var apiOperations = await _apiClient.Operation.Get(filter).IsSuccessWithContent();
         Assert.That(apiOperations, Is.Not.Null);
         Assert.That(apiOperations, Has.Length.EqualTo(1));
     }
@@ -135,17 +127,17 @@ public class OperationTests
     [Test]
     public async Task GetByCommentTest()
     {
-        TestCategory category = _user.WithCategory();
-        TestOperation operation = category.WithOperation().SetComment("ochen vazhniy platezh");
+        var category = _user.WithCategory();
+        var operation = category.WithOperation().SetComment("ochen vazhniy platezh");
         category.WithOperation();
         _dbClient.Save();
 
-        OperationClient.OperationFilterDto filter = new()
+        var filter = new OperationClient.OperationFilterDto
         {
             Comment = operation.Comment[..10],
         };
 
-        OperationClient.Operation[]? apiOperations = await _apiClient.Operation.Get(filter).IsSuccessWithContent();
+        var apiOperations = await _apiClient.Operation.Get(filter).IsSuccessWithContent();
         Assert.That(apiOperations, Is.Not.Null);
         Assert.That(apiOperations, Has.Length.EqualTo(1));
         Assert.That(apiOperations[0].Comment, Is.EqualTo(operation.Comment));
@@ -154,19 +146,19 @@ public class OperationTests
     [Test]
     public async Task GetByPlaceTest()
     {
-        TestPlace place = _user.WithPlace();
-        TestCategory category = _user.WithCategory();
-        TestOperation operation = category.WithOperation();
+        var place = _user.WithPlace();
+        var category = _user.WithCategory();
+        var operation = category.WithOperation();
         operation.SetPlace(place);
         category.WithOperation();
         _dbClient.Save();
 
-        OperationClient.OperationFilterDto filter = new()
+        var filter = new OperationClient.OperationFilterDto
         {
             Place = place.Name,
         };
 
-        OperationClient.Operation[]? apiOperations = await _apiClient.Operation.Get(filter).IsSuccessWithContent();
+        var apiOperations = await _apiClient.Operation.Get(filter).IsSuccessWithContent();
         Assert.That(apiOperations, Is.Not.Null);
         Assert.That(apiOperations, Has.Length.EqualTo(1));
         Assert.That(apiOperations[0].Place, Is.EqualTo(place.Name));
@@ -175,18 +167,18 @@ public class OperationTests
     [Test]
     public async Task GetByMultipleCategoryIdsTest()
     {
-        TestCategory category1 = _user.WithCategory();
-        TestCategory category2 = _user.WithCategory();
+        var category1 = _user.WithCategory();
+        var category2 = _user.WithCategory();
         category1.WithOperation();
         category2.WithOperation();
         _dbClient.Save();
 
-        OperationClient.OperationFilterDto filter = new()
+        var filter = new OperationClient.OperationFilterDto
         {
             CategoryIds = [category1.Id, category2.Id],
         };
 
-        OperationClient.Operation[]? apiOperations = await _apiClient.Operation.Get(filter).IsSuccessWithContent();
+        var apiOperations = await _apiClient.Operation.Get(filter).IsSuccessWithContent();
         Assert.That(apiOperations, Is.Not.Null);
         Assert.That(apiOperations, Has.Length.EqualTo(2));
     }
@@ -196,12 +188,12 @@ public class OperationTests
     {
         _dbClient.Save();
 
-        OperationClient.OperationFilterDto filter = new()
+        var filter = new OperationClient.OperationFilterDto
         {
             DateFrom = DateTime.Now.AddDays(1),
         };
 
-        OperationClient.Operation[]? apiOperations = await _apiClient.Operation.Get(filter).IsSuccessWithContent();
+        var apiOperations = await _apiClient.Operation.Get(filter).IsSuccessWithContent();
         Assert.That(apiOperations, Is.Not.Null);
         Assert.That(apiOperations, Is.Empty);
     }
@@ -209,11 +201,11 @@ public class OperationTests
     [Test]
     public async Task GetByIdTest()
     {
-        TestPlace place = _user.WithPlace();
-        TestOperation operation = _user.WithOperation().SetPlace(place);
+        var place = _user.WithPlace();
+        var operation = _user.WithOperation().SetPlace(place);
         _dbClient.Save();
 
-        OperationClient.Operation? apiOperation = await _apiClient.Operation.GetById(operation.Id).IsSuccessWithContent();
+        var apiOperation = await _apiClient.Operation.GetById(operation.Id).IsSuccessWithContent();
 
         Assert.That(apiOperation, Is.Not.Null);
 
@@ -230,13 +222,13 @@ public class OperationTests
     [Test]
     public async Task CreateTest()
     {
-        TestCategory category = _user.WithCategory();
+        var category = _user.WithCategory();
         _dbClient.Save();
 
-        TestOperation operation = _user.WithOperation();
-        TestPlace place = _user.WithPlace();
+        var operation = _user.WithOperation();
+        var place = _user.WithPlace();
 
-        OperationClient.SaveRequest request = new()
+        var request = new OperationClient.SaveRequest
         {
             CategoryId = category.Id,
             Sum = operation.Sum,
@@ -245,9 +237,9 @@ public class OperationTests
             Place = place.Name,
         };
 
-        int createdId = await _apiClient.Operation.Create(request).IsSuccessWithContent();
-        Operation? dbOperation = _dbClient.CreateApplicationDbContext().Operations.SingleOrDefault(_user.Id, createdId);
-        Place? dbPlace = _dbClient.CreateApplicationDbContext().Places.FirstOrDefault(x => x.UserId == _user.Id && x.Name == place.Name);
+        var createdId = await _apiClient.Operation.Create(request).IsSuccessWithContent();
+        var dbOperation = _dbClient.CreateApplicationDbContext().Operations.SingleOrDefault(_user.Id, createdId);
+        var dbPlace = _dbClient.CreateApplicationDbContext().Places.FirstOrDefault(x => x.UserId == _user.Id && x.Name == place.Name);
 
         Assert.Multiple(() =>
         {
@@ -268,14 +260,14 @@ public class OperationTests
     [Test]
     public async Task UpdateTest()
     {
-        TestOperation operation = _user.WithOperation();
-        TestCategory updatedCategory = _user.WithCategory();
+        var operation = _user.WithOperation();
+        var updatedCategory = _user.WithCategory();
         _dbClient.Save();
 
-        TestPlace place = _user.WithPlace();
-        TestOperation updatedOperation = _user.WithOperation();
+        var place = _user.WithPlace();
+        var updatedOperation = _user.WithOperation();
 
-        OperationClient.SaveRequest request = new()
+        var request = new OperationClient.SaveRequest
         {
             Comment = updatedOperation.Comment,
             CategoryId = updatedCategory.Id,
@@ -285,8 +277,8 @@ public class OperationTests
         };
 
         await _apiClient.Operation.Update(operation.Id, request).IsSuccess();
-        Operation? dbOperation = _dbClient.CreateApplicationDbContext().Operations.SingleOrDefault(_user.Id, operation.Id);
-        Place? dbPlace = _dbClient.CreateApplicationDbContext().Places.FirstOrDefault(x => x.UserId == _user.Id && x.Name == place.Name);
+        var dbOperation = _dbClient.CreateApplicationDbContext().Operations.SingleOrDefault(_user.Id, operation.Id);
+        var dbPlace = _dbClient.CreateApplicationDbContext().Places.FirstOrDefault(x => x.UserId == _user.Id && x.Name == place.Name);
 
         Assert.Multiple(() =>
         {
@@ -307,7 +299,7 @@ public class OperationTests
     [Test]
     public async Task UpdateBatchTest()
     {
-        TestCategory initialCategory = _user.WithCategory();
+        var initialCategory = _user.WithCategory();
 
         TestOperation[] operationsToUpdate =
         [
@@ -316,18 +308,18 @@ public class OperationTests
             initialCategory.WithOperation(),
         ];
 
-        TestCategory targetCategory = _user.WithCategory();
+        var targetCategory = _user.WithCategory();
         _dbClient.Save();
 
-        OperationClient.UpdateOperationsBatchRequest updateRequest = new()
+        var updateRequest = new OperationClient.UpdateOperationsBatchRequest
         {
             OperationIds = operationsToUpdate.Select(x => x.Id).ToList(),
             CategoryId = targetCategory.Id,
         };
 
-        OperationClient.Operation[]? updatedOperations = await _apiClient.Operation.UpdateBatch(updateRequest).IsSuccessWithContent();
+        var updatedOperations = await _apiClient.Operation.UpdateBatch(updateRequest).IsSuccessWithContent();
 
-        List<Operation> targetCategoryOperations = await _dbClient.CreateApplicationDbContext()
+        var targetCategoryOperations = await _dbClient.CreateApplicationDbContext()
             .Operations
             .IsUserEntity(_user.Id)
             .Where(x => x.CategoryId == targetCategory.Id)
@@ -335,12 +327,12 @@ public class OperationTests
 
         Assert.That(targetCategoryOperations, Has.Count.EqualTo(operationsToUpdate.Length));
 
-        foreach (Operation operation in targetCategoryOperations)
+        foreach (var operation in targetCategoryOperations)
         {
             Assert.That(operation.CategoryId, Is.EqualTo(targetCategory.Id));
         }
 
-        List<Operation> initialCategoryOperations = await _dbClient.CreateApplicationDbContext()
+        var initialCategoryOperations = await _dbClient.CreateApplicationDbContext()
             .Operations
             .IsUserEntity(_user.Id)
             .Where(x => x.CategoryId == initialCategory.Id)
@@ -352,12 +344,12 @@ public class OperationTests
             Assert.That(updatedOperations, Has.Length.EqualTo(operationsToUpdate.Length));
         });
 
-        foreach (OperationClient.Operation updatedOperation in updatedOperations)
+        foreach (var updatedOperation in updatedOperations)
         {
             Assert.That(updatedOperation.CategoryId, Is.EqualTo(targetCategory.Id));
         }
 
-        List<Operation> allUserOperations = await _dbClient.CreateApplicationDbContext()
+        var allUserOperations = await _dbClient.CreateApplicationDbContext()
             .Operations
             .IsUserEntity(_user.Id)
             .ToListAsync();
@@ -368,14 +360,14 @@ public class OperationTests
     [Test]
     public async Task DeleteTest()
     {
-        TestOperation operation = _user.WithOperation();
+        var operation = _user.WithOperation();
         _dbClient.Save();
 
         await _apiClient.Operation.Delete(operation.Id).IsSuccess();
 
-        await using ApplicationDbContext context = _dbClient.CreateApplicationDbContext();
+        await using var context = _dbClient.CreateApplicationDbContext();
 
-        Operation? dbOperation = context.Operations.SingleOrDefault(_user.Id, operation.Id);
+        var dbOperation = context.Operations.SingleOrDefault(_user.Id, operation.Id);
 
         Assert.That(dbOperation, Is.Null);
 
@@ -390,14 +382,14 @@ public class OperationTests
     [Test]
     public async Task RestoreTest()
     {
-        TestOperation operation = _user.WithOperation().SetIsDeleted();
+        var operation = _user.WithOperation().SetIsDeleted();
         _dbClient.Save();
 
         await _apiClient.Operation.Restore(operation.Id).IsSuccess();
 
-        await using ApplicationDbContext context = _dbClient.CreateApplicationDbContext();
+        await using var context = _dbClient.CreateApplicationDbContext();
 
-        Operation? dbOperation = context.Operations.SingleOrDefault(_user.Id, operation.Id);
+        var dbOperation = context.Operations.SingleOrDefault(_user.Id, operation.Id);
         Assert.That(dbOperation, Is.Not.Null);
         Assert.That(dbOperation.IsDeleted, Is.EqualTo(false));
     }

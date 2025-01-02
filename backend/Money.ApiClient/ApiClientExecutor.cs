@@ -39,7 +39,7 @@ public class ApiClientExecutor(MoneyClient apiClient)
 
     private async Task<ApiClientResponse<T>> SendWithBody<T>(HttpMethod method, string uri, object? body = null, CancellationToken token = default)
     {
-        using HttpRequestMessage requestMessage = new(method, $"{ApiPrefix}{uri}");
+        using var requestMessage = new HttpRequestMessage(method, $"{ApiPrefix}{uri}");
 
         apiClient.Log($"method: {method}");
         apiClient.Log($"url: {ApiPrefix}{uri}");
@@ -51,13 +51,13 @@ public class ApiClientExecutor(MoneyClient apiClient)
             apiClient.Log($"body: {JsonSerializer.Serialize(body)}");
         }
 
-        HttpResponseMessage response = await apiClient.HttpClient.SendAsync(requestMessage, token);
+        var response = await apiClient.HttpClient.SendAsync(requestMessage, token);
         return ProcessResponse<T>(response, token);
     }
 
     private async Task SetAuthHeaders(HttpRequestMessage requestMessage, CancellationToken token = default)
     {
-        ApiUser? user = apiClient.User;
+        var user = apiClient.User;
 
         if (user == null)
         {
@@ -66,7 +66,7 @@ public class ApiClientExecutor(MoneyClient apiClient)
 
         if (user.Token == null)
         {
-            AuthData authData = await apiClient.LoginAsync(user.Username, user.Password, token);
+            var authData = await apiClient.LoginAsync(user.Username, user.Password, token);
             user.AuthData = authData;
         }
 
@@ -83,10 +83,10 @@ public class ApiClientExecutor(MoneyClient apiClient)
 
     private ApiClientResponse<T> ProcessResponse<T>(HttpResponseMessage response, CancellationToken token = default)
     {
-        using StreamReader responseStreamReader = new(response.Content.ReadAsStream(token));
+        using var responseStreamReader = new StreamReader(response.Content.ReadAsStream(token));
 
-        string responseContent = responseStreamReader.ReadToEnd();
+        var responseContent = responseStreamReader.ReadToEnd();
         apiClient.Log("response: " + responseContent);
-        return new ApiClientResponse<T>(response.StatusCode, responseContent);
+        return new(response.StatusCode, responseContent);
     }
 }

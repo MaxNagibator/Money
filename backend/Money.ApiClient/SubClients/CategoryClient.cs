@@ -6,35 +6,35 @@ public class CategoryClient(MoneyClient apiClient) : ApiClientExecutor(apiClient
 
     protected override string ApiPrefix => "";
 
-    public async Task<ApiClientResponse<Category[]>> Get(int? type = null)
+    public Task<ApiClientResponse<Category[]>> Get(int? type = null)
     {
-        string paramUri = type == null ? "" : $"?type={type}";
-        return await GetAsync<Category[]>($"{BaseUri}{paramUri}");
+        var paramUri = type == null ? "" : $"?type={type}";
+        return GetAsync<Category[]>($"{BaseUri}{paramUri}");
     }
 
-    public async Task<ApiClientResponse<Category>> GetById(int id)
+    public Task<ApiClientResponse<Category>> GetById(int id)
     {
-        return await GetAsync<Category>($"{BaseUri}/{id}");
+        return GetAsync<Category>($"{BaseUri}/{id}");
     }
 
-    public async Task<ApiClientResponse<int>> Create(SaveRequest request)
+    public Task<ApiClientResponse<int>> Create(SaveRequest request)
     {
-        return await PostAsync<int>(BaseUri, request);
+        return PostAsync<int>(BaseUri, request);
     }
 
-    public async Task<ApiClientResponse> Update(int id, SaveRequest request)
+    public Task<ApiClientResponse> Update(int id, SaveRequest request)
     {
-        return await PutAsync($"{BaseUri}/{id}", request);
+        return PutAsync($"{BaseUri}/{id}", request);
     }
 
-    public async Task<ApiClientResponse> Delete(int id)
+    public Task<ApiClientResponse> Delete(int id)
     {
-        return await DeleteAsync($"{BaseUri}/{id}");
+        return DeleteAsync($"{BaseUri}/{id}");
     }
 
-    public async Task<ApiClientResponse> Restore(int id)
+    public Task<ApiClientResponse> Restore(int id)
     {
-        return await PostAsync($"{BaseUri}/{id}/Restore");
+        return PostAsync($"{BaseUri}/{id}/Restore");
     }
 
     public class SaveRequest

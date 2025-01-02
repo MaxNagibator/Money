@@ -3,14 +3,14 @@
 public class FastOperation : OperationBase
 {
     /// <summary>
-    ///     Наименование.
+    /// Наименование.
     /// </summary>
     [Required]
     [StringLength(500)]
     public required string Name { get; set; }
 
     /// <summary>
-    ///     Значение сортировки.
+    /// Значение сортировки.
     /// </summary>
     public int? Order { get; set; }
 }

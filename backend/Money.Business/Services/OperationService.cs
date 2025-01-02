@@ -1,8 +1,8 @@
 ﻿using Money.Business.Mappers;
 using Money.Data.Extensions;
+
 namespace Money.Business.Services;
 
-// TODO: PlaceService выкинуть приватные методы и заюзать (+ проверить что конструктор работает с одним и тем жи контекстом)
 public class OperationService(
     RequestEnvironment environment,
     ApplicationDbContext context,
@@ -12,16 +12,16 @@ public class OperationService(
 {
     public async Task<IEnumerable<Operation>> GetAsync(OperationFilter filter, CancellationToken cancellationToken)
     {
-        IQueryable<Data.Entities.Operation> filteredOperations = FilterOperations(filter);
+        var filteredOperations = FilterOperations(filter);
 
-        List<int> placeIds = await filteredOperations
+        var placeIds = await filteredOperations
             .Where(x => x.PlaceId != null)
             .Select(x => x.PlaceId!.Value)
             .ToListAsync(cancellationToken);
 
-        List<Place> places = await placeService.GetPlacesAsync(placeIds, cancellationToken);
+        var places = await placeService.GetPlacesAsync(placeIds, cancellationToken);
 
-        List<Data.Entities.Operation> operations = await filteredOperations
+        var operations = await filteredOperations
             .OrderByDescending(x => x.Date)
             .ThenBy(x => x.CategoryId)
             .ToListAsync(cancellationToken);
@@ -31,7 +31,7 @@ public class OperationService(
 
     public async Task<Operation> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
-        Data.Entities.Operation dbOperation = await GetByIdInternal(id, cancellationToken);
+        var dbOperation = await GetByIdInternal(id, cancellationToken);
 
         List<Place>? places = null;
 
@@ -50,15 +50,15 @@ public class OperationService(
             throw new BusinessException("Извините, но идентификатор пользователя не указан.");
         }
 
-        Data.Entities.DomainUser dbUser = await userService.GetCurrent(cancellationToken);
-        Category category = await categoryService.GetByIdAsync(operation.CategoryId, cancellationToken);
+        var dbUser = await userService.GetCurrent(cancellationToken);
+        var category = await categoryService.GetByIdAsync(operation.CategoryId, cancellationToken);
 
-        int operationId = dbUser.NextOperationId;
+        var operationId = dbUser.NextOperationId;
         dbUser.NextOperationId++;
 
-        int? placeId = operation.PlaceId ?? await placeService.GetPlaceIdAsync(operation.Place, cancellationToken);
+        var placeId = operation.PlaceId ?? await placeService.GetPlaceIdAsync(operation.Place, cancellationToken);
 
-        Data.Entities.Operation dbOperation = new()
+        var dbOperation = new Data.Entities.Operation
         {
             Id = operationId,
             UserId = environment.UserId.Value,
@@ -77,11 +77,11 @@ public class OperationService(
 
     public async Task UpdateAsync(Operation operation, CancellationToken cancellationToken)
     {
-        Data.Entities.Operation dbOperation = await context.Operations.SingleOrDefaultAsync(environment.UserId, operation.Id, cancellationToken)
-                                              ?? throw new NotFoundException("операция", operation.Id);
+        var dbOperation = await context.Operations.SingleOrDefaultAsync(environment.UserId, operation.Id, cancellationToken)
+                          ?? throw new NotFoundException("операция", operation.Id);
 
-        Category category = await categoryService.GetByIdAsync(operation.CategoryId, cancellationToken);
-        int? placeId = await placeService.GetPlaceIdAsync(operation.Place, dbOperation, cancellationToken);
+        var category = await categoryService.GetByIdAsync(operation.CategoryId, cancellationToken);
+        var placeId = await placeService.GetPlaceIdAsync(operation.Place, dbOperation, cancellationToken);
 
         dbOperation.Sum = operation.Sum;
         dbOperation.Comment = operation.Comment;
@@ -94,7 +94,7 @@ public class OperationService(
 
     public async Task DeleteAsync(int id, CancellationToken cancellationToken)
     {
-        Data.Entities.Operation dbOperation = await GetByIdInternal(id, cancellationToken);
+        var dbOperation = await GetByIdInternal(id, cancellationToken);
         dbOperation.IsDeleted = true;
         await placeService.CheckRemovePlaceAsync(dbOperation.PlaceId, dbOperation.Id, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
@@ -102,11 +102,11 @@ public class OperationService(
 
     public async Task RestoreAsync(int id, CancellationToken cancellationToken)
     {
-        Data.Entities.Operation dbOperation = await context.Operations
-                                                  .IgnoreQueryFilters()
-                                                  .Where(x => x.IsDeleted)
-                                                  .SingleOrDefaultAsync(environment.UserId, id, cancellationToken)
-                                              ?? throw new NotFoundException("операция", id);
+        var dbOperation = await context.Operations
+                              .IgnoreQueryFilters()
+                              .Where(x => x.IsDeleted)
+                              .SingleOrDefaultAsync(environment.UserId, id, cancellationToken)
+                          ?? throw new NotFoundException("операция", id);
 
         dbOperation.IsDeleted = false;
         await placeService.CheckRestorePlaceAsync(dbOperation.PlaceId, cancellationToken);
@@ -115,9 +115,9 @@ public class OperationService(
 
     public async Task<IEnumerable<Operation>> UpdateBatchAsync(List<int> operationIds, int categoryId, CancellationToken cancellationToken)
     {
-        Category category = await categoryService.GetByIdAsync(categoryId, cancellationToken);
+        var category = await categoryService.GetByIdAsync(categoryId, cancellationToken);
 
-        List<Data.Entities.Operation> dbOperations = await context.Operations
+        var dbOperations = await context.Operations
             .IsUserEntity(environment.UserId)
             .Where(x => operationIds.Contains(x.Id))
             .ToListAsync(cancellationToken);
@@ -127,7 +127,7 @@ public class OperationService(
             throw new BusinessException("Одна или несколько операций не найдены");
         }
 
-        foreach (Data.Entities.Operation? operation in dbOperations)
+        foreach (var operation in dbOperations)
         {
             operation.CategoryId = category.Id;
         }
@@ -139,17 +139,17 @@ public class OperationService(
 
     private async Task<Data.Entities.Operation> GetByIdInternal(int id, CancellationToken cancellationToken)
     {
-        Data.Entities.Operation dbCategory = await context.Operations
-                                                 .IsUserEntity(environment.UserId, id)
-                                                 .FirstOrDefaultAsync(cancellationToken)
-                                             ?? throw new NotFoundException("операция", id);
+        var dbCategory = await context.Operations
+                             .IsUserEntity(environment.UserId, id)
+                             .FirstOrDefaultAsync(cancellationToken)
+                         ?? throw new NotFoundException("операция", id);
 
         return dbCategory;
     }
 
     private IQueryable<Data.Entities.Operation> FilterOperations(OperationFilter filter)
     {
-        IQueryable<Data.Entities.Operation> dbOperations = context.Operations
+        var dbOperations = context.Operations
             .IsUserEntity(environment.UserId);
 
         if (filter.DateFrom.HasValue)
@@ -174,7 +174,7 @@ public class OperationService(
 
         if (string.IsNullOrEmpty(filter.Place) == false)
         {
-            IQueryable<int> placesIds = context.Places
+            var placesIds = context.Places
                 .Where(x => x.UserId == environment.UserId && x.Name.Contains(filter.Place)) // todo сделать регистронезависимый поиск
                 .Select(x => x.Id);
 

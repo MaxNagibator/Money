@@ -25,14 +25,14 @@ public static class ApiClientExtensions
 
     public static async Task<ApiClientResponse<T>> IsSuccess<T>(this Task<ApiClientResponse<T>> responseTask)
     {
-        ApiClientResponse<T> response = await responseTask;
+        var response = await responseTask;
         Assert.That(response.Code, Is.AnyOf(HttpStatusCode.OK, HttpStatusCode.Created), response.StringContent);
         return response;
     }
 
     public static async Task<ApiClientResponse> IsStatus(this Task<ApiClientResponse> responseTask, params HttpStatusCode[] statusCode)
     {
-        ApiClientResponse response = await responseTask;
+        var response = await responseTask;
         Assert.That(response.Code, Is.AnyOf(statusCode), response.StringContent);
         return response;
     }
@@ -54,7 +54,7 @@ public static class ApiClientExtensions
 
     public static async Task<T?> IsSuccessWithContent<T>(this Task<ApiClientResponse<T>> responseTask)
     {
-        ApiClientResponse<T> response = await responseTask;
+        var response = await responseTask;
         Assert.That(response.Code, Is.AnyOf(HttpStatusCode.OK, HttpStatusCode.Created), response.StringContent);
         return response.Content;
     }

@@ -3,12 +3,12 @@ using Microsoft.EntityFrameworkCore;
 namespace Money.Common.Pagination;
 
 /// <summary>
-///     Предоставляет вспомогательные методы для интерфейса <see cref="IPagedList{T}" />.
+/// Предоставляет вспомогательные методы для интерфейса <see cref="IPagedList{T}" />.
 /// </summary>
 public static class PagedListExtensions
 {
     /// <summary>
-    ///     Создает пустой экземпляр <see cref="IPagedList{T}" />.
+    /// Создает пустой экземпляр <see cref="IPagedList{T}" />.
     /// </summary>
     /// <typeparam name="T">Тип данных для постраничного отображения.</typeparam>
     /// <returns>Пустой экземпляр <see cref="IPagedList{T}" />.</returns>
@@ -18,7 +18,7 @@ public static class PagedListExtensions
     }
 
     /// <summary>
-    ///     Создает новый экземпляр <see cref="IPagedList{T}" /> с заданными параметрами.
+    /// Создает новый экземпляр <see cref="IPagedList{T}" /> с заданными параметрами.
     /// </summary>
     /// <typeparam name="T">Тип данных для постраничного отображения.</typeparam>
     /// <param name="items">Коллекция элементов.</param>
@@ -36,7 +36,7 @@ public static class PagedListExtensions
     }
 
     /// <summary>
-    ///     Преобразует указанную коллекцию в <see cref="IPagedList{T}" /> с указанными параметрами.
+    /// Преобразует указанную коллекцию в <see cref="IPagedList{T}" /> с указанными параметрами.
     /// </summary>
     /// <typeparam name="T">Тип данных коллекции.</typeparam>
     /// <param name="source">Исходная коллекция для постраничного отображения.</param>
@@ -50,7 +50,7 @@ public static class PagedListExtensions
     }
 
     /// <summary>
-    ///     Асинхронно преобразует указанную коллекцию в <see cref="IPagedList{T}" /> с указанными параметрами.
+    /// Асинхронно преобразует указанную коллекцию в <see cref="IPagedList{T}" /> с указанными параметрами.
     /// </summary>
     /// <typeparam name="T">Тип данных коллекции.</typeparam>
     /// <param name="source">Исходная коллекция для постраничного отображения.</param>
@@ -71,9 +71,9 @@ public static class PagedListExtensions
             throw new ArgumentException($"indexFrom: {indexFrom} > pageIndex: {pageIndex}, indexFrom должно быть меньше или равно pageIndex.");
         }
 
-        int count = await source.CountAsync(cancellationToken).ConfigureAwait(false);
+        var count = await source.CountAsync(cancellationToken).ConfigureAwait(false);
 
-        List<T> items = await source.Skip((pageIndex - indexFrom) * pageSize)
+        var items = await source.Skip((pageIndex - indexFrom) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);

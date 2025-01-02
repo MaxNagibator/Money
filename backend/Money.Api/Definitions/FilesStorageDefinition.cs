@@ -10,9 +10,9 @@ public class FilesStorageDefinition : AppDefinition
 
     public override void ConfigureServices(WebApplicationBuilder builder)
     {
-        IConfigurationSection filesStorage = builder.Configuration.GetSection("FilesStorage");
+        var filesStorage = builder.Configuration.GetSection("FilesStorage");
 
-        FilesStorageConfig? filesStorageConfig = filesStorage.Get<FilesStorageConfig>();
+        var filesStorageConfig = filesStorage.Get<FilesStorageConfig>();
 
         if (string.IsNullOrEmpty(filesStorageConfig?.Path))
         {

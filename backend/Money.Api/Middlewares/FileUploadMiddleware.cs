@@ -6,9 +6,9 @@ public class FileUploadMiddleware(RequestDelegate next)
     {
         if (context.Request.HasFormContentType && context.Request.Form.Files.Any())
         {
-            IFormCollection form = await context.Request.ReadFormAsync();
+            var form = await context.Request.ReadFormAsync();
 
-            foreach (IFormFile file in form.Files)
+            foreach (var file in form.Files)
             {
                 fileService.CheckFileType(file.FileName);
             }

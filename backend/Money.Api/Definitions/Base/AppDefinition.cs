@@ -1,7 +1,7 @@
 ﻿namespace Money.Api.Definitions.Base;
 
 /// <summary>
-///     Базовая реализация для <see cref="IAppDefinition" />
+/// Базовая реализация для <see cref="IAppDefinition" />
 /// </summary>
 public abstract class AppDefinition : IAppDefinition
 {

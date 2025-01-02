@@ -1,53 +1,53 @@
 ﻿namespace Money.Api.Dto.FastOperations;
 
 /// <summary>
-///     Операция.
+/// Операция.
 /// </summary>
 public class FastOperationDto
 {
     /// <summary>
-    ///     Идентификатор.
+    /// Идентификатор.
     /// </summary>
     public int Id { get; set; }
 
     /// <summary>
-    ///     Наименование.
+    /// Наименование.
     /// </summary>
     public required string Name { get; set; }
 
     /// <summary>
-    ///     Порядок сортировки.
+    /// Порядок сортировки.
     /// </summary>
     public int? Order { get; set; }
 
     /// <summary>
-    ///     Идентификатор категории.
+    /// Идентификатор категории.
     /// </summary>
     public required int CategoryId { get; set; }
 
     /// <summary>
-    ///     Сумма.
+    /// Сумма.
     /// </summary>
     public decimal Sum { get; set; }
 
     /// <summary>
-    ///     Комментарий.
+    /// Комментарий.
     /// </summary>
     public string? Comment { get; set; }
 
     /// <summary>
-    ///     Место.
+    /// Место.
     /// </summary>
     public string? Place { get; set; }
 
     /// <summary>
-    ///     Фабричный метод для создания DTO на основе бизнес-модели.
+    /// Фабричный метод для создания DTO на основе бизнес-модели.
     /// </summary>
     /// <param name="business">Бизнес-модель.</param>
     /// <returns>Новый объект <see cref="FastOperationDto" />.</returns>
     public static FastOperationDto FromBusinessModel(FastOperation business)
     {
-        return new FastOperationDto
+        return new()
         {
             Id = business.Id,
             CategoryId = business.CategoryId,

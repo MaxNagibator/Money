@@ -12,17 +12,17 @@ public class FastOperationService(
 {
     public async Task<IEnumerable<FastOperation>> GetAsync(CancellationToken cancellationToken)
     {
-        IQueryable<Data.Entities.FastOperation> dbOperations = context.FastOperations
+        var dbOperations = context.FastOperations
             .IsUserEntity(environment.UserId);
 
-        List<int> placeIds = await dbOperations
+        var placeIds = await dbOperations
             .Where(x => x.PlaceId != null)
             .Select(x => x.PlaceId!.Value)
             .ToListAsync(cancellationToken);
 
-        List<Place> places = await placeService.GetPlacesAsync(placeIds, cancellationToken);
+        var places = await placeService.GetPlacesAsync(placeIds, cancellationToken);
 
-        List<Data.Entities.FastOperation> operations = await dbOperations
+        var operations = await dbOperations
             .OrderBy(x => x.CategoryId)
             .ToListAsync(cancellationToken);
 
@@ -31,7 +31,7 @@ public class FastOperationService(
 
     public async Task<FastOperation> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
-        Data.Entities.FastOperation dbOperation = await GetByIdInternal(id, cancellationToken);
+        var dbOperation = await GetByIdInternal(id, cancellationToken);
 
         List<Place>? places = null;
 
@@ -50,15 +50,15 @@ public class FastOperationService(
             throw new BusinessException("Извините, но идентификатор пользователя не указан.");
         }
 
-        Data.Entities.DomainUser dbUser = await userService.GetCurrent(cancellationToken);
-        Category category = await categoryService.GetByIdAsync(operation.CategoryId, cancellationToken);
+        var dbUser = await userService.GetCurrent(cancellationToken);
+        var category = await categoryService.GetByIdAsync(operation.CategoryId, cancellationToken);
 
-        int operationId = dbUser.NextFastOperationId;
+        var operationId = dbUser.NextFastOperationId;
         dbUser.NextFastOperationId++;
 
-        int? placeId = await placeService.GetPlaceIdAsync(operation.Place, cancellationToken);
+        var placeId = await placeService.GetPlaceIdAsync(operation.Place, cancellationToken);
 
-        Data.Entities.FastOperation dbOperation = new()
+        var dbOperation = new Data.Entities.FastOperation
         {
             Id = operationId,
             Name = operation.Name,
@@ -77,13 +77,13 @@ public class FastOperationService(
 
     public async Task UpdateAsync(FastOperation operation, CancellationToken cancellationToken)
     {
-        Data.Entities.FastOperation dbOperation = await context.FastOperations
-                                                      .IsUserEntity(environment.UserId, operation.Id)
-                                                      .FirstOrDefaultAsync(cancellationToken)
-                                                  ?? throw new NotFoundException("Быстрая операция", operation.Id);
+        var dbOperation = await context.FastOperations
+                              .IsUserEntity(environment.UserId, operation.Id)
+                              .FirstOrDefaultAsync(cancellationToken)
+                          ?? throw new NotFoundException("Быстрая операция", operation.Id);
 
-        Category category = await categoryService.GetByIdAsync(operation.CategoryId, cancellationToken);
-        int? placeId = await placeService.GetPlaceIdAsync(operation.Place, dbOperation, cancellationToken);
+        var category = await categoryService.GetByIdAsync(operation.CategoryId, cancellationToken);
+        var placeId = await placeService.GetPlaceIdAsync(operation.Place, dbOperation, cancellationToken);
 
         dbOperation.Sum = operation.Sum;
         dbOperation.Comment = operation.Comment;
@@ -97,7 +97,7 @@ public class FastOperationService(
 
     public async Task DeleteAsync(int id, CancellationToken cancellationToken)
     {
-        Data.Entities.FastOperation dbOperation = await GetByIdInternal(id, cancellationToken);
+        var dbOperation = await GetByIdInternal(id, cancellationToken);
         dbOperation.IsDeleted = true;
         await placeService.CheckRemovePlaceAsync(dbOperation.PlaceId, dbOperation.Id, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
@@ -105,12 +105,12 @@ public class FastOperationService(
 
     public async Task RestoreAsync(int id, CancellationToken cancellationToken)
     {
-        Data.Entities.FastOperation dbOperation = await context.FastOperations
-                                                      .IgnoreQueryFilters()
-                                                      .Where(x => x.IsDeleted)
-                                                      .IsUserEntity(environment.UserId, id)
-                                                      .FirstOrDefaultAsync(cancellationToken)
-                                                  ?? throw new NotFoundException("Быстрая операция", id);
+        var dbOperation = await context.FastOperations
+                              .IgnoreQueryFilters()
+                              .Where(x => x.IsDeleted)
+                              .IsUserEntity(environment.UserId, id)
+                              .FirstOrDefaultAsync(cancellationToken)
+                          ?? throw new NotFoundException("Быстрая операция", id);
 
         dbOperation.IsDeleted = false;
         await placeService.CheckRestorePlaceAsync(dbOperation.PlaceId, cancellationToken);
@@ -119,10 +119,10 @@ public class FastOperationService(
 
     private async Task<Data.Entities.FastOperation> GetByIdInternal(int id, CancellationToken cancellationToken)
     {
-        Data.Entities.FastOperation dbOperation = await context.FastOperations
-                                                      .IsUserEntity(environment.UserId, id)
-                                                      .FirstOrDefaultAsync(cancellationToken)
-                                                  ?? throw new NotFoundException("Быстрая операция", id);
+        var dbOperation = await context.FastOperations
+                              .IsUserEntity(environment.UserId, id)
+                              .FirstOrDefaultAsync(cancellationToken)
+                          ?? throw new NotFoundException("Быстрая операция", id);
 
         return dbOperation;
     }

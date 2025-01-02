@@ -11,7 +11,7 @@ namespace Money.Api.Controllers;
 public class OperationsController(OperationService operationService, PlaceService placeService) : ControllerBase
 {
     /// <summary>
-    ///     Получить список операций.
+    /// Получить список операций.
     /// </summary>
     /// <param name="filter">Фильтр.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
@@ -21,13 +21,13 @@ public class OperationsController(OperationService operationService, PlaceServic
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Get([FromQuery] OperationFilterDto filter, CancellationToken cancellationToken)
     {
-        OperationFilter businessFilter = filter.ToBusinessModel();
-        IEnumerable<Operation> operations = await operationService.GetAsync(businessFilter, cancellationToken);
+        var businessFilter = filter.ToBusinessModel();
+        var operations = await operationService.GetAsync(businessFilter, cancellationToken);
         return Ok(operations.Select(OperationDto.FromBusinessModel));
     }
 
     /// <summary>
-    ///     Получить операцию по идентификатору.
+    /// Получить операцию по идентификатору.
     /// </summary>
     /// <param name="id">Идентификатор.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
@@ -38,12 +38,12 @@ public class OperationsController(OperationService operationService, PlaceServic
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
     {
-        Operation category = await operationService.GetByIdAsync(id, cancellationToken);
+        var category = await operationService.GetByIdAsync(id, cancellationToken);
         return Ok(OperationDto.FromBusinessModel(category));
     }
 
     /// <summary>
-    ///     Создать новую операцию.
+    /// Создать новую операцию.
     /// </summary>
     /// <param name="request">Данные для создания новой операции.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
@@ -55,13 +55,13 @@ public class OperationsController(OperationService operationService, PlaceServic
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Create([FromBody] OperationSaveRequest request, CancellationToken cancellationToken)
     {
-        Operation business = request.ToBusinessModel();
-        int result = await operationService.CreateAsync(business, cancellationToken);
+        var business = request.ToBusinessModel();
+        var result = await operationService.CreateAsync(business, cancellationToken);
         return CreatedAtAction(nameof(GetById), new { id = result }, result);
     }
 
     /// <summary>
-    ///     Обновить существующую операцию.
+    /// Обновить существующую операцию.
     /// </summary>
     /// <param name="id">Идентификатор операции.</param>
     /// <param name="request">Данные для обновления операции.</param>
@@ -72,14 +72,14 @@ public class OperationsController(OperationService operationService, PlaceServic
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(int id, [FromBody] OperationSaveRequest request, CancellationToken cancellationToken)
     {
-        Operation business = request.ToBusinessModel();
+        var business = request.ToBusinessModel();
         business.Id = id;
         await operationService.UpdateAsync(business, cancellationToken);
         return Ok();
     }
 
     /// <summary>
-    ///     Обновить категорию у операций.
+    /// Обновить категорию у операций.
     /// </summary>
     /// <param name="request">Данные для обновления операций.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
@@ -89,12 +89,12 @@ public class OperationsController(OperationService operationService, PlaceServic
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> UpdateBatch(UpdateOperationsBatchRequest request, CancellationToken cancellationToken)
     {
-        IEnumerable<Operation> updatedOperations = await operationService.UpdateBatchAsync(request.OperationIds, request.CategoryId, cancellationToken);
+        var updatedOperations = await operationService.UpdateBatchAsync(request.OperationIds, request.CategoryId, cancellationToken);
         return Ok(updatedOperations.Select(OperationDto.FromBusinessModel));
     }
 
     /// <summary>
-    ///     Удалить категорию операции по идентификатору.
+    /// Удалить категорию операции по идентификатору.
     /// </summary>
     /// <param name="id">Идентификатор категории.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
@@ -109,7 +109,7 @@ public class OperationsController(OperationService operationService, PlaceServic
     }
 
     /// <summary>
-    ///     Восстановить категорию операции по идентификатору.
+    /// Восстановить категорию операции по идентификатору.
     /// </summary>
     /// <param name="id">Идентификатор категории.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
@@ -125,7 +125,7 @@ public class OperationsController(OperationService operationService, PlaceServic
     }
 
     /// <summary>
-    ///     Получить список мест на основе указанного сдвига, количества и необязательной фильтрации по имени.
+    /// Получить список мест на основе указанного сдвига, количества и необязательной фильтрации по имени.
     /// </summary>
     /// <param name="offset">Сдвиг.</param>
     /// <param name="count">Количество.</param>

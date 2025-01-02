@@ -2,8 +2,6 @@
 using Money.Api.Tests.TestTools;
 using Money.Api.Tests.TestTools.Entities;
 using Money.ApiClient;
-using Money.Data;
-using Money.Data.Entities;
 using Money.Data.Extensions;
 
 namespace Money.Api.Tests.FastOperations;
@@ -19,14 +17,14 @@ public class FastOperationTests
     {
         _dbClient = Integration.GetDatabaseClient();
         _user = _dbClient.WithUser();
-        _apiClient = new MoneyClient(Integration.GetHttpClient(), Console.WriteLine);
+        _apiClient = new(Integration.GetHttpClient(), Console.WriteLine);
         _apiClient.SetUser(_user);
     }
 
     [Test]
     public async Task GetTest()
     {
-        TestCategory category = _user.WithCategory();
+        var category = _user.WithCategory();
 
         TestFastOperation[] operations =
         [
@@ -37,11 +35,11 @@ public class FastOperationTests
 
         _dbClient.Save();
 
-        FastOperationClient.FastOperation[]? apiOperations = await _apiClient.FastOperation.Get().IsSuccessWithContent();
+        var apiOperations = await _apiClient.FastOperation.Get().IsSuccessWithContent();
         Assert.That(apiOperations, Is.Not.Null);
         Assert.That(apiOperations, Has.Length.GreaterThanOrEqualTo(operations.Length));
 
-        TestFastOperation[] testOperations = operations.ExceptBy(apiOperations.Select(x => x.Id), operation => operation.Id).ToArray();
+        var testOperations = operations.ExceptBy(apiOperations.Select(x => x.Id), operation => operation.Id).ToArray();
         Assert.That(testOperations, Is.Not.Null);
         Assert.That(testOperations, Is.Empty);
     }
@@ -49,11 +47,11 @@ public class FastOperationTests
     [Test]
     public async Task GetByIdTest()
     {
-        TestPlace place = _user.WithPlace();
-        TestFastOperation operation = _user.WithFastOperation().SetOrder(217).SetPlace(place);
+        var place = _user.WithPlace();
+        var operation = _user.WithFastOperation().SetOrder(217).SetPlace(place);
         _dbClient.Save();
 
-        FastOperationClient.FastOperation? apiOperation = await _apiClient.FastOperation.GetById(operation.Id).IsSuccessWithContent();
+        var apiOperation = await _apiClient.FastOperation.GetById(operation.Id).IsSuccessWithContent();
 
         Assert.That(apiOperation, Is.Not.Null);
 
@@ -71,13 +69,13 @@ public class FastOperationTests
     [Test]
     public async Task CreateTest()
     {
-        TestCategory category = _user.WithCategory();
+        var category = _user.WithCategory();
         _dbClient.Save();
 
-        TestFastOperation operation = _user.WithFastOperation();
-        TestPlace place = _user.WithPlace();
+        var operation = _user.WithFastOperation();
+        var place = _user.WithPlace();
 
-        FastOperationClient.SaveRequest request = new()
+        var request = new FastOperationClient.SaveRequest
         {
             CategoryId = category.Id,
             Sum = operation.Sum,
@@ -87,9 +85,9 @@ public class FastOperationTests
             Place = place.Name,
         };
 
-        int createdId = await _apiClient.FastOperation.Create(request).IsSuccessWithContent();
-        FastOperation? dbOperation = _dbClient.CreateApplicationDbContext().FastOperations.SingleOrDefault(_user.Id, createdId);
-        Place? dbPlace = _dbClient.CreateApplicationDbContext().Places.FirstOrDefault(x => x.UserId == _user.Id && x.Name == place.Name);
+        var createdId = await _apiClient.FastOperation.Create(request).IsSuccessWithContent();
+        var dbOperation = _dbClient.CreateApplicationDbContext().FastOperations.SingleOrDefault(_user.Id, createdId);
+        var dbPlace = _dbClient.CreateApplicationDbContext().Places.FirstOrDefault(x => x.UserId == _user.Id && x.Name == place.Name);
 
         Assert.Multiple(() =>
         {
@@ -111,14 +109,14 @@ public class FastOperationTests
     [Test]
     public async Task UpdateTest()
     {
-        TestFastOperation operation = _user.WithFastOperation();
-        TestCategory updatedCategory = _user.WithCategory();
+        var operation = _user.WithFastOperation();
+        var updatedCategory = _user.WithCategory();
         _dbClient.Save();
 
-        TestPlace place = _user.WithPlace();
-        TestFastOperation updatedOperation = _user.WithFastOperation().SetOrder(10);
+        var place = _user.WithPlace();
+        var updatedOperation = _user.WithFastOperation().SetOrder(10);
 
-        FastOperationClient.SaveRequest request = new()
+        var request = new FastOperationClient.SaveRequest
         {
             Comment = updatedOperation.Comment,
             CategoryId = updatedCategory.Id,
@@ -129,8 +127,8 @@ public class FastOperationTests
         };
 
         await _apiClient.FastOperation.Update(operation.Id, request).IsSuccess();
-        FastOperation? dbOperation = _dbClient.CreateApplicationDbContext().FastOperations.SingleOrDefault(_user.Id, operation.Id);
-        Place? dbPlace = _dbClient.CreateApplicationDbContext().Places.FirstOrDefault(x => x.UserId == _user.Id && x.Name == place.Name);
+        var dbOperation = _dbClient.CreateApplicationDbContext().FastOperations.SingleOrDefault(_user.Id, operation.Id);
+        var dbPlace = _dbClient.CreateApplicationDbContext().Places.FirstOrDefault(x => x.UserId == _user.Id && x.Name == place.Name);
 
         Assert.Multiple(() =>
         {
@@ -152,14 +150,14 @@ public class FastOperationTests
     [Test]
     public async Task DeleteTest()
     {
-        TestFastOperation operation = _user.WithFastOperation();
+        var operation = _user.WithFastOperation();
         _dbClient.Save();
 
         await _apiClient.FastOperation.Delete(operation.Id).IsSuccess();
 
-        await using ApplicationDbContext context = _dbClient.CreateApplicationDbContext();
+        await using var context = _dbClient.CreateApplicationDbContext();
 
-        FastOperation? dbOperation = context.FastOperations.SingleOrDefault(_user.Id, operation.Id);
+        var dbOperation = context.FastOperations.SingleOrDefault(_user.Id, operation.Id);
 
         Assert.That(dbOperation, Is.Null);
 
@@ -174,14 +172,14 @@ public class FastOperationTests
     [Test]
     public async Task RestoreTest()
     {
-        TestFastOperation operation = _user.WithFastOperation().SetIsDeleted();
+        var operation = _user.WithFastOperation().SetIsDeleted();
         _dbClient.Save();
 
         await _apiClient.FastOperation.Restore(operation.Id).IsSuccess();
 
-        await using ApplicationDbContext context = _dbClient.CreateApplicationDbContext();
+        await using var context = _dbClient.CreateApplicationDbContext();
 
-        FastOperation? dbOperation = context.FastOperations.SingleOrDefault(_user.Id, operation.Id);
+        var dbOperation = context.FastOperations.SingleOrDefault(_user.Id, operation.Id);
         Assert.That(dbOperation, Is.Not.Null);
         Assert.That(dbOperation.IsDeleted, Is.EqualTo(false));
     }

@@ -12,7 +12,7 @@ public class SwaggerDefinition : AppDefinition
 
         builder.Services.AddSwaggerGen(options =>
         {
-            options.SwaggerDoc("v1", new OpenApiInfo
+            options.SwaggerDoc("v1", new()
             {
                 Title = "Money API",
                 Version = "v1",
@@ -21,20 +21,20 @@ public class SwaggerDefinition : AppDefinition
 
             options.CustomSchemaIds(x => x.FullName);
 
-            string xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-            string xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+            var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+            var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
             options.IncludeXmlComments(xmlPath);
 
             options.ResolveConflictingActions(descriptions => descriptions.First());
 
-            options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+            options.AddSecurityDefinition("oauth2", new()
             {
                 Description = "OAuth2.0 Authorization",
-                Flows = new OpenApiOAuthFlows
+                Flows = new()
                 {
-                    Password = new OpenApiOAuthFlow
+                    Password = new()
                     {
-                        TokenUrl = new Uri("/connect/token", UriKind.Relative),
+                        TokenUrl = new("/connect/token", UriKind.Relative),
                     },
                 },
                 In = ParameterLocation.Header,
@@ -42,12 +42,12 @@ public class SwaggerDefinition : AppDefinition
                 Type = SecuritySchemeType.OAuth2,
             });
 
-            options.AddSecurityRequirement(new OpenApiSecurityRequirement
+            options.AddSecurityRequirement(new()
             {
                 {
-                    new OpenApiSecurityScheme
+                    new()
                     {
-                        Reference = new OpenApiReference
+                        Reference = new()
                         {
                             Id = "oauth2",
                             Type = ReferenceType.SecurityScheme,
@@ -64,6 +64,7 @@ public class SwaggerDefinition : AppDefinition
     public override void ConfigureApplication(WebApplication app)
     {
         var swaggerForEveryOneHome = true;
+
         if (!swaggerForEveryOneHome && app.Environment.IsDevelopment() == false)
         {
             return;

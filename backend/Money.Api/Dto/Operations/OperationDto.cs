@@ -1,56 +1,56 @@
 ﻿namespace Money.Api.Dto.Operations;
 
 /// <summary>
-///     Операция.
+/// Операция.
 /// </summary>
 public class OperationDto
 {
     /// <summary>
-    ///     Идентификатор.
+    /// Идентификатор.
     /// </summary>
     public int Id { get; set; }
 
     /// <summary>
-    ///     Идентификатор категории.
+    /// Идентификатор категории.
     /// </summary>
     public required int CategoryId { get; set; }
 
     /// <summary>
-    ///     Сумма.
+    /// Сумма.
     /// </summary>
     public decimal Sum { get; set; }
 
     /// <summary>
-    ///     Комментарий.
+    /// Комментарий.
     /// </summary>
     public string? Comment { get; set; }
 
     /// <summary>
-    ///     Место.
+    /// Место.
     /// </summary>
     public string? Place { get; set; }
 
     /// <summary>
-    ///     Дата.
+    /// Дата.
     /// </summary>
     public DateTime Date { get; set; }
 
     /// <summary>
-    ///     Идентификатор родительской регулярной задачи.
+    /// Идентификатор родительской регулярной задачи.
     /// </summary>
     /// <remarks>
-    ///     Не null, если операция создана регулярной задачей.
+    /// Не null, если операция создана регулярной задачей.
     /// </remarks>
     public int? CreatedTaskId { get; set; }
 
     /// <summary>
-    ///     Фабричный метод для создания DTO на основе бизнес-модели.
+    /// Фабричный метод для создания DTO на основе бизнес-модели.
     /// </summary>
     /// <param name="business">Бизнес-модель.</param>
     /// <returns>Новый объект <see cref="OperationDto" />.</returns>
     public static OperationDto FromBusinessModel(Operation business)
     {
-        return new OperationDto
+        return new()
         {
             Id = business.Id,
             CategoryId = business.CategoryId,

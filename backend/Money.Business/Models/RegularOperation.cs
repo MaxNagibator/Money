@@ -1,7 +1,7 @@
 ﻿namespace Money.Business.Models;
 
 /// <summary>
-///     Регулярная операция.
+/// Регулярная операция.
 /// </summary>
 public class RegularOperation : OperationBase
 {

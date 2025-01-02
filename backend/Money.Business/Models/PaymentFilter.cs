@@ -1,32 +1,32 @@
 ﻿namespace Money.Business.Models;
 
 /// <summary>
-///     Фильтр для операций.
+/// Фильтр для операций.
 /// </summary>
 public class OperationFilter
 {
     /// <summary>
-    ///     Дата начала периода.
+    /// Дата начала периода.
     /// </summary>
     public DateTime? DateFrom { get; set; }
 
     /// <summary>
-    ///     Дата окончания периода.
+    /// Дата окончания периода.
     /// </summary>
     public DateTime? DateTo { get; set; }
 
     /// <summary>
-    ///     Список идентификаторов категорий.
+    /// Список идентификаторов категорий.
     /// </summary>
     public List<int>? CategoryIds { get; set; }
 
     /// <summary>
-    ///     Комментарий.
+    /// Комментарий.
     /// </summary>
     public string? Comment { get; set; }
 
     /// <summary>
-    ///     Место.
+    /// Место.
     /// </summary>
     public string? Place { get; set; }
 }

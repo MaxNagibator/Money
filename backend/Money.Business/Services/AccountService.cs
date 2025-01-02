@@ -7,20 +7,20 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
 {
     public async Task RegisterAsync(RegisterModel model, CancellationToken cancellationToken = default)
     {
-        ApplicationUser? user = await userManager.FindByNameAsync(model.Email);
+        var user = await userManager.FindByNameAsync(model.Email);
 
         if (user != null)
         {
             throw new EntityExistsException("Извините, но пользователь с таким именем уже зарегистрирован. Пожалуйста, попробуйте другое имя пользователя.");
         }
 
-        user = new ApplicationUser
+        user = new()
         {
             UserName = model.Email,
             Email = model.Email,
         };
 
-        IdentityResult result = await userManager.CreateAsync(user, model.Password);
+        var result = await userManager.CreateAsync(user, model.Password);
 
         if (result.Succeeded == false)
         {
@@ -32,7 +32,7 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
 
     public async Task<int> EnsureUserIdAsync(Guid authUserId, CancellationToken cancellationToken = default)
     {
-        DomainUser? domainUser = await context.DomainUsers.FirstOrDefaultAsync(x => x.AuthUserId == authUserId, cancellationToken);
+        var domainUser = await context.DomainUsers.FirstOrDefaultAsync(x => x.AuthUserId == authUserId, cancellationToken);
 
         if (domainUser != null)
         {
@@ -44,7 +44,7 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
 
     private async Task<int> AddNewUser(Guid authUserId, CancellationToken cancellationToken)
     {
-        DomainUser domainUser = new()
+        var domainUser = new DomainUser
         {
             AuthUserId = authUserId,
             NextCategoryId = 1,

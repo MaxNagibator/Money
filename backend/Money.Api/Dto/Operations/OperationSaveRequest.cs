@@ -1,44 +1,44 @@
 ﻿namespace Money.Api.Dto.Operations;
 
 /// <summary>
-///     Запрос на сохранение операции.
+/// Запрос на сохранение операции.
 /// </summary>
 public class OperationSaveRequest
 {
     /// <summary>
-    ///     Идентификатор категории.
+    /// Идентификатор категории.
     /// </summary>
     public required int CategoryId { get; set; }
 
     /// <summary>
-    ///     Сумма.
+    /// Сумма.
     /// </summary>
     public decimal Sum { get; set; }
 
     /// <summary>
-    ///     Комментарий.
+    /// Комментарий.
     /// </summary>
     public string? Comment { get; set; }
 
     /// <summary>
-    ///     Место.
+    /// Место.
     /// </summary>
     public string? Place { get; set; }
 
     /// <summary>
-    ///     Дата.
+    /// Дата.
     /// </summary>
     public DateTime Date { get; set; }
 
     /// <summary>
-    ///     Преобразует текущую DTO-модель в бизнес-модель.
+    /// Преобразует текущую DTO-модель в бизнес-модель.
     /// </summary>
     /// <returns>
-    ///     Экземпляр <see cref="Business.Models.Operation" />, который представляет бизнес-модель.
+    /// Экземпляр <see cref="Business.Models.Operation" />, который представляет бизнес-модель.
     /// </returns>
     public Operation ToBusinessModel()
     {
-        return new Operation
+        return new()
         {
             CategoryId = CategoryId,
             Sum = Sum,

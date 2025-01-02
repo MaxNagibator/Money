@@ -1,7 +1,7 @@
 ﻿namespace Money.Business.Models;
 
 /// <summary>
-///     Место операции.
+/// Место операции.
 /// </summary>
 public class Place
 {

@@ -3,32 +3,32 @@
 namespace Money.Api.Dto.RegularOperations;
 
 /// <summary>
-///     Запрос на сохранение операции.
+/// Запрос на сохранение операции.
 /// </summary>
 public class RegularOperationSaveRequest
 {
     /// <summary>
-    ///     Идентификатор категории.
+    /// Идентификатор категории.
     /// </summary>
     public required int CategoryId { get; set; }
 
     /// <summary>
-    ///     Сумма.
+    /// Сумма.
     /// </summary>
     public decimal Sum { get; set; }
 
     /// <summary>
-    ///     Комментарий.
+    /// Комментарий.
     /// </summary>
     public string? Comment { get; set; }
 
     /// <summary>
-    ///     Место.
+    /// Место.
     /// </summary>
     public string? Place { get; set; }
 
     /// <summary>
-    ///     Наименование.
+    /// Наименование.
     /// </summary>
     public required string Name { get; set; }
 
@@ -41,14 +41,14 @@ public class RegularOperationSaveRequest
     public DateTime? DateTo { get; set; }
 
     /// <summary>
-    ///     Преобразует текущую DTO-модель в бизнес-модель.
+    /// Преобразует текущую DTO-модель в бизнес-модель.
     /// </summary>
     /// <returns>
-    ///     Экземпляр <see cref="Business.Models.FastOperation" />, который представляет бизнес-модель.
+    /// Экземпляр <see cref="Business.Models.FastOperation" />, который представляет бизнес-модель.
     /// </returns>
     public RegularOperation ToBusinessModel()
     {
-        return new RegularOperation
+        return new()
         {
             Sum = Sum,
             Name = Name,

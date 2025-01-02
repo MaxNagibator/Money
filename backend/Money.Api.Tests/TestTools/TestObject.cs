@@ -24,18 +24,11 @@ public abstract class TestObject
     {
         LocalSave();
 
-        foreach (TestObject testObject in _objects)
+        foreach (var testObject in _objects)
         {
             testObject.SaveObject();
         }
 
         return this;
-    }
-}
-
-public abstract class ReadonlyTestObject : TestObject
-{
-    public override void LocalSave()
-    {
     }
 }

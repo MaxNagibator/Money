@@ -18,7 +18,7 @@ public class TestPlace : TestObject
     public DateTime LastUsedDate { get; private set; }
 
     /// <summary>
-    ///     Пользователь.
+    /// Пользователь.
     /// </summary>
     public TestUser User { get; }
 
@@ -38,11 +38,11 @@ public class TestPlace : TestObject
     {
         if (IsNew)
         {
-            DomainUser dbUser = Environment.Context.DomainUsers.Single(x => x.Id == User.Id);
-            int id = dbUser.NextPlaceId;
+            var dbUser = Environment.Context.DomainUsers.Single(x => x.Id == User.Id);
+            var id = dbUser.NextPlaceId;
             dbUser.NextPlaceId++; // todo обработать канкаренси
 
-            Place obj = new()
+            var obj = new Place
             {
                 Id = id,
                 Name = "",
@@ -57,7 +57,7 @@ public class TestPlace : TestObject
         }
         else
         {
-            Place obj = Environment.Context.Places.First(x => x.UserId == User.Id && x.Id == Id);
+            var obj = Environment.Context.Places.First(x => x.UserId == User.Id && x.Id == Id);
             FillDbProperties(obj);
             Environment.Context.SaveChanges();
         }

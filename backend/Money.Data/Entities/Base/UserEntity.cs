@@ -3,27 +3,27 @@
 namespace Money.Data.Entities.Base;
 
 /// <summary>
-///     Сущность принадлежащая пользователю.
+/// Сущность принадлежащая пользователю.
 /// </summary>
 [PrimaryKey(nameof(UserId), nameof(Id))]
 public abstract class UserEntity
 {
     /// <summary>
-    ///     Идентификатор пользователя.
+    /// Идентификатор пользователя.
     /// </summary>
     [Key]
     [Column(Order = 1)]
     public int UserId { get; set; }
 
     /// <summary>
-    ///     Идентификатор.
+    /// Идентификатор.
     /// </summary>
     [Key]
     [Column(Order = 2)]
     public int Id { get; set; }
 
     /// <summary>
-    ///     Пользователь, которому принадлежит.
+    /// Пользователь, которому принадлежит.
     /// </summary>
     public DomainUser? User { get; set; }
 }

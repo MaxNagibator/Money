@@ -16,27 +16,27 @@ public class DebtTests
     {
         _dbClient = Integration.GetDatabaseClient();
         _user = _dbClient.WithUser();
-        _apiClient = new MoneyClient(Integration.GetHttpClient(), Console.WriteLine);
+        _apiClient = new(Integration.GetHttpClient(), Console.WriteLine);
         _apiClient.SetUser(_user);
     }
 
     [Test]
     public async Task GetTest()
     {
-        TestDebt[] debts =
-        [
+        var debts = new[]
+        {
             _user.WithDebt(),
             _user.WithDebt(),
             _user.WithDebt(),
-        ];
+        };
 
         _dbClient.Save();
 
-        DebtClient.Debt[]? apiDebts = await _apiClient.Debt.Get(1).IsSuccessWithContent();
+        var apiDebts = await _apiClient.Debt.Get(1).IsSuccessWithContent();
         Assert.That(apiDebts, Is.Not.Null);
         Assert.That(apiDebts.Count, Is.GreaterThanOrEqualTo(3));
 
-        TestDebt[] testCategories = debts.ExceptBy(apiDebts.Select(x => x.Id), category => category.Id).ToArray();
+        var testCategories = debts.ExceptBy(apiDebts.Select(x => x.Id), category => category.Id).ToArray();
         Assert.That(testCategories, Is.Not.Null);
         Assert.That(testCategories, Is.Empty);
     }
@@ -44,10 +44,10 @@ public class DebtTests
     [Test]
     public async Task GetByIdTest()
     {
-        TestDebt debt = _user.WithDebt();
+        var debt = _user.WithDebt();
         _dbClient.Save();
 
-        DebtClient.Debt? apiDebt = await _apiClient.Debt.GetById(debt.Id).IsSuccessWithContent();
+        var apiDebt = await _apiClient.Debt.GetById(debt.Id).IsSuccessWithContent();
 
         Assert.That(apiDebt, Is.Not.Null);
 
@@ -66,9 +66,9 @@ public class DebtTests
     {
         _dbClient.Save();
 
-        TestDebt debt = _user.WithDebt();
+        var debt = _user.WithDebt();
 
-        DebtClient.SaveRequest request = new()
+        var request = new DebtClient.SaveRequest
         {
             Comment = debt.Comment,
             DebtUserName = debt.DebtUserName,
@@ -77,8 +77,8 @@ public class DebtTests
             TypeId = (int)debt.Type,
         };
 
-        int createdCategoryId = await _apiClient.Debt.Create(request).IsSuccessWithContent();
-        Data.Entities.Debt? dbDebt = _dbClient.CreateApplicationDbContext().Debts.SingleOrDefault(_user.Id, createdCategoryId);
+        var createdCategoryId = await _apiClient.Debt.Create(request).IsSuccessWithContent();
+        var dbDebt = _dbClient.CreateApplicationDbContext().Debts.SingleOrDefault(_user.Id, createdCategoryId);
 
         Assert.That(dbDebt, Is.Not.Null);
 
