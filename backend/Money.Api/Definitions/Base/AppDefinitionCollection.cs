@@ -1,14 +1,14 @@
 namespace Money.Api.Definitions.Base;
 
 /// <summary>
-///     Информация о коллекции <see cref="IAppDefinition" />
+/// Информация о коллекции <see cref="IAppDefinition" />
 /// </summary>
 internal sealed class AppDefinitionCollection
 {
     private List<AppDefinitionItem> Items { get; } = [];
 
     /// <summary>
-    ///     Добавление найденного элемента в коллекцию
+    /// Добавление найденного элемента в коллекцию
     /// </summary>
     /// <param name="entryPointName">Имя точки входа</param>
     public void AddEntryPoint(string entryPointName)
@@ -17,12 +17,12 @@ internal sealed class AppDefinitionCollection
     }
 
     /// <summary>
-    ///     Добавление собранной информации в коллекцию
+    /// Добавление собранной информации в коллекцию
     /// </summary>
     /// <param name="definition">Элемент определения приложения</param>
     internal void AddInfo(AppDefinitionItem definition)
     {
-        AppDefinitionItem? exists = Items.FirstOrDefault(item => item == definition);
+        var exists = Items.FirstOrDefault(item => item == definition);
 
         if (exists is null)
         {
@@ -31,7 +31,7 @@ internal sealed class AppDefinitionCollection
     }
 
     /// <summary>
-    ///     Возвращает отсортированные и включённые элементы
+    /// Возвращает отсортированные и включённые элементы
     /// </summary>
     internal IEnumerable<AppDefinitionItem> GetEnabled()
     {
@@ -41,7 +41,7 @@ internal sealed class AppDefinitionCollection
     }
 
     /// <summary>
-    ///     Возвращает уникальные включённые элементы
+    /// Возвращает уникальные включённые элементы
     /// </summary>
     internal IEnumerable<AppDefinitionItem> GetDistinct()
     {
@@ -52,7 +52,7 @@ internal sealed class AppDefinitionCollection
     }
 
     /// <summary>
-    ///     Найденные имена точек входа
+    /// Найденные имена точек входа
     /// </summary>
     internal List<string> EntryPoints { get; } = [];
 }

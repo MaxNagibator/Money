@@ -9,7 +9,7 @@ public static class MappingExtensions
 {
     public static Category Adapt(this Data.Entities.Category model)
     {
-        return new Category
+        return new()
         {
             Id = model.Id,
             Name = model.Name,
@@ -23,7 +23,7 @@ public static class MappingExtensions
 
     public static Operation Adapt(this Data.Entities.Operation model, IEnumerable<Place>? dbPlaces = null)
     {
-        return new Operation
+        return new()
         {
             CategoryId = model.CategoryId,
             Sum = model.Sum,
@@ -39,7 +39,7 @@ public static class MappingExtensions
 
     public static FastOperation Adapt(this Data.Entities.FastOperation model, IEnumerable<Place>? dbPlaces = null)
     {
-        return new FastOperation
+        return new()
         {
             CategoryId = model.CategoryId,
             Sum = model.Sum,
@@ -55,7 +55,7 @@ public static class MappingExtensions
 
     public static Place Adapt(this Data.Entities.Place model)
     {
-        return new Place
+        return new()
         {
             Id = model.Id,
             Name = model.Name,

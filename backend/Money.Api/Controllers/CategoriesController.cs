@@ -11,7 +11,7 @@ namespace Money.Api.Controllers;
 public class CategoriesController(CategoryService categoryService) : ControllerBase
 {
     /// <summary>
-    ///     Получить список категорий операций.
+    /// Получить список категорий операций.
     /// </summary>
     /// <param name="type">Тип категории (опционально).</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
@@ -21,12 +21,12 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Get([FromQuery] int? type, CancellationToken cancellationToken)
     {
-        IEnumerable<Category> categories = await categoryService.GetAsync(type, cancellationToken);
+        var categories = await categoryService.GetAsync(type, cancellationToken);
         return Ok(categories.Select(CategoryDto.FromBusinessModel));
     }
 
     /// <summary>
-    ///     Получить категорию операции по идентификатору.
+    /// Получить категорию операции по идентификатору.
     /// </summary>
     /// <param name="id">Идентификатор категории.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
@@ -37,12 +37,12 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
     {
-        Category category = await categoryService.GetByIdAsync(id, cancellationToken);
+        var category = await categoryService.GetByIdAsync(id, cancellationToken);
         return Ok(CategoryDto.FromBusinessModel(category));
     }
 
     /// <summary>
-    ///     Создать новую категорию операции.
+    /// Создать новую категорию операции.
     /// </summary>
     /// <param name="request">Данные для создания новой категории.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
@@ -53,13 +53,13 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create([FromBody] CategorySaveRequest request, CancellationToken cancellationToken)
     {
-        Category business = request.ToBusinessModel();
-        int result = await categoryService.CreateAsync(business, cancellationToken);
+        var business = request.ToBusinessModel();
+        var result = await categoryService.CreateAsync(business, cancellationToken);
         return CreatedAtAction(nameof(GetById), new { id = result }, result);
     }
 
     /// <summary>
-    ///     Обновить существующую категорию операции.
+    /// Обновить существующую категорию операции.
     /// </summary>
     /// <param name="id">Идентификатор обновляемой категории.</param>
     /// <param name="request">Данные для обновления категории.</param>
@@ -71,14 +71,14 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(int id, [FromBody] CategorySaveRequest request, CancellationToken cancellationToken)
     {
-        Category business = request.ToBusinessModel();
+        var business = request.ToBusinessModel();
         business.Id = id;
         await categoryService.UpdateAsync(business, cancellationToken);
         return Ok();
     }
 
     /// <summary>
-    ///     Удалить категорию операции по идентификатору.
+    /// Удалить категорию операции по идентификатору.
     /// </summary>
     /// <param name="id">Идентификатор категории.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
@@ -94,7 +94,7 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     }
 
     /// <summary>
-    ///     Восстановить категорию операции по идентификатору.
+    /// Восстановить категорию операции по идентификатору.
     /// </summary>
     /// <param name="id">Идентификатор категории.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
@@ -110,13 +110,13 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     }
 
     /// <summary>
-    ///     Восстановить категории по умолчанию.
+    /// Восстановить категории по умолчанию.
     /// </summary>
     /// <param name="isAdd">
-    ///     Флаг, указывающий, добавлять ли категории по умолчанию (по умолчанию true).
-    ///     <c>
-    ///         Если значение false, все добавленные пользователем категории будут удалены без возможности восстановления!
-    ///     </c>
+    /// Флаг, указывающий, добавлять ли категории по умолчанию (по умолчанию true).
+    /// <c>
+    /// Если значение false, все добавленные пользователем категории будут удалены без возможности восстановления!
+    /// </c>
     /// </param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     [HttpPost("/LoadDefault/{isAdd:bool?}")]

@@ -1,12 +1,12 @@
 ﻿namespace Money.Api.Dto.Debts;
 
 /// <summary>
-///     Долг.
+/// Долг.
 /// </summary>
 public class DebtDto
 {
     /// <summary>
-    ///     Идентификатор.
+    /// Идентификатор.
     /// </summary>
     public int Id { get; set; }
 
@@ -25,13 +25,13 @@ public class DebtDto
     public string? PayComment { get; set; }
 
     /// <summary>
-    ///     Фабричный метод для создания DTO на основе бизнес-модели.
+    /// Фабричный метод для создания DTO на основе бизнес-модели.
     /// </summary>
     /// <param name="business">Бизнес-модель.</param>
     /// <returns>Новый объект <see cref="DebtDto" />.</returns>
     public static DebtDto FromBusinessModel(Debt business)
     {
-        return new DebtDto
+        return new()
         {
             Id = business.Id,
             Sum = business.Sum,

@@ -1,37 +1,37 @@
 ﻿namespace Money.Api.Dto.RegularOperations;
 
 /// <summary>
-///     Операция.
+/// Операция.
 /// </summary>
 public class RegularOperationDto
 {
     /// <summary>
-    ///     Идентификатор.
+    /// Идентификатор.
     /// </summary>
     public int Id { get; set; }
 
     /// <summary>
-    ///     Наименование.
+    /// Наименование.
     /// </summary>
     public required string Name { get; set; }
 
     /// <summary>
-    ///     Идентификатор категории.
+    /// Идентификатор категории.
     /// </summary>
     public required int CategoryId { get; set; }
 
     /// <summary>
-    ///     Сумма.
+    /// Сумма.
     /// </summary>
     public decimal Sum { get; set; }
 
     /// <summary>
-    ///     Комментарий.
+    /// Комментарий.
     /// </summary>
     public string? Comment { get; set; }
 
     /// <summary>
-    ///     Место.
+    /// Место.
     /// </summary>
     public string? Place { get; set; }
 
@@ -46,13 +46,13 @@ public class RegularOperationDto
     public DateTime? RunTime { get; set; }
 
     /// <summary>
-    ///     Фабричный метод для создания DTO на основе бизнес-модели.
+    /// Фабричный метод для создания DTO на основе бизнес-модели.
     /// </summary>
     /// <param name="business">Бизнес-модель.</param>
-    /// <returns>Новый объект <see cref="FastOperationDto" />.</returns>
+    /// <returns>Новый объект <see cref="RegularOperationDto" />.</returns>
     public static RegularOperationDto FromBusinessModel(RegularOperation business)
     {
-        return new RegularOperationDto
+        return new()
         {
             Id = business.Id,
             CategoryId = business.CategoryId,

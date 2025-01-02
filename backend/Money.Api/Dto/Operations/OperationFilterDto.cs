@@ -3,38 +3,38 @@
 namespace Money.Api.Dto.Operations;
 
 /// <summary>
-///     Фильтр для операций.
+/// Фильтр для операций.
 /// </summary>
 public class OperationFilterDto
 {
     /// <summary>
-    ///     Дата начала периода.
+    /// Дата начала периода.
     /// </summary>
     public DateTime? DateFrom { get; set; }
 
     /// <summary>
-    ///     Дата окончания периода.
+    /// Дата окончания периода.
     /// </summary>
     public DateTime? DateTo { get; set; }
 
     /// <summary>
-    ///     Список идентификаторов категорий (цифры через запятую. Пример: "1,2,5").
+    /// Список идентификаторов категорий (цифры через запятую. Пример: "1,2,5").
     /// </summary>
     public string? CategoryIds { get; set; }
 
     /// <summary>
-    ///     Комментарий.
+    /// Комментарий.
     /// </summary>
     public string? Comment { get; set; }
 
     /// <summary>
-    ///     Место.
+    /// Место.
     /// </summary>
     public string? Place { get; set; }
 
     public OperationFilter ToBusinessModel()
     {
-        return new OperationFilter
+        return new()
         {
             CategoryIds = CategoryIds.ParseIds(),
             Comment = Comment,

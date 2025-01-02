@@ -11,7 +11,7 @@ namespace Money.Api.Controllers;
 public class FastOperationsController(FastOperationService fastOperationService) : ControllerBase
 {
     /// <summary>
-    ///     Получить список быстрых операций.
+    /// Получить список быстрых операций.
     /// </summary>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     /// <returns>Массив операций.</returns>
@@ -20,12 +20,12 @@ public class FastOperationsController(FastOperationService fastOperationService)
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Get(CancellationToken cancellationToken)
     {
-        IEnumerable<FastOperation> operations = await fastOperationService.GetAsync(cancellationToken);
+        var operations = await fastOperationService.GetAsync(cancellationToken);
         return Ok(operations.Select(FastOperationDto.FromBusinessModel));
     }
 
     /// <summary>
-    ///     Получить быструю операцию по идентификатору.
+    /// Получить быструю операцию по идентификатору.
     /// </summary>
     /// <param name="id">Идентификатор.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
@@ -36,12 +36,12 @@ public class FastOperationsController(FastOperationService fastOperationService)
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
     {
-        FastOperation operation = await fastOperationService.GetByIdAsync(id, cancellationToken);
+        var operation = await fastOperationService.GetByIdAsync(id, cancellationToken);
         return Ok(FastOperationDto.FromBusinessModel(operation));
     }
 
     /// <summary>
-    ///     Создать новую быструю операцию.
+    /// Создать новую быструю операцию.
     /// </summary>
     /// <param name="request">Данные для создания новой быстрой операции.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
@@ -53,13 +53,13 @@ public class FastOperationsController(FastOperationService fastOperationService)
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Create([FromBody] FastOperationSaveRequest request, CancellationToken cancellationToken)
     {
-        FastOperation business = request.ToBusinessModel();
-        int result = await fastOperationService.CreateAsync(business, cancellationToken);
+        var business = request.ToBusinessModel();
+        var result = await fastOperationService.CreateAsync(business, cancellationToken);
         return CreatedAtAction(nameof(GetById), new { id = result }, result);
     }
 
     /// <summary>
-    ///     Обновить существующую быструю операцию.
+    /// Обновить существующую быструю операцию.
     /// </summary>
     /// <param name="id">Идентификатор операции.</param>
     /// <param name="request">Данные для обновления операции.</param>
@@ -70,14 +70,14 @@ public class FastOperationsController(FastOperationService fastOperationService)
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(int id, [FromBody] FastOperationSaveRequest request, CancellationToken cancellationToken)
     {
-        FastOperation business = request.ToBusinessModel();
+        var business = request.ToBusinessModel();
         business.Id = id;
         await fastOperationService.UpdateAsync(business, cancellationToken);
         return Ok();
     }
 
     /// <summary>
-    ///     Удалить быструю операцию по идентификатору.
+    /// Удалить быструю операцию по идентификатору.
     /// </summary>
     /// <param name="id">Идентификатор категории.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
@@ -92,7 +92,7 @@ public class FastOperationsController(FastOperationService fastOperationService)
     }
 
     /// <summary>
-    ///     Восстановить быструю операцию по идентификатору.
+    /// Восстановить быструю операцию по идентификатору.
     /// </summary>
     /// <param name="id">Идентификатор категории.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>

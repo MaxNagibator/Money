@@ -8,10 +8,10 @@ namespace Money.Api.Controllers;
 public class AccountController(AccountService accountService) : ControllerBase
 {
     /// <summary>
-    ///     Регистрация нового пользователя.
+    /// Регистрация нового пользователя.
     /// </summary>
     /// <remarks>
-    ///     Этот метод позволяет зарегистрировать нового пользователя в системе.
+    /// Этот метод позволяет зарегистрировать нового пользователя в системе.
     /// </remarks>
     /// <param name="model">Модель регистрации, содержащая данные пользователя.</param>
     /// <param name="cancellationToken">Токен отмены.</param>

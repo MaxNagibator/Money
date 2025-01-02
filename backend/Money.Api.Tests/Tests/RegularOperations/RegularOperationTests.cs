@@ -3,10 +3,7 @@ using Money.Api.Tests.TestTools;
 using Money.Api.Tests.TestTools.Entities;
 using Money.ApiClient;
 using Money.Business.Enums;
-using Money.Data;
-using Money.Data.Entities;
 using Money.Data.Extensions;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Money.Api.Tests.RegularOperations;
 
@@ -21,14 +18,14 @@ public class RegularOperationTests
     {
         _dbClient = Integration.GetDatabaseClient();
         _user = _dbClient.WithUser();
-        _apiClient = new MoneyClient(Integration.GetHttpClient(), Console.WriteLine);
+        _apiClient = new(Integration.GetHttpClient(), Console.WriteLine);
         _apiClient.SetUser(_user);
     }
 
     [Test]
     public async Task GetTest()
     {
-        TestCategory category = _user.WithCategory();
+        var category = _user.WithCategory();
 
         TestRegularOperation[] operations =
         [
@@ -39,11 +36,11 @@ public class RegularOperationTests
 
         _dbClient.Save();
 
-        RegularOperationClient.RegularOperation[]? apiOperations = await _apiClient.RegularOperation.Get().IsSuccessWithContent();
+        var apiOperations = await _apiClient.RegularOperation.Get().IsSuccessWithContent();
         Assert.That(apiOperations, Is.Not.Null);
         Assert.That(apiOperations, Has.Length.GreaterThanOrEqualTo(operations.Length));
 
-        TestRegularOperation[] testOperations = operations.ExceptBy(apiOperations.Select(x => x.Id), operation => operation.Id).ToArray();
+        var testOperations = operations.ExceptBy(apiOperations.Select(x => x.Id), operation => operation.Id).ToArray();
         Assert.That(testOperations, Is.Not.Null);
         Assert.That(testOperations, Is.Empty);
     }
@@ -51,11 +48,11 @@ public class RegularOperationTests
     [Test]
     public async Task GetByIdTest()
     {
-        TestPlace place = _user.WithPlace();
-        TestRegularOperation operation = _user.WithRegularOperation().SetPlace(place);
+        var place = _user.WithPlace();
+        var operation = _user.WithRegularOperation().SetPlace(place);
         _dbClient.Save();
 
-        RegularOperationClient.RegularOperation? apiOperation = await _apiClient.RegularOperation.GetById(operation.Id).IsSuccessWithContent();
+        var apiOperation = await _apiClient.RegularOperation.GetById(operation.Id).IsSuccessWithContent();
 
         Assert.That(apiOperation, Is.Not.Null);
 
@@ -77,13 +74,13 @@ public class RegularOperationTests
     [Test]
     public async Task CreateTest()
     {
-        TestCategory category = _user.WithCategory();
+        var category = _user.WithCategory();
         _dbClient.Save();
 
-        TestRegularOperation operation = _user.WithRegularOperation();
-        TestPlace place = _user.WithPlace();
+        var operation = _user.WithRegularOperation();
+        var place = _user.WithPlace();
 
-        RegularOperationClient.SaveRequest request = new()
+        var request = new RegularOperationClient.SaveRequest
         {
             CategoryId = category.Id,
             Sum = operation.Sum,
@@ -96,9 +93,9 @@ public class RegularOperationTests
             TimeValue = operation.TimeValue,
         };
 
-        int createdId = await _apiClient.RegularOperation.Create(request).IsSuccessWithContent();
-        RegularOperation? dbOperation = _dbClient.CreateApplicationDbContext().RegularOperations.SingleOrDefault(_user.Id, createdId);
-        Place? dbPlace = _dbClient.CreateApplicationDbContext().Places.FirstOrDefault(x => x.UserId == _user.Id && x.Name == place.Name);
+        var createdId = await _apiClient.RegularOperation.Create(request).IsSuccessWithContent();
+        var dbOperation = _dbClient.CreateApplicationDbContext().RegularOperations.SingleOrDefault(_user.Id, createdId);
+        var dbPlace = _dbClient.CreateApplicationDbContext().Places.FirstOrDefault(x => x.UserId == _user.Id && x.Name == place.Name);
 
         Assert.Multiple(() =>
         {
@@ -124,13 +121,13 @@ public class RegularOperationTests
     [Test]
     public async Task UpdateTest()
     {
-        TestRegularOperation operation = _user.WithRegularOperation();
-        TestCategory updatedCategory = _user.WithCategory();
+        var operation = _user.WithRegularOperation();
+        var updatedCategory = _user.WithCategory();
         _dbClient.Save();
 
-        TestPlace place = _user.WithPlace();
+        var place = _user.WithPlace();
 
-        RegularOperationClient.SaveRequest request = new()
+        var request = new RegularOperationClient.SaveRequest
         {
             Comment = "updateComment",
             CategoryId = updatedCategory.Id,
@@ -143,8 +140,8 @@ public class RegularOperationTests
         };
 
         await _apiClient.RegularOperation.Update(operation.Id, request).IsSuccess();
-        RegularOperation? dbOperation = _dbClient.CreateApplicationDbContext().RegularOperations.SingleOrDefault(_user.Id, operation.Id);
-        Place? dbPlace = _dbClient.CreateApplicationDbContext().Places.FirstOrDefault(x => x.UserId == _user.Id && x.Name == place.Name);
+        var dbOperation = _dbClient.CreateApplicationDbContext().RegularOperations.SingleOrDefault(_user.Id, operation.Id);
+        var dbPlace = _dbClient.CreateApplicationDbContext().Places.FirstOrDefault(x => x.UserId == _user.Id && x.Name == place.Name);
 
         Assert.Multiple(() =>
         {
@@ -170,14 +167,14 @@ public class RegularOperationTests
     [Test]
     public async Task DeleteTest()
     {
-        TestRegularOperation operation = _user.WithRegularOperation();
+        var operation = _user.WithRegularOperation();
         _dbClient.Save();
 
         await _apiClient.RegularOperation.Delete(operation.Id).IsSuccess();
 
-        await using ApplicationDbContext context = _dbClient.CreateApplicationDbContext();
+        await using var context = _dbClient.CreateApplicationDbContext();
 
-        RegularOperation? dbOperation = context.RegularOperations.SingleOrDefault(_user.Id, operation.Id);
+        var dbOperation = context.RegularOperations.SingleOrDefault(_user.Id, operation.Id);
 
         Assert.That(dbOperation, Is.Null);
 
@@ -192,14 +189,14 @@ public class RegularOperationTests
     [Test]
     public async Task RestoreTest()
     {
-        TestRegularOperation operation = _user.WithRegularOperation().SetIsDeleted();
+        var operation = _user.WithRegularOperation().SetIsDeleted();
         _dbClient.Save();
 
         await _apiClient.RegularOperation.Restore(operation.Id).IsSuccess();
 
-        await using ApplicationDbContext context = _dbClient.CreateApplicationDbContext();
+        await using var context = _dbClient.CreateApplicationDbContext();
 
-        RegularOperation? dbOperation = context.RegularOperations.SingleOrDefault(_user.Id, operation.Id);
+        var dbOperation = context.RegularOperations.SingleOrDefault(_user.Id, operation.Id);
         Assert.That(dbOperation, Is.Not.Null);
         Assert.That(dbOperation.IsDeleted, Is.EqualTo(false));
     }
@@ -213,12 +210,12 @@ public class RegularOperationTests
     [TestCase(RegularOperationTimeTypes.EveryMonth, 31)]
     public async Task RunTimeTest(RegularOperationTimeTypes timeType, int? timeValue)
     {
-        TestCategory category = _user.WithCategory();
+        var category = _user.WithCategory();
         _dbClient.Save();
 
-        TestRegularOperation operation = _user.WithRegularOperation();
+        var operation = _user.WithRegularOperation();
 
-        RegularOperationClient.SaveRequest request = new()
+        var request = new RegularOperationClient.SaveRequest
         {
             CategoryId = category.Id,
             Sum = operation.Sum,
@@ -231,44 +228,46 @@ public class RegularOperationTests
         };
 
         DateTime runTime;
-        if (timeType == RegularOperationTimeTypes.EveryDay)
+
+        switch (timeType)
         {
-            runTime = DateTime.Now.Date.AddDays(1);
-        }
-        else if (timeType == RegularOperationTimeTypes.EveryWeek)
-        {
-            int daysToAdd = ((int)timeValue - (int)DateTime.Now.Date.AddDays(1).DayOfWeek + 7) % 7;
-            runTime = DateTime.Now.Date.AddDays(1).AddDays(daysToAdd);
-        }
-        else if (timeType == RegularOperationTimeTypes.EveryMonth)
-        {
-            if (DateTime.Now.Day < timeValue)
+            case RegularOperationTimeTypes.EveryDay:
+                runTime = DateTime.Now.Date.AddDays(1);
+                break;
+
+            case RegularOperationTimeTypes.EveryWeek:
             {
-                runTime = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
-            }
-            else
-            {
-                runTime = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(1);
+                var daysToAdd = (timeValue!.Value - (int)DateTime.Now.Date.AddDays(1).DayOfWeek + 7) % 7;
+                runTime = DateTime.Now.Date.AddDays(1).AddDays(daysToAdd);
+                break;
             }
 
-            // если выбрали 31, то будет последний день месяца, 28 или 30 например
-            var nextDt = runTime.AddDays(timeValue.Value - 1);
-            if (runTime.Month < nextDt.Month)
+            case RegularOperationTimeTypes.EveryMonth:
             {
-                runTime = runTime.AddMonths(1).AddDays(-1);
+                runTime = new(DateTime.Now.Year, DateTime.Now.Month, 1);
+
+                if (DateTime.Now.Day >= timeValue)
+                {
+                    runTime = runTime.AddMonths(1);
+                }
+
+                // если выбрали 31, то будет последний день месяца, 28 или 30 например
+                var nextDt = runTime.AddDays(timeValue!.Value - 1);
+
+                runTime = runTime.Month < nextDt.Month
+                    ? runTime.AddMonths(1).AddDays(-1)
+                    : nextDt;
+
+                break;
             }
-            else
-            {
-                runTime = nextDt;
-            }
-        }
-        else
-        {
-            throw new Exception();
+
+            default:
+                throw new ArgumentOutOfRangeException(nameof(timeType), timeType, null);
         }
 
-        int createdId = await _apiClient.RegularOperation.Create(request).IsSuccessWithContent();
-        RegularOperation dbOperation = _dbClient.CreateApplicationDbContext().RegularOperations.Single(_user.Id, createdId);
+        var createdId = await _apiClient.RegularOperation.Create(request).IsSuccessWithContent();
+        var dbOperation = _dbClient.CreateApplicationDbContext().RegularOperations.SingleOrDefault(_user.Id, createdId);
+        Assert.That(dbOperation, Is.Not.Null);
         Assert.That(dbOperation.RunTime, Is.Not.Null);
         Assert.That(dbOperation.RunTime.Value, Is.EqualTo(runTime));
     }
