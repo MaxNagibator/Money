@@ -1,6 +1,6 @@
 ﻿using Money.Business.Mappers;
 using Money.Data.Extensions;
-using OperationBase = Money.Data.Entities.OperationBase;
+using OperationBase = Money.Data.Entities.Base.OperationBase;
 using Place = Money.Business.Models.Place;
 
 namespace Money.Business.Services;

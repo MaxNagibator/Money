@@ -14,7 +14,7 @@ public class TestCategory : TestObject
         User = user;
 
         Name = TestRandom.GetString("Category");
-        OperationType = TestRandom.GetEnum<OperationTypes>();
+        OperationType = OperationTypes.Costs;
     }
 
     /// <summary>

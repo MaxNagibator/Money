@@ -2,16 +2,12 @@
 
 public class Category : UserEntity
 {
-    [Required]
-    [StringLength(500)]
     public required string Name { get; set; }
 
-    [StringLength(4000)]
     public string? Description { get; set; }
 
     public int? ParentId { get; set; }
 
-    [StringLength(100)]
     public string? Color { get; set; }
 
     public int TypeId { get; set; }
@@ -22,4 +18,41 @@ public class Category : UserEntity
 
     public virtual Category? ParentCategory { get; set; }
     public virtual List<Category>? SubCategories { get; set; }
+}
+
+public class CategoryConfiguration : UserEntityConfiguration<Category>
+{
+    protected override void AddBaseConfiguration(EntityTypeBuilder<Category> builder)
+    {
+        builder.Property(x => x.Name)
+            .HasMaxLength(500)
+            .IsRequired();
+
+        builder.Property(x => x.Description)
+            .HasMaxLength(4000)
+            .IsRequired(false);
+
+        builder.Property(x => x.ParentId)
+            .IsRequired(false);
+
+        builder.Property(x => x.Color)
+            .HasMaxLength(100)
+            .IsRequired(false);
+
+        builder.Property(x => x.TypeId)
+            .IsRequired();
+
+        builder.Property(x => x.Order)
+            .IsRequired(false);
+
+        builder.Property(x => x.IsDeleted)
+            .IsRequired();
+
+        builder.HasMany(x => x.SubCategories)
+            .WithOne(x => x.ParentCategory)
+            .HasForeignKey(x => new { x.UserId, x.ParentId })
+            .IsRequired(false);
+
+        builder.HasQueryFilter(x => x.IsDeleted == false);
+    }
 }

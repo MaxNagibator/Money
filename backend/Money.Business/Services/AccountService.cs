@@ -47,13 +47,6 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
         var domainUser = new DomainUser
         {
             AuthUserId = authUserId,
-            NextCategoryId = 1,
-            NextOperationId = 1,
-            NextFastOperationId = 1,
-            NextRegularOperationId = 1,
-            NextPlaceId = 1,
-            NextDebtId = 1,
-            NextDebtUserId = 1,
         };
 
         await context.DomainUsers.AddAsync(domainUser, cancellationToken);
