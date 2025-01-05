@@ -1,4 +1,5 @@
-﻿using Money.Api.Tests.TestTools;
+﻿using Microsoft.EntityFrameworkCore;
+using Money.Api.Tests.TestTools;
 using Money.Api.Tests.TestTools.Entities;
 using Money.ApiClient;
 using Money.Data.Extensions;
@@ -88,5 +89,42 @@ public class DebtTests
             Assert.That(dbDebt.Date, Is.EqualTo(debt.Date));
             Assert.That(dbDebt.Sum, Is.EqualTo(debt.Sum));
         });
+    }
+
+    [Test]
+    public async Task DeleteTest()
+    {
+        var debt = _user.WithDebt();
+        _dbClient.Save();
+
+        await _apiClient.Debt.Delete(debt.Id).IsSuccess();
+
+        await using var context = _dbClient.CreateApplicationDbContext();
+
+        var dbDebt = context.Debts.SingleOrDefault(_user.Id, debt.Id);
+
+        Assert.That(dbDebt, Is.Null);
+
+        dbDebt = context.Debts
+            .IgnoreQueryFilters()
+            .SingleOrDefault(_user.Id, debt.Id);
+
+        Assert.That(dbDebt, Is.Not.Null);
+        Assert.That(dbDebt.IsDeleted, Is.EqualTo(true));
+    }
+
+    [Test]
+    public async Task RestoreTest()
+    {
+        var debt = _user.WithDebt().SetIsDeleted();
+        _dbClient.Save();
+
+        await _apiClient.Debt.Restore(debt.Id).IsSuccess();
+
+        await using var context = _dbClient.CreateApplicationDbContext();
+
+        var dbDebt = context.Debts.SingleOrDefault(_user.Id, debt.Id);
+        Assert.That(dbDebt, Is.Not.Null);
+        Assert.That(dbDebt.IsDeleted, Is.EqualTo(false));
     }
 }

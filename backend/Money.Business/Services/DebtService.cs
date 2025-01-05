@@ -98,12 +98,32 @@ public class DebtService(
         return debtId;
     }
 
+    public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var dbDebt = await GetByIdInternal(id, cancellationToken);
+        dbDebt.IsDeleted = true;
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task RestoreAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var dbOperation = await context.Debts
+                              .IgnoreQueryFilters()
+                              .Where(x => x.IsDeleted)
+                              .IsUserEntity(environment.UserId, id)
+                              .FirstOrDefaultAsync(cancellationToken)
+                          ?? throw new NotFoundException("Долг", id);
+
+        dbOperation.IsDeleted = false;
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
     private async Task<Data.Entities.Debt> GetByIdInternal(int id, CancellationToken cancellationToken)
     {
         var dbCategory = await context.Debts
                              .IsUserEntity(environment.UserId, id)
                              .FirstOrDefaultAsync(cancellationToken)
-                         ?? throw new NotFoundException("долг", id);
+                         ?? throw new NotFoundException("Долг", id);
 
         return dbCategory;
     }

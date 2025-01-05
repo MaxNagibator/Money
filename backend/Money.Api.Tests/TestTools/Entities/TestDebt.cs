@@ -45,9 +45,15 @@ public class TestDebt : TestObject
     public DebtStatus Status { get; }
 
     /// <summary>
-    /// Удалена.
+    /// Удален.
     /// </summary>
-    public bool IsDeleted { get; }
+    public bool IsDeleted { get; private set; }
+
+    public TestDebt SetIsDeleted()
+    {
+        IsDeleted = true;
+        return this;
+    }
 
     private void FillDbProperties(Debt dbDebt, int debtUserId)
     {
