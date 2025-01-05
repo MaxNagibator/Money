@@ -8,7 +8,7 @@ public class CategoryService(
     ApplicationDbContext context,
     UserService userService)
 {
-    public async Task<IEnumerable<Category>> GetAsync(OperationTypes? type = null, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Category>> GetAsync(int? type = null, CancellationToken cancellationToken = default)
     {
         var query = context.Categories.IsUserEntity(environment.UserId);
 
@@ -40,7 +40,7 @@ public class CategoryService(
             throw new BusinessException("Извините, но идентификатор пользователя не указан.");
         }
 
-        await ValidateParentCategoryAsync(category.ParentId, category.OperationType, cancellationToken);
+        await ValidateParentCategoryAsync(category.ParentId, (int)category.OperationType, cancellationToken);
 
         var dbUser = await userService.GetCurrent(cancellationToken);
 
@@ -56,7 +56,7 @@ public class CategoryService(
             Description = category.Description,
             Name = category.Name,
             Order = category.Order,
-            TypeId = category.OperationType,
+            TypeId = (int)category.OperationType,
         };
 
         await context.Categories.AddAsync(dbCategory, cancellationToken);
@@ -172,7 +172,7 @@ public class CategoryService(
         return dbCategory;
     }
 
-    private async Task ValidateParentCategoryAsync(int? parentId, OperationTypes operationType, CancellationToken cancellationToken)
+    private async Task ValidateParentCategoryAsync(int? parentId, int operationType, CancellationToken cancellationToken)
     {
         if (parentId == null)
         {
@@ -189,7 +189,7 @@ public class CategoryService(
         }
     }
 
-    private async Task ValidateRecursiveParentingAsync(int categoryId, int? parentId, OperationTypes typeId, CancellationToken cancellationToken)
+    private async Task ValidateRecursiveParentingAsync(int categoryId, int? parentId, int typeId, CancellationToken cancellationToken)
     {
         var nextParentId = parentId;
 

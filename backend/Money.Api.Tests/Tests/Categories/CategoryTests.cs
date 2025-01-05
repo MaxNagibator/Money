@@ -1,6 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Money.Api.Tests.TestTools;
-using Money.Api.Tests.TestTools.Entities;
 using Money.ApiClient;
 using Money.Data.Extensions;
 
@@ -70,7 +68,7 @@ public class CategoryTests
         var request = new CategoryClient.SaveRequest
         {
             Name = category.Name,
-            OperationTypeId = category.OperationType,
+            OperationTypeId = (int)category.OperationType,
             Color = "#606217",
             Order = 217,
             ParentId = null,
@@ -100,7 +98,7 @@ public class CategoryTests
         var request = new CategoryClient.SaveRequest
         {
             Name = category.Name,
-            OperationTypeId = category.OperationType,
+            OperationTypeId = (int)category.OperationType,
             Color = "#606217",
             Order = 217,
             ParentId = null,
@@ -134,7 +132,7 @@ public class CategoryTests
         var request = new CategoryClient.SaveRequest
         {
             Name = category1.Name,
-            OperationTypeId = category1.OperationType,
+            OperationTypeId = (int)category1.OperationType,
             ParentId = category3.Id,
         };
 
@@ -143,7 +141,7 @@ public class CategoryTests
         request = new()
         {
             Name = category2.Name,
-            OperationTypeId = category2.OperationType,
+            OperationTypeId = (int)category2.OperationType,
             ParentId = category3.Id,
         };
 

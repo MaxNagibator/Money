@@ -1,6 +1,6 @@
-﻿using Money.Api.Tests.TestTools.Extentions;
-using Money.Business.Enums;
+﻿using Money.Business.Enums;
 using Money.Data.Entities;
+using Money.Data.Extensions;
 
 namespace Money.Api.Tests.TestTools.Entities;
 
@@ -11,11 +11,13 @@ public class TestRegularOperation : TestObject
 {
     public TestRegularOperation(TestCategory category)
     {
-        IsNew = true;
-        Sum = TestRandom.GetInt();
-        Name = $"FO{Guid.NewGuid()}";
-        Comment = $"FO{Guid.NewGuid()}";
         Category = category;
+
+        Sum = TestRandom.GetInt();
+
+        Name = TestRandom.GetString("RegularOperation");
+        Comment = TestRandom.GetString("RegularOperation");
+
         DateFrom = DateTime.Now.Date;
         DateTo = DateTime.Now.Date;
         RunTime = DateTime.Now.Date;
@@ -56,7 +58,7 @@ public class TestRegularOperation : TestObject
     /// <summary>
     /// Место.
     /// </summary>
-    public TestPlace Place { get; private set; }
+    public TestPlace? Place { get; private set; }
 
     public RegularOperationTimeTypes TimeType { get; }
 
@@ -141,7 +143,10 @@ public class TestRegularOperation : TestObject
         }
         else
         {
-            var obj = Environment.Context.RegularOperations.First(x => x.UserId == User.Id && x.Id == Id);
+            var obj = Environment.Context.RegularOperations
+                .IsUserEntity(User.Id, Id)
+                .First();
+
             FillDbProperties(obj);
             Environment.Context.SaveChanges();
         }

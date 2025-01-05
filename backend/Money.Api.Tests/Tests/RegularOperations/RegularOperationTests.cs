@@ -1,6 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Money.Api.Tests.TestTools;
-using Money.Api.Tests.TestTools.Entities;
 using Money.ApiClient;
 using Money.Business.Enums;
 using Money.Data.Extensions;

@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Money.Api.Tests.TestTools;
 using Money.Data;
 using System.Collections.Concurrent;
 

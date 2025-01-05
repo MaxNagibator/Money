@@ -1,5 +1,6 @@
 ﻿using Money.Business.Enums;
 using Money.Data.Entities;
+using Money.Data.Extensions;
 
 namespace Money.Api.Tests.TestTools.Entities;
 
@@ -11,9 +12,9 @@ public class TestCategory : TestObject
     public TestCategory(TestUser user)
     {
         User = user;
-        IsNew = true;
-        Name = $"P{Guid.NewGuid()}";
-        OperationType = OperationTypes.Costs;
+
+        Name = TestRandom.GetString("Category");
+        OperationType = TestRandom.GetEnum<OperationTypes>();
     }
 
     /// <summary>
@@ -82,7 +83,7 @@ public class TestCategory : TestObject
     private void FillDbProperties(Category obj)
     {
         obj.Name = Name;
-        obj.TypeId = OperationType;
+        obj.TypeId = (int)OperationType;
         obj.UserId = User.Id;
         obj.ParentId = Parent?.Id;
         obj.IsDeleted = IsDeleted;
@@ -110,7 +111,10 @@ public class TestCategory : TestObject
         }
         else
         {
-            var obj = Environment.Context.Categories.First(x => x.UserId == User.Id && x.Id == Id);
+            var obj = Environment.Context.Categories
+                .IsUserEntity(User.Id, Id)
+                .First();
+
             FillDbProperties(obj);
             Environment.Context.SaveChanges();
         }

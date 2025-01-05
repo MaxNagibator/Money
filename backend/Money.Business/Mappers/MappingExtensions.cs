@@ -17,7 +17,7 @@ public static class MappingExtensions
             Color = model.Color,
             ParentId = model.ParentId,
             Order = model.Order,
-            OperationType = model.TypeId,
+            OperationType = (OperationTypes)model.TypeId,
         };
     }
 

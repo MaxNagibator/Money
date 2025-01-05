@@ -1,5 +1,5 @@
-﻿using Money.Api.Tests.TestTools.Extentions;
-using Money.Data.Entities;
+﻿using Money.Data.Entities;
+using Money.Data.Extensions;
 
 namespace Money.Api.Tests.TestTools.Entities;
 
@@ -10,11 +10,11 @@ public class TestFastOperation : TestObject
 {
     public TestFastOperation(TestCategory category)
     {
-        IsNew = true;
-        Sum = TestRandom.GetInt();
-        Name = TestRandom.GetString("FO");
-        Comment = TestRandom.GetString("FO");
         Category = category;
+
+        Sum = TestRandom.GetInt();
+        Name = TestRandom.GetString("FastOperation");
+        Comment = TestRandom.GetString("FastOperation");
     }
 
     /// <summary>
@@ -132,7 +132,10 @@ public class TestFastOperation : TestObject
         }
         else
         {
-            var obj = Environment.Context.FastOperations.First(x => x.UserId == User.Id && x.Id == Id);
+            var obj = Environment.Context.FastOperations
+                .IsUserEntity(User.Id, Id)
+                .First();
+
             FillDbProperties(obj);
             Environment.Context.SaveChanges();
         }
