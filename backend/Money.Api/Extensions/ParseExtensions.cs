@@ -10,7 +10,7 @@ public static class ParseExtensions
         }
 
         return ids.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Select(id => int.TryParse(id, out int parsedId) ? (int?)parsedId : null)
+            .Select(id => int.TryParse(id, out var parsedId) ? (int?)parsedId : null)
             .Where(id => id.HasValue)
             .Select(id => id!.Value)
             .ToList();

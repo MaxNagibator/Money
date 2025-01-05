@@ -1,13 +1,13 @@
 namespace Money.Common.Pagination;
 
 /// <summary>
-///     Представляет стандартную реализацию интерфейса <see cref="IPagedList{T}" />.
+/// Представляет стандартную реализацию интерфейса <see cref="IPagedList{T}" />.
 /// </summary>
 /// <typeparam name="T">Тип данных для постраничного отображения.</typeparam>
 public class PagedList<T> : IPagedList<T>
 {
     /// <summary>
-    ///     Создает экземпляр с предопределенными параметрами.
+    /// Создает экземпляр с предопределенными параметрами.
     /// </summary>
     /// <param name="source">Источник данных.</param>
     /// <param name="pageIndex">Индекс текущей страницы.</param>
@@ -30,15 +30,15 @@ public class PagedList<T> : IPagedList<T>
     }
 
     /// <summary>
-    ///     Инициализирует новый экземпляр класса <see cref="PagedList{T}" />.
+    /// Инициализирует новый экземпляр класса <see cref="PagedList{T}" />.
     /// </summary>
     /// <param name="source">Источник данных.</param>
     /// <param name="pageIndex">Индекс текущей страницы.</param>
     /// <param name="pageSize">Размер страницы.</param>
     /// <param name="indexFrom">Начальный индекс.</param>
     /// <param name="totalCount">
-    ///     Общее количество элементов в коллекции. По умолчанию null, в этом случае количество элементов
-    ///     вычисляется по источнику.
+    /// Общее количество элементов в коллекции. По умолчанию null, в этом случае количество элементов
+    /// вычисляется по источнику.
     /// </param>
     internal PagedList(IEnumerable<T> source, int pageIndex, int pageSize, int indexFrom, int? totalCount = null)
     {
@@ -73,7 +73,7 @@ public class PagedList<T> : IPagedList<T>
     }
 
     /// <summary>
-    ///     Инициализирует новый пустой экземпляр класса <see cref="PagedList{T}" />.
+    /// Инициализирует новый пустой экземпляр класса <see cref="PagedList{T}" />.
     /// </summary>
     internal PagedList()
     {

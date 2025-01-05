@@ -4,7 +4,7 @@ using Money.Data.Entities;
 namespace Money.Api.Tests.TestTools.Entities;
 
 /// <summary>
-///     Категория.
+/// Категория.
 /// </summary>
 public class TestCategory : TestObject
 {
@@ -17,32 +17,32 @@ public class TestCategory : TestObject
     }
 
     /// <summary>
-    ///     Идентификатор.
+    /// Идентификатор.
     /// </summary>
     public int Id { get; private set; }
 
     /// <summary>
-    ///     Наименование.
+    /// Наименование.
     /// </summary>
     public string Name { get; }
 
     /// <summary>
-    ///     Родительская категория.
+    /// Родительская категория.
     /// </summary>
     public TestCategory? Parent { get; set; }
 
     /// <summary>
-    ///     Тип.
+    /// Тип.
     /// </summary>
     public OperationTypes OperationType { get; }
 
     /// <summary>
-    ///     Пользователь.
+    /// Пользователь.
     /// </summary>
     public TestUser User { get; }
 
     /// <summary>
-    ///     Удалена.
+    /// Удалена.
     /// </summary>
     public bool IsDeleted { get; set; }
 
@@ -60,21 +60,21 @@ public class TestCategory : TestObject
 
     public TestOperation WithOperation()
     {
-        TestOperation obj = new(this);
+        var obj = new TestOperation(this);
         obj.Attach(Environment);
         return obj;
     }
 
     public TestFastOperation WithFastOperation()
     {
-        TestFastOperation obj = new(this);
+        var obj = new TestFastOperation(this);
         obj.Attach(Environment);
         return obj;
     }
 
     public TestRegularOperation WithRegularOperation()
     {
-        TestRegularOperation obj = new(this);
+        var obj = new TestRegularOperation(this);
         obj.Attach(Environment);
         return obj;
     }
@@ -92,11 +92,11 @@ public class TestCategory : TestObject
     {
         if (IsNew)
         {
-            DomainUser dbUser = Environment.Context.DomainUsers.Single(x => x.Id == User.Id);
-            int categoryId = dbUser.NextCategoryId;
+            var dbUser = Environment.Context.DomainUsers.Single(x => x.Id == User.Id);
+            var categoryId = dbUser.NextCategoryId;
             dbUser.NextCategoryId++; // todo обработать канкаренси
 
-            Category obj = new()
+            var obj = new Category
             {
                 Id = categoryId,
                 Name = "",
@@ -110,7 +110,7 @@ public class TestCategory : TestObject
         }
         else
         {
-            Category obj = Environment.Context.Categories.First(x => x.UserId == User.Id && x.Id == Id);
+            var obj = Environment.Context.Categories.First(x => x.UserId == User.Id && x.Id == Id);
             FillDbProperties(obj);
             Environment.Context.SaveChanges();
         }

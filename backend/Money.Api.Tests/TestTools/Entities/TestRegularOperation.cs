@@ -4,7 +4,7 @@ using Money.Data.Entities;
 namespace Money.Api.Tests.TestTools.Entities;
 
 /// <summary>
-///     Регулярная операция.
+/// Регулярная операция.
 /// </summary>
 public class TestRegularOperation : TestObject
 {
@@ -23,52 +23,52 @@ public class TestRegularOperation : TestObject
     }
 
     /// <summary>
-    ///     Идентификатор.
+    /// Идентификатор.
     /// </summary>
     public int Id { get; private set; }
 
     /// <summary>
-    ///     Сумма.
+    /// Сумма.
     /// </summary>
     public decimal Sum { get; private set; }
 
     /// <summary>
-    ///     Наименование.
+    /// Наименование.
     /// </summary>
     public string Name { get; private set; }
 
     /// <summary>
-    ///     Комментарий.
+    /// Комментарий.
     /// </summary>
     public string Comment { get; private set; }
 
     /// <summary>
-    ///     Категория.
+    /// Категория.
     /// </summary>
     public TestCategory Category { get; }
 
     /// <summary>
-    ///     Пользователь.
+    /// Пользователь.
     /// </summary>
     public TestUser User => Category.User;
 
     /// <summary>
-    ///     Место.
+    /// Место.
     /// </summary>
-    public TestPlace Place { get; private set; } = null!;
+    public TestPlace Place { get; private set; }
 
-    public RegularOperationTimeTypes TimeType { get; set; }
+    public RegularOperationTimeTypes TimeType { get; }
 
-    public int? TimeValue { get; set; }
+    public int? TimeValue { get; }
 
-    public DateTime DateFrom { get; set; }
+    public DateTime DateFrom { get; }
 
-    public DateTime? DateTo { get; set; }
+    public DateTime? DateTo { get; }
 
-    public DateTime? RunTime { get; set; }
+    public DateTime? RunTime { get; }
 
     /// <summary>
-    ///     Удалена.
+    /// Удалена.
     /// </summary>
     public bool IsDeleted { get; private set; }
 
@@ -122,11 +122,11 @@ public class TestRegularOperation : TestObject
     {
         if (IsNew)
         {
-            DomainUser dbUser = Environment.Context.DomainUsers.Single(x => x.Id == User.Id);
-            int operationId = dbUser.NextRegularOperationId;
+            var dbUser = Environment.Context.DomainUsers.Single(x => x.Id == User.Id);
+            var operationId = dbUser.NextRegularOperationId;
             dbUser.NextRegularOperationId++; // todo обработать канкаренси
 
-            RegularOperation obj = new()
+            var obj = new RegularOperation
             {
                 Id = operationId,
                 Name = "new",
@@ -140,7 +140,7 @@ public class TestRegularOperation : TestObject
         }
         else
         {
-            RegularOperation obj = Environment.Context.RegularOperations.First(x => x.UserId == User.Id && x.Id == Id);
+            var obj = Environment.Context.RegularOperations.First(x => x.UserId == User.Id && x.Id == Id);
             FillDbProperties(obj);
             Environment.Context.SaveChanges();
         }

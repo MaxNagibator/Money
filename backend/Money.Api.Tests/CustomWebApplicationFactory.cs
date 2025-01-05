@@ -9,9 +9,9 @@ public class CustomWebApplicationFactory<TProgram> : WebApplicationFactory<TProg
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        string env = "Development";
+        var env = "Development";
 
-        IConfigurationRoot configRoot = new ConfigurationBuilder()
+        var configRoot = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile($"appsettings.{env}.json")
             .Build();

@@ -8,10 +8,10 @@ namespace Money.Api.Controllers;
 [ApiController]
 [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
 [Route("[controller]")]
-public class RegularOperationsController(RegularOperationService RegularOperationService) : ControllerBase
+public class RegularOperationsController(RegularOperationService regularOperationService) : ControllerBase
 {
     /// <summary>
-    ///     Получить список быстрых операций.
+    /// Получить список быстрых операций.
     /// </summary>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     /// <returns>Массив операций.</returns>
@@ -20,12 +20,12 @@ public class RegularOperationsController(RegularOperationService RegularOperatio
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Get(CancellationToken cancellationToken)
     {
-        IEnumerable<RegularOperation> operations = await RegularOperationService.GetAsync(cancellationToken);
+        var operations = await regularOperationService.GetAsync(cancellationToken);
         return Ok(operations.Select(RegularOperationDto.FromBusinessModel));
     }
 
     /// <summary>
-    ///     Получить быструю операцию по идентификатору.
+    /// Получить быструю операцию по идентификатору.
     /// </summary>
     /// <param name="id">Идентификатор.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
@@ -36,12 +36,12 @@ public class RegularOperationsController(RegularOperationService RegularOperatio
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
     {
-        RegularOperation operation = await RegularOperationService.GetByIdAsync(id, cancellationToken);
+        var operation = await regularOperationService.GetByIdAsync(id, cancellationToken);
         return Ok(RegularOperationDto.FromBusinessModel(operation));
     }
 
     /// <summary>
-    ///     Создать новую быструю операцию.
+    /// Создать новую быструю операцию.
     /// </summary>
     /// <param name="request">Данные для создания новой быстрой операции.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
@@ -53,13 +53,13 @@ public class RegularOperationsController(RegularOperationService RegularOperatio
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Create([FromBody] RegularOperationSaveRequest request, CancellationToken cancellationToken)
     {
-        RegularOperation business = request.ToBusinessModel();
-        int result = await RegularOperationService.CreateAsync(business, cancellationToken);
+        var business = request.ToBusinessModel();
+        var result = await regularOperationService.CreateAsync(business, cancellationToken);
         return CreatedAtAction(nameof(GetById), new { id = result }, result);
     }
 
     /// <summary>
-    ///     Обновить существующую быструю операцию.
+    /// Обновить существующую быструю операцию.
     /// </summary>
     /// <param name="id">Идентификатор операции.</param>
     /// <param name="request">Данные для обновления операции.</param>
@@ -70,14 +70,14 @@ public class RegularOperationsController(RegularOperationService RegularOperatio
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(int id, [FromBody] RegularOperationSaveRequest request, CancellationToken cancellationToken)
     {
-        RegularOperation business = request.ToBusinessModel();
+        var business = request.ToBusinessModel();
         business.Id = id;
-        await RegularOperationService.UpdateAsync(business, cancellationToken);
+        await regularOperationService.UpdateAsync(business, cancellationToken);
         return Ok();
     }
 
     /// <summary>
-    ///     Удалить быструю операцию по идентификатору.
+    /// Удалить быструю операцию по идентификатору.
     /// </summary>
     /// <param name="id">Идентификатор категории.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
@@ -87,12 +87,12 @@ public class RegularOperationsController(RegularOperationService RegularOperatio
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
-        await RegularOperationService.DeleteAsync(id, cancellationToken);
+        await regularOperationService.DeleteAsync(id, cancellationToken);
         return Ok();
     }
 
     /// <summary>
-    ///     Восстановить быструю операцию по идентификатору.
+    /// Восстановить быструю операцию по идентификатору.
     /// </summary>
     /// <param name="id">Идентификатор категории.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
@@ -103,7 +103,7 @@ public class RegularOperationsController(RegularOperationService RegularOperatio
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Restore(int id, CancellationToken cancellationToken)
     {
-        await RegularOperationService.RestoreAsync(id, cancellationToken);
+        await regularOperationService.RestoreAsync(id, cancellationToken);
         return Ok();
     }
 }

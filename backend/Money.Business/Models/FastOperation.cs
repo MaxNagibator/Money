@@ -1,7 +1,7 @@
 ﻿namespace Money.Business.Models;
 
 /// <summary>
-///     Быстрая операция.
+/// Быстрая операция.
 /// </summary>
 public class FastOperation : OperationBase
 {

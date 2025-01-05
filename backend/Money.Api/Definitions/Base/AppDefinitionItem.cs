@@ -1,7 +1,7 @@
 namespace Money.Api.Definitions.Base;
 
 /// <summary>
-///     Информация о <see cref="IAppDefinition" />
+/// Информация о <see cref="IAppDefinition" />
 /// </summary>
 /// <param name="Definition">Экземпляр определения приложения</param>
 /// <param name="AssemblyName">Имя сборки, содержащей определение</param>

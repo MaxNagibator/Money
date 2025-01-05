@@ -3,7 +3,7 @@
 namespace Money.Api.Tests.TestTools.Entities;
 
 /// <summary>
-///     Операция.
+/// Операция.
 /// </summary>
 public class TestOperation : TestObject
 {
@@ -17,42 +17,42 @@ public class TestOperation : TestObject
     }
 
     /// <summary>
-    ///     Идентификатор.
+    /// Идентификатор.
     /// </summary>
     public int Id { get; private set; }
 
     /// <summary>
-    ///     Сумма.
+    /// Сумма.
     /// </summary>
     public decimal Sum { get; private set; }
 
     /// <summary>
-    ///     Комментарий.
+    /// Комментарий.
     /// </summary>
     public string Comment { get; private set; }
 
     /// <summary>
-    ///     Дата.
+    /// Дата.
     /// </summary>
     public DateTime Date { get; private set; }
 
     /// <summary>
-    ///     Категория.
+    /// Категория.
     /// </summary>
     public TestCategory Category { get; }
 
     /// <summary>
-    ///     Пользователь.
+    /// Пользователь.
     /// </summary>
     public TestUser User => Category.User;
 
     /// <summary>
-    ///     Место.
+    /// Место.
     /// </summary>
     public TestPlace Place { get; private set; } = null!;
 
     /// <summary>
-    ///     Удалена.
+    /// Удалена.
     /// </summary>
     public bool IsDeleted { get; private set; }
 
@@ -101,11 +101,11 @@ public class TestOperation : TestObject
     {
         if (IsNew)
         {
-            DomainUser dbUser = Environment.Context.DomainUsers.Single(x => x.Id == User.Id);
-            int operationId = dbUser.NextOperationId;
+            var dbUser = Environment.Context.DomainUsers.Single(x => x.Id == User.Id);
+            var operationId = dbUser.NextOperationId;
             dbUser.NextOperationId++; // todo обработать канкаренси
 
-            Operation obj = new()
+            var obj = new Operation
             {
                 Id = operationId,
             };
@@ -118,7 +118,7 @@ public class TestOperation : TestObject
         }
         else
         {
-            Operation obj = Environment.Context.Operations.First(x => x.UserId == User.Id && x.Id == Id);
+            var obj = Environment.Context.Operations.First(x => x.UserId == User.Id && x.Id == Id);
             FillDbProperties(obj);
             Environment.Context.SaveChanges();
         }

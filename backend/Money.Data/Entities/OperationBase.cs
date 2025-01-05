@@ -3,28 +3,28 @@
 public abstract class OperationBase : UserEntity
 {
     /// <summary>
-    ///     Сумма.
+    /// Сумма.
     /// </summary>
     public decimal Sum { get; set; }
 
     /// <summary>
-    ///     Идентификатор категории.
+    /// Идентификатор категории.
     /// </summary>
     public int CategoryId { get; set; }
 
     /// <summary>
-    ///     Комментарий.
+    /// Комментарий.
     /// </summary>
     [StringLength(4000)]
     public string? Comment { get; set; }
 
     /// <summary>
-    ///     Идентификатор места.
+    /// Идентификатор места.
     /// </summary>
     public int? PlaceId { get; set; }
 
     /// <summary>
-    ///     Флаг, указывающий, что операция была удалена.
+    /// Флаг, указывающий, что операция была удалена.
     /// </summary>
     public bool IsDeleted { get; set; }
 }

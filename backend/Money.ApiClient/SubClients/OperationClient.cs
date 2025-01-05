@@ -45,12 +45,12 @@ public class OperationClient(MoneyClient apiClient) : ApiClientExecutor(apiClien
 
     public Task<ApiClientResponse<string[]>> GetPlaces(int offset, int count, string? name = null, CancellationToken token = default)
     {
-        string postfixUri = string.IsNullOrWhiteSpace(name) ? string.Empty : $"/{name}";
+        var postfixUri = string.IsNullOrWhiteSpace(name) ? string.Empty : $"/{name}";
 
         return GetAsync<string[]>($"{BaseUri}/GetPlaces/{offset}/{count}{postfixUri}", token);
     }
 
-    private string ToUriParameters(OperationFilterDto? filter)
+    private static string ToUriParameters(OperationFilterDto? filter)
     {
         if (filter == null)
         {
@@ -72,27 +72,27 @@ public class OperationClient(MoneyClient apiClient) : ApiClientExecutor(apiClien
     public class SaveRequest
     {
         /// <summary>
-        ///     Идентификатор категории.
+        /// Идентификатор категории.
         /// </summary>
         public required int CategoryId { get; set; }
 
         /// <summary>
-        ///     Сумма.
+        /// Сумма.
         /// </summary>
         public decimal Sum { get; set; }
 
         /// <summary>
-        ///     Комментарий.
+        /// Комментарий.
         /// </summary>
         public string? Comment { get; set; }
 
         /// <summary>
-        ///     Место.
+        /// Место.
         /// </summary>
         public string? Place { get; set; }
 
         /// <summary>
-        ///     Дата.
+        /// Дата.
         /// </summary>
         public DateTime Date { get; set; }
     }
@@ -100,27 +100,27 @@ public class OperationClient(MoneyClient apiClient) : ApiClientExecutor(apiClien
     public class OperationFilterDto
     {
         /// <summary>
-        ///     Дата начала периода.
+        /// Дата начала периода.
         /// </summary>
         public DateTime? DateFrom { get; set; }
 
         /// <summary>
-        ///     Дата окончания периода.
+        /// Дата окончания периода.
         /// </summary>
         public DateTime? DateTo { get; set; }
 
         /// <summary>
-        ///     Список идентификаторов категорий.
+        /// Список идентификаторов категорий.
         /// </summary>
         public List<int>? CategoryIds { get; set; }
 
         /// <summary>
-        ///     Комментарий.
+        /// Комментарий.
         /// </summary>
         public string? Comment { get; set; }
 
         /// <summary>
-        ///     Место.
+        /// Место.
         /// </summary>
         public string? Place { get; set; }
     }
@@ -136,10 +136,10 @@ public class OperationClient(MoneyClient apiClient) : ApiClientExecutor(apiClien
         public int Id { get; set; }
 
         /// <summary>
-        ///     Идентификатор родительской регулярной задачи.
+        /// Идентификатор родительской регулярной задачи.
         /// </summary>
         /// <remarks>
-        ///     Не null, если операция создана регулярной задачей.
+        /// Не null, если операция создана регулярной задачей.
         /// </remarks>
         public int? CreatedTaskId { get; set; }
     }

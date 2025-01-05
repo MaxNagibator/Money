@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-
-namespace Money.Business.Models;
+﻿namespace Money.Business.Models;
 
 public class Debt
 {
@@ -21,29 +19,4 @@ public class Debt
     public string? PayComment { get; set; }
 
     public DebtStatus Status { get; set; }
-
-}
-
-public enum DebtTypes
-{
-    /// <summary>
-    /// Нужно забрать.
-    /// </summary>
-    [Description("Нужно забрать")]
-    Plus = 1,
-
-    /// <summary>
-    /// Нужно отдать.
-    /// </summary>
-    [Description("Нужно отдать")]
-    Minus = 2,
-}
-
-public enum DebtStatus
-{
-    [Description("Актуальный")]
-    Actual = 1,
-
-    [Description("Уплачен")]
-    Paid = 2,
 }

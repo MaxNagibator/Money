@@ -1,9 +1,10 @@
-﻿using Money.Business.Models;
+﻿using Money.Business.Enums;
+using Debt = Money.Data.Entities.Debt;
 
 namespace Money.Api.Tests.TestTools.Entities;
 
 /// <summary>
-///     Долг.
+/// Долг.
 /// </summary>
 public class TestDebt : TestObject
 {
@@ -13,15 +14,15 @@ public class TestDebt : TestObject
         IsNew = true;
         Type = DebtTypes.Plus;
         Sum = 217;
-        Comment = "Comment" + Guid.NewGuid().ToString();
+        Comment = "Comment" + Guid.NewGuid();
         Date = DateTime.Now.Date;
         PaySum = 0;
         Status = DebtStatus.Actual;
-        DebtUserName = "U" + Guid.NewGuid().ToString();
+        DebtUserName = "U" + Guid.NewGuid();
     }
 
     /// <summary>
-    ///     Пользователь.
+    /// Пользователь.
     /// </summary>
     public TestUser User { get; }
 
@@ -44,11 +45,11 @@ public class TestDebt : TestObject
     public DebtStatus Status { get; }
 
     /// <summary>
-    ///     Удалена.
+    /// Удалена.
     /// </summary>
-    public bool IsDeleted { get; set; }
+    public bool IsDeleted { get; }
 
-    private void FillDbProperties(Data.Entities.Debt dbDebt, int debtUserId)
+    private void FillDbProperties(Debt dbDebt, int debtUserId)
     {
         dbDebt.Sum = Sum;
         dbDebt.TypeId = (int)Type;
@@ -63,30 +64,32 @@ public class TestDebt : TestObject
 
     public override void LocalSave()
     {
-        Data.Entities.DomainUser dbUser = Environment.Context.DomainUsers.Single(x => x.Id == User.Id);
+        var dbUser = Environment.Context.DomainUsers.Single(x => x.Id == User.Id);
 
-        Data.Entities.DebtUser? dbDebtUser = Environment.Context.DebtUsers
+        var dbDebtUser = Environment.Context.DebtUsers
             .SingleOrDefault(x => x.UserId == User.Id && x.Name == DebtUserName);
+
         if (dbDebtUser == null)
         {
             var debtUserId = dbUser.NextDebtUserId;
             dbUser.NextDebtUserId++;
 
-            dbDebtUser = new Data.Entities.DebtUser
+            dbDebtUser = new()
             {
-                Name = DebtUserName
+                Name = DebtUserName,
+                UserId = User.Id,
+                Id = debtUserId,
             };
-            dbDebtUser.UserId = User.Id;
-            dbDebtUser.Id = debtUserId;
+
             Environment.Context.DebtUsers.Add(dbDebtUser);
         }
 
         if (IsNew)
         {
-            int debtId = dbUser.NextDebtId;
+            var debtId = dbUser.NextDebtId;
             dbUser.NextDebtId++; // todo обработать канкаренси
 
-            Data.Entities.Debt obj = new()
+            var obj = new Debt
             {
                 Id = debtId,
             };
@@ -99,7 +102,7 @@ public class TestDebt : TestObject
         }
         else
         {
-            Data.Entities.Debt obj = Environment.Context.Debts.First(x => x.UserId == User.Id && x.Id == Id);
+            var obj = Environment.Context.Debts.First(x => x.UserId == User.Id && x.Id == Id);
             FillDbProperties(obj, dbDebtUser.Id);
             Environment.Context.SaveChanges();
         }

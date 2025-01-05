@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Money.Api.Dto.Files;
 using OpenIddict.Validation.AspNetCore;
-using File = Money.Business.Models.File;
 
 namespace Money.Api.Controllers;
 
@@ -12,7 +11,7 @@ namespace Money.Api.Controllers;
 public class FileController(FileService fileService) : ControllerBase
 {
     /// <summary>
-    ///     Загрузить файл.
+    /// Загрузить файл.
     /// </summary>
     /// <param name="file">Файл для загрузки.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
@@ -20,7 +19,7 @@ public class FileController(FileService fileService) : ControllerBase
     [HttpPost]
     public async Task<FileDto> UploadFile(IFormFile file, CancellationToken cancellationToken)
     {
-        File uploadedFile = await fileService.Upload(file, cancellationToken);
+        var uploadedFile = await fileService.Upload(file, cancellationToken);
         return FileDto.FromBusinessModel(uploadedFile);
     }
 }

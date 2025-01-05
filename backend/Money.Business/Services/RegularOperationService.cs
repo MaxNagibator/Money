@@ -12,17 +12,17 @@ public class RegularOperationService(
 {
     public async Task<IEnumerable<RegularOperation>> GetAsync(CancellationToken cancellationToken)
     {
-        IQueryable<Data.Entities.RegularOperation> dbOperations = context.RegularOperations
+        var dbOperations = context.RegularOperations
             .IsUserEntity(environment.UserId);
 
-        List<int> placeIds = await dbOperations
+        var placeIds = await dbOperations
             .Where(x => x.PlaceId != null)
             .Select(x => x.PlaceId!.Value)
             .ToListAsync(cancellationToken);
 
-        List<Place> places = await placeService.GetPlacesAsync(placeIds, cancellationToken);
+        var places = await placeService.GetPlacesAsync(placeIds, cancellationToken);
 
-        List<Data.Entities.RegularOperation> operations = await dbOperations
+        var operations = await dbOperations
             .OrderBy(x => x.CategoryId)
             .ToListAsync(cancellationToken);
 
@@ -31,7 +31,7 @@ public class RegularOperationService(
 
     public async Task<RegularOperation> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
-        Data.Entities.RegularOperation dbOperation = await GetByIdInternal(id, cancellationToken);
+        var dbOperation = await GetByIdInternal(id, cancellationToken);
 
         List<Place>? places = null;
 
@@ -49,17 +49,18 @@ public class RegularOperationService(
         {
             throw new BusinessException("Извините, но идентификатор пользователя не указан.");
         }
+
         CheckTime(operation.TimeType, operation.TimeValue);
 
-        Data.Entities.DomainUser dbUser = await userService.GetCurrent(cancellationToken);
-        Category category = await categoryService.GetByIdAsync(operation.CategoryId, cancellationToken);
+        var dbUser = await userService.GetCurrent(cancellationToken);
+        var category = await categoryService.GetByIdAsync(operation.CategoryId, cancellationToken);
 
-        int operationId = dbUser.NextRegularOperationId;
+        var operationId = dbUser.NextRegularOperationId;
         dbUser.NextRegularOperationId++;
 
-        int? placeId = await placeService.GetPlaceIdAsync(operation.Place, cancellationToken);
+        var placeId = await placeService.GetPlaceIdAsync(operation.Place, cancellationToken);
 
-        Data.Entities.RegularOperation dbOperation = new()
+        var dbOperation = new Data.Entities.RegularOperation
         {
             Id = operationId,
             Name = operation.Name,
@@ -85,13 +86,13 @@ public class RegularOperationService(
     {
         CheckTime(operation.TimeType, operation.TimeValue);
 
-        Data.Entities.RegularOperation dbOperation = await context.RegularOperations
-                                                      .IsUserEntity(environment.UserId, operation.Id)
-                                                      .FirstOrDefaultAsync(cancellationToken)
-                                                  ?? throw new NotFoundException("Регулярная операция", operation.Id);
+        var dbOperation = await context.RegularOperations
+                              .IsUserEntity(environment.UserId, operation.Id)
+                              .FirstOrDefaultAsync(cancellationToken)
+                          ?? throw new NotFoundException("Регулярная операция", operation.Id);
 
-        Category category = await categoryService.GetByIdAsync(operation.CategoryId, cancellationToken);
-        int? placeId = await placeService.GetPlaceIdAsync(operation.Place, dbOperation, cancellationToken);
+        var category = await categoryService.GetByIdAsync(operation.CategoryId, cancellationToken);
+        var placeId = await placeService.GetPlaceIdAsync(operation.Place, dbOperation, cancellationToken);
 
         dbOperation.Sum = operation.Sum;
         dbOperation.Comment = operation.Comment;
@@ -110,7 +111,7 @@ public class RegularOperationService(
 
     public async Task DeleteAsync(int id, CancellationToken cancellationToken)
     {
-        Data.Entities.RegularOperation dbOperation = await GetByIdInternal(id, cancellationToken);
+        var dbOperation = await GetByIdInternal(id, cancellationToken);
         dbOperation.IsDeleted = true;
         await placeService.CheckRemovePlaceAsync(dbOperation.PlaceId, dbOperation.Id, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
@@ -118,12 +119,12 @@ public class RegularOperationService(
 
     public async Task RestoreAsync(int id, CancellationToken cancellationToken)
     {
-        Data.Entities.RegularOperation dbOperation = await context.RegularOperations
-                                                      .IgnoreQueryFilters()
-                                                      .Where(x => x.IsDeleted)
-                                                      .IsUserEntity(environment.UserId, id)
-                                                      .FirstOrDefaultAsync(cancellationToken)
-                                                  ?? throw new NotFoundException("Регулярная операция", id);
+        var dbOperation = await context.RegularOperations
+                              .IgnoreQueryFilters()
+                              .Where(x => x.IsDeleted)
+                              .IsUserEntity(environment.UserId, id)
+                              .FirstOrDefaultAsync(cancellationToken)
+                          ?? throw new NotFoundException("Регулярная операция", id);
 
         dbOperation.IsDeleted = false;
         await placeService.CheckRestorePlaceAsync(dbOperation.PlaceId, cancellationToken);
@@ -132,40 +133,44 @@ public class RegularOperationService(
 
     public async Task RunRegularTaskAsync(CancellationToken cancellationToken)
     {
-        var dn = DateTime.Now.Date;
-        var dbTasks = context.RegularOperations.Where(x => x.RunTime != null && x.RunTime <= dn).ToList();
+        var dateNow = DateTime.Now.Date;
+
+        var dbTasks = await context.RegularOperations
+            .Where(x => x.RunTime != null && x.RunTime <= dateNow)
+            .ToListAsync(cancellationToken: cancellationToken);
+
         foreach (var dbTask in dbTasks)
         {
-
-            var operation = new Models.Operation
+            var operation = new Operation
             {
                 CategoryId = dbTask.CategoryId,
                 Comment = dbTask.Comment,
                 Sum = dbTask.Sum,
                 CreatedTaskId = dbTask.Id,
                 PlaceId = dbTask.PlaceId,
-                Date = dbTask.DateFrom
+                Date = dbTask.DateFrom,
             };
+
             await operationService.CreateAsync(operation, cancellationToken);
 
-            dbTask.RunTime = GetRegularTaskRunTime(dbTask.DateFrom, dbTask.DateTo, dbTask.RunTime.Value, (RegularOperationTimeTypes)dbTask.TimeTypeId, dbTask.TimeValue);
-            context.SaveChanges();
+            dbTask.RunTime = GetRegularTaskRunTime(dbTask.DateFrom, dbTask.DateTo, dbTask.RunTime!.Value, (RegularOperationTimeTypes)dbTask.TimeTypeId, dbTask.TimeValue);
+            await context.SaveChangesAsync(cancellationToken);
         }
     }
 
     private async Task<Data.Entities.RegularOperation> GetByIdInternal(int id, CancellationToken cancellationToken)
     {
-        Data.Entities.RegularOperation dbOperation = await context.RegularOperations
-                                                      .IsUserEntity(environment.UserId, id)
-                                                      .FirstOrDefaultAsync(cancellationToken)
-                                                  ?? throw new NotFoundException("Регулярная операция", id);
+        var dbOperation = await context.RegularOperations
+                              .IsUserEntity(environment.UserId, id)
+                              .FirstOrDefaultAsync(cancellationToken)
+                          ?? throw new NotFoundException("регулярная операция", id);
 
         return dbOperation;
     }
 
     private RegularOperation GetBusinessModel(Data.Entities.RegularOperation model, IEnumerable<Place>? dbPlaces = null)
     {
-        return new RegularOperation
+        return new()
         {
             CategoryId = model.CategoryId,
             Sum = model.Sum,
@@ -185,28 +190,19 @@ public class RegularOperationService(
 
     private void CheckTime(RegularOperationTimeTypes timeType, int? timeValue)
     {
-        if (timeType == RegularOperationTimeTypes.EveryDay)
+        switch (timeType)
         {
-            if (timeValue != null)
-            {
-                throw new BusinessException("недопустимое значение интервала");
-            }
-        }
+            case RegularOperationTimeTypes.EveryDay when timeValue != null:
+                throw new("Извините, но значение интервала должно отсутствовать при Каждый день");
 
-        if (timeType == RegularOperationTimeTypes.EveryWeek)
-        {
-            if (timeValue == null || timeValue < 1 || timeValue > 7)
-            {
-                throw new BusinessException("недопустимое значение интервала");
-            }
-        }
+            case RegularOperationTimeTypes.EveryWeek when timeValue is null or < 1 or > 7:
+                throw new("Извините, но значение интервала должно быть в диапазоне от 1 до 7 при Каждую неделю");
 
-        if (timeType == RegularOperationTimeTypes.EveryMonth)
-        {
-            if (timeValue == null || timeValue < 1 || timeValue > 31)
-            {
-                throw new BusinessException("недопустимое значение интервала");
-            }
+            case RegularOperationTimeTypes.EveryMonth when timeValue is null or < 1 or > 31:
+                throw new("Извините, но значение интервала должно быть в диапазоне от 1 до 31 при Каждый месяц");
+
+            default:
+                return;
         }
     }
 
@@ -217,66 +213,67 @@ public class RegularOperationService(
 
     private DateTime? GetRegularTaskRunTime(DateTime dateFrom, DateTime? dateTo, DateTime dateNow, RegularOperationTimeTypes timeType, int? timeValue)
     {
-
-        var dn = dateNow;
         var date = dateFrom;
-        if (dn > date)
-        {
-            date = dn;
-        }
 
-        if (dateTo < dn)
+        if (dateNow > date)
+        {
+            date = dateNow;
+        }
+        else if (dateTo < dateNow)
         {
             return null;
         }
 
-        if (timeType == RegularOperationTimeTypes.EveryDay)
+        switch (timeType)
         {
-            date = date.AddDays(1);
-            return date.Date;
+            case RegularOperationTimeTypes.EveryDay:
+                date = date.AddDays(1);
+                return date.Date;
+
+            case RegularOperationTimeTypes.EveryWeek:
+                date = date.AddDays(1);
+
+                if (timeValue == 7)
+                {
+                    timeValue = 0;
+                }
+
+                if (timeValue == null)
+                {
+                    throw new BusinessException("Извините");
+                }
+
+                return GetNextWeekday(date.Date, (DayOfWeek)timeValue);
+
+            case RegularOperationTimeTypes.EveryMonth:
+                var dt = new DateTime(date.Year, date.Month, 1);
+
+                if (dt.Day >= timeValue)
+                {
+                    dt = dt.AddMonths(1);
+                }
+
+                if (timeValue == null)
+                {
+                    throw new BusinessException("Извините");
+                }
+
+                var nextDt = dt.AddDays(timeValue.Value - 1);
+
+                dt = dt.Month < nextDt.Month
+                    ? dt.AddMonths(1).AddDays(-1)
+                    : nextDt;
+
+                return dt;
+
+            default:
+                throw new ArgumentOutOfRangeException(nameof(timeType), timeType, null);
         }
-
-        if (timeType == RegularOperationTimeTypes.EveryWeek)
-        {
-            date = date.AddDays(1);
-            if (timeValue == 7)
-            {
-                timeValue = 0;
-            }
-            return GetNextWeekday(date.Date, (DayOfWeek)timeValue);
-        }
-
-        if (timeType == RegularOperationTimeTypes.EveryMonth)
-        {
-            var dt = date.Date;
-            if (dt.Day < timeValue)
-            {
-                dt = new DateTime(date.Year, date.Month, 1);
-            }
-            else
-            {
-                dt = new DateTime(date.Year, date.Month, 1).AddMonths(1);
-            }
-
-            var nextDt = dt.AddDays(timeValue.Value - 1);
-            if (dt.Month < nextDt.Month)
-            {
-                dt = dt.AddMonths(1).AddDays(-1);
-            }
-            else
-            {
-                dt = nextDt;
-            }
-
-            return dt;
-        }
-
-        throw new Exception("тип не определён");
     }
 
     private DateTime GetNextWeekday(DateTime start, DayOfWeek day)
     {
-        int daysToAdd = ((int)day - (int)start.DayOfWeek + 7) % 7;
+        var daysToAdd = ((int)day - (int)start.DayOfWeek + 7) % 7;
         return start.AddDays(daysToAdd);
     }
 }

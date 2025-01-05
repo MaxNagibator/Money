@@ -5,22 +5,22 @@ public class OperationBase
     public int Id { get; set; }
 
     /// <summary>
-    ///     Сумма.
+    /// Сумма.
     /// </summary>
     public decimal Sum { get; set; }
 
     /// <summary>
-    ///     Идентификатор категории.
+    /// Идентификатор категории.
     /// </summary>
     public required int CategoryId { get; set; }
 
     /// <summary>
-    ///     Комментарий.
+    /// Комментарий.
     /// </summary>
     public string? Comment { get; set; }
 
     /// <summary>
-    ///     Место.
+    /// Место.
     /// </summary>
     public string? Place { get; set; }
 }

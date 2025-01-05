@@ -14,10 +14,10 @@ public class AuthController(AuthService authService) : ControllerBase
     private const string AuthenticationScheme = OpenIddictServerAspNetCoreDefaults.AuthenticationScheme;
 
     /// <summary>
-    ///     Обменивает учетные данные пользователя на токен доступа.
+    /// Обменивает учетные данные пользователя на токен доступа.
     /// </summary>
     /// <remarks>
-    ///     Этот метод обрабатывает запросы на получение токена доступа, используя учетные данные пользователя.
+    /// Этот метод обрабатывает запросы на получение токена доступа, используя учетные данные пользователя.
     /// </remarks>
     /// <returns>Токен доступа в формате JSON.</returns>
     [HttpPost("~/connect/token")]
@@ -27,8 +27,8 @@ public class AuthController(AuthService authService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Exchange()
     {
-        OpenIddictRequest request = HttpContext.GetOpenIddictServerRequest()
-                                    ?? throw new InvalidOperationException("Не удалось получить запрос OpenID Connect.");
+        var request = HttpContext.GetOpenIddictServerRequest()
+                      ?? throw new InvalidOperationException("Не удалось получить запрос OpenID Connect.");
 
         ClaimsIdentity identity;
 
@@ -38,7 +38,7 @@ public class AuthController(AuthService authService) : ControllerBase
         }
         else if (request.IsRefreshTokenGrantType())
         {
-            AuthenticateResult result = await HttpContext.AuthenticateAsync(AuthenticationScheme);
+            var result = await HttpContext.AuthenticateAsync(AuthenticationScheme);
             identity = await authService.HandleRefreshTokenGrantAsync(result);
         }
         else
@@ -46,14 +46,14 @@ public class AuthController(AuthService authService) : ControllerBase
             throw new NotImplementedException("Указанный тип предоставления не реализован.");
         }
 
-        return SignIn(new ClaimsPrincipal(identity), AuthenticationScheme);
+        return SignIn(new(identity), AuthenticationScheme);
     }
 
     /// <summary>
-    ///     Возвращает информацию о пользователе.
+    /// Возвращает информацию о пользователе.
     /// </summary>
     /// <remarks>
-    ///     Этот метод обрабатывает запросы на получение информации о пользователе.
+    /// Этот метод обрабатывает запросы на получение информации о пользователе.
     /// </remarks>
     /// <returns>Информация о пользователе в формате JSON.</returns>
     [Authorize(AuthenticationSchemes = AuthenticationScheme)]

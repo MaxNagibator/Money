@@ -4,7 +4,6 @@ using Microsoft.IdentityModel.Tokens;
 using Money.Data.Entities;
 using OpenIddict.Abstractions;
 using System.Security.Claims;
-using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
 namespace Money.Business.Services;
 
@@ -22,14 +21,14 @@ public class AuthService(UserManager<ApplicationUser> userManager, SignInManager
             throw new PermissionException("Пароль отсутствует в запросе.");
         }
 
-        ApplicationUser? user = await userManager.FindByNameAsync(request.Username);
+        var user = await userManager.FindByNameAsync(request.Username);
 
         if (user == null)
         {
             throw new PermissionException("Неверное имя пользователя или пароль.");
         }
 
-        SignInResult result = await signInManager.CheckPasswordSignInAsync(user, request.Password, true);
+        var result = await signInManager.CheckPasswordSignInAsync(user, request.Password, true);
 
         if (result.Succeeded == false)
         {
@@ -41,14 +40,14 @@ public class AuthService(UserManager<ApplicationUser> userManager, SignInManager
 
     public async Task<ClaimsIdentity> HandleRefreshTokenGrantAsync(AuthenticateResult result)
     {
-        string? userId = result.Principal?.GetClaim(OpenIddictConstants.Claims.Subject);
+        var userId = result.Principal?.GetClaim(OpenIddictConstants.Claims.Subject);
 
         if (userId == null)
         {
             throw new PermissionException("Не удалось получить идентификатор пользователя.");
         }
 
-        ApplicationUser? user = await userManager.FindByIdAsync(userId);
+        var user = await userManager.FindByIdAsync(userId);
 
         if (user == null)
         {
@@ -63,40 +62,12 @@ public class AuthService(UserManager<ApplicationUser> userManager, SignInManager
         return await CreateClaimsIdentityAsync(user, null);
     }
 
-    private async Task<ClaimsIdentity> CreateClaimsIdentityAsync(ApplicationUser user, IEnumerable<string>? scopes)
-    {
-        ClaimsIdentity identity = new(TokenValidationParameters.DefaultAuthenticationType,
-            OpenIddictConstants.Claims.Name,
-            OpenIddictConstants.Claims.Role);
-
-        Task<string> userIdTask = userManager.GetUserIdAsync(user);
-        Task<string?> emailTask = userManager.GetEmailAsync(user);
-        Task<string?> userNameTask = userManager.GetUserNameAsync(user);
-        Task<IList<string>> rolesTask = userManager.GetRolesAsync(user);
-
-        await Task.WhenAll(userIdTask, emailTask, userNameTask, rolesTask);
-
-        identity.SetClaim(OpenIddictConstants.Claims.Subject, userIdTask.Result)
-            .SetClaim(OpenIddictConstants.Claims.Email, emailTask.Result)
-            .SetClaim(OpenIddictConstants.Claims.Name, userNameTask.Result)
-            .SetClaim(OpenIddictConstants.Claims.PreferredUsername, userNameTask.Result)
-            .SetClaims(OpenIddictConstants.Claims.Role, [.. rolesTask.Result]);
-
-        if (scopes != null)
-        {
-            identity.SetScopes(scopes);
-        }
-
-        identity.SetDestinations(GetDestinations);
-        return identity;
-    }
-
     public async Task<Dictionary<string, string>> GetUserInfoAsync(ClaimsPrincipal principal)
     {
-        string userId = principal.GetClaim(OpenIddictConstants.Claims.Subject)
-                        ?? throw new InvalidOperationException("Не удалось получить идентификатор пользователя.");
+        var userId = principal.GetClaim(OpenIddictConstants.Claims.Subject)
+                     ?? throw new InvalidOperationException("Не удалось получить идентификатор пользователя.");
 
-        ApplicationUser? user = await userManager.FindByIdAsync(userId);
+        var user = await userManager.FindByIdAsync(userId);
 
         if (user == null)
         {
@@ -147,5 +118,31 @@ public class AuthService(UserManager<ApplicationUser> userManager, SignInManager
                 yield return OpenIddictConstants.Destinations.AccessToken;
                 yield break;
         }
+    }
+
+    private async Task<ClaimsIdentity> CreateClaimsIdentityAsync(ApplicationUser user, IEnumerable<string>? scopes)
+    {
+        var identity = new ClaimsIdentity(TokenValidationParameters.DefaultAuthenticationType, OpenIddictConstants.Claims.Name, OpenIddictConstants.Claims.Role);
+
+        var userIdTask = userManager.GetUserIdAsync(user);
+        var emailTask = userManager.GetEmailAsync(user);
+        var userNameTask = userManager.GetUserNameAsync(user);
+        var rolesTask = userManager.GetRolesAsync(user);
+
+        await Task.WhenAll(userIdTask, emailTask, userNameTask, rolesTask);
+
+        identity.SetClaim(OpenIddictConstants.Claims.Subject, userIdTask.Result)
+            .SetClaim(OpenIddictConstants.Claims.Email, emailTask.Result)
+            .SetClaim(OpenIddictConstants.Claims.Name, userNameTask.Result)
+            .SetClaim(OpenIddictConstants.Claims.PreferredUsername, userNameTask.Result)
+            .SetClaims(OpenIddictConstants.Claims.Role, [.. rolesTask.Result]);
+
+        if (scopes != null)
+        {
+            identity.SetScopes(scopes);
+        }
+
+        identity.SetDestinations(GetDestinations);
+        return identity;
     }
 }

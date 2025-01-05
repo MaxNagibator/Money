@@ -1,7 +1,9 @@
-﻿namespace Money.Api.Dto.Debts;
+﻿using Money.Business.Enums;
+
+namespace Money.Api.Dto.Debts;
 
 /// <summary>
-///     Запрос на сохранение категории операции.
+/// Запрос на сохранение категории операции.
 /// </summary>
 public class DebtSaveRequest
 {
@@ -16,14 +18,14 @@ public class DebtSaveRequest
     public DateTime Date { get; init; }
 
     /// <summary>
-    ///     Преобразует текущую DTO-модель в бизнес-модель.
+    /// Преобразует текущую DTO-модель в бизнес-модель.
     /// </summary>
     /// <returns>
-    ///     Экземпляр <see cref="Business.Models.Debt" />, который представляет бизнес-модель.
+    /// Экземпляр <see cref="Business.Models.Debt" />, который представляет бизнес-модель.
     /// </returns>
     public Debt ToBusinessModel()
     {
-        return new Debt
+        return new()
         {
             Sum = Sum,
             Comment = Comment,

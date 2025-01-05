@@ -13,11 +13,11 @@ public class AuthMiddleware(RequestDelegate next)
         UserManager<ApplicationUser> userManager,
         AccountService accountService)
     {
-        string? userId = context.User.GetClaim(OpenIddictConstants.Claims.Subject);
+        var userId = context.User.GetClaim(OpenIddictConstants.Claims.Subject);
 
         if (userId != null)
         {
-            ApplicationUser? user = await userManager.FindByIdAsync(userId);
+            var user = await userManager.FindByIdAsync(userId);
 
             if (user != null)
             {

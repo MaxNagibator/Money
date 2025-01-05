@@ -31,7 +31,7 @@ public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddlewa
         {
             logger.LogError(exception, "Exception occurred: {Message}", exception.Message);
 
-            ProblemDetails problemDetails = new()
+            var problemDetails = new ProblemDetails
             {
                 Status = StatusCodes.Status500InternalServerError,
                 Title = "Извините, произошла непредвиденная ошибка",
@@ -47,7 +47,7 @@ public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddlewa
     {
         logger.LogError(exception, "Exception occurred: {Message}", exception.Message);
 
-        ProblemDetails problemDetails = new()
+        var problemDetails = new ProblemDetails
         {
             Status = statusCode,
             Title = exception.Message,

@@ -300,7 +300,7 @@ public static class DatabaseSeeder
                 Sum = 150000.00m,
                 CategoryId = GetCategoryId("Зарплата"),
                 Comment = "Зарплата за сентябрь",
-                Date = new DateTime(2023, 9, 30),
+                Date = new(2023, 9, 30),
                 PlaceId = GetPlaceId("Работа"),
             },
 
@@ -311,7 +311,7 @@ public static class DatabaseSeeder
                 Sum = 2000.00m,
                 CategoryId = GetCategoryId("Продукты"),
                 Comment = "Покупка продуктов в супермаркете",
-                Date = new DateTime(2023, 10, 01),
+                Date = new(2023, 10, 01),
                 PlaceId = GetPlaceId("Супермаркет"),
             },
 
@@ -322,7 +322,7 @@ public static class DatabaseSeeder
                 Sum = 5000.00m,
                 CategoryId = GetCategoryId("Концерты"),
                 Comment = "Билет на концерт",
-                Date = new DateTime(2023, 10, 05),
+                Date = new(2023, 10, 05),
                 PlaceId = GetPlaceId("Концертный зал"),
             },
 
@@ -333,7 +333,7 @@ public static class DatabaseSeeder
                 Sum = 30000.00m,
                 CategoryId = GetCategoryId("Аренда недвижимости"),
                 Comment = "Аренда квартиры за октябрь",
-                Date = new DateTime(2023, 10, 01),
+                Date = new(2023, 10, 01),
                 PlaceId = GetPlaceId("Квартира"),
             },
 
@@ -344,7 +344,7 @@ public static class DatabaseSeeder
                 Sum = 10000.00m,
                 CategoryId = GetCategoryId("Здоровье"),
                 Comment = "Посещение врача",
-                Date = new DateTime(2023, 10, 10),
+                Date = new(2023, 10, 10),
                 PlaceId = GetPlaceId("Поликлиника"),
             },
 
@@ -355,7 +355,7 @@ public static class DatabaseSeeder
                 Sum = 705.00m,
                 CategoryId = GetCategoryId("Развлечения"),
                 Comment = "Подписка на стриминговый сервис",
-                Date = new DateTime(2023, 10, 15),
+                Date = new(2023, 10, 15),
                 PlaceId = null,
             },
 
@@ -366,7 +366,7 @@ public static class DatabaseSeeder
                 Sum = 500.00m,
                 CategoryId = GetCategoryId("Пассивный доход"),
                 Comment = "Дивиденды от акций",
-                Date = new DateTime(2023, 10, 20),
+                Date = new(2023, 10, 20),
                 PlaceId = null,
             },
 
@@ -377,7 +377,7 @@ public static class DatabaseSeeder
                 Sum = 1200.00m,
                 CategoryId = GetCategoryId("Коммунальные услуги"),
                 Comment = "Оплата за электричество",
-                Date = new DateTime(2023, 10, 25),
+                Date = new(2023, 10, 25),
                 PlaceId = null,
             },
 
@@ -388,7 +388,7 @@ public static class DatabaseSeeder
                 Sum = 25000.00m,
                 CategoryId = GetCategoryId("Образование"),
                 Comment = "Оплата курсов по программированию",
-                Date = new DateTime(2023, 10, 30),
+                Date = new(2023, 10, 30),
                 PlaceId = GetPlaceId("Учебный центр"),
             },
 
@@ -399,7 +399,7 @@ public static class DatabaseSeeder
                 Sum = 80.00m,
                 CategoryId = GetCategoryId("Транспорт"),
                 Comment = "Оплата проезда на автобусе",
-                Date = new DateTime(2023, 10, 28),
+                Date = new(2023, 10, 28),
                 PlaceId = null,
             },
             new()
@@ -409,7 +409,7 @@ public static class DatabaseSeeder
                 Sum = 3000.00m,
                 CategoryId = GetCategoryId("Электричество"),
                 Comment = "Оплата за электричество за сентябрь",
-                Date = new DateTime(2023, 9, 28),
+                Date = new(2023, 9, 28),
                 PlaceId = null,
             },
 
@@ -420,7 +420,7 @@ public static class DatabaseSeeder
                 Sum = 15000.00m,
                 CategoryId = GetCategoryId("Одежда"),
                 Comment = "Покупка новой одежды",
-                Date = new DateTime(2023, 10, 12),
+                Date = new(2023, 10, 12),
                 PlaceId = GetPlaceId("Магазин одежды"),
             },
 
@@ -431,7 +431,7 @@ public static class DatabaseSeeder
                 Sum = 4000.00m,
                 CategoryId = GetCategoryId("Дивиденды"),
                 Comment = "Дивиденды от инвестиций в акции",
-                Date = new DateTime(2023, 10, 22),
+                Date = new(2023, 10, 22),
                 PlaceId = null,
             },
 
@@ -442,7 +442,7 @@ public static class DatabaseSeeder
                 Sum = 900.00m,
                 CategoryId = GetCategoryId("Развлечения"),
                 Comment = "Посещение кинотеатра",
-                Date = new DateTime(2023, 10, 18),
+                Date = new(2023, 10, 18),
                 PlaceId = GetPlaceId("Кинотеатр"),
             },
 
@@ -453,7 +453,7 @@ public static class DatabaseSeeder
                 Sum = 25000.00m,
                 CategoryId = GetCategoryId("Фриланс"),
                 Comment = "Оплата за фриланс-проект",
-                Date = new DateTime(2023, 10, 15),
+                Date = new(2023, 10, 15),
                 PlaceId = null,
             },
 
@@ -464,7 +464,7 @@ public static class DatabaseSeeder
                 Sum = 60.00m,
                 CategoryId = GetCategoryId("Общественный транспорт"),
                 Comment = "Оплата проезда на метро",
-                Date = new DateTime(2023, 10, 29),
+                Date = new(2023, 10, 29),
                 PlaceId = null,
             },
 
@@ -475,7 +475,7 @@ public static class DatabaseSeeder
                 Sum = 50000.00m,
                 CategoryId = GetCategoryId("Инвестиции"),
                 Comment = "Инвестиции в стартап",
-                Date = new DateTime(2023, 10, 05),
+                Date = new(2023, 10, 05),
                 PlaceId = null,
             },
 
@@ -486,7 +486,7 @@ public static class DatabaseSeeder
                 Sum = 35000.00m,
                 CategoryId = GetCategoryId("Премии за достижения"),
                 Comment = "Премия за успешный проект",
-                Date = new DateTime(2023, 10, 30),
+                Date = new(2023, 10, 30),
                 PlaceId = null,
             },
 
@@ -497,7 +497,7 @@ public static class DatabaseSeeder
                 Sum = 12000.00m,
                 CategoryId = GetCategoryId("Премии"),
                 Comment = "Премия за выполнение плана",
-                Date = new DateTime(2023, 10, 31),
+                Date = new(2023, 10, 31),
                 PlaceId = null,
             },
 
@@ -508,7 +508,7 @@ public static class DatabaseSeeder
                 Sum = 800.00m,
                 CategoryId = GetCategoryId("Мясо и рыба"),
                 Comment = "Покупка мяса на ужин",
-                Date = new DateTime(2023, 10, 20),
+                Date = new(2023, 10, 20),
                 PlaceId = GetPlaceId("Магазин продуктов"),
             },
         ];
@@ -516,7 +516,7 @@ public static class DatabaseSeeder
         return (operations, places);
 
         int GetCategoryId(string name) => categoryDictionary[name];
-        int? GetPlaceId(string name) => placeDictionary.TryGetValue(name, out int id) ? id : null;
+        int? GetPlaceId(string name) => placeDictionary.TryGetValue(name, out var id) ? id : null;
     }
 
     private static List<Place> SeedPlaces(int userId, int startIndex = 0)
@@ -601,7 +601,7 @@ public static class DatabaseSeeder
 
     private static int SetCategoryIds(List<Category> categories, ref int currentIndex)
     {
-        foreach (Category category in categories)
+        foreach (var category in categories)
         {
             category.Id = currentIndex++;
 
@@ -623,7 +623,7 @@ public static class DatabaseSeeder
 
     private static void GetAllCategoriesRecursive(List<Category> categories, List<Category> allCategories)
     {
-        foreach (Category category in categories)
+        foreach (var category in categories)
         {
             allCategories.Add(category);
 

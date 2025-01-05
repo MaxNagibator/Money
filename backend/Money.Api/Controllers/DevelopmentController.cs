@@ -4,19 +4,15 @@ using Microsoft.EntityFrameworkCore;
 using Money.Business;
 using Money.Common.Exceptions;
 using Money.Data;
-using Money.Data.Entities;
 using Money.Data.Extensions;
 using OpenIddict.Validation.AspNetCore;
-using Category = Money.Data.Entities.Category;
-using Operation = Money.Data.Entities.Operation;
-using Place = Money.Data.Entities.Place;
 
 namespace Money.Api.Controllers;
 
 #if DEBUG
 
 /// <summary>
-///     Контроллер только для разработки.
+/// Контроллер только для разработки.
 /// </summary>
 [ApiController]
 [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
@@ -24,8 +20,8 @@ namespace Money.Api.Controllers;
 public class DevelopmentController(RequestEnvironment environment, ApplicationDbContext context) : ControllerBase
 {
     /// <summary>
-    ///     Восстанавливает все данные пользователя, удаляя существующие категории, операции и места,
-    ///     а затем добавляя новые.
+    /// Восстанавливает все данные пользователя, удаляя существующие категории, операции и места,
+    /// а затем добавляя новые.
     /// </summary>
     /// <param name="cancellationToken">Токен отмены операции.</param>
     [HttpPost]
@@ -37,15 +33,15 @@ public class DevelopmentController(RequestEnvironment environment, ApplicationDb
             throw new BusinessException("Извините, но идентификатор пользователя не указан.");
         }
 
-        DomainUser dbUser = await context.DomainUsers.SingleOrDefaultAsync(x => x.Id == environment.UserId, cancellationToken)
-                            ?? throw new BusinessException("Извините, но пользователь не найден.");
+        var dbUser = await context.DomainUsers.SingleOrDefaultAsync(x => x.Id == environment.UserId, cancellationToken)
+                     ?? throw new BusinessException("Извините, но пользователь не найден.");
 
         context.Categories.RemoveRange(context.Categories.IgnoreQueryFilters().IsUserEntity(environment.UserId));
         context.Operations.RemoveRange(context.Operations.IgnoreQueryFilters().IsUserEntity(environment.UserId));
         context.Places.RemoveRange(context.Places.IsUserEntity(environment.UserId));
 
-        List<Category> categories = DatabaseSeeder.SeedCategories(environment.UserId.Value, out int lastIndex);
-        (List<Operation> operations, List<Place> places) = DatabaseSeeder.SeedOperations(environment.UserId.Value, categories);
+        var categories = DatabaseSeeder.SeedCategories(environment.UserId.Value, out var lastIndex);
+        (var operations, var places) = DatabaseSeeder.SeedOperations(environment.UserId.Value, categories);
 
         dbUser.NextCategoryId = lastIndex + 1;
         dbUser.NextPlaceId = places.Last().Id + 1;
