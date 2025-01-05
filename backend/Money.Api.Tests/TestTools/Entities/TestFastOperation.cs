@@ -1,4 +1,5 @@
-﻿using Money.Data.Entities;
+﻿using Money.Api.Tests.TestTools.Extentions;
+using Money.Data.Entities;
 
 namespace Money.Api.Tests.TestTools.Entities;
 
@@ -10,9 +11,9 @@ public class TestFastOperation : TestObject
     public TestFastOperation(TestCategory category)
     {
         IsNew = true;
-        Sum = 100;
-        Name = $"FO{Guid.NewGuid()}";
-        Comment = $"FO{Guid.NewGuid()}";
+        Sum = TestRandom.GetInt();
+        Name = TestRandom.GetString("FO");
+        Comment = TestRandom.GetString("FO");
         Category = category;
     }
 

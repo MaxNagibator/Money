@@ -88,6 +88,41 @@ public class DebtTests
             Assert.That(dbDebt.Comment, Is.EqualTo(debt.Comment));
             Assert.That(dbDebt.Date, Is.EqualTo(debt.Date));
             Assert.That(dbDebt.Sum, Is.EqualTo(debt.Sum));
+            Assert.That(dbDebt.TypeId, Is.EqualTo((int)debt.Type));
+        });
+    }
+
+    [Test]
+    public async Task UpdateTest()
+    {
+        var debt = _user.WithDebt();
+        _dbClient.Save();
+
+        var updateDebt = _user.WithDebt();
+
+        var request = new DebtClient.SaveRequest
+        {
+            Comment = updateDebt.Comment,
+            Sum = updateDebt.Sum,
+            DebtUserName = updateDebt.DebtUserName,
+            Date = updateDebt.Date,
+            TypeId = (int)updateDebt.Type,
+        };
+
+        await _apiClient.Debt.Update(debt.Id, request).IsSuccess();
+        var dbDebt = _dbClient.CreateApplicationDbContext().Debts.SingleOrDefault(_user.Id, debt.Id);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(dbDebt, Is.Not.Null);
+        });
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(dbDebt.Comment, Is.EqualTo(updateDebt.Comment));
+            Assert.That(dbDebt.Date, Is.EqualTo(updateDebt.Date));
+            Assert.That(dbDebt.Sum, Is.EqualTo(updateDebt.Sum));
+            Assert.That(dbDebt.TypeId, Is.EqualTo((int)updateDebt.Type));
         });
     }
 

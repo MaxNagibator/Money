@@ -1,4 +1,5 @@
-﻿using Money.Business.Enums;
+﻿using Money.Api.Tests.TestTools.Extentions;
+using Money.Business.Enums;
 using Money.Data.Entities;
 
 namespace Money.Api.Tests.TestTools.Entities;
@@ -11,7 +12,7 @@ public class TestRegularOperation : TestObject
     public TestRegularOperation(TestCategory category)
     {
         IsNew = true;
-        Sum = 100;
+        Sum = TestRandom.GetInt();
         Name = $"FO{Guid.NewGuid()}";
         Comment = $"FO{Guid.NewGuid()}";
         Category = category;

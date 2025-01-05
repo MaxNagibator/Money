@@ -1,4 +1,6 @@
-﻿using Money.Business.Enums;
+﻿using Money.Api.Tests.TestTools.Extentions;
+using Money.Business.Enums;
+using System;
 using Debt = Money.Data.Entities.Debt;
 
 namespace Money.Api.Tests.TestTools.Entities;
@@ -12,13 +14,13 @@ public class TestDebt : TestObject
     {
         User = user;
         IsNew = true;
-        Type = DebtTypes.Plus;
-        Sum = 217;
-        Comment = "Comment" + Guid.NewGuid();
+        Type = (DebtTypes)TestRandom.GetInt(1, 2); // todo сделать рандом для энумов
+        Sum = TestRandom.GetInt();
+        Comment = TestRandom.GetString("Comment");
         Date = DateTime.Now.Date;
         PaySum = 0;
         Status = DebtStatus.Actual;
-        DebtUserName = "U" + Guid.NewGuid();
+        DebtUserName = TestRandom.GetString("User");
     }
 
     /// <summary>

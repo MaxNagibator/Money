@@ -1,4 +1,5 @@
-﻿using Money.Data.Entities;
+﻿using Money.Api.Tests.TestTools.Extentions;
+using Money.Data.Entities;
 
 namespace Money.Api.Tests.TestTools.Entities;
 
@@ -10,7 +11,7 @@ public class TestOperation : TestObject
     public TestOperation(TestCategory category)
     {
         IsNew = true;
-        Sum = 100;
+        Sum = TestRandom.GetInt();
         Comment = $"P{Guid.NewGuid()}";
         Category = category;
         Date = DateTime.Now.Date;

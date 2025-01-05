@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Money.Api.Dto.Debts;
-using Money.Business.Services;
 using OpenIddict.Validation.AspNetCore;
 
 namespace Money.Api.Controllers;
@@ -56,6 +55,24 @@ public class DebtsController(DebtService debtService) : ControllerBase
         var business = request.ToBusinessModel();
         var result = await debtService.CreateAsync(business, cancellationToken);
         return CreatedAtAction(nameof(GetById), new { id = result }, result);
+    }
+
+    /// <summary>
+    /// Обновить существующую быструю операцию.
+    /// </summary>
+    /// <param name="id">Идентификатор операции.</param>
+    /// <param name="request">Данные для обновления операции.</param>
+    /// <param name="cancellationToken">Токен отмены запроса.</param>
+    [HttpPut("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Update(int id, [FromBody] DebtSaveRequest request, CancellationToken cancellationToken)
+    {
+        var business = request.ToBusinessModel();
+        business.Id = id;
+        await debtService.UpdateAsync(business, cancellationToken);
+        return Ok();
     }
 
     /// <summary>
