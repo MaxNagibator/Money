@@ -24,8 +24,8 @@ public record DateInterval(
             return range;
         }
 
-        DateTime start = Change.Invoke(range.Start.Value, changeAmount);
-        DateTime end = End.Invoke(start);
-        return new DateRange(start, end);
+        var start = Change.Invoke(range.Start.Value, changeAmount);
+        var end = End.Invoke(start);
+        return new(start, end);
     }
 }

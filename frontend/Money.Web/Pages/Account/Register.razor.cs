@@ -9,26 +9,26 @@ namespace Money.Web.Pages.Account;
 public partial class Register
 {
     [SupplyParameterFromForm]
-    private InputModel Input { get; set; } = default!;
+    private InputModel Input { get; set; } = null!;
 
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
 
     [Inject]
-    private AuthenticationService AuthenticationService { get; set; } = default!;
+    private AuthenticationService AuthenticationService { get; set; } = null!;
 
     [Inject]
-    private NavigationManager NavigationManager { get; set; } = default!;
+    private NavigationManager NavigationManager { get; set; } = null!;
 
     [Inject]
-    private ISnackbar Snackbar { get; set; } = default!;
+    private ISnackbar Snackbar { get; set; } = null!;
 
     private InputType PasswordInputType => Input.UseConfirmPassword ? InputType.Password : InputType.Text;
     private string PasswordIcon => PasswordInputType == InputType.Password ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility;
 
     public Task RegisterUserAsync(EditContext editContext)
     {
-        UserDto user = new(Input.Email, Input.Password);
+        var user = new UserDto(Input.Email, Input.Password);
 
         return AuthenticationService.RegisterAsync(user)
             .Map(() => AuthenticationService.LoginAsync(user))
@@ -38,7 +38,7 @@ public partial class Register
 
     protected override void OnParametersSet()
     {
-        Input = new InputModel();
+        Input = new();
     }
 
     private void TogglePasswordVisibility()
@@ -69,7 +69,7 @@ public partial class Register
         {
             if (UseConfirmPassword && Password != ConfirmPassword)
             {
-                yield return new ValidationResult("Пароли не совпадают.", [nameof(ConfirmPassword)]);
+                yield return new("Пароли не совпадают.", [nameof(ConfirmPassword)]);
             }
         }
     }

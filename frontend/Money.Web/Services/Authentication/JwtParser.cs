@@ -1,5 +1,4 @@
-﻿using System.Net.Http.Headers;
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using System.Security.Claims;
 
 namespace Money.Web.Services.Authentication;
@@ -8,7 +7,7 @@ public class JwtParser(HttpClient client)
 {
     public async Task<ClaimsPrincipal?> ValidateJwt(string token)
     {
-        Dictionary<string, object>? claimsDictionary = await ParseJwt(token);
+        var claimsDictionary = await ParseJwt(token);
 
         if (claimsDictionary == null)
         {
@@ -17,37 +16,37 @@ public class JwtParser(HttpClient client)
 
         List<Claim> claims = [];
 
-        foreach ((string? key, object? value) in claimsDictionary)
+        foreach ((var key, var value) in claimsDictionary)
         {
-            string claimType = key switch
+            var claimType = key switch
             {
                 "sub" => "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier",
                 "name" => "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name",
                 "email" => "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress",
-                var _ => key,
+                _ => key,
             };
 
-            claims.Add(new Claim(claimType, value.ToString() ?? string.Empty));
+            claims.Add(new(claimType, value.ToString() ?? string.Empty));
         }
 
-        ClaimsIdentity claimsIdentity = new(claims, "jwt");
+        var claimsIdentity = new ClaimsIdentity(claims, "jwt");
 
-        return new ClaimsPrincipal(claimsIdentity);
+        return new(claimsIdentity);
     }
 
     private async Task<Dictionary<string, object>?> ParseJwt(string accessToken)
     {
-        HttpRequestMessage request = new(HttpMethod.Get, "connect/userinfo");
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        var request = new HttpRequestMessage(HttpMethod.Get, "connect/userinfo");
+        request.Headers.Authorization = new("Bearer", accessToken);
 
-        HttpResponseMessage response = await client.SendAsync(request);
+        var response = await client.SendAsync(request);
 
         if (response.IsSuccessStatusCode == false)
         {
             return null;
         }
 
-        Dictionary<string, object>? userInfo = await response.Content.ReadFromJsonAsync<Dictionary<string, object>>();
+        var userInfo = await response.Content.ReadFromJsonAsync<Dictionary<string, object>>();
         return userInfo ?? throw new InvalidOperationException();
     }
 }

@@ -15,15 +15,15 @@ public class Operation
     public DateTime Date { get; set; }
 
     /// <summary>
-    ///     Идентификатор родительской регулярной задачи.
+    /// Идентификатор родительской регулярной задачи.
     /// </summary>
     /// <remarks>
-    ///     Не null, если операция создана регулярной задачей.
+    /// Не null, если операция создана регулярной задачей.
     /// </remarks>
     public int? CreatedTaskId { get; set; }
 
     /// <summary>
-    ///     Удалён.
+    /// Удалён.
     /// </summary>
     public bool IsDeleted { get; set; }
 }

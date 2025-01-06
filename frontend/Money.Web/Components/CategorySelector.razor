@@ -36,12 +36,9 @@
                      SelectionMode="SelectionMode"
                      TriState>
             <ItemTemplate>
-                @{
-                    List<TreeItemData<Category?>> children = context.Children?.OfType<TreeItemData<Category?>>().ToList() ?? [];
-                }
                 <MudTreeViewItem @bind-Expanded="@context.Expanded"
                                  Icon="@context.Icon"
-                                 Items="@children"
+                                 Items="@context.Children"
                                  Text="@context.Text"
                                  Value="@context.Value"
                                  Visible="@context.Visible" />

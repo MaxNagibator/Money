@@ -6,7 +6,7 @@ namespace Money.Web.Services.Authentication;
 public class AuthStateProvider(ILocalStorageService localStorage, JwtParser jwtParser)
     : AuthenticationStateProvider
 {
-    private readonly AuthenticationState _anonymous = new(new ClaimsPrincipal(new ClaimsIdentity()));
+    private readonly AuthenticationState _anonymous = new(new(new ClaimsIdentity()));
     private readonly TimeSpan _userCacheRefreshInterval = TimeSpan.FromSeconds(60.0);
 
     private DateTimeOffset _userLastCheck = DateTimeOffset.FromUnixTimeSeconds(0L);
@@ -14,24 +14,27 @@ public class AuthStateProvider(ILocalStorageService localStorage, JwtParser jwtP
 
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
-        return new AuthenticationState(await GetUser(true));
+        var user = await GetUser(true);
+        return new(user);
     }
 
     public async Task NotifyUserAuthentication()
     {
-        NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(await GetUser())));
+        var user = await GetUser();
+        var state = new AuthenticationState(user);
+        NotifyAuthenticationStateChanged(Task.FromResult(state));
     }
 
     private async Task<ClaimsPrincipal> GetUser(bool useCache = false)
     {
-        DateTimeOffset now = DateTimeOffset.Now;
+        var now = DateTimeOffset.Now;
 
         if (useCache && now < _userLastCheck + _userCacheRefreshInterval)
         {
             return _cachedUser;
         }
 
-        string? token = await localStorage.GetItemAsync<string>(AuthenticationService.AccessTokenKey);
+        var token = await localStorage.GetItemAsync<string>(AuthenticationService.AccessTokenKey);
 
         if (string.IsNullOrWhiteSpace(token))
         {
@@ -40,7 +43,7 @@ public class AuthStateProvider(ILocalStorageService localStorage, JwtParser jwtP
             return _cachedUser;
         }
 
-        ClaimsPrincipal? user = await jwtParser.ValidateJwt(token);
+        var user = await jwtParser.ValidateJwt(token);
 
         if (user == null)
         {

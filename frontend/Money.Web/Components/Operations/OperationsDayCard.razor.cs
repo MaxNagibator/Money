@@ -33,7 +33,7 @@ public partial class OperationsDayCard
 
     public override Task SetParametersAsync(ParameterView parameters)
     {
-        foreach (ParameterValue parameter in parameters)
+        foreach (var parameter in parameters)
         {
             switch (parameter.Name)
             {

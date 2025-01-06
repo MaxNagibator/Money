@@ -44,9 +44,9 @@ public partial class OperationsFilter
 
     public async Task SearchAsync()
     {
-        List<Category> categories = await CategoryService.GetAllAsync();
+        var categories = await CategoryService.GetAllAsync();
 
-        OperationClient.OperationFilterDto filter = new()
+        var filter = new OperationClient.OperationFilterDto
         {
             CategoryIds = _categorySelector?.GetSelectedCategories(),
             Comment = Comment,
@@ -55,16 +55,16 @@ public partial class OperationsFilter
             DateTo = DateRange.End?.AddDays(1),
         };
 
-        ApiClientResponse<OperationClient.Operation[]> apiOperations = await MoneyClient.Operation.Get(filter);
+        var apiOperations = await MoneyClient.Operation.Get(filter);
 
         if (apiOperations.Content == null)
         {
             return;
         }
 
-        Dictionary<int, Category> categoriesDict = categories.ToDictionary(x => x.Id!.Value, x => x);
+        var categoriesDict = categories.ToDictionary(x => x.Id!.Value, x => x);
 
-        List<Operation> operations = apiOperations.Content
+        var operations = apiOperations.Content
             .Select(apiOperation => new Operation
             {
                 Id = apiOperation.Id,
@@ -77,7 +77,7 @@ public partial class OperationsFilter
             })
             .ToList();
 
-        OnSearch?.Invoke(this, new OperationSearchEventArgs
+        OnSearch?.Invoke(this, new()
         {
             Operations = operations,
             AddZeroDays = _showZeroDays,
@@ -88,8 +88,8 @@ public partial class OperationsFilter
 
     protected override async Task OnInitializedAsync()
     {
-        string? key = await StorageService.GetItemAsync<string?>(nameof(SelectedRange));
-        DateInterval? interval = DateIntervals.FirstOrDefault(interval => interval.DisplayName == key);
+        var key = await StorageService.GetItemAsync<string?>(nameof(SelectedRange));
+        var interval = DateIntervals.FirstOrDefault(interval => interval.DisplayName == key);
         await OnDateIntervalChanged(interval);
         await SearchAsync();
     }
@@ -127,7 +127,7 @@ public partial class OperationsFilter
             start = value.Start.Invoke(DateTime.Today);
         }
 
-        DateRange = new DateRange(start, value.End.Invoke(start));
+        DateRange = new(start, value.End.Invoke(start));
         return SearchAsync();
     }
 
@@ -167,7 +167,7 @@ public partial class OperationsFilter
             return;
         }
 
-        OperationClient.UpdateOperationsBatchRequest request = new()
+        var request = new OperationClient.UpdateOperationsBatchRequest
         {
             OperationIds = _operations.Select(x => x.Id!.Value).ToList(),
             CategoryId = _changeCategorySelector.SelectedCategory.Id.Value,
@@ -184,7 +184,7 @@ public partial class OperationsFilter
     {
         _showZeroDays = toggled;
 
-        await Task.Run(() => OnSearch?.Invoke(this, new OperationSearchEventArgs
+        await Task.Run(() => OnSearch?.Invoke(this, new()
         {
             Operations = _operations,
             AddZeroDays = _showZeroDays,

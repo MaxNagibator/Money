@@ -1,7 +1,6 @@
 ﻿using Blazored.LocalStorage;
 using CSharpFunctionalExtensions;
 using Money.ApiClient;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using AuthData = Money.Web.Models.AuthData;
@@ -18,27 +17,23 @@ public class AuthenticationService(
 
     public async Task<Result> RegisterAsync(UserDto user)
     {
-        HttpResponseMessage response = await client.PostAsJsonAsync("Account/register", new { user.Email, user.Password });
+        var response = await client.PostAsJsonAsync("Account/register", new { user.Email, user.Password });
 
-        if (response.IsSuccessStatusCode == false)
+        if (response.IsSuccessStatusCode)
         {
-            ProblemDetails? problemDetails = JsonSerializer.Deserialize<ProblemDetails>(await response.Content.ReadAsStringAsync());
-            string error = problemDetails?.Title ?? "Ошибка регистрации аккаунта на сервере.";
-            return Result.Failure(error);
+            return Result.Success();
         }
 
-        return Result.Success();
+        var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(await response.Content.ReadAsStringAsync());
+        var error = problemDetails?.Title ?? "Ошибка регистрации аккаунта на сервере.";
+        return Result.Failure(error);
     }
 
     public async Task<Result> LoginAsync(UserDto user)
     {
-        FormUrlEncodedContent requestContent = new([
-            new KeyValuePair<string, string>("grant_type", "password"),
-            new KeyValuePair<string, string>("username", user.Email),
-            new KeyValuePair<string, string>("password", user.Password),
-        ]);
+        var requestContent = new FormUrlEncodedContent([new("grant_type", "password"), new("username", user.Email), new("password", user.Password)]);
 
-        Result<AuthData> result = await AuthenticateAsync(requestContent);
+        var result = await AuthenticateAsync(requestContent);
 
         return await result.Tap(async () => await ((AuthStateProvider)authStateProvider).NotifyUserAuthentication());
     }
@@ -52,37 +47,34 @@ public class AuthenticationService(
 
     public async Task<Result<string>> RefreshTokenAsync()
     {
-        string? token = await localStorage.GetItemAsync<string>(AccessTokenKey);
-        string? refreshToken = await localStorage.GetItemAsync<string>(RefreshTokenKey);
+        var token = await localStorage.GetItemAsync<string>(AccessTokenKey);
+        var refreshToken = await localStorage.GetItemAsync<string>(RefreshTokenKey);
 
         if (token == null || refreshToken == null)
         {
             return Result.Failure<string>("Не удалось загрузить токен доступа или токен обновления.");
         }
 
-        FormUrlEncodedContent requestContent = new([
-            new KeyValuePair<string, string>("grant_type", "refresh_token"),
-            new KeyValuePair<string, string>("refresh_token", refreshToken),
-        ]);
+        var requestContent = new FormUrlEncodedContent([new("grant_type", "refresh_token"), new("refresh_token", refreshToken)]);
 
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        Result<AuthData> result = await AuthenticateAsync(requestContent);
+        client.DefaultRequestHeaders.Authorization = new("Bearer", token);
+        var result = await AuthenticateAsync(requestContent);
         return result.Map(data => data.AccessToken);
     }
 
     private async Task<Result<AuthData>> AuthenticateAsync(FormUrlEncodedContent requestContent)
     {
-        HttpResponseMessage response = await client.PostAsync("connect/token", requestContent);
+        var response = await client.PostAsync("connect/token", requestContent);
         client.DefaultRequestHeaders.Clear();
 
         if (response.IsSuccessStatusCode == false)
         {
-            ProblemDetails? problemDetails = JsonSerializer.Deserialize<ProblemDetails>(await response.Content.ReadAsStringAsync());
-            string error = problemDetails?.Title ?? "Не удалось получить данные авторизации.";
+            var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(await response.Content.ReadAsStringAsync());
+            var error = problemDetails?.Title ?? "Не удалось получить данные авторизации.";
             return Result.Failure<AuthData>(error);
         }
 
-        AuthData? result = await response.Content.ReadFromJsonAsync<AuthData>();
+        var result = await response.Content.ReadFromJsonAsync<AuthData>();
 
         if (result == null)
         {

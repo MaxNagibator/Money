@@ -9,7 +9,7 @@ public partial class OperationsLayout : IDisposable
     private OperationsFilter? _operationsFilter;
 
     [Inject]
-    public NavigationManager NavigationManager { get; set; } = default!;
+    public NavigationManager NavigationManager { get; set; } = null!;
 
     private string PeriodString { get; set; } = GetPeriodString(null, null);
     private List<(OperationTypes.Value type, decimal amount)> Operations { get; } = [];
@@ -52,7 +52,7 @@ public partial class OperationsLayout : IDisposable
 
         foreach (var operationType in OperationTypes.Values)
         {
-            decimal? amount = args.Operations?
+            var amount = args.Operations?
                 .Where(x => x.Category.OperationType == operationType)
                 .Sum(operation => operation.Sum);
 

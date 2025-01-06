@@ -19,7 +19,7 @@ public class MoneyClient
 
     [ActivatorUtilitiesConstructor]
     public MoneyClient(HttpClient client, ILogger<MoneyClient> log) :
-        this(client, p => log.LogInformation(p))
+        this(client, p => log.LogInformation("API: {Message}", p))
     {
     }
 

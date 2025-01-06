@@ -42,7 +42,7 @@ public partial class RegularOperationDialog
 
     protected override async Task OnParametersSetAsync()
     {
-        Input = new InputModel
+        Input = new()
         {
             Category = RegularOperation.Category == Category.Empty ? null : RegularOperation.Category,
             Comment = RegularOperation.Comment,
@@ -57,7 +57,7 @@ public partial class RegularOperationDialog
 
         MudDialog.SetOptions(_dialogOptions);
 
-        List<Category> categories = await CategoryService.GetAllAsync();
+        var categories = await CategoryService.GetAllAsync();
 
         if (Input.Category == null)
         {
@@ -75,7 +75,7 @@ public partial class RegularOperationDialog
 
         try
         {
-            decimal? sum = await _smartSum.ValidateSumAsync();
+            var sum = await _smartSum.ValidateSumAsync();
 
             if (sum == null)
             {
@@ -110,24 +110,25 @@ public partial class RegularOperationDialog
 
     private async Task SaveAsync()
     {
-        RegularOperationClient.SaveRequest saveRequest = CreateSaveRequest();
+        var saveRequest = CreateSaveRequest();
 
         if (RegularOperation.Id == null)
         {
-            ApiClientResponse<int> result = await MoneyClient.RegularOperation.Create(saveRequest);
+            var result = await MoneyClient.RegularOperation.Create(saveRequest);
             RegularOperation.Id = result.Content;
         }
         else
         {
             await MoneyClient.RegularOperation.Update(RegularOperation.Id.Value, saveRequest);
         }
+
         var getOperations = await MoneyClient.RegularOperation.GetById(RegularOperation.Id.Value);
         RegularOperation.RunTime = getOperations.Content!.RunTime;
     }
 
     private RegularOperationClient.SaveRequest CreateSaveRequest()
     {
-        return new RegularOperationClient.SaveRequest
+        return new()
         {
             CategoryId = Input.Category?.Id ?? throw new MoneyException("Идентификатор отсутствует при сохранении операции"),
             Comment = Input.Comment,
@@ -143,7 +144,7 @@ public partial class RegularOperationDialog
 
     private Task<IEnumerable<Category?>> SearchCategoryAsync(string? value, CancellationToken token)
     {
-        IEnumerable<Category>? categories = string.IsNullOrWhiteSpace(value)
+        var categories = string.IsNullOrWhiteSpace(value)
             ? Input.CategoryList
             : Input.CategoryList?.Where(x => x.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase));
 

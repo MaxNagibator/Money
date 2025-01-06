@@ -42,7 +42,7 @@ public partial class FastOperationDialog
 
     protected override async Task OnParametersSetAsync()
     {
-        Input = new InputModel
+        Input = new()
         {
             Category = FastOperation.Category == Category.Empty ? null : FastOperation.Category,
             Comment = FastOperation.Comment,
@@ -53,7 +53,7 @@ public partial class FastOperationDialog
 
         MudDialog.SetOptions(_dialogOptions);
 
-        List<Category> categories = await CategoryService.GetAllAsync();
+        var categories = await CategoryService.GetAllAsync();
 
         if (Input.Category == null)
         {
@@ -71,7 +71,7 @@ public partial class FastOperationDialog
 
         try
         {
-            decimal? sum = await _smartSum.ValidateSumAsync();
+            var sum = await _smartSum.ValidateSumAsync();
 
             if (sum == null)
             {
@@ -103,11 +103,11 @@ public partial class FastOperationDialog
 
     private async Task SaveAsync()
     {
-        FastOperationClient.SaveRequest saveRequest = CreateSaveRequest();
+        var saveRequest = CreateSaveRequest();
 
         if (FastOperation.Id == null)
         {
-            ApiClientResponse<int> result = await MoneyClient.FastOperation.Create(saveRequest);
+            var result = await MoneyClient.FastOperation.Create(saveRequest);
             FastOperation.Id = result.Content;
         }
         else
@@ -118,7 +118,7 @@ public partial class FastOperationDialog
 
     private FastOperationClient.SaveRequest CreateSaveRequest()
     {
-        return new FastOperationClient.SaveRequest
+        return new()
         {
             CategoryId = Input.Category?.Id ?? throw new MoneyException("Идентификатор отсутствует при сохранении операции"),
             Comment = Input.Comment,
@@ -131,7 +131,7 @@ public partial class FastOperationDialog
 
     private Task<IEnumerable<Category?>> SearchCategoryAsync(string? value, CancellationToken token)
     {
-        IEnumerable<Category>? categories = string.IsNullOrWhiteSpace(value)
+        var categories = string.IsNullOrWhiteSpace(value)
             ? Input.CategoryList
             : Input.CategoryList?.Where(x => x.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase));
 

@@ -12,20 +12,20 @@ public partial class Login
     private InputModel Input { get; set; } = new();
 
     [SupplyParameterFromQuery]
-    private string? ReturnUrl { get; set; } = null;
+    private string? ReturnUrl { get; set; }
 
     [Inject]
-    private AuthenticationService AuthenticationService { get; set; } = default!;
+    private AuthenticationService AuthenticationService { get; set; } = null!;
 
     [Inject]
-    private NavigationManager NavigationManager { get; set; } = default!;
+    private NavigationManager NavigationManager { get; set; } = null!;
 
     [Inject]
-    private ISnackbar Snackbar { get; set; } = default!;
+    private ISnackbar Snackbar { get; set; } = null!;
 
     public Task LoginUserAsync(EditContext context)
     {
-        UserDto user = new(Input.Email, Input.Password);
+        var user = new UserDto(Input.Email, Input.Password);
 
         return AuthenticationService.LoginAsync(user)
             .TapError(message => Snackbar.Add($"Ошибка во время входа {message}", Severity.Error))

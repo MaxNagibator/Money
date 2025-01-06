@@ -20,7 +20,7 @@ public partial class RegularOperations
 
     private async Task Create()
     {
-        RegularOperation input = new()
+        var input = new RegularOperation
         {
             Name = string.Empty,
             Category = Category.Empty,
@@ -29,14 +29,14 @@ public partial class RegularOperations
             TimeValue = 1,
         };
 
-        RegularOperation? created = await ShowDialog("Создать", input);
+        var created = await ShowDialog("Создать", input);
 
         if (created == null)
         {
             return;
         }
 
-        _operations!.Insert(0, created);
+        _operations.Insert(0, created);
     }
 
     private Task<RegularOperation?> Update(RegularOperation operation)
@@ -51,7 +51,7 @@ public partial class RegularOperations
             { dialog => dialog.RegularOperation, operation },
         };
 
-        IDialogReference dialog = await DialogService.ShowAsync<RegularOperationDialog>(title, parameters);
+        var dialog = await DialogService.ShowAsync<RegularOperationDialog>(title, parameters);
         return await dialog.GetReturnValueAsync<RegularOperation>();
     }
 }

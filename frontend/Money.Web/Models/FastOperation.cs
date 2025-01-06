@@ -3,42 +3,42 @@
 public class FastOperation
 {
     /// <summary>
-    ///     Идентификатор.
+    /// Идентификатор.
     /// </summary>
     public int? Id { get; set; }
 
     /// <summary>
-    ///     Наименование.
+    /// Наименование.
     /// </summary>
     public required string Name { get; set; }
 
     /// <summary>
-    ///     Категория.
+    /// Категория.
     /// </summary>
     public required Category Category { get; set; }
 
     /// <summary>
-    ///     Сумма.
+    /// Сумма.
     /// </summary>
     public decimal Sum { get; set; }
 
     /// <summary>
-    ///     Комментарий.
+    /// Комментарий.
     /// </summary>
     public string? Comment { get; set; }
 
     /// <summary>
-    ///     Место.
+    /// Место.
     /// </summary>
     public string? Place { get; set; }
 
     /// <summary>
-    ///     Приоритет сортировки.
+    /// Приоритет сортировки.
     /// </summary>
     public int? Order { get; set; }
 
     /// <summary>
-    ///     Удалён.
+    /// Удалён.
     /// </summary>
     public bool IsDeleted { get; set; }
 }

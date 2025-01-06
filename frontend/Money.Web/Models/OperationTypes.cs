@@ -10,8 +10,8 @@ public static class OperationTypes
     {
         return
         [
-            new Value(1, "Расходы", Icons.Material.Rounded.ArrowCircleDown, Color.Warning),
-            new Value(2, "Доходы", Icons.Material.Rounded.ArrowCircleUp, Color.Success),
+            new(1, "Расходы", Icons.Material.Rounded.ArrowCircleDown, Color.Warning),
+            new(2, "Доходы", Icons.Material.Rounded.ArrowCircleUp, Color.Success),
         ];
     }
 

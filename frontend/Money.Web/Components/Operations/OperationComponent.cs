@@ -5,7 +5,7 @@ namespace Money.Web.Components.Operations;
 public abstract class OperationComponent : ComponentBase, IDisposable
 {
     [CascadingParameter]
-    public OperationsFilter OperationsFilter { get; set; } = default!;
+    public OperationsFilter OperationsFilter { get; set; } = null!;
 
     public void Dispose()
     {

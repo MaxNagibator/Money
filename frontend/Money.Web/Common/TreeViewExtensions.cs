@@ -19,7 +19,7 @@ public static class TreeViewExtensions
 
     public static void Filter<T>(this IEnumerable<TreeItemData<T>> treeItemData, string text)
     {
-        foreach (TreeItemData<T> itemData in treeItemData)
+        foreach (var itemData in treeItemData)
         {
             if (itemData.HasChildren)
             {

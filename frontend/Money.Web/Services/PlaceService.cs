@@ -11,16 +11,16 @@ public class PlaceService(MoneyClient moneyClient)
     {
         value ??= string.Empty;
 
-        if (Cache.TryGetValue(value, out string[]? cachedResults))
+        if (Cache.TryGetValue(value, out var cachedResults))
         {
             return EnsureValueInList(cachedResults, value);
         }
 
-        int diff = value.Length - _lastSearchedValue.Length;
+        var diff = value.Length - _lastSearchedValue.Length;
 
         if (diff > 0 && value[..^diff] == _lastSearchedValue)
         {
-            if (Cache.TryGetValue(_lastSearchedValue, out string[]? cachedPlaces))
+            if (Cache.TryGetValue(_lastSearchedValue, out var cachedPlaces))
             {
                 if (cachedPlaces.Length == 0)
                 {
@@ -29,14 +29,14 @@ public class PlaceService(MoneyClient moneyClient)
             }
         }
 
-        ApiClientResponse<string[]> response = await moneyClient.Operation.GetPlaces(0, 10, value, token);
+        var response = await moneyClient.Operation.GetPlaces(0, 10, value, token);
 
         if (response.Content == null)
         {
             return [value];
         }
 
-        string[]? places = response.Content;
+        var places = response.Content;
 
         Cache[value] = places;
         _lastSearchedValue = value;
@@ -46,7 +46,7 @@ public class PlaceService(MoneyClient moneyClient)
 
     private static List<string> EnsureValueInList(IEnumerable<string> list, string value)
     {
-        List<string> newList = list.ToList();
+        var newList = list.ToList();
 
         if (string.IsNullOrWhiteSpace(value) == false && newList.IndexOf(value) == -1)
         {

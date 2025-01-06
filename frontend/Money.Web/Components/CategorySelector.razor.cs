@@ -31,7 +31,7 @@ public partial class CategorySelector : ComponentBase
 
     protected override async Task OnInitializedAsync()
     {
-        List<Category> categories = await CategoryService.GetAllAsync();
+        var categories = await CategoryService.GetAllAsync();
         InitialTreeItems = categories.BuildChildren(null).ToList();
     }
 
