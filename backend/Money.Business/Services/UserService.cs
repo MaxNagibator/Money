@@ -4,11 +4,65 @@ public class UserService(RequestEnvironment environment, ApplicationDbContext co
 {
     private Data.Entities.DomainUser? _currentUser;
 
-    // todo Бизнес сервис не имеет права отдавать объекты EF наружу
-    public async Task<Data.Entities.DomainUser> GetCurrent(CancellationToken cancellationToken)
+    public async Task<int> GetIdAsync(CancellationToken cancellationToken = default)
     {
-        // todo контекст и так кэширует полученные данные, а он у нас один на реквест как и сервис
+        var user = await GetCurrentAsync(cancellationToken);
+        return user.Id;
+    }
+
+    public Task<int> GetNextCategoryIdAsync(CancellationToken cancellationToken = default)
+    {
+        return GetNextIdAsync(x => x.NextCategoryId, x => x.NextCategoryId++, cancellationToken);
+    }
+
+    public Task<int> GetNextOperationIdAsync(CancellationToken cancellationToken = default)
+    {
+        return GetNextIdAsync(x => x.NextOperationId, x => x.NextOperationId++, cancellationToken);
+    }
+
+    public Task<int> GetNextPlaceIdAsync(CancellationToken cancellationToken = default)
+    {
+        return GetNextIdAsync(x => x.NextPlaceId, x => x.NextPlaceId++, cancellationToken);
+    }
+
+    public Task<int> GetNextFastOperationIdAsync(CancellationToken cancellationToken = default)
+    {
+        return GetNextIdAsync(x => x.NextFastOperationId, x => x.NextFastOperationId++, cancellationToken);
+    }
+
+    public Task<int> GetNextRegularOperationIdAsync(CancellationToken cancellationToken = default)
+    {
+        return GetNextIdAsync(x => x.NextRegularOperationId, x => x.NextRegularOperationId++, cancellationToken);
+    }
+
+    public Task<int> GetNextDebtIdAsync(CancellationToken cancellationToken = default)
+    {
+        return GetNextIdAsync(x => x.NextDebtId, x => x.NextDebtId++, cancellationToken);
+    }
+
+    public Task<int> GetNextDebtUserIdAsync(CancellationToken cancellationToken = default)
+    {
+        return GetNextIdAsync(x => x.NextDebtUserId, x => x.NextDebtUserId++, cancellationToken);
+    }
+
+    public async Task SetNextCategoryIdAsync(int index, CancellationToken cancellationToken = default)
+    {
+        var user = await GetCurrentAsync(cancellationToken);
+        user.NextCategoryId = index;
+    }
+
+    private async Task<Data.Entities.DomainUser> GetCurrentAsync(CancellationToken cancellationToken)
+    {
+        // TODO: контекст и так кэширует полученные данные, а он у нас один на реквест как и сервис
         return _currentUser ??= await context.DomainUsers.FirstOrDefaultAsync(x => x.Id == environment.UserId, cancellationToken)
                                 ?? throw new BusinessException("Извините, но пользователь не найден.");
+    }
+
+    private async Task<int> GetNextIdAsync(Func<Data.Entities.DomainUser, int> getId, Action<Data.Entities.DomainUser> incrementId, CancellationToken cancellationToken = default)
+    {
+        var user = await GetCurrentAsync(cancellationToken);
+        var id = getId(user);
+        incrementId(user);
+        return id;
     }
 }

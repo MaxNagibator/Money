@@ -50,11 +50,9 @@ public class OperationService(
             throw new BusinessException("Извините, но идентификатор пользователя не указан.");
         }
 
-        var dbUser = await userService.GetCurrent(cancellationToken);
         var category = await categoryService.GetByIdAsync(operation.CategoryId, cancellationToken);
 
-        var operationId = dbUser.NextOperationId;
-        dbUser.NextOperationId++;
+        var operationId = await userService.GetNextOperationIdAsync(cancellationToken);
 
         var placeId = operation.PlaceId ?? await placeService.GetPlaceIdAsync(operation.Place, cancellationToken);
 

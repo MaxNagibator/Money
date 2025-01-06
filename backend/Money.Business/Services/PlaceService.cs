@@ -54,13 +54,11 @@ public class PlaceService(
 
         if (dbPlace == null)
         {
-            var dbUser = await userService.GetCurrent(cancellationToken);
-            var newPlaceId = dbUser.NextPlaceId;
-            dbUser.NextPlaceId++;
+            var newPlaceId = await userService.GetNextPlaceIdAsync(cancellationToken);
 
             dbPlace = new()
             {
-                UserId = dbUser.Id,
+                UserId = await userService.GetIdAsync(cancellationToken),
                 Id = newPlaceId,
                 Name = place,
             };
@@ -108,14 +106,12 @@ public class PlaceService(
             }
             else
             {
-                var dbUser = await userService.GetCurrent(cancellationToken);
-                var newPlaceId = dbUser.NextPlaceId;
-                dbUser.NextPlaceId++;
+                var newPlaceId = await userService.GetNextPlaceIdAsync(cancellationToken);
 
                 dbNewPlace = new()
                 {
                     Name = "",
-                    UserId = dbUser.Id,
+                    UserId = await userService.GetIdAsync(cancellationToken),
                     Id = newPlaceId,
                 };
 

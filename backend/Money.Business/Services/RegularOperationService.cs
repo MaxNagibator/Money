@@ -52,11 +52,9 @@ public class RegularOperationService(
 
         CheckTime(operation.TimeType, operation.TimeValue);
 
-        var dbUser = await userService.GetCurrent(cancellationToken);
         var category = await categoryService.GetByIdAsync(operation.CategoryId, cancellationToken);
 
-        var operationId = dbUser.NextRegularOperationId;
-        dbUser.NextRegularOperationId++;
+        var operationId = await userService.GetNextRegularOperationIdAsync(cancellationToken);
 
         var placeId = await placeService.GetPlaceIdAsync(operation.Place, cancellationToken);
 
