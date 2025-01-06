@@ -1,0 +1,110 @@
+﻿@page "/debts"
+
+<PageTitle>Долги</PageTitle>
+
+<MudText GutterBottom
+         Typo="Typo.h3">
+    Долги
+</MudText>
+
+<MudGrid Spacing="2"
+         Class="mb-2">
+    @*TODO: Добавить кнопки создания с определенным типом*@
+    <MudItem lg="3"
+             md="4"
+             xs="12">
+        @*<MudButton Color="Color.Primary"
+                   EndIcon="@Icons.Material.Filled.Add"
+                   OnClick="Create"
+                   FullWidth
+                   Variant="Variant.Outlined">
+            Добавить
+        </MudButton>*@
+    </MudItem>
+</MudGrid>
+
+<MudDivider Class="mt-4 mb-4" />
+
+@foreach ((var type, var debtsByUsers) in _debts)
+{
+    <MudText GutterBottom
+             Typo="Typo.h5">
+        @type.Name
+    </MudText>
+
+    <MudGrid Spacing="2">
+        @foreach (var debtsByUser in debtsByUsers)
+        {
+            <MudItem xs="12">
+                <MudText GutterBottom
+                         Typo="Typo.h6">
+                    @debtsByUser.UserName
+                </MudText>
+            </MudItem>
+
+            <Virtualize Context="debt"
+                        Items="debtsByUser.Debts">
+                <MudItem Class="mb-1"
+                         md="6"
+                         xs="12">
+                    <MudCard>
+                        <MudCardContent Style="padding: 8px 12px">
+                            <MudText Typo="Typo.body2">
+                                Сумма: @debt.Sum ₽
+                            </MudText>
+                            @if (!string.IsNullOrWhiteSpace(debt.Comment))
+                            {
+                                <MudText Typo="Typo.body2"
+                                         Color="Color.Secondary">
+                                    Комментарий: @debt.Comment
+                                </MudText>
+                            }
+                            <MudDivider Class="my-2" />
+                            <MudText Typo="Typo.body2">
+                                Погашено: @debt.PaySum ₽
+                            </MudText>
+                            @if (!string.IsNullOrWhiteSpace(debt.PayComment))
+                            {
+                                <MudText Typo="Typo.body2"
+                                         Color="Color.Secondary">
+                                    Комментарий к погашению: @debt.PayComment
+                                </MudText>
+                            }
+                            <MudText Typo="Typo.caption"
+                                     Align="Align.Right">
+                                Дата: @debt.Date.ToString("dd.MM.yyyy")
+                            </MudText>
+                        </MudCardContent>
+
+                        <MudCardActions Style="padding: 8px 4px">
+                            <MudSpacer />
+
+                            @if (debt.IsDeleted)
+                            {
+                                <MudTooltip Text="Восстановить">
+                                    <MudIconButton Color="Color.Success"
+                                                   Icon="@Icons.Material.Filled.Restore"
+                                                   Size="Size.Small" />
+                                </MudTooltip>
+                            }
+                            else
+                            {
+                                <MudTooltip Text="Редактировать">
+                                    <MudIconButton Color="Color.Warning"
+                                                   Icon="@Icons.Material.Filled.Edit"
+                                                   Size="Size.Small" />
+                                </MudTooltip>
+
+                                <MudTooltip Text="Удалить">
+                                    <MudIconButton Color="Color.Default"
+                                                   Icon="@Icons.Material.Filled.Delete"
+                                                   Size="Size.Small" />
+                                </MudTooltip>
+                            }
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            </Virtualize>
+        }
+    </MudGrid>
+}

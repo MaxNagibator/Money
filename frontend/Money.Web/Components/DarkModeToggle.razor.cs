@@ -97,6 +97,24 @@ public partial class DarkModeToggle : IDisposable
         GC.SuppressFinalize(this);
     }
 
+    public void UpdateState()
+    {
+        if (AppSettings is { IsManualMode: false, IsSchedule: false })
+        {
+            AppSettings.IsDarkMode = AppSettings.IsDarkModeSystem;
+
+            if (_timer != null)
+            {
+                _timer.Period = new(24, 0, 0);
+            }
+        }
+
+        if (AppSettings is { IsManualMode: false, IsSchedule: true })
+        {
+            CheckScheduledMode();
+        }
+    }
+
     protected override async Task OnInitializedAsync()
     {
         Settings = await GetSettingsAsync();
@@ -120,24 +138,6 @@ public partial class DarkModeToggle : IDisposable
     private async Task SaveAsync()
     {
         await StorageService.SetItemAsync(nameof(DarkModeSettings), Settings);
-    }
-
-    private void UpdateState()
-    {
-        if (AppSettings is { IsManualMode: false, IsSchedule: false })
-        {
-            AppSettings.IsDarkMode = AppSettings.IsDarkModeSystem;
-
-            if (_timer != null)
-            {
-                _timer.Period = new(24, 0, 0);
-            }
-        }
-
-        if (AppSettings is { IsManualMode: false, IsSchedule: true })
-        {
-            CheckScheduledMode();
-        }
     }
 
     private async Task MonitorScheduledModeAsync()

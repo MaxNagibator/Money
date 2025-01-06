@@ -48,6 +48,12 @@ public class DebtClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
         public required string DebtUserName { get; set; }
 
         public DateTime Date { get; set; }
+
+        public decimal PaySum { get; set; }
+
+        public string? PayComment { get; set; }
+
+        public bool IsDeleted { get; set; }
     }
 
     public class Debt : SaveRequest

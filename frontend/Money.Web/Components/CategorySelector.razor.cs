@@ -18,7 +18,7 @@ public partial class CategorySelector : ComponentBase, IAsyncDisposable
     private CategoryService CategoryService { get; set; } = null!;
 
     [Inject]
-    private IJSRuntime JSRuntime { get; set; } = null!;
+    private IJSRuntime JsRuntime { get; set; } = null!;
 
     private List<TreeItemData<Category>> InitialTreeItems { get; set; } = [];
     private IReadOnlyCollection<Category>? SelectedCategories { get; set; }
@@ -43,7 +43,7 @@ public partial class CategorySelector : ComponentBase, IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        await JSRuntime.InvokeVoidAsync("finalizeClickInterceptor");
+        await JsRuntime.InvokeVoidAsync("finalizeClickInterceptor");
         _reference?.Dispose();
 
         GC.SuppressFinalize(this);
@@ -88,11 +88,11 @@ public partial class CategorySelector : ComponentBase, IAsyncDisposable
 
         if (isOpen.Value)
         {
-            await JSRuntime.InvokeVoidAsync("initializeClickInterceptor", _reference);
+            await JsRuntime.InvokeVoidAsync("initializeClickInterceptor", _reference);
         }
         else
         {
-            await JSRuntime.InvokeVoidAsync("finalizeClickInterceptor");
+            await JsRuntime.InvokeVoidAsync("finalizeClickInterceptor");
         }
     }
 }

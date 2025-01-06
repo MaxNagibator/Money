@@ -33,7 +33,7 @@ public partial class MainLayout
         {
             _appSettings.IsDarkModeSystem = await _mudThemeProvider.GetSystemPreference();
             await _mudThemeProvider.WatchSystemPreference(OnSystemPreferenceChanged);
-
+            _darkModeToggle.UpdateState();
             StateHasChanged();
         }
     }

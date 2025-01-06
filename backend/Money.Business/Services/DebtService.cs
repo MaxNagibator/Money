@@ -179,6 +179,7 @@ public class DebtService(
             Date = dbDebt.Date,
             PaySum = dbDebt.PaySum,
             PayComment = dbDebt.PayComment,
+            IsDeleted = dbDebt.IsDeleted,
         };
     }
 }

@@ -1,10 +1,16 @@
-﻿namespace Money.Business.Models;
+namespace Money.Web.Models;
 
+/// <summary>
+/// Долг.
+/// </summary>
 public class Debt
 {
+    /// <summary>
+    /// Идентификатор.
+    /// </summary>
     public int Id { get; set; }
 
-    public DebtTypes Type { get; set; }
+    public required DebtTypes.Value Type { get; set; }
 
     public decimal Sum { get; set; }
 
@@ -17,8 +23,6 @@ public class Debt
     public decimal PaySum { get; set; }
 
     public string? PayComment { get; set; }
-
-    public DebtStatus Status { get; set; }
 
     public bool IsDeleted { get; set; }
 }
