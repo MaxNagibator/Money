@@ -35,7 +35,7 @@ public class MoneyClient
 
     public void SetUser(string login, string password)
     {
-        User = new ()
+        User = new()
         {
             Username = login,
             Password = password,

@@ -6,8 +6,8 @@ public static class DatabaseSeeder
 {
     public static List<Category> SeedCategories(int userId, out int lastIndex, int startIndex = 1)
     {
-        List<Category> categories =
-        [
+        var categories = new List<Category>
+        {
             new()
             {
                 UserId = userId,
@@ -17,7 +17,7 @@ public static class DatabaseSeeder
                 Color = "#FFCC00",
                 SubCategories =
                 [
-                    new Category
+                    new()
                     {
                         UserId = userId,
                         Name = "Фрукты и овощи",
@@ -26,7 +26,7 @@ public static class DatabaseSeeder
                         Color = "#FF9900",
                     },
 
-                    new Category
+                    new()
                     {
                         UserId = userId,
                         Name = "Мясо и рыба",
@@ -46,7 +46,7 @@ public static class DatabaseSeeder
                 Color = "#0099CC",
                 SubCategories =
                 [
-                    new Category
+                    new()
                     {
                         UserId = userId,
                         Name = "Общественный транспорт",
@@ -55,7 +55,7 @@ public static class DatabaseSeeder
                         Color = "#007ACC",
                     },
 
-                    new Category
+                    new()
                     {
                         UserId = userId,
                         Name = "Такси",
@@ -75,7 +75,7 @@ public static class DatabaseSeeder
                 Color = "#FF3366",
                 SubCategories =
                 [
-                    new Category
+                    new()
                     {
                         UserId = userId,
                         Name = "Кино",
@@ -84,7 +84,7 @@ public static class DatabaseSeeder
                         Color = "#FF3366",
                     },
 
-                    new Category
+                    new()
                     {
                         UserId = userId,
                         Name = "Концерты",
@@ -104,7 +104,7 @@ public static class DatabaseSeeder
                 Color = "#66CC66",
                 SubCategories =
                 [
-                    new Category
+                    new()
                     {
                         UserId = userId,
                         Name = "Электричество",
@@ -113,7 +113,7 @@ public static class DatabaseSeeder
                         Color = "#FFCC00",
                     },
 
-                    new Category
+                    new()
                     {
                         UserId = userId,
                         Name = "Вода",
@@ -133,7 +133,7 @@ public static class DatabaseSeeder
                 Color = "#FF6600",
                 SubCategories =
                 [
-                    new Category
+                    new()
                     {
                         UserId = userId,
                         Name = "Одежда для детей",
@@ -142,7 +142,7 @@ public static class DatabaseSeeder
                         Color = "#FF9966",
                     },
 
-                    new Category
+                    new()
                     {
                         UserId = userId,
                         Name = "Одежда для взрослых",
@@ -180,7 +180,7 @@ public static class DatabaseSeeder
                 Color = "#66B3FF",
                 SubCategories =
                 [
-                    new Category
+                    new()
                     {
                         UserId = userId,
                         Name = "Бонусы",
@@ -200,7 +200,7 @@ public static class DatabaseSeeder
                 Color = "#FFB366",
                 SubCategories =
                 [
-                    new Category
+                    new()
                     {
                         UserId = userId,
                         Name = "Фриланс",
@@ -208,7 +208,8 @@ public static class DatabaseSeeder
                         TypeId = 2,
                         Color = "#FFB366",
                     },
-                    new Category
+
+                    new()
                     {
                         UserId = userId,
                         Name = "Курсы и тренинги",
@@ -228,7 +229,7 @@ public static class DatabaseSeeder
                 Color = "#66FF66",
                 SubCategories =
                 [
-                    new Category
+                    new()
                     {
                         UserId = userId,
                         Name = "Дивиденды",
@@ -248,7 +249,7 @@ public static class DatabaseSeeder
                 Color = "#FF6666",
                 SubCategories =
                 [
-                    new Category
+                    new()
                     {
                         UserId = userId,
                         Name = "Аренда недвижимости",
@@ -268,7 +269,7 @@ public static class DatabaseSeeder
                 Color = "#FFCC00",
                 SubCategories =
                 [
-                    new Category
+                    new()
                     {
                         UserId = userId,
                         Name = "Премии за достижения",
@@ -278,7 +279,7 @@ public static class DatabaseSeeder
                     },
                 ],
             },
-        ];
+        };
 
         lastIndex = SetCategoryIds(categories, ref startIndex);
         return categories;
@@ -286,10 +287,10 @@ public static class DatabaseSeeder
 
     public static (List<Operation> operations, List<Place> places) SeedOperations(int userId, List<Category> categories, int startIndex = 0, int placeStartIndex = 0)
     {
-        List<Place> places = SeedPlaces(userId, placeStartIndex);
+        var places = SeedPlaces(userId, placeStartIndex);
 
-        Dictionary<string, int> categoryDictionary = GetAllCategories(categories).ToDictionary(x => x.Name, x => x.Id);
-        Dictionary<string, int> placeDictionary = places.ToDictionary(x => x.Name, x => x.Id);
+        var categoryDictionary = GetAllCategories(categories).ToDictionary(x => x.Name, x => x.Id);
+        var placeDictionary = places.ToDictionary(x => x.Name, x => x.Id);
 
         List<Operation> operations =
         [
@@ -402,6 +403,7 @@ public static class DatabaseSeeder
                 Date = new(2023, 10, 28),
                 PlaceId = null,
             },
+
             new()
             {
                 UserId = userId,
@@ -521,8 +523,8 @@ public static class DatabaseSeeder
 
     private static List<Place> SeedPlaces(int userId, int startIndex = 0)
     {
-        List<Place> places =
-        [
+        var places = new List<Place>
+        {
             new()
             {
                 UserId = userId,
@@ -594,7 +596,7 @@ public static class DatabaseSeeder
                 Name = "Магазин продуктов",
                 LastUsedDate = DateTime.Now,
             },
-        ];
+        };
 
         return places;
     }
@@ -616,7 +618,7 @@ public static class DatabaseSeeder
 
     private static List<Category> GetAllCategories(List<Category> categories)
     {
-        List<Category> allCategories = [];
+        var allCategories = new List<Category>();
         GetAllCategoriesRecursive(categories, allCategories);
         return allCategories;
     }
