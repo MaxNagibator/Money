@@ -1,6 +1,5 @@
-﻿@*TODO: придумать способ закрытия*@
-<div class="d-flex flex-column"
-     @onblur="() => ToggleCategoriesTree(false)">
+﻿<div class="d-flex flex-column"
+     id="categories-container">
     <MudStack AlignItems="AlignItems.Center"
               Justify="Justify.FlexStart"
               Row>
@@ -11,8 +10,8 @@
                       HelperText="@(GetHelperText())"
                       Immediate
                       Label="Категории"
-                      OnAdornmentClick="() => ToggleCategoriesTree()"
-                      @onclick="() => ToggleCategoriesTree(true)"
+                      OnAdornmentClick="async () => await ToggleCategoriesTree()"
+                      @onclick="async () => await ToggleCategoriesTree(true)"
                       T="string"
                       TextChanged="OnTextChanged" />
         <MudIconButton Color="Color.Tertiary"
@@ -24,7 +23,8 @@
                 MaxHeight="400"
                 Open="@_isCategoriesTreeOpen"
                 RelativeWidth
-                TransformOrigin="Origin.TopLeft">
+                TransformOrigin="Origin.TopLeft"
+                Class="categories-popover-tree">
         <MudTreeView AutoSelectParent
                      @bind-SelectedValue="SelectedCategory"
                      @bind-SelectedValues="SelectedCategories"
@@ -46,3 +46,25 @@
         </MudTreeView>
     </MudPopover>
 </div>
+
+<script>
+
+    let handler;
+
+    window.initializeClickInterceptor = dotNetHelper => {
+        handler = function (e) {
+            const containerElement = document.getElementById("categories-container");
+            const popoverElement = document.getElementsByClassName("categories-popover-tree")[0];
+
+            if (containerElement && !containerElement.contains(e.target)
+                && (!popoverElement || !popoverElement.contains(e.target))) {
+                dotNetHelper.invokeMethodAsync("OnClick");
+            }
+        };
+
+        return document.addEventListener("click", handler);
+    };
+
+    window.finalizeClickInterceptor = () => document.removeEventListener("click", handler)
+
+</script>

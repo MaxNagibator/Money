@@ -5,8 +5,6 @@ public class RegularOperation : OperationBase
     /// <summary>
     /// Наименование.
     /// </summary>
-    [Required]
-    [StringLength(500)]
     public required string Name { get; set; }
 
     public int TimeTypeId { get; set; }

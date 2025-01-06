@@ -1,10 +1,13 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 
 namespace Money.Web.Components;
 
-public partial class CategorySelector : ComponentBase
+public partial class CategorySelector : ComponentBase, IAsyncDisposable
 {
     private bool _isCategoriesTreeOpen;
+
+    private DotNetObjectReference<CategorySelector>? _reference;
 
     [Parameter]
     public SelectionMode SelectionMode { get; set; } = SelectionMode.MultiSelection;
@@ -13,6 +16,9 @@ public partial class CategorySelector : ComponentBase
 
     [Inject]
     private CategoryService CategoryService { get; set; } = null!;
+
+    [Inject]
+    private IJSRuntime JSRuntime { get; set; } = null!;
 
     private List<TreeItemData<Category>> InitialTreeItems { get; set; } = [];
     private IReadOnlyCollection<Category>? SelectedCategories { get; set; }
@@ -27,6 +33,25 @@ public partial class CategorySelector : ComponentBase
         SelectedCategories = null;
         SelectedCategory = null;
         _isCategoriesTreeOpen = false;
+    }
+
+    [JSInvokable]
+    public Task OnClick()
+    {
+        return ToggleCategoriesTree(false);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await JSRuntime.InvokeVoidAsync("finalizeClickInterceptor");
+        _reference?.Dispose();
+
+        GC.SuppressFinalize(this);
+    }
+
+    protected override void OnInitialized()
+    {
+        _reference = DotNetObjectReference.Create(this);
     }
 
     protected override async Task OnInitializedAsync()
@@ -55,9 +80,19 @@ public partial class CategorySelector : ComponentBase
         InitialTreeItems.Filter(searchTerm);
     }
 
-    private void ToggleCategoriesTree(bool? isOpen = null)
+    private async Task ToggleCategoriesTree(bool? isOpen = null)
     {
         isOpen ??= !_isCategoriesTreeOpen;
         _isCategoriesTreeOpen = isOpen.Value;
+        StateHasChanged();
+
+        if (isOpen.Value)
+        {
+            await JSRuntime.InvokeVoidAsync("initializeClickInterceptor", _reference);
+        }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("finalizeClickInterceptor");
+        }
     }
 }

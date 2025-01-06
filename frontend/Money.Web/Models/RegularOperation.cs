@@ -32,7 +32,7 @@ public class RegularOperation
     /// </summary>
     public string? Place { get; set; }
 
-    public RegularOperationTimeTypes.Value TimeType { get; set; }
+    public required RegularOperationTimeTypes.Value TimeType { get; set; }
 
     public int? TimeValue { get; set; }
 

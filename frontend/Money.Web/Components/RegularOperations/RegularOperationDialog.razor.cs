@@ -52,7 +52,6 @@ public partial class RegularOperationDialog
             DateTo = RegularOperation.DateTo,
             TimeType = RegularOperation.TimeType,
             TimeValue = RegularOperation.TimeValue,
-            RunTime = RegularOperation.RunTime,
         };
 
         MudDialog.SetOptions(_dialogOptions);
@@ -87,7 +86,7 @@ public partial class RegularOperationDialog
             await SaveAsync();
             SnackbarService.Add("Успех!", Severity.Success);
 
-            RegularOperation.Name = Input.Name!;
+            RegularOperation.Name = Input.Name;
             RegularOperation.Category = Input.Category ?? throw new MoneyException("Категория операции не может быть null");
             RegularOperation.Sum = sum.Value;
             RegularOperation.Comment = Input.Comment;
@@ -132,7 +131,7 @@ public partial class RegularOperationDialog
         {
             CategoryId = Input.Category?.Id ?? throw new MoneyException("Идентификатор отсутствует при сохранении операции"),
             Comment = Input.Comment,
-            Name = Input.Name!,
+            Name = Input.Name,
             Sum = _smartSum.Sum,
             Place = Input.Place,
             DateFrom = Input.DateFrom!.Value,
@@ -165,7 +164,9 @@ public partial class RegularOperationDialog
     {
         public static readonly InputModel Empty = new()
         {
+            Name = "Незаполнен",
             Category = Category.Empty,
+            TimeType = RegularOperationTimeTypes.None,
         };
 
         [Required(ErrorMessage = "Заполни меня")]
@@ -174,13 +175,13 @@ public partial class RegularOperationDialog
         public List<Category>? CategoryList { get; set; }
 
         [Required(ErrorMessage = "Заполни меня")]
-        public string? Name { get; set; }
+        public required string Name { get; set; }
 
         public string? Comment { get; set; }
 
         public string? Place { get; set; }
 
-        public RegularOperationTimeTypes.Value TimeType { get; set; }
+        public required RegularOperationTimeTypes.Value TimeType { get; set; }
 
         public int? TimeValue { get; set; }
 
@@ -188,7 +189,5 @@ public partial class RegularOperationDialog
         public DateTime? DateFrom { get; set; }
 
         public DateTime? DateTo { get; set; }
-
-        public DateTime? RunTime { get; set; }
     }
 }

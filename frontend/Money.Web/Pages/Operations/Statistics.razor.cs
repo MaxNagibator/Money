@@ -5,8 +5,8 @@ namespace Money.Web.Pages.Operations;
 
 public partial class Statistics
 {
-    private Dictionary<int, BarChart> _barCharts = null!;
-    private Dictionary<int, PieChart> _pieCharts = null!;
+    private Dictionary<int, BarChart>? _barCharts;
+    private Dictionary<int, PieChart>? _pieCharts;
     private List<Category>? _categories;
 
     private Dictionary<int, List<TreeItemData<OperationCategorySum>>> Sums { get; } = [];
@@ -47,7 +47,7 @@ public partial class Statistics
                                  .ToList()
                              ?? [];
 
-            tasks.Add(_barCharts[operationType.Id].UpdateAsync(args.Operations, categories, OperationsFilter.DateRange));
+            tasks.Add(_barCharts![operationType.Id].UpdateAsync(args.Operations, categories, OperationsFilter.DateRange));
 
             if (_categories is not { Count: not 0 } || operationGroups == null)
             {
@@ -57,7 +57,7 @@ public partial class Statistics
             var cats = _categories.Where(x => x.OperationType.Id == operationType.Id).ToList();
             var categorySums = CalculateCategorySums(cats, operationGroups, null);
 
-            tasks.Add(_pieCharts[operationType.Id].UpdateAsync(categorySums));
+            tasks.Add(_pieCharts![operationType.Id].UpdateAsync(categorySums));
             var sums = BuildChildren(categorySums);
 
             Sums[operationType.Id] =

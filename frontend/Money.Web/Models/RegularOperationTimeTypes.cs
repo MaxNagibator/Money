@@ -2,6 +2,8 @@
 
 public static class RegularOperationTimeTypes
 {
+    public static readonly Value None = new(0, "Неизвестный тип");
+
     public static Dictionary<int, Value> Values { get; } = GetValues();
 
     private static Dictionary<int, Value> GetValues()

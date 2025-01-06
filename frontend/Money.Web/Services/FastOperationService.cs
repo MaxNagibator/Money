@@ -7,10 +7,10 @@ public class FastOperationService(MoneyClient moneyClient, CategoryService categ
     // TODO: Подумать над вынесением ToDictionary() в CategoryService.
     public async Task<List<FastOperation>> GetAllAsync()
     {
-        var fastOperations = await moneyClient.FastOperation.Get();
+        var response = await moneyClient.FastOperation.Get();
         var categories = (await categoryService.GetAllAsync()).ToDictionary(x => x.Id!.Value, x => x);
 
-        return fastOperations.Content?
+        return response.Content?
                    .Select(apiCategory => new FastOperation
                    {
                        Id = apiCategory.Id,

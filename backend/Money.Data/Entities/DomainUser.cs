@@ -21,7 +21,7 @@ public class DomainUser
 
     public int NextDebtUserId { get; set; }
 
-    public byte[] RowVersion { get; set; }
+    public byte[]? RowVersion { get; set; }
 }
 
 public class DomainUserConfiguration : IEntityTypeConfiguration<DomainUser>
