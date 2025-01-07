@@ -37,6 +37,11 @@ public class DebtClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
         return PostAsync($"{BaseUri}/{id}/Restore");
     }
 
+    public Task<ApiClientResponse> PayDebt(int id, PayRequest request)
+    {
+        return PostAsync($"{BaseUri}/{id}/Pay", request);
+    }
+
     public class SaveRequest
     {
         public int TypeId { get; set; }
@@ -59,5 +64,15 @@ public class DebtClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
     public class Debt : SaveRequest
     {
         public required int Id { get; set; }
+    }
+
+
+    public class PayRequest
+    {
+        public decimal Sum { get; set; }
+
+        public string? Comment { get; set; }
+
+        public DateTime Date { get; set; }
     }
 }

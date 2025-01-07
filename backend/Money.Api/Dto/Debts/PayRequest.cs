@@ -1,21 +1,18 @@
-﻿using Money.Business.Enums;
-
-namespace Money.Api.Dto.Debts;
+﻿namespace Money.Api.Dto.Debts;
 
 /// <summary>
-/// Запрос на сохранение долга.
+/// Запрос на оплату долга.
 /// </summary>
-public class DebtSaveRequest
+public class PayRequest
 {
-    public int TypeId { get; init; }
-
     public decimal Sum { get; init; }
 
     public string? Comment { get; init; }
 
-    public required string DebtUserName { get; init; }
-
-    public DateTime Date { get; init; }
+    /// <summary>
+    /// Дата.
+    /// </summary>
+    public DateTime Date { get; set; }
 
     /// <summary>
     /// Преобразует текущую DTO-модель в бизнес-модель.
@@ -23,15 +20,13 @@ public class DebtSaveRequest
     /// <returns>
     /// Экземпляр <see cref="Business.Models.Debt" />, который представляет бизнес-модель.
     /// </returns>
-    public Debt ToBusinessModel()
+    public DebtPayment ToBusinessModel()
     {
-        return new()
+        return new DebtPayment()
         {
             Sum = Sum,
             Comment = Comment,
             Date = Date,
-            DebtUserName = DebtUserName,
-            Type = (DebtTypes)TypeId,
         };
     }
 }

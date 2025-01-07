@@ -7,6 +7,8 @@ public class DebtService(
     ApplicationDbContext context,
     UserService userService)
 {
+    private const string PaySumMoreSumExceptionText = "Извините, но сумма оплаты долга не может превышать сумму долга";
+
     public async Task<IEnumerable<Debt>> GetAsync(bool withPaid = false, CancellationToken cancellationToken = default)
     {
         var query = context.Debts.IsUserEntity(environment.UserId);
@@ -109,10 +111,7 @@ public class DebtService(
     {
         Validate(debt);
 
-        var dbDebt = await context.Debts
-                         .IsUserEntity(environment.UserId, debt.Id)
-                         .FirstOrDefaultAsync(cancellationToken)
-                     ?? throw new NotFoundException("Долг", debt.Id);
+        var dbDebt = await GetByIdInternal(debt.Id, cancellationToken);
 
         if (dbDebt.StatusId != (int)DebtStatus.Actual)
         {
@@ -121,7 +120,7 @@ public class DebtService(
 
         if (dbDebt.PaySum > 0 && dbDebt.PaySum >= debt.Sum)
         {
-            throw new BusinessException("Извините, но сумма оплаты долга не может превышать сумму долга");
+            throw new BusinessException(PaySumMoreSumExceptionText);
         }
 
         var debtUser = await GetDebtUserAsync(debt, cancellationToken);
@@ -132,6 +131,26 @@ public class DebtService(
         dbDebt.Date = debt.Date;
         dbDebt.TypeId = (int)debt.Type;
 
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task PayAsync(DebtPayment debtPayment, CancellationToken cancellationToken)
+    {
+        var dbDebt = await GetByIdInternal(debtPayment.Id, cancellationToken);
+        if (dbDebt.Sum < dbDebt.PaySum + debtPayment.Sum)
+        {
+            throw new BusinessException(PaySumMoreSumExceptionText);
+        }
+        dbDebt.PaySum += debtPayment.Sum;
+        if (dbDebt.PaySum == dbDebt.Sum)
+        {
+            dbDebt.StatusId = (int)DebtStatus.Paid;
+        }
+        if (!String.IsNullOrEmpty(dbDebt.PayComment))
+        {
+            dbDebt.PayComment += Environment.NewLine;
+        }
+        dbDebt.PayComment += debtPayment.Date.ToString("yyyy.MM.dd") + " " + debtPayment.Sum + " " + debtPayment.Comment;
         await context.SaveChangesAsync(cancellationToken);
     }
 
@@ -157,12 +176,12 @@ public class DebtService(
 
     private async Task<Data.Entities.Debt> GetByIdInternal(int id, CancellationToken cancellationToken)
     {
-        var dbCategory = await context.Debts
+        var dbDebt = await context.Debts
                              .IsUserEntity(environment.UserId, id)
                              .FirstOrDefaultAsync(cancellationToken)
                          ?? throw new NotFoundException("Долг", id);
 
-        return dbCategory;
+        return dbDebt;
     }
 
     private Debt GetBusinessModel(Data.Entities.Debt dbDebt, IEnumerable<Data.Entities.DebtUser> dbDebtUsers)

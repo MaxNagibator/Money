@@ -14,7 +14,7 @@ public class TestDebt : TestObject
         User = user;
 
         Type = TestRandom.GetEnum<DebtTypes>(); // todo сделать рандом для энумов
-        Sum = TestRandom.GetInt();
+        Sum = TestRandom.GetInt(minValue: 1);
         Comment = TestRandom.GetString("Comment");
         PayComment = TestRandom.GetString("PayComment");
         DebtUserName = TestRandom.GetString("User");
@@ -33,7 +33,7 @@ public class TestDebt : TestObject
 
     public DebtTypes Type { get; }
 
-    public decimal Sum { get; }
+    public decimal Sum { get; private set; }
 
     public string? Comment { get; }
 
@@ -55,6 +55,11 @@ public class TestDebt : TestObject
     public TestDebt SetIsDeleted()
     {
         IsDeleted = true;
+        return this;
+    }
+    public TestDebt SetSum(decimal value)
+    {
+        Sum = value;
         return this;
     }
 

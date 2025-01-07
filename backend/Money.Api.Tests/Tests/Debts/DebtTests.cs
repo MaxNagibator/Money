@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Money.ApiClient;
+using Money.Business.Enums;
 using Money.Data.Extensions;
 
 namespace Money.Api.Tests.Debts;
@@ -159,5 +160,47 @@ public class DebtTests
         var dbDebt = context.Debts.SingleOrDefault(_user.Id, debt.Id);
         Assert.That(dbDebt, Is.Not.Null);
         Assert.That(dbDebt.IsDeleted, Is.EqualTo(false));
+    }
+
+    [Test]
+    public async Task PayFullTest()
+    {
+        var debt = _user.WithDebt();
+        _dbClient.Save();
+
+        var request = new DebtClient.PayRequest
+        {
+            Sum = debt.Sum,
+            Comment = "Всё вернул в срок, красава",
+            Date = DateTime.Now.Date,
+        };
+        await _apiClient.Debt.PayDebt(debt.Id, request).IsSuccess();
+
+        await using var context = _dbClient.CreateApplicationDbContext();
+
+        var dbDebt = context.Debts.Single(_user.Id, debt.Id);
+        Assert.That(dbDebt.PaySum, Is.EqualTo(debt.Sum));
+        Assert.That(dbDebt.StatusId, Is.EqualTo((int)DebtStatus.Paid));
+    }
+
+    [Test]
+    public async Task PayPartTest()
+    {
+        var debt = _user.WithDebt().SetSum(100);
+        _dbClient.Save();
+
+        var request = new DebtClient.PayRequest
+        {
+            Sum = 20,
+            Comment = "Всё вернул в срок, красава",
+            Date = DateTime.Now.Date,
+        };
+        await _apiClient.Debt.PayDebt(debt.Id, request).IsSuccess();
+
+        await using var context = _dbClient.CreateApplicationDbContext();
+
+        var dbDebt = context.Debts.Single(_user.Id, debt.Id);
+        Assert.That(dbDebt.PaySum, Is.EqualTo(request.Sum));
+        Assert.That(dbDebt.StatusId, Is.EqualTo((int)DebtStatus.Actual));
     }
 }

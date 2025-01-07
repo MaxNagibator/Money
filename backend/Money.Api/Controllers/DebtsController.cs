@@ -58,9 +58,9 @@ public class DebtsController(DebtService debtService) : ControllerBase
     }
 
     /// <summary>
-    /// Обновить существующую быструю операцию.
+    /// Обновить долг.
     /// </summary>
-    /// <param name="id">Идентификатор операции.</param>
+    /// <param name="id">Идентификатор.</param>
     /// <param name="request">Данные для обновления операции.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     [HttpPut("{id:int}")]
@@ -103,6 +103,24 @@ public class DebtsController(DebtService debtService) : ControllerBase
     public async Task<IActionResult> Restore(int id, CancellationToken cancellationToken)
     {
         await debtService.RestoreAsync(id, cancellationToken);
+        return Ok();
+    }
+
+    /// <summary>
+    /// Оплатить долг.
+    /// </summary>
+    /// <param name="id">Идентификатор.</param>
+    /// <param name="request">Данные для обновления операции.</param>
+    /// <param name="cancellationToken">Токен отмены запроса.</param>
+    [HttpPost("{id:int}/Pay")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Pay(int id, [FromBody] PayRequest request, CancellationToken cancellationToken)
+    {
+        var business = request.ToBusinessModel();
+        business.Id = id;
+        await debtService.PayAsync(business, cancellationToken);
         return Ok();
     }
 }
