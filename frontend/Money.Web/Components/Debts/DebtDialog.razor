@@ -1,0 +1,77 @@
+﻿<EditForm Model="@Input"
+          OnValidSubmit="SubmitAsync">
+    <DataAnnotationsValidator />
+    <MudDialog>
+        <TitleContent>
+            <MudText Typo="Typo.h6">
+                @MudDialog.Title
+            </MudText>
+        </TitleContent>
+        <DialogContent>
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudTextField AdornmentColor="Color.Tertiary"
+                                  AdornmentIcon="@Icons.Material.Rounded.Comment"
+                                  AutoGrow
+                                  @bind-Value="Input.DebtUserName"
+                                  For="() => Input.DebtUserName"
+                                  Label="Имя" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudDatePicker AdornmentColor="Color.Tertiary"
+                                   @bind-Date="Input.Date"
+                                   Color="Color.Tertiary"
+                                   DateFormat="dd.MM.yyyy"
+                                   Editable
+                                   For="() => Input.Date"
+                                   Label="Дата"
+                                   Mask="@(new DateMask("dd.MM.yyyy"))" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <SmartSum @ref="_smartSum"
+                              GetInitialSum="() => Entity.Sum" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudSelect AdornmentColor="Color.Tertiary"
+                               @bind-Value="Input.Type"
+                               For="() => Input.Type" Label="Тип">
+                        @foreach (var state in DebtTypes.Values.Values)
+                        {
+                            <MudSelectItem @key="state.Id" Value="state">@state.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudTextField AdornmentColor="Color.Tertiary"
+                                  AdornmentIcon="@Icons.Material.Rounded.Comment"
+                                  AutoGrow
+                                  @bind-Value="Input.Comment"
+                                  Counter="0"
+                                  For="() => Input.Comment"
+                                  Label="Комментарий" />
+                </MudItem>
+            </MudGrid>
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="Cancel">Отмена</MudButton>
+            <MudButton ButtonType="ButtonType.Submit"
+                       Color="Color.Success"
+                       Disabled="@_isProcessing">
+                @if (_isProcessing)
+                {
+                    <MudProgressCircular Class="ms-n1"
+                                         Indeterminate="true"
+                                         Size="Size.Small" />
+                }
+                else
+                {
+                    <MudText Typo="Typo.button">Сохранить</MudText>
+                }
+            </MudButton>
+        </DialogActions>
+    </MudDialog>
+</EditForm>

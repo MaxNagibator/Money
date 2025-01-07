@@ -8,7 +8,7 @@ public class Debt
     /// <summary>
     /// Идентификатор.
     /// </summary>
-    public int Id { get; set; }
+    public int? Id { get; set; }
 
     public required DebtTypes.Value Type { get; set; }
 

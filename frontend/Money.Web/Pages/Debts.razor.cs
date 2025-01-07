@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Money.Web.Components.Debts;
 
 namespace Money.Web.Pages;
 
 public partial class Debts
 {
-    private Dictionary<DebtTypes.Value, List<DebtsByUser>> _debts = [];
+    private Dictionary<DebtTypes.Value, List<DebtUser>> _debts = [];
 
     [Inject]
     private DebtService DebtService { get; set; } = null!;
@@ -16,22 +17,23 @@ public partial class Debts
     {
         var debts = await DebtService.GetAllAsync();
 
-        _debts = debts.OrderByDescending(x => x.Date)
+        var typedDebts = debts.OrderByDescending(x => x.Date)
             .GroupBy(x => x.Type)
-            .OrderByDescending(x => x.Key.Id)
-            .ToDictionary(x => x.Key, x => x.GroupBy(d => d.DebtUserName)
-                .Select(d => new DebtsByUser(d.Key, d.ToList()))
-                .ToList());
+            .OrderByDescending(x => x.Key.Id);
+
+        _debts = typedDebts.ToDictionary(x => x.Key, x => x
+            .GroupBy(d => d.DebtUserName)
+            .Select(d => new DebtUser(d.Key, d.ToList()))
+            .ToList());
     }
 
-    public record DebtsByUser(string UserName, List<Debt> Debts);
-
-    /*private async Task Create()
+    private async Task Create()
     {
         var input = new Debt
         {
-            Name = string.Empty,
-            Category = Category.Empty,
+            Type = DebtTypes.None,
+            DebtUserName = string.Empty,
+            Date = DateTime.Now.Date,
         };
 
         var created = await ShowDialog("Создать", input);
@@ -41,22 +43,39 @@ public partial class Debts
             return;
         }
 
-        _debts.Insert(0, created);
+        if (_debts.TryGetValue(created.Type, out var users) == false)
+        {
+            _debts[created.Type] = users = [];
+        }
+
+        var user = users.Find(x => x.UserName == created.DebtUserName);
+
+        if (user == null)
+        {
+            users.Add(new(created.DebtUserName, [created]));
+        }
+        else
+        {
+            user.Debts.Add(created);
+        }
     }
 
-    private Task<Debt?> Update(Debt fastOperation)
+    // TODO: Подумать над перемещением долга при изменении типа или пользователя
+    private Task<Debt?> Update(Debt entity)
     {
-        return ShowDialog("Обновить", fastOperation);
+        return ShowDialog("Обновить", entity);
     }
 
-    private async Task<Debt?> ShowDialog(string title, Debt fastOperation)
+    private async Task<Debt?> ShowDialog(string title, Debt entity)
     {
         DialogParameters<DebtDialog> parameters = new()
         {
-            { dialog => dialog.Debt, fastOperation },
+            { dialog => dialog.Entity, entity },
         };
 
         var dialog = await DialogService.ShowAsync<DebtDialog>(title, parameters);
         return await dialog.GetReturnValueAsync<Debt>();
-    }*/
+    }
 }
+
+public record DebtUser(string UserName, List<Debt> Debts);
