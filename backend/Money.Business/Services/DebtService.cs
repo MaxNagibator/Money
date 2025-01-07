@@ -154,6 +154,41 @@ public class DebtService(
         await context.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task MergeDebtUsersAsync(int fromUserId, int toUserId, CancellationToken cancellationToken)
+    {
+        if (fromUserId == toUserId)
+        {
+            throw new BusinessException("Нужно выбрать разных держателей долга");
+        }
+
+        var dbFromUser = await context.DebtUsers
+            .IsUserEntity(environment.UserId)
+            .FirstOrDefaultAsync(x => x.Id == fromUserId, cancellationToken);
+        if (dbFromUser == null)
+        {
+            throw new BusinessException("Сливаемый не найден");
+        }
+
+        var dbToUser = await context.DebtUsers
+            .IsUserEntity(environment.UserId)
+            .FirstOrDefaultAsync(x => x.Id == toUserId, cancellationToken);
+        if (dbToUser == null)
+        {
+            throw new BusinessException("Поглощающий не найден");
+        }
+
+        var dbDebts = await context.Debts.IsUserEntity(environment.UserId)
+            .Where(x => x.DebtUserId == dbFromUser.Id)
+            .ToListAsync(cancellationToken);
+
+        foreach (var dbDebt in dbDebts)
+        {
+            dbDebt.DebtUserId = toUserId;
+        }
+        context.DebtUsers.Remove(dbFromUser);
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
         var dbDebt = await GetByIdInternal(id, cancellationToken);

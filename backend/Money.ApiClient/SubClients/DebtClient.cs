@@ -42,6 +42,11 @@ public class DebtClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
         return PostAsync($"{BaseUri}/{id}/Pay", request);
     }
 
+    public Task<ApiClientResponse> MergeDebtUsers(int fromUserId, int toUserId)
+    {
+        return PostAsync($"{BaseUri}/MergeDebtUsers/{fromUserId}/to/{toUserId}");
+    }
+
     public class SaveRequest
     {
         public int TypeId { get; set; }

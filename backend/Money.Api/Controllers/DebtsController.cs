@@ -123,4 +123,20 @@ public class DebtsController(DebtService debtService) : ControllerBase
         await debtService.PayAsync(business, cancellationToken);
         return Ok();
     }
+
+    /// <summary>
+    /// Перенести все долги из одного пользователя в другого.
+    /// </summary>
+    /// <param name="fromUserId">Идентификатор сливаемого должника .</param>
+    /// <param name="toUserId">Идентификатор полгощающего должника.</param>
+    /// <param name="cancellationToken">Токен отмены запроса.</param>
+    [HttpPost("MergeDebtUsers/{fromUserId}/to/{toUserId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> MergeDebtUsers(int fromUserId, int toUserId, CancellationToken cancellationToken)
+    {
+        await debtService.MergeDebtUsersAsync(fromUserId, toUserId, cancellationToken);
+        return Ok();
+    }
 }

@@ -37,7 +37,9 @@ public class TestDebt : TestObject
 
     public string? Comment { get; }
 
-    public string DebtUserName { get; }
+    public string DebtUserName { get; private set; }
+
+    public int DebtUserId { get; private set; }
 
     public DateTime Date { get; }
 
@@ -60,6 +62,12 @@ public class TestDebt : TestObject
     public TestDebt SetSum(decimal value)
     {
         Sum = value;
+        return this;
+    }
+
+    public TestDebt SetDebtUserName(string value)
+    {
+        DebtUserName = value;
         return this;
     }
 
@@ -97,6 +105,8 @@ public class TestDebt : TestObject
 
             Environment.Context.DebtUsers.Add(dbDebtUser);
         }
+
+        DebtUserId = dbDebtUser.Id;
 
         if (IsNew)
         {

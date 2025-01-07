@@ -203,4 +203,27 @@ public class DebtTests
         Assert.That(dbDebt.PaySum, Is.EqualTo(request.Sum));
         Assert.That(dbDebt.StatusId, Is.EqualTo((int)DebtStatus.Actual));
     }
+
+    [Test]
+    public async Task MergeDebtUsersTest()
+    {
+        var debt1 = _user.WithDebt().SetDebtUserName("User1");
+        var debt2 = _user.WithDebt().SetDebtUserName("User2");
+        _dbClient.Save();
+
+        var fromUserId = debt1.DebtUserId;
+        var toUserId = debt2.DebtUserId;
+
+        await _apiClient.Debt.MergeDebtUsers(fromUserId, debt2.DebtUserId).IsSuccess();
+
+        await using var context = _dbClient.CreateApplicationDbContext();
+
+        var dbDebts = context.Debts.Where(x => x.UserId == debt1.User.Id).ToList();
+        var dbDebtUser = context.DebtUsers.FirstOrDefault(x => x.UserId == debt1.User.Id && x.Id == fromUserId);
+        Assert.That(dbDebtUser, Is.Null);
+        Assert.That(dbDebts.Count, Is.EqualTo(2));
+        Assert.That(dbDebts[0].DebtUserId, Is.EqualTo(toUserId));
+        Assert.That(dbDebts[1].DebtUserId, Is.EqualTo(toUserId));
+
+    }
 }
