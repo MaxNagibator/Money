@@ -13,7 +13,7 @@ public class ApplicationDbContext(DbContextOptions options) : IdentityDbContext<
     public DbSet<RegularOperation> RegularOperations { get; set; } = null!;
     public DbSet<Place> Places { get; set; } = null!;
     public DbSet<Debt> Debts { get; set; } = null!;
-    public DbSet<DebtUser> DebtUsers { get; set; } = null!;
+    public DbSet<DebtOwner> DebtOwners { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

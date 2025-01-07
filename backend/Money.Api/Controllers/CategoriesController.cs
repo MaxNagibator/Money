@@ -51,7 +51,7 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     [ProducesResponseType(typeof(int), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Create([FromBody] CategorySaveRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Create([FromBody] SaveRequest request, CancellationToken cancellationToken)
     {
         var business = request.ToBusinessModel();
         var result = await categoryService.CreateAsync(business, cancellationToken);
@@ -69,7 +69,7 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Update(int id, [FromBody] CategorySaveRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Update(int id, [FromBody] SaveRequest request, CancellationToken cancellationToken)
     {
         var business = request.ToBusinessModel();
         business.Id = id;

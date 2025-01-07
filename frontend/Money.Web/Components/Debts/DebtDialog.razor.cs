@@ -39,9 +39,8 @@ public partial class DebtDialog
         Input = new()
         {
             Type = Entity.Type == DebtTypes.None ? null : Entity.Type,
-            Sum = Entity.Sum,
             Comment = Entity.Comment,
-            DebtUserName = Entity.DebtUserName,
+            OwnerName = Entity.OwnerName,
             Date = Entity.Date,
         };
 
@@ -67,9 +66,9 @@ public partial class DebtDialog
             SnackbarService.Add("Успех!", Severity.Success);
 
             Entity.Type = Input.Type!;
-            Entity.Sum = Input.Sum;
+            Entity.Sum = _smartSum.Sum;
             Entity.Comment = Input.Comment;
-            Entity.DebtUserName = Input.DebtUserName!;
+            Entity.OwnerName = Input.OwnerName!;
             Entity.Date = Input.Date!.Value;
 
             MudDialog.Close(DialogResult.Ok(Entity));
@@ -103,9 +102,9 @@ public partial class DebtDialog
         return new()
         {
             TypeId = Input.Type!.Id,
-            Sum = Input.Sum,
+            Sum = _smartSum.Sum,
             Comment = Input.Comment,
-            DebtUserName = Input.DebtUserName!,
+            OwnerName = Input.OwnerName!,
             Date = Input.Date!.Value,
         };
     }
@@ -122,13 +121,10 @@ public partial class DebtDialog
         [Required(ErrorMessage = "Заполни меня")]
         public DebtTypes.Value? Type { get; set; }
 
-        [Required(ErrorMessage = "Заполни меня")]
-        public decimal Sum { get; set; }
-
         public string? Comment { get; set; }
 
         [Required(ErrorMessage = "Заполни меня")]
-        public string? DebtUserName { get; set; }
+        public string? OwnerName { get; set; }
 
         [Required(ErrorMessage = "Заполни меня")]
         public DateTime? Date { get; set; }

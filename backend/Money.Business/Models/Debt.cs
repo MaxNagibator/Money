@@ -10,7 +10,7 @@ public class Debt
 
     public string? Comment { get; set; }
 
-    public required string DebtUserName { get; set; }
+    public required string OwnerName { get; set; }
 
     public DateTime Date { get; set; }
 

@@ -6,10 +6,9 @@ public class DebtClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
 
     protected override string ApiPrefix => "";
 
-    public Task<ApiClientResponse<Debt[]>> Get(int? type = null)
+    public Task<ApiClientResponse<Debt[]>> Get()
     {
-        var paramUri = type == null ? "" : $"?type={type}";
-        return GetAsync<Debt[]>($"{BaseUri}{paramUri}");
+        return GetAsync<Debt[]>(BaseUri);
     }
 
     public Task<ApiClientResponse<Debt>> GetById(int id)
@@ -37,14 +36,14 @@ public class DebtClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
         return PostAsync($"{BaseUri}/{id}/Restore");
     }
 
-    public Task<ApiClientResponse> PayDebt(int id, PayRequest request)
+    public Task<ApiClientResponse> Pay(int id, PayRequest request)
     {
         return PostAsync($"{BaseUri}/{id}/Pay", request);
     }
 
-    public Task<ApiClientResponse> MergeDebtUsers(int fromUserId, int toUserId)
+    public Task<ApiClientResponse> MergeOwners(int fromUserId, int toUserId)
     {
-        return PostAsync($"{BaseUri}/MergeDebtUsers/{fromUserId}/to/{toUserId}");
+        return PostAsync($"{BaseUri}/MergeOwners/{fromUserId}/with/{toUserId}");
     }
 
     public class SaveRequest
@@ -55,22 +54,19 @@ public class DebtClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
 
         public string? Comment { get; set; }
 
-        public required string DebtUserName { get; set; }
+        public required string OwnerName { get; set; }
 
         public DateTime Date { get; set; }
-
-        public decimal PaySum { get; set; }
-
-        public string? PayComment { get; set; }
-
-        public bool IsDeleted { get; set; }
     }
 
     public class Debt : SaveRequest
     {
         public required int Id { get; set; }
-    }
 
+        public decimal PaySum { get; set; }
+
+        public string? PayComment { get; set; }
+    }
 
     public class PayRequest
     {

@@ -17,7 +17,7 @@ public class TestDebt : TestObject
         Sum = TestRandom.GetInt(minValue: 1);
         Comment = TestRandom.GetString("Comment");
         PayComment = TestRandom.GetString("PayComment");
-        DebtUserName = TestRandom.GetString("User");
+        OwnerName = TestRandom.GetString("User");
 
         Date = DateTime.Now.Date;
         Status = DebtStatus.Actual;
@@ -37,9 +37,9 @@ public class TestDebt : TestObject
 
     public string? Comment { get; }
 
-    public string DebtUserName { get; private set; }
+    public string OwnerName { get; private set; }
 
-    public int DebtUserId { get; private set; }
+    public int OwnerId { get; private set; }
 
     public DateTime Date { get; }
 
@@ -65,17 +65,17 @@ public class TestDebt : TestObject
         return this;
     }
 
-    public TestDebt SetDebtUserName(string value)
+    public TestDebt SetOwnerName(string value)
     {
-        DebtUserName = value;
+        OwnerName = value;
         return this;
     }
 
-    private void FillDbProperties(Debt dbDebt, int debtUserId)
+    private void FillDbProperties(Debt dbDebt, int ownerId)
     {
         dbDebt.Sum = Sum;
         dbDebt.TypeId = (int)Type;
-        dbDebt.DebtUserId = debtUserId;
+        dbDebt.OwnerId = ownerId;
         dbDebt.Comment = Comment;
         dbDebt.UserId = User.Id;
         dbDebt.Date = Date;
@@ -88,25 +88,25 @@ public class TestDebt : TestObject
     {
         var dbUser = Environment.Context.DomainUsers.Single(x => x.Id == User.Id);
 
-        var dbDebtUser = Environment.Context.DebtUsers
-            .SingleOrDefault(x => x.UserId == User.Id && x.Name == DebtUserName);
+        var dbOwner = Environment.Context.DebtOwners
+            .SingleOrDefault(x => x.UserId == User.Id && x.Name == OwnerName);
 
-        if (dbDebtUser == null)
+        if (dbOwner == null)
         {
-            var debtUserId = dbUser.NextDebtUserId;
-            dbUser.NextDebtUserId++;
+            var debtOwnerId = dbUser.NextDebtOwnerId;
+            dbUser.NextDebtOwnerId++;
 
-            dbDebtUser = new()
+            dbOwner = new()
             {
-                Name = DebtUserName,
+                Name = OwnerName,
                 UserId = User.Id,
-                Id = debtUserId,
+                Id = debtOwnerId,
             };
 
-            Environment.Context.DebtUsers.Add(dbDebtUser);
+            Environment.Context.DebtOwners.Add(dbOwner);
         }
 
-        DebtUserId = dbDebtUser.Id;
+        OwnerId = dbOwner.Id;
 
         if (IsNew)
         {
@@ -118,7 +118,7 @@ public class TestDebt : TestObject
                 Id = debtId,
             };
 
-            FillDbProperties(obj, dbDebtUser.Id);
+            FillDbProperties(obj, dbOwner.Id);
             Environment.Context.Debts.Add(obj);
             IsNew = false;
             Environment.Context.SaveChanges();
@@ -130,7 +130,7 @@ public class TestDebt : TestObject
                 .IsUserEntity(User.Id, Id)
                 .First();
 
-            FillDbProperties(obj, dbDebtUser.Id);
+            FillDbProperties(obj, dbOwner.Id);
             Environment.Context.SaveChanges();
         }
     }

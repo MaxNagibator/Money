@@ -22,7 +22,7 @@ public partial class Debts
             .OrderByDescending(x => x.Key.Id);
 
         _debts = typedDebts.ToDictionary(x => x.Key, x => x
-            .GroupBy(d => d.DebtUserName)
+            .GroupBy(d => d.OwnerName)
             .Select(d => new DebtUser(d.Key, d.ToList()))
             .ToList());
     }
@@ -32,7 +32,7 @@ public partial class Debts
         var input = new Debt
         {
             Type = DebtTypes.None,
-            DebtUserName = string.Empty,
+            OwnerName = string.Empty,
             Date = DateTime.Now.Date,
         };
 
@@ -48,11 +48,11 @@ public partial class Debts
             _debts[created.Type] = users = [];
         }
 
-        var user = users.Find(x => x.UserName == created.DebtUserName);
+        var user = users.Find(x => x.UserName == created.OwnerName);
 
         if (user == null)
         {
-            users.Add(new(created.DebtUserName, [created]));
+            users.Add(new(created.OwnerName, [created]));
         }
         else
         {

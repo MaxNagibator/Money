@@ -5,7 +5,7 @@ namespace Money.Api.Dto.Categories;
 /// <summary>
 /// Запрос на сохранение категории операции.
 /// </summary>
-public class CategorySaveRequest
+public class SaveRequest
 {
     /// <summary>
     /// Цвет категории операции.

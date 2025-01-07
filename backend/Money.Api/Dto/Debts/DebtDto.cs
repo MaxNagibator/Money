@@ -10,20 +10,44 @@ public class DebtDto
     /// </summary>
     public int Id { get; set; }
 
+    /// <summary>
+    /// Идентификатор типа.
+    /// </summary>
     public int TypeId { get; set; }
 
+    /// <summary>
+    /// Сумма.
+    /// </summary>
     public decimal Sum { get; set; }
 
+    /// <summary>
+    /// Комментарий.
+    /// </summary>
     public string? Comment { get; set; }
 
-    public required string DebtUserName { get; set; }
+    /// <summary>
+    /// Имя держателя.
+    /// </summary>
+    public required string OwnerName { get; set; }
 
+    /// <summary>
+    /// Дата возникновения.
+    /// </summary>
     public DateTime Date { get; set; }
 
+    /// <summary>
+    /// Оплаченная сумма.
+    /// </summary>
     public decimal PaySum { get; set; }
 
+    /// <summary>
+    /// Комментарии к оплате.
+    /// </summary>
     public string? PayComment { get; set; }
 
+    /// <summary>
+    /// Удален.
+    /// </summary>
     public bool IsDeleted { get; set; }
 
     /// <summary>
@@ -39,7 +63,7 @@ public class DebtDto
             Sum = business.Sum,
             Comment = business.Comment,
             Date = business.Date,
-            DebtUserName = business.DebtUserName,
+            OwnerName = business.OwnerName,
             PaySum = business.PaySum,
             PayComment = business.PayComment,
             TypeId = (int)business.Type,
