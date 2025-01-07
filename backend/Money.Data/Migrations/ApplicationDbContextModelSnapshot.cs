@@ -331,7 +331,8 @@ namespace Money.Data.Migrations
                         .HasColumnOrder(2);
 
                     b.Property<string>("Comment")
-                        .HasColumnType("text")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
                         .HasColumnName("comment");
 
                     b.Property<DateTime>("Date")
@@ -347,7 +348,8 @@ namespace Money.Data.Migrations
                         .HasColumnName("is_deleted");
 
                     b.Property<string>("PayComment")
-                        .HasColumnType("text")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
                         .HasColumnName("pay_comment");
 
                     b.Property<decimal>("PaySum")
@@ -369,6 +371,9 @@ namespace Money.Data.Migrations
                     b.HasKey("UserId", "Id")
                         .HasName("pk_debts");
 
+                    b.HasIndex("UserId", "DebtUserId")
+                        .HasDatabaseName("ix_debts_user_id_debt_user_id");
+
                     b.ToTable("debts", (string)null);
                 });
 
@@ -386,7 +391,8 @@ namespace Money.Data.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
                         .HasColumnName("name");
 
                     b.HasKey("UserId", "Id")
@@ -409,32 +415,53 @@ namespace Money.Data.Migrations
                         .HasColumnName("auth_user_id");
 
                     b.Property<int>("NextCategoryId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
+                        .HasDefaultValue(1)
                         .HasColumnName("next_category_id");
 
                     b.Property<int>("NextDebtId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
+                        .HasDefaultValue(1)
                         .HasColumnName("next_debt_id");
 
                     b.Property<int>("NextDebtUserId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
+                        .HasDefaultValue(1)
                         .HasColumnName("next_debt_user_id");
 
                     b.Property<int>("NextFastOperationId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
+                        .HasDefaultValue(1)
                         .HasColumnName("next_fast_operation_id");
 
                     b.Property<int>("NextOperationId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
+                        .HasDefaultValue(1)
                         .HasColumnName("next_operation_id");
 
                     b.Property<int>("NextPlaceId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
+                        .HasDefaultValue(1)
                         .HasColumnName("next_place_id");
 
                     b.Property<int>("NextRegularOperationId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
+                        .HasDefaultValue(1)
                         .HasColumnName("next_regular_operation_id");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bytea")
+                        .HasColumnName("row_version");
 
                     b.HasKey("Id")
                         .HasName("pk_domain_users");
@@ -985,6 +1012,15 @@ namespace Money.Data.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_debts_domain_users_user_id");
 
+                    b.HasOne("Money.Data.Entities.DebtUser", "DebtUser")
+                        .WithMany("Debts")
+                        .HasForeignKey("UserId", "DebtUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_debts_debt_users_user_id_debt_user_id");
+
+                    b.Navigation("DebtUser");
+
                     b.Navigation("User");
                 });
 
@@ -1078,6 +1114,11 @@ namespace Money.Data.Migrations
             modelBuilder.Entity("Money.Data.Entities.Category", b =>
                 {
                     b.Navigation("SubCategories");
+                });
+
+            modelBuilder.Entity("Money.Data.Entities.DebtUser", b =>
+                {
+                    b.Navigation("Debts");
                 });
 
             modelBuilder.Entity("OpenIddict.EntityFrameworkCore.Models.OpenIddictEntityFrameworkCoreApplication", b =>

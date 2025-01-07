@@ -54,12 +54,9 @@ public class DebtService(
 
         Validate(debt);
 
-        var dbUser = await userService.GetCurrent(cancellationToken);
+        var debtId = await userService.GetNextDebtIdAsync(cancellationToken);
 
-        var debtId = dbUser.NextDebtId;
-        dbUser.NextDebtId++;
-
-        var debtUser = await GetDebtUserAsync(debt, dbUser);
+        var debtUser = await GetDebtUserAsync(debt, cancellationToken);
 
         var dbDebt = new Data.Entities.Debt
         {
@@ -79,28 +76,22 @@ public class DebtService(
         return debtId;
     }
 
-    private async Task<Data.Entities.DebtUser> GetDebtUserAsync(Debt debt, Data.Entities.DomainUser? dbUser = null, CancellationToken cancellationToken = default)
+    private async Task<Data.Entities.DebtUser> GetDebtUserAsync(Debt debt, CancellationToken cancellationToken = default)
     {
-        if (dbUser == null)
-        {
-            dbUser = await userService.GetCurrent(cancellationToken);
-        }
-        var debtUser = await context.DebtUsers.IsUserEntity(environment.UserId)
+        var debtUser = await context.DebtUsers
+            .IsUserEntity(environment.UserId)
             .FirstOrDefaultAsync(x => x.Name == debt.DebtUserName, cancellationToken);
 
         if (debtUser == null)
         {
-            var debtUserId = dbUser.NextDebtUserId;
-            dbUser.NextDebtUserId++;
-
             debtUser = new()
             {
                 Name = debt.DebtUserName,
                 UserId = environment.UserId.Value,
-                Id = debtUserId,
+                Id = await userService.GetNextDebtUserIdAsync(cancellationToken),
             };
 
-            context.DebtUsers.Add(debtUser);
+            await context.DebtUsers.AddAsync(debtUser, cancellationToken);
         }
 
         return debtUser;
@@ -112,25 +103,28 @@ public class DebtService(
         {
             throw new BusinessException("Извините, но отрицательная сумма недопустима");
         }
-
     }
 
     public async Task UpdateAsync(Debt debt, CancellationToken cancellationToken)
     {
         Validate(debt);
+
         var dbDebt = await context.Debts
-                              .IsUserEntity(environment.UserId, debt.Id)
-                              .FirstOrDefaultAsync(cancellationToken)
-                          ?? throw new NotFoundException("Долг", debt.Id);
+                         .IsUserEntity(environment.UserId, debt.Id)
+                         .FirstOrDefaultAsync(cancellationToken)
+                     ?? throw new NotFoundException("Долг", debt.Id);
+
         if (dbDebt.StatusId != (int)DebtStatus.Actual)
         {
             throw new BusinessException("Извините, но можно обновлять только непогашенные долги");
         }
+
         if (dbDebt.PaySum > 0 && dbDebt.PaySum >= debt.Sum)
         {
             throw new BusinessException("Извините, но сумма оплаты долга не может превышать сумму долга");
         }
-        var debtUser = await GetDebtUserAsync(debt, null, cancellationToken);
+
+        var debtUser = await GetDebtUserAsync(debt, cancellationToken);
 
         dbDebt.Sum = debt.Sum;
         dbDebt.DebtUserId = debtUser.Id;
@@ -185,6 +179,7 @@ public class DebtService(
             Date = dbDebt.Date,
             PaySum = dbDebt.PaySum,
             PayComment = dbDebt.PayComment,
+            IsDeleted = dbDebt.IsDeleted,
         };
     }
 }

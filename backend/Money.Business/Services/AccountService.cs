@@ -42,18 +42,12 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
         return await AddNewUser(authUserId, cancellationToken);
     }
 
+    // TODO Подумать над переносом в сервис
     private async Task<int> AddNewUser(Guid authUserId, CancellationToken cancellationToken)
     {
         var domainUser = new DomainUser
         {
             AuthUserId = authUserId,
-            NextCategoryId = 1,
-            NextOperationId = 1,
-            NextFastOperationId = 1,
-            NextRegularOperationId = 1,
-            NextPlaceId = 1,
-            NextDebtId = 1,
-            NextDebtUserId = 1,
         };
 
         await context.DomainUsers.AddAsync(domainUser, cancellationToken);

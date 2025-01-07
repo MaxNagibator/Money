@@ -49,7 +49,7 @@ public class CategoryDto
             ParentId = category.ParentId,
             Order = category.Order,
             Color = category.Color,
-            OperationTypeId = category.OperationType,
+            OperationTypeId = (int)category.OperationType,
         };
     }
 }

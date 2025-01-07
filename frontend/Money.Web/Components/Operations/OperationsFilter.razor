@@ -22,7 +22,7 @@
                                 T="DateInterval?"
                                 Value="SelectedRange"
                                 ValueChanged="@(OnDateIntervalChanged)">
-                    @foreach (DateInterval interval in DateIntervals)
+                    @foreach (var interval in DateIntervals)
                     {
                         <MudToggleItem Value="interval">@interval.DisplayName</MudToggleItem>
                     }

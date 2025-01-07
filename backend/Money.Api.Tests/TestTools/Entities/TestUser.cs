@@ -7,7 +7,6 @@ public class TestUser : TestObject
 {
     public TestUser()
     {
-        IsNew = true;
         Login = $"test_{Guid.NewGuid()}@bobgroup.test.ru";
         Password = "123Qwerty9000!";
     }

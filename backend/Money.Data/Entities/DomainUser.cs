@@ -1,11 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-
-namespace Money.Data.Entities;
+﻿namespace Money.Data.Entities;
 
 public class DomainUser
 {
-    [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
 
     public Guid AuthUserId { get; set; }
@@ -24,4 +20,53 @@ public class DomainUser
     public int NextDebtId { get; set; }
 
     public int NextDebtUserId { get; set; }
+
+    public byte[]? RowVersion { get; set; }
+}
+
+public class DomainUserConfiguration : IEntityTypeConfiguration<DomainUser>
+{
+    public void Configure(EntityTypeBuilder<DomainUser> builder)
+    {
+        builder.HasKey(x => x.Id);
+
+        builder.Property(x => x.Id)
+            .ValueGeneratedOnAdd()
+            .IsRequired();
+
+        builder.Property(x => x.AuthUserId)
+            .IsRequired();
+
+        builder.Property(x => x.NextCategoryId)
+            .HasDefaultValue(1)
+            .IsRequired();
+
+        builder.Property(x => x.NextOperationId)
+            .HasDefaultValue(1)
+            .IsRequired();
+
+        builder.Property(x => x.NextPlaceId)
+            .HasDefaultValue(1)
+            .IsRequired();
+
+        builder.Property(x => x.NextFastOperationId)
+            .HasDefaultValue(1)
+            .IsRequired();
+
+        builder.Property(x => x.NextRegularOperationId)
+            .HasDefaultValue(1)
+            .IsRequired();
+
+        builder.Property(x => x.NextDebtId)
+            .HasDefaultValue(1)
+            .IsRequired();
+
+        builder.Property(x => x.NextDebtUserId)
+            .HasDefaultValue(1)
+            .IsRequired();
+
+        builder.Property(x => x.RowVersion)
+            .IsRowVersion()
+            .IsRequired();
+    }
 }

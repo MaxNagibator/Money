@@ -23,16 +23,19 @@ public partial class Categories
 
     protected override async Task OnInitializedAsync()
     {
-        List<Category> categories = await CategoryService.GetAllAsync();
+        var categories = await CategoryService.GetAllAsync();
 
         if (categories.Count == 0)
         {
             return;
         }
 
-        foreach (OperationTypes.Value operationType in OperationTypes.Values)
+        foreach (var operationType in OperationTypes.Values)
         {
-            List<Category> filteredCategories = categories.Where(x => x.OperationType == operationType).ToList();
+            var filteredCategories = categories
+                .Where(x => x.OperationType == operationType)
+                .ToList();
+
             InitialTreeItems.Add(operationType.Id, filteredCategories.BuildChildren(null));
         }
 
@@ -41,7 +44,7 @@ public partial class Categories
 
     private async Task Create(OperationTypes.Value operationType, int? parentId)
     {
-        Category category = new()
+        var category = new Category
         {
             Name = string.Empty,
             OperationType = operationType,
@@ -49,7 +52,7 @@ public partial class Categories
             Color = Random.Shared.NextColor(),
         };
 
-        Category? createdCategory = await ShowCategoryDialog("Создать", category);
+        var createdCategory = await ShowCategoryDialog("Создать", category);
 
         if (createdCategory == null)
         {
@@ -83,7 +86,7 @@ public partial class Categories
             { dialog => dialog.Category, category },
         };
 
-        IDialogReference dialog = await DialogService.ShowAsync<CategoryDialog>(title, parameters);
+        var dialog = await DialogService.ShowAsync<CategoryDialog>(title, parameters);
         return await dialog.GetReturnValueAsync<Category>();
     }
 
@@ -94,7 +97,7 @@ public partial class Categories
             return;
         }
 
-        ApiClientResponse result = await action(category.Id.Value);
+        var result = await action(category.Id.Value);
 
         if (result.GetError().ShowMessage(SnackbarService).HasError())
         {
@@ -118,7 +121,7 @@ public partial class Categories
             return;
         }
 
-        TreeItemData<Category>? parentItem = SearchParentTreeItem(InitialTreeItems[operationTypeId], createdCategory.ParentId.Value);
+        var parentItem = SearchParentTreeItem(InitialTreeItems[operationTypeId], createdCategory.ParentId.Value);
 
         if (parentItem == null)
         {
@@ -137,13 +140,13 @@ public partial class Categories
 
     private List<TreeItemData<Category>> SortChildren(IEnumerable<TreeItemData<Category>> categories)
     {
-        List<TreeItemData<Category>> sortedCategories = categories
+        var sortedCategories = categories
             .OrderBy(item => item.Value?.Order == null)
             .ThenBy(item => item.Value?.Order)
             .ThenBy(item => item.Value?.Name)
             .ToList();
 
-        foreach (TreeItemData<Category> category in sortedCategories)
+        foreach (var category in sortedCategories)
         {
             if (category.Children != null && category.Children.Count != 0)
             {
@@ -161,14 +164,14 @@ public partial class Categories
             return null;
         }
 
-        foreach (TreeItemData<Category> item in list)
+        foreach (var item in list)
         {
             if (item.Value?.Id == id)
             {
                 return item;
             }
 
-            TreeItemData<Category>? result = SearchParentTreeItem(item.Children, id);
+            var result = SearchParentTreeItem(item.Children, id);
 
             if (result != null)
             {

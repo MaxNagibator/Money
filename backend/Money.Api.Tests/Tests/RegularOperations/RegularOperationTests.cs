@@ -1,6 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Money.Api.Tests.TestTools;
-using Money.Api.Tests.TestTools.Entities;
 using Money.ApiClient;
 using Money.Business.Enums;
 using Money.Data.Extensions;
@@ -62,7 +60,7 @@ public class RegularOperationTests
             Assert.That(apiOperation.Comment, Is.EqualTo(operation.Comment));
             Assert.That(apiOperation.CategoryId, Is.EqualTo(operation.Category.Id));
             Assert.That(apiOperation.Name, Is.EqualTo(operation.Name));
-            Assert.That(apiOperation.Place, Is.EqualTo(operation.Place.Name));
+            Assert.That(apiOperation.Place, Is.EqualTo(operation.Place?.Name));
             Assert.That(apiOperation.TimeTypeId, Is.EqualTo((int)operation.TimeType));
             Assert.That(apiOperation.TimeValue, Is.EqualTo(operation.TimeValue));
             Assert.That(apiOperation.DateFrom, Is.EqualTo(operation.DateFrom));

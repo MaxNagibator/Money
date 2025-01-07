@@ -8,11 +8,11 @@ public partial class MainLayout
     private readonly MudTheme _defaultTheme = new();
     private AppSettings _appSettings = new();
 
-    private MudThemeProvider _mudThemeProvider = default!;
-    private DarkModeToggle _darkModeToggle = default!;
+    private MudThemeProvider _mudThemeProvider = null!;
+    private DarkModeToggle _darkModeToggle = null!;
 
     [Inject]
-    private ILocalStorageService StorageService { get; set; } = default!;
+    private ILocalStorageService StorageService { get; set; } = null!;
 
     private bool DrawerOpen { get; set; } = true;
 
@@ -33,7 +33,7 @@ public partial class MainLayout
         {
             _appSettings.IsDarkModeSystem = await _mudThemeProvider.GetSystemPreference();
             await _mudThemeProvider.WatchSystemPreference(OnSystemPreferenceChanged);
-
+            _darkModeToggle.UpdateState();
             StateHasChanged();
         }
     }

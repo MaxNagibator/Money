@@ -1,6 +1,5 @@
-﻿using Money.Api.Tests.TestTools.Extentions;
-using Money.Business.Enums;
-using System;
+﻿using Money.Business.Enums;
+using Money.Data.Extensions;
 using Debt = Money.Data.Entities.Debt;
 
 namespace Money.Api.Tests.TestTools.Entities;
@@ -13,14 +12,16 @@ public class TestDebt : TestObject
     public TestDebt(TestUser user)
     {
         User = user;
-        IsNew = true;
-        Type = (DebtTypes)TestRandom.GetInt(1, 2); // todo сделать рандом для энумов
+
+        Type = TestRandom.GetEnum<DebtTypes>(); // todo сделать рандом для энумов
         Sum = TestRandom.GetInt();
         Comment = TestRandom.GetString("Comment");
-        Date = DateTime.Now.Date;
-        PaySum = 0;
-        Status = DebtStatus.Actual;
+        PayComment = TestRandom.GetString("PayComment");
         DebtUserName = TestRandom.GetString("User");
+
+        Date = DateTime.Now.Date;
+        Status = DebtStatus.Actual;
+        PaySum = 0;
     }
 
     /// <summary>
@@ -110,7 +111,10 @@ public class TestDebt : TestObject
         }
         else
         {
-            var obj = Environment.Context.Debts.First(x => x.UserId == User.Id && x.Id == Id);
+            var obj = Environment.Context.Debts
+                .IsUserEntity(User.Id, Id)
+                .First();
+
             FillDbProperties(obj, dbDebtUser.Id);
             Environment.Context.SaveChanges();
         }

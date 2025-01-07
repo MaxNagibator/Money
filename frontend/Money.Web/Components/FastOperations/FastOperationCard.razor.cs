@@ -46,7 +46,7 @@ public partial class FastOperationCard : ComponentBase
             return;
         }
 
-        ApiClientResponse result = await action(fastOperation.Id.Value);
+        var result = await action(fastOperation.Id.Value);
 
         if (result.GetError().ShowMessage(SnackbarService).HasError())
         {

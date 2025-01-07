@@ -50,11 +50,9 @@ public class FastOperationService(
             throw new BusinessException("Извините, но идентификатор пользователя не указан.");
         }
 
-        var dbUser = await userService.GetCurrent(cancellationToken);
         var category = await categoryService.GetByIdAsync(operation.CategoryId, cancellationToken);
 
-        var operationId = dbUser.NextFastOperationId;
-        dbUser.NextFastOperationId++;
+        var operationId = await userService.GetNextFastOperationIdAsync(cancellationToken);
 
         var placeId = await placeService.GetPlaceIdAsync(operation.Place, cancellationToken);
 

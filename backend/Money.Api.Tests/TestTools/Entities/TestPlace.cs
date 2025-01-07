@@ -1,4 +1,5 @@
 ﻿using Money.Data.Entities;
+using Money.Data.Extensions;
 
 namespace Money.Api.Tests.TestTools.Entities;
 
@@ -7,8 +8,8 @@ public class TestPlace : TestObject
     public TestPlace(TestUser user)
     {
         User = user;
-        Name = "Place_" + Guid.NewGuid();
-        IsNew = true;
+
+        Name = TestRandom.GetString("Place");
     }
 
     public int Id { get; private set; }
@@ -57,7 +58,10 @@ public class TestPlace : TestObject
         }
         else
         {
-            var obj = Environment.Context.Places.First(x => x.UserId == User.Id && x.Id == Id);
+            var obj = Environment.Context.Places
+                .IsUserEntity(User.Id, Id)
+                .First();
+
             FillDbProperties(obj);
             Environment.Context.SaveChanges();
         }

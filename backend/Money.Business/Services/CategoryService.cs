@@ -8,7 +8,7 @@ public class CategoryService(
     ApplicationDbContext context,
     UserService userService)
 {
-    public async Task<IEnumerable<Category>> GetAsync(OperationTypes? type = null, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Category>> GetAsync(int? type = null, CancellationToken cancellationToken = default)
     {
         var query = context.Categories.IsUserEntity(environment.UserId);
 
@@ -40,12 +40,9 @@ public class CategoryService(
             throw new BusinessException("Извините, но идентификатор пользователя не указан.");
         }
 
-        await ValidateParentCategoryAsync(category.ParentId, category.OperationType, cancellationToken);
+        await ValidateParentCategoryAsync(category.ParentId, (int)category.OperationType, cancellationToken);
 
-        var dbUser = await userService.GetCurrent(cancellationToken);
-
-        var categoryId = dbUser.NextCategoryId;
-        dbUser.NextCategoryId++;
+        var categoryId = await userService.GetNextCategoryIdAsync(cancellationToken);
 
         var dbCategory = new Data.Entities.Category
         {
@@ -56,7 +53,7 @@ public class CategoryService(
             Description = category.Description,
             Name = category.Name,
             Order = category.Order,
-            TypeId = category.OperationType,
+            TypeId = (int)category.OperationType,
         };
 
         await context.Categories.AddAsync(dbCategory, cancellationToken);
@@ -137,16 +134,14 @@ public class CategoryService(
     {
         if (environment.UserId == null)
         {
-            throw new BusinessException("Извините, но идентификатор пользователя не указан.");
+            throw new BusinessException("Извините, но идентификатор пользователя не указан");
         }
 
         var categoryId = 1;
 
-        var dbUser = await userService.GetCurrent(cancellationToken);
-
         if (isAdd)
         {
-            categoryId = dbUser.NextCategoryId;
+            categoryId = await userService.GetNextCategoryIdAsync(cancellationToken);
         }
         else
         {
@@ -156,7 +151,7 @@ public class CategoryService(
         }
 
         var categories = DatabaseSeeder.SeedCategories(environment.UserId.Value, out var lastIndex, categoryId);
-        dbUser.NextCategoryId = lastIndex + 1;
+        await userService.SetNextCategoryIdAsync(lastIndex + 1, cancellationToken);
 
         await context.Categories.AddRangeAsync(categories, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
@@ -172,7 +167,7 @@ public class CategoryService(
         return dbCategory;
     }
 
-    private async Task ValidateParentCategoryAsync(int? parentId, OperationTypes operationType, CancellationToken cancellationToken)
+    private async Task ValidateParentCategoryAsync(int? parentId, int operationType, CancellationToken cancellationToken)
     {
         if (parentId == null)
         {
@@ -189,7 +184,7 @@ public class CategoryService(
         }
     }
 
-    private async Task ValidateRecursiveParentingAsync(int categoryId, int? parentId, OperationTypes typeId, CancellationToken cancellationToken)
+    private async Task ValidateRecursiveParentingAsync(int categoryId, int? parentId, int typeId, CancellationToken cancellationToken)
     {
         var nextParentId = parentId;
 

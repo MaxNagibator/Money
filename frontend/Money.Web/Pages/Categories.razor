@@ -21,7 +21,7 @@
 
 <MudTabs Color="@Color.Primary"
          Elevation="4">
-    @foreach (OperationTypes.Value operationType in OperationTypes.Values)
+    @foreach (var operationType in OperationTypes.Values)
     {
         <MudTabPanel Text="@operationType.Name">
             <MudTreeView ExpandOnClick
@@ -31,14 +31,13 @@
                          Ripple>
                 <ItemTemplate>
                     @{
-                        Category category = context.Value!;
-                        List<TreeItemData<Category?>> children = context.Children?.OfType<TreeItemData<Category?>>().ToList() ?? [];
+                        var category = context.Value!;
                     }
                     <MudStack Row
                               StretchItems="StretchItems.Start">
                         <MudTreeViewItem @bind-Expanded="@context.Expanded"
                                          Disabled="category.IsDeleted"
-                                         Items="@children"
+                                         Items="@context.Children"
                                          Value="@context.Value">
                             <Content>
                                 <MudTreeViewItemToggleButton @bind-Expanded="@context.Expanded"

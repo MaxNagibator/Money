@@ -24,35 +24,35 @@ public partial class RegularOperationCard : ComponentBase
             ? "expense-operation-card"
             : "income-operation-card";
 
-    private Task Update(RegularOperation RegularOperation)
+    private Task Update(RegularOperation entity)
     {
-        return OnUpdate.InvokeAsync(RegularOperation);
+        return OnUpdate.InvokeAsync(entity);
     }
 
-    private Task Delete(RegularOperation RegularOperation)
+    private Task Delete(RegularOperation entity)
     {
-        return Modify(RegularOperation, MoneyClient.RegularOperation.Delete, true);
+        return Modify(entity, MoneyClient.RegularOperation.Delete, true);
     }
 
-    private Task Restore(RegularOperation RegularOperation)
+    private Task Restore(RegularOperation entity)
     {
-        return Modify(RegularOperation, MoneyClient.RegularOperation.Restore, false);
+        return Modify(entity, MoneyClient.RegularOperation.Restore, false);
     }
 
-    private async Task Modify(RegularOperation RegularOperation, Func<int, Task<ApiClientResponse>> action, bool isDeleted)
+    private async Task Modify(RegularOperation entity, Func<int, Task<ApiClientResponse>> action, bool isDeleted)
     {
-        if (RegularOperation.Id == null)
+        if (entity.Id == null)
         {
             return;
         }
 
-        ApiClientResponse result = await action(RegularOperation.Id.Value);
+        var result = await action(entity.Id.Value);
 
         if (result.GetError().ShowMessage(SnackbarService).HasError())
         {
             return;
         }
 
-        RegularOperation.IsDeleted = isDeleted;
+        entity.IsDeleted = isDeleted;
     }
 }

@@ -11,7 +11,7 @@
 }
 
 <MudExpansionPanels MultiExpansion>
-    @foreach (OperationTypes.Value operationType in OperationTypes.Values)
+    @foreach (var operationType in OperationTypes.Values)
     {
         <MudExpansionPanel Expanded
                            Text="@operationType.Name">
@@ -25,7 +25,7 @@
                 </MudItem>
                 <MudItem md="6"
                          xs="12">
-                    @if (Sums.TryGetValue(operationType.Id, out List<TreeItemData<OperationCategorySum>>? sum))
+                    @if (Sums.TryGetValue(operationType.Id, out var sum))
                     {
                         <MudTreeView ExpandOnClick
                                      Hover
@@ -35,12 +35,11 @@
                                      Ripple>
                             <ItemTemplate>
                                 @{
-                                    OperationCategorySum catSum = context.Value!;
-                                    List<TreeItemData<OperationCategorySum?>> children = context.Children?.OfType<TreeItemData<OperationCategorySum?>>().ToList() ?? [];
+                                    var catSum = context.Value!;
                                 }
 
                                 <MudTreeViewItem @bind-Expanded="@context.Expanded"
-                                                 Items="@children"
+                                                 Items="@context.Children"
                                                  Value="@context.Value">
                                     <Content>
                                         <MudTreeViewItemToggleButton @bind-Expanded="@context.Expanded"

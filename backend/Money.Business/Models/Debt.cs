@@ -19,4 +19,6 @@ public class Debt
     public string? PayComment { get; set; }
 
     public DebtStatus Status { get; set; }
+
+    public bool IsDeleted { get; set; }
 }

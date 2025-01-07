@@ -5,8 +5,8 @@ namespace Money.Web.Pages.Operations;
 
 public partial class Statistics
 {
-    private Dictionary<int, BarChart> _barCharts = null!;
-    private Dictionary<int, PieChart> _pieCharts = null!;
+    private Dictionary<int, BarChart>? _barCharts;
+    private Dictionary<int, PieChart>? _pieCharts;
     private List<Category>? _categories;
 
     private Dictionary<int, List<TreeItemData<OperationCategorySum>>> Sums { get; } = [];
@@ -19,7 +19,7 @@ public partial class Statistics
         Dictionary<int, BarChart> barCharts = new();
         Dictionary<int, PieChart> pieCharts = new();
 
-        foreach (OperationTypes.Value operationType in OperationTypes.Values)
+        foreach (var operationType in OperationTypes.Values)
         {
             barCharts.Add(operationType.Id, BarChart.Create(operationType.Id));
             pieCharts.Add(operationType.Id, PieChart.Create(operationType.Id));
@@ -34,37 +34,37 @@ public partial class Statistics
     {
         List<Task> tasks = [];
 
-        Dictionary<int, Operation[]>? operationGroups = args.Operations?
+        var operationGroups = args.Operations?
             .GroupBy(x => x.Category.Id!.Value)
             .ToDictionary(x => x.Key, x => x.ToArray());
 
-        foreach (OperationTypes.Value operationType in OperationTypes.Values)
+        foreach (var operationType in OperationTypes.Values)
         {
-            List<Category> categories = args.Operations?
-                                            .Where(x => x.Category.OperationType.Id == operationType.Id)
-                                            .Select(x => x.Category)
-                                            .DistinctBy(x => x.Id)
-                                            .ToList()
-                                        ?? [];
+            var categories = args.Operations?
+                                 .Where(x => x.Category.OperationType.Id == operationType.Id)
+                                 .Select(x => x.Category)
+                                 .DistinctBy(x => x.Id)
+                                 .ToList()
+                             ?? [];
 
-            tasks.Add(_barCharts[operationType.Id].UpdateAsync(args.Operations, categories, OperationsFilter.DateRange));
+            tasks.Add(_barCharts![operationType.Id].UpdateAsync(args.Operations, categories, OperationsFilter.DateRange));
 
             if (_categories is not { Count: not 0 } || operationGroups == null)
             {
                 continue;
             }
 
-            List<Category> cats = _categories.Where(x => x.OperationType.Id == operationType.Id).ToList();
-            List<OperationCategorySum> categorySums = CalculateCategorySums(cats, operationGroups, null);
+            var cats = _categories.Where(x => x.OperationType.Id == operationType.Id).ToList();
+            var categorySums = CalculateCategorySums(cats, operationGroups, null);
 
-            tasks.Add(_pieCharts[operationType.Id].UpdateAsync(categorySums));
-            List<TreeItemData<OperationCategorySum>> sums = BuildChildren(categorySums);
+            tasks.Add(_pieCharts![operationType.Id].UpdateAsync(categorySums));
+            var sums = BuildChildren(categorySums);
 
             Sums[operationType.Id] =
             [
                 new TreeItemData<OperationCategorySum>
                 {
-                    Value = new OperationCategorySum
+                    Value = new()
                     {
                         Name = "Всего",
                         TotalSum = sums.Sum(x => x.Value?.TotalSum ?? 0),
@@ -94,17 +94,17 @@ public partial class Statistics
 
     private List<OperationCategorySum> CalculateCategorySums(List<Category> categories, Dictionary<int, Operation[]> operations, int? parentId)
     {
-        List<OperationCategorySum> categorySums = [];
+        var categorySums = new List<OperationCategorySum>();
 
-        foreach (Category category in categories.Where(x => x.ParentId == parentId))
+        foreach (var category in categories.Where(x => x.ParentId == parentId))
         {
-            decimal totalMainSum = category.Id != null && operations.TryGetValue(category.Id.Value, out Operation[]? operationGroup)
+            var totalMainSum = category.Id != null && operations.TryGetValue(category.Id.Value, out var operationGroup)
                 ? operationGroup.Sum(op => op.Sum)
                 : 0;
 
-            List<OperationCategorySum> childCategorySums = CalculateCategorySums(categories, operations, category.Id);
+            var childCategorySums = CalculateCategorySums(categories, operations, category.Id);
 
-            OperationCategorySum operationCategorySum = new()
+            var operationCategorySum = new OperationCategorySum
             {
                 Name = category.Name,
                 Color = category.Color,
@@ -115,7 +115,7 @@ public partial class Statistics
 
             if (childCategorySums.Count > 0)
             {
-                operationCategorySum.SubCategories.Add(new OperationCategorySum
+                operationCategorySum.SubCategories.Add(new()
                 {
                     Name = category.Name,
                     TotalSum = totalMainSum,

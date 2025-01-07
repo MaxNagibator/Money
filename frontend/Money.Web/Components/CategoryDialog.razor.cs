@@ -1,5 +1,4 @@
-﻿using CSharpFunctionalExtensions;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using System.ComponentModel.DataAnnotations;
 
 namespace Money.Web.Components;
@@ -31,7 +30,7 @@ public partial class CategoryDialog
 
     protected override void OnParametersSet()
     {
-        Input = new InputModel
+        Input = new()
         {
             Name = Category.Name,
             Order = Category.Order,
@@ -45,7 +44,7 @@ public partial class CategoryDialog
     {
         _isProcessing = true;
 
-        Category saved = new()
+        var saved = new Category
         {
             Name = Input.Name,
             Order = Input.Order,
@@ -54,7 +53,7 @@ public partial class CategoryDialog
             OperationType = Category.OperationType,
         };
 
-        Result result = await CategoryService.SaveAsync(saved);
+        var result = await CategoryService.SaveAsync(saved);
 
         if (result.IsFailure)
         {

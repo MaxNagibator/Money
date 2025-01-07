@@ -1,5 +1,4 @@
-﻿using Money.Api.Tests.TestTools.Entities;
-using Money.ApiClient;
+﻿using Money.ApiClient;
 using Money.Data;
 
 namespace Money.Api.Tests.TestTools;

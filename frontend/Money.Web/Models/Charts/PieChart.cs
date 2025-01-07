@@ -1,4 +1,3 @@
-using ChartJs.Blazor;
 using ChartJs.Blazor.Common;
 using ChartJs.Blazor.PieChart;
 using Position = ChartJs.Blazor.Common.Enums.Position;
@@ -11,19 +10,19 @@ public class PieChart : BaseChart<PieOptions>
 
     public static PieChart Create(int operationTypeId)
     {
-        return new PieChart
+        return new()
         {
-            Chart = new Chart(),
+            Chart = new(),
             Config = new PieConfig
             {
-                Options = new PieOptions
+                Options = new()
                 {
                     Responsive = true,
-                    Legend = new Legend
+                    Legend = new()
                     {
                         Display = true,
                         Position = Position.Right,
-                        Labels = new LegendLabels
+                        Labels = new()
                         {
                             BoxWidth = 50,
                         },
@@ -51,7 +50,7 @@ public class PieChart : BaseChart<PieOptions>
 
         List<string> colors = [];
 
-        foreach (OperationCategorySum category in categorySums.Where(x => x.ParentId == null && x.TotalSum != 0))
+        foreach (var category in categorySums.Where(x => x.ParentId == null && x.TotalSum != 0))
         {
             Data.Labels.Add(category.Name);
             colors.Add(category.Color ?? Random.Shared.NextColor());

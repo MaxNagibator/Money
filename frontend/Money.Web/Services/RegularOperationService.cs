@@ -7,10 +7,10 @@ public class RegularOperationService(MoneyClient moneyClient, CategoryService ca
     // TODO: Подумать над вынесением ToDictionary() в CategoryService.
     public async Task<List<RegularOperation>> GetAllAsync()
     {
-        ApiClientResponse<RegularOperationClient.RegularOperation[]> opertions = await moneyClient.RegularOperation.Get();
-        Dictionary<int, Category> categories = (await categoryService.GetAllAsync()).ToDictionary(x => x.Id!.Value, x => x);
+        var response = await moneyClient.RegularOperation.Get();
+        var categories = (await categoryService.GetAllAsync()).ToDictionary(x => x.Id!.Value, x => x);
 
-        return opertions.Content?
+        return response.Content?
                    .Select(apiCategory => new RegularOperation
                    {
                        Id = apiCategory.Id,

@@ -8,7 +8,7 @@ public partial class NavMenu : IDisposable
     private string? _currentUrl;
 
     [Inject]
-    private NavigationManager NavigationManager { get; set; } = default!;
+    private NavigationManager NavigationManager { get; set; } = null!;
 
     public void Dispose()
     {

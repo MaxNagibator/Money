@@ -19,7 +19,7 @@ public partial class OperationItem
 
     public override Task SetParametersAsync(ParameterView parameters)
     {
-        foreach (ParameterValue parameter in parameters)
+        foreach (var parameter in parameters)
         {
             switch (parameter.Name)
             {

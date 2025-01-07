@@ -7,13 +7,13 @@ public partial class Settings
     private bool _isInit;
 
     [CascadingParameter]
-    public AppSettings AppSettings { get; set; } = default!;
+    public required AppSettings AppSettings { get; set; }
 
     [CascadingParameter]
-    public DarkModeToggle ModeToggle { get; set; } = default!;
+    public required DarkModeToggle ModeToggle { get; set; }
 
     [Inject]
-    private ISnackbar SnackbarService { get; set; } = default!;
+    private ISnackbar SnackbarService { get; set; } = null!;
 
     private TimeSpan? ScheduleCheckInterval { get; set; }
     private TimeSpan? DarkModeStart { get; set; }
@@ -23,7 +23,7 @@ public partial class Settings
 
     protected override async Task OnInitializedAsync()
     {
-        DarkModeSettings modeSettings = await ModeToggle.GetSettingsAsync();
+        var modeSettings = await ModeToggle.GetSettingsAsync();
         DarkModeStart = modeSettings.DarkStart;
         DarkModeEnd = modeSettings.DarkEnd;
         ScheduleCheckInterval = modeSettings.CheckInterval;

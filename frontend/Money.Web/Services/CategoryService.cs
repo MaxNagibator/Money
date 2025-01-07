@@ -16,7 +16,7 @@ public class CategoryService(MoneyClient moneyClient, IMemoryCache memoryCache, 
             return categories ?? [];
         }
 
-        ApiClientResponse<CategoryClient.Category[]> apiCategories = await moneyClient.Category.Get();
+        var apiCategories = await moneyClient.Category.Get();
 
         categories = apiCategories.Content?
             .Select(apiCategory => new Category
@@ -43,7 +43,7 @@ public class CategoryService(MoneyClient moneyClient, IMemoryCache memoryCache, 
     {
         try
         {
-            CategoryClient.SaveRequest saveRequest = new()
+            var saveRequest = new CategoryClient.SaveRequest
             {
                 Name = category.Name,
                 Order = category.Order,
@@ -54,7 +54,7 @@ public class CategoryService(MoneyClient moneyClient, IMemoryCache memoryCache, 
 
             if (category.Id == null)
             {
-                ApiClientResponse<int> result = await moneyClient.Category.Create(saveRequest);
+                var result = await moneyClient.Category.Create(saveRequest);
                 category.Id = result.Content;
             }
             else

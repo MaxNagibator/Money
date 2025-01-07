@@ -1,4 +1,6 @@
-﻿namespace Money.Api.Dto.Categories;
+﻿using Money.Business.Enums;
+
+namespace Money.Api.Dto.Categories;
 
 /// <summary>
 /// Запрос на сохранение категории операции.
@@ -49,7 +51,7 @@ public class CategorySaveRequest
             Name = Name,
             Order = Order,
             Description = Description,
-            OperationType = OperationTypeId,
+            OperationType = (OperationTypes)OperationTypeId,
             ParentId = ParentId,
         };
     }

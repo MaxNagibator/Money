@@ -54,11 +54,11 @@ public partial class ListOperations
 
         _operationsDays = [];
 
-        List<OperationsDay> days = args.Operations
+        var days = args.Operations
             .GroupBy(x => x.Date)
             .Select(g =>
             {
-                OperationsDay operationsDay = new()
+                var operationsDay = new OperationsDay
                 {
                     Date = g.Key,
                     Operations = g.ToList(),
@@ -82,19 +82,19 @@ public partial class ListOperations
 
         void FillZeroDays(List<OperationsDay> operationsDays)
         {
-            for (int i = 0; i < operationsDays.Count - 1; i++)
+            for (var i = 0; i < operationsDays.Count - 1; i++)
             {
-                DateTime day = operationsDays[i].Date;
-                DateTime nextDay = operationsDays[i + 1].Date.AddDays(1);
+                var day = operationsDays[i].Date;
+                var nextDay = operationsDays[i + 1].Date.AddDays(1);
 
-                int shift = 0;
+                var shift = 0;
 
                 while (day != nextDay)
                 {
                     shift++;
                     day = day.AddDays(-1);
 
-                    OperationsDay operationsDay = new()
+                    var operationsDay = new OperationsDay
                     {
                         Date = day,
                         Operations = [],
@@ -126,7 +126,7 @@ public partial class ListOperations
             return;
         }
 
-        ApiClientResponse result = await action(operation.Id.Value);
+        var result = await action(operation.Id.Value);
 
         if (result.GetError().ShowMessage(SnackbarService).HasError())
         {
@@ -140,8 +140,8 @@ public partial class ListOperations
     {
         _operationsDays ??= [];
 
-        DateTime operationDate = operation.Date.Date;
-        OperationsDay? operationsDay = _operationsDays.FirstOrDefault(x => x.Date == operationDate);
+        var operationDate = operation.Date.Date;
+        var operationsDay = _operationsDays.FirstOrDefault(x => x.Date == operationDate);
 
         if (operationsDay != null)
         {
@@ -149,13 +149,13 @@ public partial class ListOperations
             return;
         }
 
-        operationsDay = new OperationsDay
+        operationsDay = new()
         {
             Date = operationDate,
             Operations = [operation],
         };
 
-        int index = _operationsDays.FindIndex(x => x.Date < operationDate);
+        var index = _operationsDays.FindIndex(x => x.Date < operationDate);
         _operationsDays.Insert(index == -1 ? 0 : index, operationsDay);
 
         StateHasChanged();

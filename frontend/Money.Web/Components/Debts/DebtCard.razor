@@ -1,0 +1,90 @@
+﻿<MudCard Class="@ClassName" Style="transition: transform 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); height: 100%;">
+    <MudCardContent Style="padding: 8px 12px">
+        <MudText Typo="Typo.body1" Class="font-weight-bold">
+            Сумма: @Model.Sum ₽
+        </MudText>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Comment))
+        {
+            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-1">
+                Комментарий: @Model.Comment
+            </MudText>
+        }
+
+        <MudDivider Class="my-2" />
+
+        <MudText Typo="Typo.body1" Class="font-weight-bold">
+            Погашено: @Model.PaySum ₽
+        </MudText>
+
+        @if (!string.IsNullOrWhiteSpace(Model.PayComment))
+        {
+            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-1">
+                Комментарий к погашению: @Model.PayComment
+            </MudText>
+        }
+
+        <MudText Typo="Typo.caption" Align="Align.Right" Class="mt-3 text-muted">
+            Дата: @Model.Date.ToString("dd.MM.yyyy")
+        </MudText>
+    </MudCardContent>
+
+    <MudCardActions Style="padding: 8px 4px; border-top: 1px solid rgba(0,0,0,0.1);">
+        <MudSpacer />
+
+        @if (Model.IsDeleted)
+        {
+            <MudTooltip Text="Восстановить">
+                <MudIconButton Color="Color.Success"
+                               Icon="@Icons.Material.Filled.Restore"
+                               OnClick="() => Restore(Model)"
+                               Size="Size.Small"
+                               Class="hover-scale" />
+            </MudTooltip>
+        }
+        else
+        {
+            <MudTooltip Text="Редактировать">
+                <MudIconButton Color="Color.Warning"
+                               Icon="@Icons.Material.Filled.Edit"
+                               OnClick="() => Update(Model)"
+                               Size="Size.Small"
+                               Class="hover-scale" />
+            </MudTooltip>
+
+            <MudTooltip Text="Удалить">
+                <MudIconButton Color="Color.Error"
+                               Icon="@Icons.Material.Filled.Delete"
+                               OnClick="() => Delete(Model)"
+                               Size="Size.Small"
+                               Class="hover-scale" />
+            </MudTooltip>
+        }
+    </MudCardActions>
+</MudCard>
+
+<style>
+
+    .hover-scale {
+        transition: transform 0.2s, color 0.2s;
+    }
+
+    .hover-scale:hover {
+        transform: scale(1.1);
+        color: #ff5722;
+    }
+
+    .deleted-operation-card {
+        opacity: 0.6;
+        transform: scale(0.95);
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px dashed rgba(128, 128, 128, 0.5);
+        background-color: rgba(128, 128, 128, 0.1);
+    }
+
+    .deleted-operation-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        background-color: rgba(128, 128, 128, 0.15);
+    }
+
+</style>

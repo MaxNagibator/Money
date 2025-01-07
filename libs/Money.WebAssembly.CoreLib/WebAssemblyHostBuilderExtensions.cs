@@ -22,7 +22,7 @@ public static class WebAssemblyHostBuilderExtensions
         builder.Services.Configure<ConfigurationServiceEndpointProviderOptions>(static options =>
         {
             options.SectionName = "Services";
-            options.ShouldApplyHostNameMetadata = static endpoint => true;
+            options.ShouldApplyHostNameMetadata = static _ => true;
         });
 
         return builder;

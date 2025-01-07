@@ -42,7 +42,7 @@ public partial class RegularOperationDialog
 
     protected override async Task OnParametersSetAsync()
     {
-        Input = new InputModel
+        Input = new()
         {
             Category = RegularOperation.Category == Category.Empty ? null : RegularOperation.Category,
             Comment = RegularOperation.Comment,
@@ -52,12 +52,11 @@ public partial class RegularOperationDialog
             DateTo = RegularOperation.DateTo,
             TimeType = RegularOperation.TimeType,
             TimeValue = RegularOperation.TimeValue,
-            RunTime = RegularOperation.RunTime,
         };
 
         MudDialog.SetOptions(_dialogOptions);
 
-        List<Category> categories = await CategoryService.GetAllAsync();
+        var categories = await CategoryService.GetAllAsync();
 
         if (Input.Category == null)
         {
@@ -75,7 +74,7 @@ public partial class RegularOperationDialog
 
         try
         {
-            decimal? sum = await _smartSum.ValidateSumAsync();
+            var sum = await _smartSum.ValidateSumAsync();
 
             if (sum == null)
             {
@@ -87,7 +86,7 @@ public partial class RegularOperationDialog
             await SaveAsync();
             SnackbarService.Add("Успех!", Severity.Success);
 
-            RegularOperation.Name = Input.Name!;
+            RegularOperation.Name = Input.Name;
             RegularOperation.Category = Input.Category ?? throw new MoneyException("Категория операции не может быть null");
             RegularOperation.Sum = sum.Value;
             RegularOperation.Comment = Input.Comment;
@@ -110,28 +109,29 @@ public partial class RegularOperationDialog
 
     private async Task SaveAsync()
     {
-        RegularOperationClient.SaveRequest saveRequest = CreateSaveRequest();
+        var saveRequest = CreateSaveRequest();
 
         if (RegularOperation.Id == null)
         {
-            ApiClientResponse<int> result = await MoneyClient.RegularOperation.Create(saveRequest);
+            var result = await MoneyClient.RegularOperation.Create(saveRequest);
             RegularOperation.Id = result.Content;
         }
         else
         {
             await MoneyClient.RegularOperation.Update(RegularOperation.Id.Value, saveRequest);
         }
+
         var getOperations = await MoneyClient.RegularOperation.GetById(RegularOperation.Id.Value);
         RegularOperation.RunTime = getOperations.Content!.RunTime;
     }
 
     private RegularOperationClient.SaveRequest CreateSaveRequest()
     {
-        return new RegularOperationClient.SaveRequest
+        return new()
         {
             CategoryId = Input.Category?.Id ?? throw new MoneyException("Идентификатор отсутствует при сохранении операции"),
             Comment = Input.Comment,
-            Name = Input.Name!,
+            Name = Input.Name,
             Sum = _smartSum.Sum,
             Place = Input.Place,
             DateFrom = Input.DateFrom!.Value,
@@ -143,7 +143,7 @@ public partial class RegularOperationDialog
 
     private Task<IEnumerable<Category?>> SearchCategoryAsync(string? value, CancellationToken token)
     {
-        IEnumerable<Category>? categories = string.IsNullOrWhiteSpace(value)
+        var categories = string.IsNullOrWhiteSpace(value)
             ? Input.CategoryList
             : Input.CategoryList?.Where(x => x.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase));
 
@@ -164,7 +164,9 @@ public partial class RegularOperationDialog
     {
         public static readonly InputModel Empty = new()
         {
+            Name = "Незаполнен",
             Category = Category.Empty,
+            TimeType = RegularOperationTimeTypes.None,
         };
 
         [Required(ErrorMessage = "Заполни меня")]
@@ -173,13 +175,13 @@ public partial class RegularOperationDialog
         public List<Category>? CategoryList { get; set; }
 
         [Required(ErrorMessage = "Заполни меня")]
-        public string? Name { get; set; }
+        public required string Name { get; set; }
 
         public string? Comment { get; set; }
 
         public string? Place { get; set; }
 
-        public RegularOperationTimeTypes.Value TimeType { get; set; }
+        public required RegularOperationTimeTypes.Value TimeType { get; set; }
 
         public int? TimeValue { get; set; }
 
@@ -187,7 +189,5 @@ public partial class RegularOperationDialog
         public DateTime? DateFrom { get; set; }
 
         public DateTime? DateTo { get; set; }
-
-        public DateTime? RunTime { get; set; }
     }
 }

@@ -36,7 +36,7 @@ public partial class SmartSum : ComponentBase
             return Sum;
         }
 
-        decimal? sum = await CalculateAsync();
+        var sum = await CalculateAsync();
 
         if (sum == null)
         {
@@ -79,7 +79,7 @@ public partial class SmartSum : ComponentBase
 
     private async Task OnSumKeyDownAsync(KeyboardEventArgs args)
     {
-        char key = args.Key.Length == 1 ? args.Key[0] : '\0';
+        var key = args.Key.Length == 1 ? args.Key[0] : '\0';
 
         if (key == '\0' || !ValidKeys.Contains(key))
         {
@@ -105,16 +105,16 @@ public partial class SmartSum : ComponentBase
 
         try
         {
-            string rawSum = _calculationSum.Replace(',', '.');
-            AsyncExpression expression = Factory.Create(rawSum, ExpressionOptions.DecimalAsDefault);
+            var rawSum = _calculationSum.Replace(',', '.');
+            var expression = Factory.Create(rawSum, ExpressionOptions.DecimalAsDefault);
 
-            object? rawResult = await expression.EvaluateAsync();
+            var rawResult = await expression.EvaluateAsync();
 
             if (rawResult is decimal result)
             {
                 sum = result;
             }
-            else if (rawResult != null && decimal.TryParse(rawResult.ToString(), out decimal parsedResult))
+            else if (rawResult != null && decimal.TryParse(rawResult.ToString(), out var parsedResult))
             {
                 sum = parsedResult;
             }

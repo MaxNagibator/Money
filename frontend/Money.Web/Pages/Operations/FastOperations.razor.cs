@@ -20,20 +20,20 @@ public partial class FastOperations
 
     private async Task Create()
     {
-        FastOperation input = new()
+        var input = new FastOperation
         {
             Name = string.Empty,
             Category = Category.Empty,
         };
 
-        FastOperation? created = await ShowDialog("Создать", input);
+        var created = await ShowDialog("Создать", input);
 
         if (created == null)
         {
             return;
         }
 
-        _operations!.Insert(0, created);
+        _operations.Insert(0, created);
     }
 
     private Task<FastOperation?> Update(FastOperation fastOperation)
@@ -48,7 +48,7 @@ public partial class FastOperations
             { dialog => dialog.FastOperation, fastOperation },
         };
 
-        IDialogReference dialog = await DialogService.ShowAsync<FastOperationDialog>(title, parameters);
+        var dialog = await DialogService.ShowAsync<FastOperationDialog>(title, parameters);
         return await dialog.GetReturnValueAsync<FastOperation>();
     }
 }

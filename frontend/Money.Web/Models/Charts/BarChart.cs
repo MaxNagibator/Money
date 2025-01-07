@@ -1,9 +1,7 @@
-﻿using ChartJs.Blazor;
-using ChartJs.Blazor.BarChart;
+﻿using ChartJs.Blazor.BarChart;
 using ChartJs.Blazor.BarChart.Axes;
 using ChartJs.Blazor.Common;
 using ChartJs.Blazor.Common.Axes;
-using ChartJs.Blazor.Common.Axes.Ticks;
 
 namespace Money.Web.Models.Charts;
 
@@ -11,13 +9,13 @@ public class BarChart : BaseChart<BarOptions>
 {
     private static readonly Dictionary<TimeFrame.Mode, TimeFrame> TimeFrames = new()
     {
-        [TimeFrame.Mode.Day] = new TimeFrame((operation, date) => operation.Date == date.Date,
+        [TimeFrame.Mode.Day] = new((operation, date) => operation.Date == date.Date,
             date => date.ToShortDateString(),
             date => date.AddDays(1)),
-        [TimeFrame.Mode.Week] = new TimeFrame((operation, date) => operation.Date >= date.Date && operation.Date < date.AddDays(7).Date,
+        [TimeFrame.Mode.Week] = new((operation, date) => operation.Date >= date.Date && operation.Date < date.AddDays(7).Date,
             date => date.ToString("dd MMMM"),
             date => date.AddDays(7)),
-        [TimeFrame.Mode.Month] = new TimeFrame((operation, date) => operation.Date >= date.Date && operation.Date < date.AddMonths(1).Date,
+        [TimeFrame.Mode.Month] = new((operation, date) => operation.Date >= date.Date && operation.Date < date.AddMonths(1).Date,
             date => date.ToString("MMMM yyyy"),
             date => date.AddMonths(1)),
     };
@@ -27,15 +25,15 @@ public class BarChart : BaseChart<BarOptions>
 
     public static BarChart Create(int operationTypeId)
     {
-        return new BarChart
+        return new()
         {
-            Chart = new Chart(),
+            Chart = new(),
             Config = new BarConfig
             {
-                Options = new BarOptions
+                Options = new()
                 {
                     Responsive = true,
-                    Scales = new BarScales
+                    Scales = new()
                     {
                         XAxes = new List<CartesianAxis>
                         {
@@ -49,7 +47,7 @@ public class BarChart : BaseChart<BarOptions>
                             new BarLinearCartesianAxis
                             {
                                 Stacked = true,
-                                Ticks = new LinearCartesianTicks
+                                Ticks = new()
                                 {
                                     BeginAtZero = true,
                                 },
@@ -77,13 +75,13 @@ public class BarChart : BaseChart<BarOptions>
 
     private static BarDataset<decimal?>[] CreateDatasets(ChartData configData, List<Category> categories)
     {
-        BarDataset<decimal?>[] datasets = new BarDataset<decimal?>[categories.Count];
+        var datasets = new BarDataset<decimal?>[categories.Count];
 
-        for (int i = 0; i < categories.Count; i++)
+        for (var i = 0; i < categories.Count; i++)
         {
-            Category category = categories[i];
+            var category = categories[i];
 
-            BarDataset<decimal?> dataset = new()
+            var dataset = new BarDataset<decimal?>
             {
                 Label = category.Name,
                 BackgroundColor = category.Color ?? Random.Shared.NextColor(),
@@ -98,8 +96,8 @@ public class BarChart : BaseChart<BarOptions>
 
     private static (DateTime start, DateTime finish, double totalDays) GetOperationsDateRange(List<Operation> operations, DateRange range)
     {
-        DateTime start = range.Start ?? DateTime.Now;
-        DateTime finish = range.End ?? DateTime.Now;
+        var start = range.Start ?? DateTime.Now;
+        var finish = range.End ?? DateTime.Now;
 
         if ((finish - start).TotalDays > 10)
         {
@@ -112,22 +110,22 @@ public class BarChart : BaseChart<BarOptions>
 
     private void FillBarChart(ChartData configData, List<Operation> operations, List<Category> categories, DateRange range)
     {
-        (DateTime start, DateTime finish, double totalDays) = GetOperationsDateRange(operations, range);
-        TimeFrame.Mode mode = DetermineTimeFrame(totalDays, ref start, ref finish);
+        (var start, var finish, var totalDays) = GetOperationsDateRange(operations, range);
+        var mode = DetermineTimeFrame(totalDays, ref start, ref finish);
 
-        BarDataset<decimal?>[] datasets = CreateDatasets(configData, categories);
+        var datasets = CreateDatasets(configData, categories);
 
-        TimeFrame timeFrame = TimeFrames[mode];
+        var timeFrame = TimeFrames[mode];
 
         do
         {
             configData.Labels.Add(timeFrame.Labeling.Invoke(start));
 
-            for (int i = 0; i < categories.Count; i++)
+            for (var i = 0; i < categories.Count; i++)
             {
-                Category category = categories[i];
+                var category = categories[i];
 
-                decimal sum = operations
+                var sum = operations
                     .Where(x => timeFrame.Predicate.Invoke(x, start))
                     .Where(x => x.Category.Id == category.Id)
                     .Sum(x => x.Sum);

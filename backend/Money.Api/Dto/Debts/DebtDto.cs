@@ -24,6 +24,8 @@ public class DebtDto
 
     public string? PayComment { get; set; }
 
+    public bool IsDeleted { get; set; }
+
     /// <summary>
     /// Фабричный метод для создания DTO на основе бизнес-модели.
     /// </summary>
@@ -41,6 +43,7 @@ public class DebtDto
             PaySum = business.PaySum,
             PayComment = business.PayComment,
             TypeId = (int)business.Type,
+            IsDeleted = business.IsDeleted,
         };
     }
 }

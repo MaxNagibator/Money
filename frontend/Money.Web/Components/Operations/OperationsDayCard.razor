@@ -21,7 +21,7 @@
                              Operation="@(new Operation { Date = OperationsDay.Date, Category = Category.Empty })"
                              @ref="_dialog">
                 <div class="align-center d-flex flex-row gap-4">
-                    @foreach (OperationTypes.Value type in OperationTypes)
+                    @foreach (var type in OperationTypes)
                     {
                         @RenderOperationButton(type)
                     }
@@ -45,7 +45,7 @@
             </OperationDialog>
         </MudItem>
 
-        @foreach (OperationTypes.Value operationType in OperationTypes)
+        @foreach (var operationType in OperationTypes)
         {
             <MudItem md="2"
                      xs="2">
@@ -62,9 +62,9 @@
     </MudCardHeader>
     <MudCardContent Class="pa-2">
         <MudStack Spacing="0">
-            @for (int i = 0; i < OperationsDay.Operations.Count; i++)
+            @for (var i = 0; i < OperationsDay.Operations.Count; i++)
             {
-                Operation operation = OperationsDay.Operations[i];
+                var operation = OperationsDay.Operations[i];
 
                 if (operation.IsDeleted)
                 {

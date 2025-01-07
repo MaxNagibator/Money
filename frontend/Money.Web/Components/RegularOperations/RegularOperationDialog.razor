@@ -55,11 +55,12 @@
                          xs="12">
                     @if (Input.TimeType != RegularOperationTimeTypes.Values.First().Value)
                     {
-                        <MudTextField AdornmentColor="Color.Tertiary"
-                                      AdornmentIcon="@Icons.Material.Rounded.Comment"
-                                      AutoGrow
-                                      @bind-Value="Input.TimeValue"
-                                      For="@(() => Input.TimeValue)" />
+                        <MudNumericField AdornmentColor="Color.Tertiary"
+                                         AdornmentIcon="@Icons.Material.Rounded.PunchClock"
+                                         @bind-Value="Input.TimeValue"
+                                         For="@(() => Input.TimeValue)"
+                                         Min="1"
+                                         T="int?" />
                     }
                 </MudItem>
                 <MudItem md="6"

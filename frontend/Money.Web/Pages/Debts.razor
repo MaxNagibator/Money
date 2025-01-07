@@ -1,0 +1,50 @@
+﻿@page "/debts"
+@using Money.Web.Components.Debts
+
+<PageTitle>Долги</PageTitle>
+
+<MudText Typo="Typo.h3" Class="mb-3 text-primary">
+    Долги
+</MudText>
+
+<MudGrid Spacing="2" Class="mb-4">
+    @*TODO: Добавить кнопки создания с определенным типом*@
+    <MudItem lg="3" md="4" xs="12">
+        <MudButton Color="Color.Primary"
+                   EndIcon="@Icons.Material.Filled.Add"
+                   OnClick="Create"
+                   FullWidth
+                   Variant="Variant.Filled"
+                   Class="elevation-1">
+            Добавить долг
+        </MudButton>
+    </MudItem>
+</MudGrid>
+
+<MudDivider Class="mt-4 mb-4" />
+
+@foreach ((var type, var debtUsers) in _debts)
+{
+    <MudText Typo="Typo.h5" Class="mt-3 mb-2">
+        <MudIcon Icon="@Icons.Material.Filled.Label" Class="mr-1 text-secondary" /> @type.Name
+    </MudText>
+
+    <MudGrid Spacing="2">
+        @foreach (var debtUser in debtUsers)
+        {
+            <MudItem xs="12">
+                <MudPaper Class="pa-1">
+                    <MudText Align="Align.Center" Typo="Typo.h6">
+                        @debtUser.UserName
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+
+            <Virtualize Context="model" Items="debtUser.Debts">
+                <MudItem lg="3" md="4" xs="12" Class="mb-3">
+                    <DebtCard OnUpdate="Update" Model="model" />
+                </MudItem>
+            </Virtualize>
+        }
+    </MudGrid>
+}

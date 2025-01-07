@@ -8,8 +8,8 @@ using MudBlazor.Services;
 using MudBlazor.Translations;
 using NCalc.DependencyInjection;
 
-WebAssemblyHostBuilder builder = WebAssemblyHostBuilder.CreateDefault(args);
-Uri apiUri = new("https+http://api/");
+var builder = WebAssemblyHostBuilder.CreateDefault(args);
+var apiUri = new Uri("https+http://api/");
 
 builder.AddServiceDefaults();
 builder.RootComponents.Add<App>("#app");
@@ -30,12 +30,14 @@ builder.Services.AddNCalc();
 builder.Services.AddScoped<AuthenticationStateProvider, AuthStateProvider>();
 builder.Services.AddScoped<AuthenticationService>();
 builder.Services.AddScoped<RefreshTokenService>();
+
 builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<FastOperationService>();
 builder.Services.AddScoped<PlaceService>();
 builder.Services.AddScoped<RegularOperationService>();
-builder.Services.AddTransient<RefreshTokenHandler>();
+builder.Services.AddScoped<DebtService>();
 
+builder.Services.AddTransient<RefreshTokenHandler>();
 builder.Services.AddHttpClient<AuthenticationService>(client => client.BaseAddress = apiUri);
 builder.Services.AddHttpClient<JwtParser>(client => client.BaseAddress = apiUri);
 
