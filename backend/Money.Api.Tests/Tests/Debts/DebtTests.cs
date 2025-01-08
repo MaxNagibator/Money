@@ -214,6 +214,34 @@ public class DebtTests
         });
     }
 
+
+    [Test]
+    public async Task EditPayedDebtWithOverflowPaySumTest()
+    {
+        var debt = _user.WithDebt().SetSum(100);
+        _dbClient.Save();
+
+        var request = new DebtClient.PayRequest
+        {
+            Sum = 20,
+            Comment = "Маловато вернул",
+            Date = DateTime.Now.Date,
+        };
+
+        await _apiClient.Debt.Pay(debt.Id, request).IsSuccess();
+
+        var saveRequest = new DebtClient.SaveRequest
+        {
+            Comment = debt.Comment,
+            Sum = 10,
+            OwnerName = debt.OwnerName,
+            Date = debt.Date,
+            TypeId = (int)debt.Type,
+        };
+
+        await _apiClient.Debt.Update(debt.Id, saveRequest).IsBadRequest();
+    }
+
     [Test]
     public async Task MergeOwnersTest()
     {

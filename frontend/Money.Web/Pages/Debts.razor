@@ -3,48 +3,130 @@
 
 <PageTitle>Долги</PageTitle>
 
-<MudText Typo="Typo.h3" Class="mb-3 text-primary">
+<MudText Class="mb-3"
+         Typo="Typo.h3">
     Долги
 </MudText>
 
-<MudGrid Spacing="2" Class="mb-4">
+<MudGrid Class="mb-4"
+         Spacing="2">
     @*TODO: Добавить кнопки создания с определенным типом*@
-    <MudItem lg="3" md="4" xs="12">
+    <MudItem lg="3"
+             md="4"
+             xs="12">
         <MudButton Color="Color.Primary"
                    EndIcon="@Icons.Material.Filled.Add"
-                   OnClick="Create"
                    FullWidth
-                   Variant="Variant.Filled"
-                   Class="elevation-1">
+                   OnClick="Create"
+                   Variant="Variant.Filled">
             Добавить долг
         </MudButton>
+    </MudItem>
+    <MudItem lg="6"
+             md="8"
+             xs="12">
+        <MudTextField Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      Clearable
+                      FullWidth
+                      Placeholder="Поиск по названию или владельцу..."
+                      T="string"
+                      Text="@_searchQuery"
+                      TextChanged="OnSearchQueryChanged" />
     </MudItem>
 </MudGrid>
 
 <MudDivider Class="mt-4 mb-4" />
 
-@foreach ((var type, var debtUsers) in _debts)
+@if (_filteredTypes.Count <= 0)
 {
-    <MudText Typo="Typo.h5" Class="mt-3 mb-2">
-        <MudIcon Icon="@Icons.Material.Filled.Label" Class="mr-1 text-secondary" /> @type.Name
+    <MudText Align="Align.Center"
+             Color="Color.Secondary"
+             Typo="Typo.h6">
+        Нет данных для отображения
     </MudText>
 
-    <MudGrid Spacing="2">
-        @foreach (var debtUser in debtUsers)
-        {
-            <MudItem xs="12">
-                <MudPaper Class="pa-1">
-                    <MudText Align="Align.Center" Typo="Typo.h6">
-                        @debtUser.UserName
-                    </MudText>
-                </MudPaper>
-            </MudItem>
+    return;
+}
 
-            <Virtualize Context="model" Items="debtUser.Debts">
-                <MudItem lg="3" md="4" xs="12" Class="mb-3">
-                    <DebtCard OnUpdate="Update" Model="model" />
-                </MudItem>
-            </Virtualize>
-        }
-    </MudGrid>
+@foreach (var type in _filteredTypes)
+{
+    <MudStack AlignItems="AlignItems.Center"
+              Row>
+        <MudIcon Icon="@Icons.Material.Filled.Label" />
+        <MudText Class="mt-3 mb-2"
+                 Typo="Typo.h5">
+            @type.Type.Name
+        </MudText>
+        <MudSpacer />
+        <MudText Color="Color.Secondary"
+                 Typo="Typo.subtitle2">
+            Общая сумма: @type.Owners.Sum(owner => owner.CalculateSum()).ToString("N0") ₽
+        </MudText>
+        <MudIconButton Icon="@(type.Expanded ? Icons.Material.Rounded.ExpandLess : Icons.Material.Rounded.ExpandMore)"
+                       OnClick="() => ToggleType(type)" />
+    </MudStack>
+
+    <MudCollapse Expanded="@type.Expanded">
+        <MudStack Spacing="2">
+            @foreach (var owner in type.Owners)
+            {
+                <div>
+                    <MudPaper Class="pa-2"
+                              Elevation="1">
+                        <MudStack AlignItems="AlignItems.Center"
+                                  Row
+                                  Spacing="1"
+                                  Wrap="Wrap.Wrap">
+                            <MudText Typo="Typo.h6">@owner.UserName</MudText>
+
+                            <MudSpacer />
+
+                            <MudTooltip Text="Количество долгов">
+                                <MudChip Icon="@Icons.Material.Rounded.ListAlt"
+                                         Size="Size.Small"
+                                         T="string"
+                                         Text="@owner.Debts.Count.ToString()" />
+                            </MudTooltip>
+
+                            <MudTooltip Text="Последний платеж">
+                                <MudChip Icon="@Icons.Material.Rounded.CalendarToday"
+                                         Size="Size.Small"
+                                         T="string"
+                                         Text="@(owner.GetLastPayDate()?.ToShortDateString() ?? "\u221e")" />
+                            </MudTooltip>
+
+                            <MudTooltip Text="Всего/Остаток">
+                                <MudChip Icon="@Icons.Material.Rounded.AttachMoney"
+                                         Size="Size.Small"
+                                         T="string"
+                                         Text="@($"{owner.CalculateSum():N0}/{owner.CalculateRemainder():N0}")" />
+                            </MudTooltip>
+
+                            <MudTooltip Text="Процент погашения">
+                                <MudChip Icon="@Icons.Material.Rounded.ArrowCircleUp"
+                                         Size="Size.Small"
+                                         T="string"
+                                         Text="@owner.CalculatePercent().ToString("P0")" />
+                            </MudTooltip>
+                        </MudStack>
+                    </MudPaper>
+
+                    <MudGrid Class="my-1"
+                             Spacing="1">
+                        <Virtualize Context="model"
+                                    Items="owner.Debts">
+                            <MudItem Class="mb-3"
+                                     lg="3"
+                                     md="4"
+                                     xs="12">
+                                <DebtCard Model="model"
+                                          OnUpdate="Update" />
+                            </MudItem>
+                        </Virtualize>
+                    </MudGrid>
+                </div>
+            }
+        </MudStack>
+    </MudCollapse>
 }
