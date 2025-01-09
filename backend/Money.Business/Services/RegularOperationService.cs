@@ -139,20 +139,29 @@ public class RegularOperationService(
 
         foreach (var dbTask in dbTasks)
         {
-            var operation = new Operation
+            try
             {
-                CategoryId = dbTask.CategoryId,
-                Comment = dbTask.Comment,
-                Sum = dbTask.Sum,
-                CreatedTaskId = dbTask.Id,
-                PlaceId = dbTask.PlaceId,
-                Date = dbTask.DateFrom,
-            };
+                var operation = new Operation
+                {
+                    CategoryId = dbTask.CategoryId,
+                    Comment = dbTask.Comment,
+                    Sum = dbTask.Sum,
+                    CreatedTaskId = dbTask.Id,
+                    PlaceId = dbTask.PlaceId,
+                    Date = dbTask.DateFrom,
+                };
 
-            await operationService.CreateAsync(operation, cancellationToken);
+                // todo это гавнина
+                environment.UserId = dbTask.UserId;
+                await operationService.CreateAsync(operation, cancellationToken);
 
-            dbTask.RunTime = GetRegularTaskRunTime(dbTask.DateFrom, dbTask.DateTo, dbTask.RunTime!.Value, (RegularOperationTimeTypes)dbTask.TimeTypeId, dbTask.TimeValue);
-            await context.SaveChangesAsync(cancellationToken);
+                dbTask.RunTime = GetRegularTaskRunTime(dbTask.DateFrom, dbTask.DateTo, dbTask.RunTime!.Value, (RegularOperationTimeTypes)dbTask.TimeTypeId, dbTask.TimeValue);
+                await context.SaveChangesAsync(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
     }
 
