@@ -31,7 +31,7 @@ public class TestDebt : TestObject
 
     public int Id { get; private set; }
 
-    public DebtTypes Type { get; }
+    public DebtTypes Type { get; private set; }
 
     public decimal Sum { get; private set; }
 
@@ -68,6 +68,12 @@ public class TestDebt : TestObject
     public TestDebt SetOwnerName(string value)
     {
         OwnerName = value;
+        return this;
+    }
+
+    public TestDebt SetType(DebtTypes value)
+    {
+        Type = value;
         return this;
     }
 

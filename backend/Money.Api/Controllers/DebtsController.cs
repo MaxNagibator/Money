@@ -151,7 +151,21 @@ public class DebtsController(DebtService debtService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetOwners(CancellationToken cancellationToken)
     {
-        var owners = await debtService.GetOwners(cancellationToken);
+        var owners = await debtService.GetOwnersAsync(cancellationToken);
         return Ok(owners.Select(DebtOwnerDto.FromBusinessModel));
+    }
+
+    /// <summary>
+    /// Простить долг.
+    /// </summary>
+    /// <param name="cancellationToken">Токен отмены запроса.</param>
+    [HttpPost("Forgive")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Forgive([FromBody] ForgiveRequest request, CancellationToken cancellationToken)
+    {
+        await debtService.ForgiveAsync(request.DebtIds, request.OperationCategoryId, request.OperationComment, cancellationToken);
+        return Ok();
     }
 }

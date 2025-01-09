@@ -280,13 +280,36 @@ public class DebtTests
 
         var owners = await _apiClient.Debt.GetOwners().IsSuccessWithContent();
 
-        await using var context = _dbClient.CreateApplicationDbContext();
-
         Assert.Multiple(() =>
         {
             Assert.That(owners, Is.Not.Null);
             Assert.That(owners.Length, Is.EqualTo(1));
             Assert.That(owners[0].Name, Is.EqualTo(debt.OwnerName));
+        });
+    }
+
+    [Test]
+    public async Task ForgiveTest()
+    {
+        var debt = _user.WithDebt().SetType(DebtTypes.Plus);
+        var category = _user.WithCategory().SetOperationType(OperationTypes.Costs);
+        _dbClient.Save();
+
+        var comment = "Прощаю";
+        await _apiClient.Debt.Forgive([debt.Id], category.Id, comment).IsSuccess();
+
+        await using var context = _dbClient.CreateApplicationDbContext();
+
+        var dbOperations = context.Operations.Where(x => x.UserId == debt.User.Id).ToList();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(dbOperations, Is.Not.Null);
+            Assert.That(dbOperations.Count, Is.EqualTo(1));
+            Assert.That(dbOperations[0].Date, Is.EqualTo(debt.Date));
+            Assert.That(dbOperations[0].Sum, Is.EqualTo(debt.Sum));
+            Assert.That(dbOperations[0].Comment?.Contains(comment), Is.True);
+            Assert.That(dbOperations[0].CategoryId, Is.EqualTo(category.Id));
         });
     }
 }

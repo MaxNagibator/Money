@@ -51,6 +51,17 @@ public class DebtClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
         return GetAsync<DebtOwner[]>($"{BaseUri}/Owners");
     }
 
+    public Task<ApiClientResponse> Forgive(int[] debtIds, int operationCategoryId, string? operationComment)
+    {
+        var request = new ForgiveRequest
+        {
+            DebtIds = debtIds,
+            OperationCategoryId = operationCategoryId,
+            OperationComment = operationComment,
+        };
+        return PostAsync($"{BaseUri}/Forgive", request);
+    }
+
     public class SaveRequest
     {
         public int TypeId { get; set; }
@@ -87,5 +98,14 @@ public class DebtClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
         public int Id { get; set; }
 
         public string? Name { get; set; }
+    }
+
+    public class ForgiveRequest
+    {
+        public required int[] DebtIds { get; init; }
+
+        public int OperationCategoryId { get; init; }
+
+        public string? OperationComment { get; set; }
     }
 }

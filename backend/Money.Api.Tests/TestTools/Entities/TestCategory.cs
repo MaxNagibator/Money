@@ -14,7 +14,7 @@ public class TestCategory : TestObject
         User = user;
 
         Name = TestRandom.GetString("Category");
-        OperationType = OperationTypes.Costs;
+        OperationType = TestRandom.GetEnum<OperationTypes>();
     }
 
     /// <summary>
@@ -35,7 +35,7 @@ public class TestCategory : TestObject
     /// <summary>
     /// Тип.
     /// </summary>
-    public OperationTypes OperationType { get; }
+    public OperationTypes OperationType { get; private set; }
 
     /// <summary>
     /// Пользователь.
@@ -56,6 +56,12 @@ public class TestCategory : TestObject
     public TestCategory SetIsDeleted()
     {
         IsDeleted = true;
+        return this;
+    }
+
+    public TestCategory SetOperationType(OperationTypes value)
+    {
+        OperationType = value;
         return this;
     }
 
