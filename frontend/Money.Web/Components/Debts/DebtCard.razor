@@ -2,65 +2,154 @@
          Outlined
          Style="transition: transform 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); height: 100%;">
     <MudCardContent Style="padding: 8px 12px">
-        <MudText>
-            Сумма: @Model.Sum ₽
-        </MudText>
-
-        @if (!string.IsNullOrWhiteSpace(Model.Comment))
+        @*<MudIconButton Icon="@(IsExpanded ? Icons.Material.Rounded.ExpandLess : Icons.Material.Rounded.ExpandMore)"
+                       OnClick="ToggleExpand" />*@
+        @if (_isExpanded)
         {
-            <MudText >
-                Комментарий: @Model.Comment
-            </MudText>
-        }
+            <MudStack Row="false"
+                      Spacing="2">
+                <MudText Typo="Typo.body2"
+                         Color="Color.Secondary">
+                    Дата: @Model.Date.ToString("dd.MM.yyyy")
+                </MudText>
 
-        <MudText >
-            Погашено: @Model.PaySum ₽
-        </MudText>
+                @if (string.IsNullOrWhiteSpace(Model.Comment) == false)
+                {
+                    <MudText Typo="Typo.body2">Комментарий: @Model.Comment</MudText>
+                }
 
-        @if (!string.IsNullOrWhiteSpace(Model.PayComment))
-        {
-            <MudText >
-                Комментарий к погашению: @Model.PayComment
-            </MudText>
-        }
+                <MudDivider Class="mt-1 mb-1" />
 
-        <MudText>
-            Дата: @Model.Date.ToString("dd.MM.yyyy")
-        </MudText>
-    </MudCardContent>
+                <MudText Typo="Typo.subtitle2"
+                         Color="Color.Primary">
+                    Остаток: @(Model.Sum - Model.PaySum) ₽
+                </MudText>
 
-    <MudCardActions Style="padding: 8px 4px">
-        <MudSpacer />
+                <MudProgressLinear Value="@GetPaymentProgress(Model)"
+                                   Color="Color.Primary"
+                                   BufferValue="100"
+                                   Class="my-2" />
 
-        @if (Model.IsDeleted)
-        {
-            <MudTooltip Text="Восстановить">
-                <MudIconButton Color="Color.Success"
-                               Icon="@Icons.Material.Filled.Restore"
-                               OnClick="() => Restore(Model)"
-                               Size="Size.Small"
-                               Class="hover-scale" />
-            </MudTooltip>
+                @if (Model.PaySum > 0 && string.IsNullOrWhiteSpace(Model.PayComment) == false)
+                {
+                    <MudText Typo="Typo.subtitle2"
+                             Color="Color.Secondary">
+                        История погашений:
+                    </MudText>
+
+                    <MudTable Items="ParsePaymentHistory(Model.PayComment)"
+                              Dense>
+                        <RowTemplate>
+                            <MudTr>
+                                <MudTd>@context.Date?.ToShortDateString()</MudTd>
+                                <MudTd>@context.Sum</MudTd>
+                                <MudTd>@context.Comment</MudTd>
+                            </MudTr>
+                        </RowTemplate>
+                    </MudTable>
+                }
+
+                <MudStack Row
+                          AlignItems="AlignItems.Center"
+                          StretchItems="StretchItems.Start"
+                          Spacing="1">
+                    <MudText Typo="Typo.body2">Статус:</MudText>
+                    <MudIcon Icon="@GetStatusIcon(Model)"
+                             Color="@GetStatusColor(Model)" />
+                    <MudText Typo="Typo.body2"
+                             Color="@GetStatusColor(Model)">
+                        @GetStatusText(Model)
+                    </MudText>
+                </MudStack>
+            </MudStack>
         }
         else
         {
-            <MudTooltip Text="Редактировать">
-                <MudIconButton Color="Color.Warning"
-                               Icon="@Icons.Material.Filled.Edit"
-                               OnClick="() => Update(Model)"
+            <MudStack Row
+                      AlignItems="AlignItems.Center"
+                      Spacing="1">
+                <MudSpacer />
+                <MudText Typo="Typo.body2"
+                         Color="Color.Secondary">
+                    @Model.Date.ToString("dd.MM.yyyy")
+                </MudText>
+            </MudStack>
+
+            <MudText Typo="Typo.body1">Сумма: @Model.Sum ₽</MudText>
+
+            <MudText Typo="Typo.body2"
+                     Color="Color.Secondary">
+                Погашено: @Model.PaySum ₽
+            </MudText>
+        }
+    </MudCardContent>
+
+    @if (_isExpanded)
+    {
+        <MudDivider />
+
+        <MudCardActions Style="padding: 8px 4px">
+            <MudTooltip Text="Оплатить">
+                <MudIconButton Color="Color.Primary"
+                               Icon="@Icons.Material.Filled.Payment"
                                Size="Size.Small"
+                               OnClick="() => _open = true"
                                Class="hover-scale" />
             </MudTooltip>
 
-            <MudTooltip Text="Удалить">
-                <MudIconButton Color="Color.Error"
-                               Icon="@Icons.Material.Filled.Delete"
-                               OnClick="() => Delete(Model)"
-                               Size="Size.Small"
-                               Class="hover-scale" />
-            </MudTooltip>
-        }
-    </MudCardActions>
+            <MudSpacer />
+
+            <MudPopover Open="_open">
+                <MudPaper Class="p-3">
+                    <MudStack Spacing="2">
+                        <MudNumericField @bind-Value="Payment.Sum"
+                                         Label="Сумма"
+                                         Variant="Variant.Outlined" />
+                        <MudTextField @bind-Value="Payment.Comment"
+                                      Label="Комментарий"
+                                      Variant="Variant.Outlined" />
+                        <MudDatePicker @bind-Date="Payment.Date"
+                                       Label="Дата оплаты"
+                                       Variant="Variant.Outlined" />
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   OnClick="() => SubmitPayment(Model)">
+                            Сохранить
+                        </MudButton>
+                    </MudStack>
+                </MudPaper>
+            </MudPopover>
+
+            @if (Model.IsDeleted)
+            {
+                <MudTooltip Text="Восстановить">
+                    <MudIconButton Color="Color.Success"
+                                   Icon="@Icons.Material.Filled.Restore"
+                                   OnClick="() => Restore(Model)"
+                                   Size="Size.Small"
+                                   Class="hover-scale" />
+                </MudTooltip>
+            }
+            else
+            {
+                <MudTooltip Text="Редактировать">
+                    <MudIconButton Color="Color.Warning"
+                                   Icon="@Icons.Material.Filled.Edit"
+                                   OnClick="() => Update(Model)"
+                                   Size="Size.Small"
+                                   Class="hover-scale" />
+                </MudTooltip>
+
+                <MudTooltip Text="Удалить">
+                    <MudIconButton Color="Color.Error"
+                                   Icon="@Icons.Material.Filled.Delete"
+                                   OnClick="() => Delete(Model)"
+                                   Size="Size.Small"
+                                   Class="hover-scale" />
+                </MudTooltip>
+            }
+        </MudCardActions>
+    }
 </MudCard>
 
 <style>
