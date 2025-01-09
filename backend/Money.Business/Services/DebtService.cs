@@ -118,7 +118,6 @@ public class DebtService(
             throw new BusinessException("Извините, но можно обновлять только непогашенные долги");
         }
 
-        // TODO: Подумать, т.к. PaySum не присутствует в запросе на сохранение. (также над >=)
         if (dbDebt.PaySum > 0 && debt.Sum <= dbDebt.PaySum)
         {
             throw new BusinessException("Извините, но сумма долга не может быть меньше оплаченной части долга");
@@ -185,7 +184,8 @@ public class DebtService(
             throw new BusinessException("Поглощающий не найден");
         }
 
-        var dbDebts = await context.Debts.IsUserEntity(environment.UserId)
+        var dbDebts = await context.Debts
+            .IsUserEntity(environment.UserId)
             .Where(x => x.OwnerId == dbFromUser.Id)
             .ToListAsync(cancellationToken);
 
@@ -200,70 +200,90 @@ public class DebtService(
 
     public async Task<IEnumerable<DebtOwner>> GetOwnersAsync(CancellationToken cancellationToken)
     {
-        var dbDebtUserIdsByDebts = context.Debts.IsUserEntity(environment.UserId).Select(x => x.OwnerId);
-        var dbDebtUsers = await context.DebtOwners.Where(x => x.UserId == environment.UserId && dbDebtUserIdsByDebts.Contains(x.Id))
-            .ToListAsync(cancellationToken);
-        var debtUsers = new List<DebtOwner>();
-        foreach (var dbDebtUser in dbDebtUsers)
-        {
-            var debtUser = new DebtOwner
+        var dbOwnerIdsByDebts = context.Debts
+            .IsUserEntity(environment.UserId)
+            .Select(x => x.OwnerId);
+
+        var dbDebtUsers = await context.DebtOwners
+            .IsUserEntity(environment.UserId)
+            .Where(x => dbOwnerIdsByDebts.Contains(x.Id))
+            .Select(dbDebtUser => new DebtOwner
             {
                 Id = dbDebtUser.Id,
-                Name = dbDebtUser.Name
-            };
-            debtUsers.Add(debtUser);
-        }
+                Name = dbDebtUser.Name,
+            })
+            .ToListAsync(cancellationToken);
 
-        return debtUsers;
+        return dbDebtUsers;
     }
 
-    public async Task ForgiveAsync(int[] debtIds, int operationCategoryId, string operationComment, CancellationToken cancellationToken)
+    public async Task ForgiveAsync(int[] debtIds, int operationCategoryId, string? operationComment, CancellationToken cancellationToken)
     {
-        var query = context.Debts.IsUserEntity(environment.UserId);
-        var dbDebts = await query.Where(x => debtIds.Contains(x.Id) && x.StatusId == (int)DebtStatus.Actual).ToListAsync(cancellationToken);
+        var dbDebts = await context.Debts
+            .IsUserEntity(environment.UserId)
+            .Where(x => debtIds.Contains(x.Id) && x.StatusId == (int)DebtStatus.Actual)
+            .ToListAsync(cancellationToken);
+
         if (dbDebts.Count == 0)
         {
             throw new BusinessException("Ни один долг не найден или статус долга не соответствует");
         }
+
         if (dbDebts.Any(x => x.TypeId == (int)DebtTypes.Minus))
         {
-            throw new BusinessException("Перемещать можно только долги, которые долны вам");
+            throw new BusinessException("Перемещать можно только долги, которые должны вам");
         }
 
         var category = await categoryService.GetByIdAsync(operationCategoryId, cancellationToken);
+
         if (category.OperationType != OperationTypes.Costs)
         {
             throw new BusinessException("Перемещать можно только в категорию расходов");
         }
 
-        var dbDebtUsers = await context.DebtOwners
+        var dbOwners = await context.DebtOwners
             .IsUserEntity(environment.UserId)
-            .ToListAsync(cancellationToken);
+            .ToDictionaryAsync(owner => owner.Id, cancellationToken);
 
-        foreach (var dbDebt in dbDebts)
+        // TODO: завести мидлварку с UOW и транзакциями
+        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+
+        try
         {
-            var dbDebtUser = dbDebtUsers.Single(x => x.Id == dbDebt.OwnerId);
-            var comment = operationComment + dbDebtUser.Name + " сумма долга: " + dbDebt.Sum + " из них оплачено: " + dbDebt.PaySum;
-            if (!String.IsNullOrEmpty(dbDebt.Comment))
+            foreach (var dbDebt in dbDebts)
             {
-                comment += Environment.NewLine + "комментарий:" + dbDebt.Comment;
-            }
-            if (!String.IsNullOrEmpty(dbDebt.PayComment))
-            {
-                comment += Environment.NewLine + "платёжный комментарий:" + dbDebt.PayComment;
+                var dbOwner = dbOwners[dbDebt.OwnerId];
+                var comment = $"{operationComment} {dbOwner.Name} сумма долга: {dbDebt.Sum} из них оплачено: {dbDebt.PaySum}";
+
+                if (string.IsNullOrWhiteSpace(dbDebt.Comment) == false)
+                {
+                    comment += Environment.NewLine + $"комментарий: {dbDebt.Comment}";
+                }
+
+                if (string.IsNullOrWhiteSpace(dbDebt.PayComment) == false)
+                {
+                    comment += Environment.NewLine + $"платёжный комментарий: {dbDebt.PayComment}";
+                }
+
+                var operation = new Operation
+                {
+                    CategoryId = category.Id,
+                    Comment = comment,
+                    Date = dbDebt.Date,
+                    Sum = dbDebt.Sum - dbDebt.PaySum,
+                };
+
+                await operationService.CreateAsync(operation, cancellationToken);
+                context.Debts.Remove(dbDebt);
             }
 
-            var operation = new Operation
-            {
-                CategoryId = operationCategoryId,
-                Comment = comment,
-                Date = dbDebt.Date,
-                Sum = dbDebt.Sum - dbDebt.PaySum,
-            };
-            await operationService.CreateAsync(operation, cancellationToken);
-            // todo завести мидлварку с UOW и транзакциями
-            context.Debts.Remove(dbDebt);
             await context.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
         }
     }
 
