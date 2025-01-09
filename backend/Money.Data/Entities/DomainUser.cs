@@ -19,7 +19,7 @@ public class DomainUser
 
     public int NextDebtId { get; set; }
 
-    public int NextDebtUserId { get; set; }
+    public int NextDebtOwnerId { get; set; }
 
     public byte[]? RowVersion { get; set; }
 }
@@ -61,7 +61,7 @@ public class DomainUserConfiguration : IEntityTypeConfiguration<DomainUser>
             .HasDefaultValue(1)
             .IsRequired();
 
-        builder.Property(x => x.NextDebtUserId)
+        builder.Property(x => x.NextDebtOwnerId)
             .HasDefaultValue(1)
             .IsRequired();
 

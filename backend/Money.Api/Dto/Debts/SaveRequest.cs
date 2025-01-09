@@ -5,16 +5,31 @@ namespace Money.Api.Dto.Debts;
 /// <summary>
 /// Запрос на сохранение долга.
 /// </summary>
-public class DebtSaveRequest
+public class SaveRequest
 {
+    /// <summary>
+    /// Идентификатор типа.
+    /// </summary>
     public int TypeId { get; init; }
 
+    /// <summary>
+    /// Сумма.
+    /// </summary>
     public decimal Sum { get; init; }
 
+    /// <summary>
+    /// Комментарий.
+    /// </summary>
     public string? Comment { get; init; }
 
-    public required string DebtUserName { get; init; }
+    /// <summary>
+    /// Имя владельца, которому принадлежит.
+    /// </summary>
+    public required string OwnerName { get; init; }
 
+    /// <summary>
+    /// Дата возникновения.
+    /// </summary>
     public DateTime Date { get; init; }
 
     /// <summary>
@@ -30,7 +45,7 @@ public class DebtSaveRequest
             Sum = Sum,
             Comment = Comment,
             Date = Date,
-            DebtUserName = DebtUserName,
+            OwnerName = OwnerName,
             Type = (DebtTypes)TypeId,
         };
     }

@@ -14,7 +14,7 @@ public class DebtsController(DebtService debtService) : ControllerBase
     /// Получить список долгов.
     /// </summary>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
-    /// <returns>Массив операций.</returns>
+    /// <returns>Массив долгов.</returns>
     [HttpGet("")]
     [ProducesResponseType(typeof(IEnumerable<DebtDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -27,9 +27,9 @@ public class DebtsController(DebtService debtService) : ControllerBase
     /// <summary>
     /// Получить долг по идентификатору.
     /// </summary>
-    /// <param name="id">Идентификатор категории.</param>
+    /// <param name="id">Идентификатор.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
-    /// <returns>Информация о категории.</returns>
+    /// <returns>Информация о долге.</returns>
     [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(DebtDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -50,7 +50,7 @@ public class DebtsController(DebtService debtService) : ControllerBase
     [ProducesResponseType(typeof(int), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Create([FromBody] DebtSaveRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Create([FromBody] SaveRequest request, CancellationToken cancellationToken)
     {
         var business = request.ToBusinessModel();
         var result = await debtService.CreateAsync(business, cancellationToken);
@@ -61,13 +61,13 @@ public class DebtsController(DebtService debtService) : ControllerBase
     /// Обновить долг.
     /// </summary>
     /// <param name="id">Идентификатор.</param>
-    /// <param name="request">Данные для обновления операции.</param>
+    /// <param name="request">Данные для обновления долга.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     [HttpPut("{id:int}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Update(int id, [FromBody] DebtSaveRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Update(int id, [FromBody] SaveRequest request, CancellationToken cancellationToken)
     {
         var business = request.ToBusinessModel();
         business.Id = id;
@@ -124,19 +124,20 @@ public class DebtsController(DebtService debtService) : ControllerBase
         return Ok();
     }
 
+    // TODO: Подумать над with
     /// <summary>
-    /// Перенести все долги из одного пользователя в другого.
+    /// Перенести все долги из одного держателя в другого.
     /// </summary>
-    /// <param name="fromUserId">Идентификатор сливаемого должника .</param>
-    /// <param name="toUserId">Идентификатор полгощающего должника.</param>
+    /// <param name="fromUserId">Идентификатор сливаемого должника.</param>
+    /// <param name="toUserId">Идентификатор поглощающего должника.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
-    [HttpPost("MergeDebtUsers/{fromUserId}/to/{toUserId}")]
+    [HttpPost("MergeOwners/{fromUserId:int}/with/{toUserId:int}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> MergeDebtUsers(int fromUserId, int toUserId, CancellationToken cancellationToken)
+    public async Task<IActionResult> MergeOwners(int fromUserId, int toUserId, CancellationToken cancellationToken)
     {
-        await debtService.MergeDebtUsersAsync(fromUserId, toUserId, cancellationToken);
+        await debtService.MergeOwnersAsync(fromUserId, toUserId, cancellationToken);
         return Ok();
     }
 }

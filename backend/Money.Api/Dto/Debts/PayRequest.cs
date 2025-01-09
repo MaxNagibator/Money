@@ -5,8 +5,14 @@
 /// </summary>
 public class PayRequest
 {
+    /// <summary>
+    /// Сумма.
+    /// </summary>
     public decimal Sum { get; init; }
 
+    /// <summary>
+    /// Комментарий.
+    /// </summary>
     public string? Comment { get; init; }
 
     /// <summary>
@@ -22,7 +28,7 @@ public class PayRequest
     /// </returns>
     public DebtPayment ToBusinessModel()
     {
-        return new DebtPayment()
+        return new()
         {
             Sum = Sum,
             Comment = Comment,

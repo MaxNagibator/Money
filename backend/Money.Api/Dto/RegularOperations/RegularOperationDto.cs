@@ -1,7 +1,7 @@
 ﻿namespace Money.Api.Dto.RegularOperations;
 
 /// <summary>
-/// Операция.
+/// Регулярная операция.
 /// </summary>
 public class RegularOperationDto
 {
@@ -35,14 +35,29 @@ public class RegularOperationDto
     /// </summary>
     public string? Place { get; set; }
 
+    /// <summary>
+    /// Идентификатор типа временного шага.
+    /// </summary>
     public int TimeTypeId { get; set; }
 
+    /// <summary>
+    /// Значение временного шага.
+    /// </summary>
     public int? TimeValue { get; set; }
 
+    /// <summary>
+    /// Дата начала.
+    /// </summary>
     public DateTime DateFrom { get; set; }
 
+    /// <summary>
+    /// Дата окончания.
+    /// </summary>
     public DateTime? DateTo { get; set; }
 
+    /// <summary>
+    /// Время последнего запуска.
+    /// </summary>
     public DateTime? RunTime { get; set; }
 
     /// <summary>

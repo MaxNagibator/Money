@@ -51,7 +51,7 @@ public class RegularOperationsController(RegularOperationService regularOperatio
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Create([FromBody] RegularOperationSaveRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Create([FromBody] SaveRequest request, CancellationToken cancellationToken)
     {
         var business = request.ToBusinessModel();
         var result = await regularOperationService.CreateAsync(business, cancellationToken);
@@ -68,7 +68,7 @@ public class RegularOperationsController(RegularOperationService regularOperatio
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Update(int id, [FromBody] RegularOperationSaveRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Update(int id, [FromBody] SaveRequest request, CancellationToken cancellationToken)
     {
         var business = request.ToBusinessModel();
         business.Id = id;

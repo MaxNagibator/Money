@@ -32,7 +32,7 @@ public class DebtTests
 
         _dbClient.Save();
 
-        var apiDebts = await _apiClient.Debt.Get(1).IsSuccessWithContent();
+        var apiDebts = await _apiClient.Debt.Get().IsSuccessWithContent();
         Assert.That(apiDebts, Is.Not.Null);
         Assert.That(apiDebts.Count, Is.GreaterThanOrEqualTo(3));
 
@@ -55,7 +55,7 @@ public class DebtTests
         {
             Assert.That(apiDebt.Id, Is.EqualTo(debt.Id));
             Assert.That(apiDebt.Comment, Is.EqualTo(debt.Comment));
-            Assert.That(apiDebt.DebtUserName, Is.EqualTo(debt.DebtUserName));
+            Assert.That(apiDebt.OwnerName, Is.EqualTo(debt.OwnerName));
             Assert.That(apiDebt.Date, Is.EqualTo(debt.Date));
             Assert.That(apiDebt.Sum, Is.EqualTo(debt.Sum));
         });
@@ -71,7 +71,7 @@ public class DebtTests
         var request = new DebtClient.SaveRequest
         {
             Comment = debt.Comment,
-            DebtUserName = debt.DebtUserName,
+            OwnerName = debt.OwnerName,
             Sum = debt.Sum,
             Date = debt.Date,
             TypeId = (int)debt.Type,
@@ -103,7 +103,7 @@ public class DebtTests
         {
             Comment = updateDebt.Comment,
             Sum = updateDebt.Sum,
-            DebtUserName = updateDebt.DebtUserName,
+            OwnerName = updateDebt.OwnerName,
             Date = updateDebt.Date,
             TypeId = (int)updateDebt.Type,
         };
@@ -174,13 +174,18 @@ public class DebtTests
             Comment = "Всё вернул в срок, красава",
             Date = DateTime.Now.Date,
         };
-        await _apiClient.Debt.PayDebt(debt.Id, request).IsSuccess();
+
+        await _apiClient.Debt.Pay(debt.Id, request).IsSuccess();
 
         await using var context = _dbClient.CreateApplicationDbContext();
 
         var dbDebt = context.Debts.Single(_user.Id, debt.Id);
-        Assert.That(dbDebt.PaySum, Is.EqualTo(debt.Sum));
-        Assert.That(dbDebt.StatusId, Is.EqualTo((int)DebtStatus.Paid));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(dbDebt.PaySum, Is.EqualTo(debt.Sum));
+            Assert.That(dbDebt.StatusId, Is.EqualTo((int)DebtStatus.Paid));
+        });
     }
 
     [Test]
@@ -195,35 +200,75 @@ public class DebtTests
             Comment = "Всё вернул в срок, красава",
             Date = DateTime.Now.Date,
         };
-        await _apiClient.Debt.PayDebt(debt.Id, request).IsSuccess();
+
+        await _apiClient.Debt.Pay(debt.Id, request).IsSuccess();
 
         await using var context = _dbClient.CreateApplicationDbContext();
 
         var dbDebt = context.Debts.Single(_user.Id, debt.Id);
-        Assert.That(dbDebt.PaySum, Is.EqualTo(request.Sum));
-        Assert.That(dbDebt.StatusId, Is.EqualTo((int)DebtStatus.Actual));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(dbDebt.PaySum, Is.EqualTo(request.Sum));
+            Assert.That(dbDebt.StatusId, Is.EqualTo((int)DebtStatus.Actual));
+        });
+    }
+
+
+    [Test]
+    public async Task EditPayedDebtWithOverflowPaySumTest()
+    {
+        var debt = _user.WithDebt().SetSum(100);
+        _dbClient.Save();
+
+        var request = new DebtClient.PayRequest
+        {
+            Sum = 20,
+            Comment = "Маловато вернул",
+            Date = DateTime.Now.Date,
+        };
+
+        await _apiClient.Debt.Pay(debt.Id, request).IsSuccess();
+
+        var saveRequest = new DebtClient.SaveRequest
+        {
+            Comment = debt.Comment,
+            Sum = 10,
+            OwnerName = debt.OwnerName,
+            Date = debt.Date,
+            TypeId = (int)debt.Type,
+        };
+
+        await _apiClient.Debt.Update(debt.Id, saveRequest).IsBadRequest();
     }
 
     [Test]
-    public async Task MergeDebtUsersTest()
+    public async Task MergeOwnersTest()
     {
-        var debt1 = _user.WithDebt().SetDebtUserName("User1");
-        var debt2 = _user.WithDebt().SetDebtUserName("User2");
+        var debt1 = _user.WithDebt().SetOwnerName("User1");
+        var debt2 = _user.WithDebt().SetOwnerName("User2");
         _dbClient.Save();
 
-        var fromUserId = debt1.DebtUserId;
-        var toUserId = debt2.DebtUserId;
+        var fromUserId = debt1.OwnerId;
+        var toUserId = debt2.OwnerId;
 
-        await _apiClient.Debt.MergeDebtUsers(fromUserId, debt2.DebtUserId).IsSuccess();
+        await _apiClient.Debt.MergeOwners(fromUserId, toUserId).IsSuccess();
 
         await using var context = _dbClient.CreateApplicationDbContext();
 
         var dbDebts = context.Debts.Where(x => x.UserId == debt1.User.Id).ToList();
-        var dbDebtUser = context.DebtUsers.FirstOrDefault(x => x.UserId == debt1.User.Id && x.Id == fromUserId);
-        Assert.That(dbDebtUser, Is.Null);
-        Assert.That(dbDebts.Count, Is.EqualTo(2));
-        Assert.That(dbDebts[0].DebtUserId, Is.EqualTo(toUserId));
-        Assert.That(dbDebts[1].DebtUserId, Is.EqualTo(toUserId));
+        var dbDebtOwner = context.DebtOwners.FirstOrDefault(x => x.UserId == debt1.User.Id && x.Id == fromUserId);
 
+        Assert.Multiple(() =>
+        {
+            Assert.That(dbDebtOwner, Is.Null);
+            Assert.That(dbDebts, Has.Count.EqualTo(2));
+        });
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(dbDebts[0].OwnerId, Is.EqualTo(toUserId));
+            Assert.That(dbDebts[1].OwnerId, Is.EqualTo(toUserId));
+        });
     }
 }

@@ -2,23 +2,54 @@
 
 public class Debt : UserEntity
 {
-    public DateTime Date { get; set; }
-
-    public decimal Sum { get; set; }
-
+    /// <summary>
+    /// Идентификатор типа.
+    /// </summary>
     public int TypeId { get; set; }
 
+    /// <summary>
+    /// Сумма.
+    /// </summary>
+    public decimal Sum { get; set; }
+
+    /// <summary>
+    /// Комментарий.
+    /// </summary>
     public string? Comment { get; set; }
 
+    /// <summary>
+    /// Дата возникновения.
+    /// </summary>
+    public DateTime Date { get; set; }
+
+    /// <summary>
+    /// Оплаченная сумма.
+    /// </summary>
     public decimal PaySum { get; set; }
 
-    public int StatusId { get; set; }
-
+    /// <summary>
+    /// Комментарии к оплате.
+    /// </summary>
     public string? PayComment { get; set; }
 
-    public int DebtUserId { get; set; }
-    public DebtUser? DebtUser { get; set; }
+    /// <summary>
+    /// Идентификатор статуса.
+    /// </summary>
+    public int StatusId { get; set; }
 
+    /// <summary>
+    /// Идентификатор держателя.
+    /// </summary>
+    public int OwnerId { get; set; }
+
+    /// <summary>
+    /// Держатель.
+    /// </summary>
+    public DebtOwner? Owner { get; set; }
+
+    /// <summary>
+    /// Удален.
+    /// </summary>
     public bool IsDeleted { get; set; }
 }
 

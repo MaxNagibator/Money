@@ -15,11 +15,10 @@ public class DebtService(MoneyClient moneyClient)
                        Type = DebtTypes.Values[x.TypeId],
                        Sum = x.Sum,
                        Comment = x.Comment,
-                       DebtUserName = x.DebtUserName,
+                       OwnerName = x.OwnerName,
                        Date = x.Date,
                        PaySum = x.PaySum,
                        PayComment = x.PayComment,
-                       IsDeleted = x.IsDeleted,
                    })
                    .ToList()
                ?? [];

@@ -40,9 +40,9 @@ public class UserService(RequestEnvironment environment, ApplicationDbContext co
         return GetNextIdAsync(x => x.NextDebtId, x => x.NextDebtId++, cancellationToken);
     }
 
-    public Task<int> GetNextDebtUserIdAsync(CancellationToken cancellationToken = default)
+    public Task<int> GetNextDebtOwnerIdAsync(CancellationToken cancellationToken = default)
     {
-        return GetNextIdAsync(x => x.NextDebtUserId, x => x.NextDebtUserId++, cancellationToken);
+        return GetNextIdAsync(x => x.NextDebtOwnerId, x => x.NextDebtOwnerId++, cancellationToken);
     }
 
     public async Task SetNextCategoryIdAsync(int index, CancellationToken cancellationToken = default)
