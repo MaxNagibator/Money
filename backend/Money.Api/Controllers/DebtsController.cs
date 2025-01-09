@@ -140,4 +140,18 @@ public class DebtsController(DebtService debtService) : ControllerBase
         await debtService.MergeOwnersAsync(fromUserId, toUserId, cancellationToken);
         return Ok();
     }
+
+    /// <summary>
+    /// Получить список держателей долга.
+    /// </summary>
+    /// <param name="cancellationToken">Токен отмены запроса.</param>
+    /// <returns>Массив держателей долга.</returns>
+    [HttpGet("Owners")]
+    [ProducesResponseType(typeof(IEnumerable<DebtOwnerDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetOwners(CancellationToken cancellationToken)
+    {
+        var owners = await debtService.GetOwners(cancellationToken);
+        return Ok(owners.Select(DebtOwnerDto.FromBusinessModel));
+    }
 }

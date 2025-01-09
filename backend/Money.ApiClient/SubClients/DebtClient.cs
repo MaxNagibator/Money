@@ -46,6 +46,11 @@ public class DebtClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
         return PostAsync($"{BaseUri}/MergeOwners/{fromUserId}/with/{toUserId}");
     }
 
+    public Task<ApiClientResponse<DebtOwner[]>> GetOwners()
+    {
+        return GetAsync<DebtOwner[]>($"{BaseUri}/Owners");
+    }
+
     public class SaveRequest
     {
         public int TypeId { get; set; }
@@ -75,5 +80,12 @@ public class DebtClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
         public string? Comment { get; set; }
 
         public DateTime Date { get; set; }
+    }
+
+    public class DebtOwner
+    {
+        public int Id { get; set; }
+
+        public string? Name { get; set; }
     }
 }

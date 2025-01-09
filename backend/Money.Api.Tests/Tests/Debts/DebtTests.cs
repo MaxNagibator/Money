@@ -271,4 +271,22 @@ public class DebtTests
             Assert.That(dbDebts[1].OwnerId, Is.EqualTo(toUserId));
         });
     }
+
+    [Test]
+    public async Task GetOwnersTest()
+    {
+        var debt = _user.WithDebt();
+        _dbClient.Save();
+
+        var owners = await _apiClient.Debt.GetOwners().IsSuccessWithContent();
+
+        await using var context = _dbClient.CreateApplicationDbContext();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(owners, Is.Not.Null);
+            Assert.That(owners.Length, Is.EqualTo(1));
+            Assert.That(owners[0].Name, Is.EqualTo(debt.OwnerName));
+        });
+    }
 }

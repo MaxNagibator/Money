@@ -196,6 +196,25 @@ public class DebtService(
         await context.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task<IEnumerable<DebtOwner>> GetOwners(CancellationToken cancellationToken)
+    {
+        var dbDebtUserIdsByDebts = context.Debts.IsUserEntity(environment.UserId).Select(x => x.OwnerId);
+        var dbDebtUsers = await context.DebtOwners.Where(x => x.UserId == environment.UserId && dbDebtUserIdsByDebts.Contains(x.Id))
+            .ToListAsync(cancellationToken);
+        var debtUsers = new List<DebtOwner>();
+        foreach (var dbDebtUser in dbDebtUsers)
+        {
+            var debtUser = new DebtOwner
+            {
+                Id = dbDebtUser.Id,
+                Name = dbDebtUser.Name
+            };
+            debtUsers.Add(debtUser);
+        }
+
+        return debtUsers;
+    }
+
     public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
         var dbDebt = await GetByIdInternal(id, cancellationToken);
