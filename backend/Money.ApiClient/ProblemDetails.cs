@@ -2,11 +2,10 @@
 
 namespace Money.ApiClient;
 
-public class ProblemDetails(string title, int status)
-{
-    [JsonPropertyName("title")]
-    public string Title { get; init; } = title;
-
-    [JsonPropertyName("status")]
-    public int Status { get; init; } = status;
-}
+public record ProblemDetails(
+    [property: JsonPropertyName("type")] string Type,
+    [property: JsonPropertyName("title")] string Title,
+    [property: JsonPropertyName("status")] int Status,
+    [property: JsonPropertyName("instance")] string Instance,
+    [property: JsonPropertyName("requestId")] string RequestId
+);

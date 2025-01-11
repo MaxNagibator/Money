@@ -97,28 +97,47 @@
                                Class="hover-scale" />
             </MudTooltip>
 
-            <MudSpacer />
-
             <MudPopover Open="_open">
-                <MudPaper Class="p-3">
-                    <MudStack Spacing="2">
-                        <MudNumericField @bind-Value="Payment.Sum"
-                                         Label="Сумма"
-                                         Variant="Variant.Outlined" />
-                        <MudTextField @bind-Value="Payment.Comment"
-                                      Label="Комментарий"
-                                      Variant="Variant.Outlined" />
-                        <MudDatePicker @bind-Date="Payment.Date"
-                                       Label="Дата оплаты"
-                                       Variant="Variant.Outlined" />
-                        <MudButton Variant="Variant.Filled"
-                                   Color="Color.Primary"
-                                   OnClick="() => SubmitPayment(Model)">
-                            Сохранить
-                        </MudButton>
-                    </MudStack>
+                <MudPaper Class="pa-3">
+                    <EditForm Model="@Payment"
+                              OnValidSubmit="SubmitPayment">
+                        <DataAnnotationsValidator />
+                        <MudStack Spacing="2">
+                            <MudNumericField @bind-Value="Payment.Sum"
+                                             For="() => Payment.Sum"
+                                             Label="Сумма"
+                                             Variant="Variant.Outlined" />
+
+                            <MudTextField @bind-Value="Payment.Comment"
+                                          For="() => Payment.Comment"
+                                          Label="Комментарий"
+                                          Variant="Variant.Outlined" />
+
+                            <MudDatePicker @bind-Date="Payment.Date"
+                                           For="() => Payment.Date"
+                                           Label="Дата оплаты"
+                                           Variant="Variant.Outlined" />
+
+                            <MudStack AlignItems="AlignItems.Center"
+                                      Class="mt-3"
+                                      Justify="Justify.SpaceBetween"
+                                      Row>
+                                <MudButton Color="Color.Error"
+                                           OnClick="() => _open = false">
+                                    Закрыть
+                                </MudButton>
+                                <MudButton ButtonType="ButtonType.Submit"
+                                           Color="Color.Tertiary"
+                                           Variant="Variant.Filled">
+                                    Сохранить
+                                </MudButton>
+                            </MudStack>
+                        </MudStack>
+                    </EditForm>
                 </MudPaper>
             </MudPopover>
+
+            <MudSpacer />
 
             @if (Model.IsDeleted)
             {
