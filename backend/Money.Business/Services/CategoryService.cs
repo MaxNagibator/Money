@@ -63,7 +63,7 @@ public class CategoryService(
 
     public async Task UpdateAsync(Category category, CancellationToken cancellationToken)
     {
-        var dbCategory = await context.Categories.SingleOrDefaultAsync(environment.UserId, category.Id, cancellationToken)
+        var dbCategory = await context.Categories.FirstOrDefaultAsync(environment.UserId, category.Id, cancellationToken)
                          ?? throw new NotFoundException("категория", category.Id);
 
         await ValidateParentCategoryAsync(category.ParentId, dbCategory.TypeId, cancellationToken);
@@ -192,7 +192,7 @@ public class CategoryService(
         {
             var parent = await context.Categories
                 .Where(x => x.TypeId == typeId)
-                .SingleOrDefaultAsync(environment.UserId, nextParentId.Value, cancellationToken);
+                .FirstOrDefaultAsync(environment.UserId, nextParentId.Value, cancellationToken);
 
             if (parent == null)
             {

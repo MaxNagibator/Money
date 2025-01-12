@@ -10,12 +10,12 @@ public class SaveRequest
     /// <summary>
     /// Идентификатор типа.
     /// </summary>
-    public int TypeId { get; init; }
+    public required int TypeId { get; init; }
 
     /// <summary>
     /// Сумма.
     /// </summary>
-    public decimal Sum { get; init; }
+    public required decimal Sum { get; init; }
 
     /// <summary>
     /// Комментарий.
@@ -30,7 +30,7 @@ public class SaveRequest
     /// <summary>
     /// Дата возникновения.
     /// </summary>
-    public DateTime Date { get; init; }
+    public required DateTime Date { get; init; }
 
     /// <summary>
     /// Преобразует текущую DTO-модель в бизнес-модель.

@@ -25,7 +25,7 @@ public class DevelopmentController(RequestEnvironment environment, ApplicationDb
     /// </summary>
     /// <param name="cancellationToken">Токен отмены операции.</param>
     [HttpPost]
-    [Route("/LoadTestData")]
+    [Route("LoadTestData")]
     public async Task LoadTestData(CancellationToken cancellationToken = default)
     {
         if (environment.UserId == null)
@@ -44,8 +44,8 @@ public class DevelopmentController(RequestEnvironment environment, ApplicationDb
         (var operations, var places) = DatabaseSeeder.SeedOperations(environment.UserId.Value, categories);
 
         dbUser.NextCategoryId = lastIndex + 1;
-        dbUser.NextPlaceId = places.Last().Id + 1;
-        dbUser.NextOperationId = operations.Last().Id + 1;
+        dbUser.NextPlaceId = places[^1].Id + 1;
+        dbUser.NextOperationId = operations[^1].Id + 1;
 
         await context.Categories.AddRangeAsync(categories, cancellationToken);
         await context.Places.AddRangeAsync(places, cancellationToken);

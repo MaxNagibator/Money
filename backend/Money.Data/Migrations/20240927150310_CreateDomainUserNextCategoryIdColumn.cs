@@ -2,29 +2,29 @@
 
 #nullable disable
 
-namespace Money.Data.Migrations
+namespace Money.Data.Migrations;
+
+/// <inheritdoc />
+public partial class CreateDomainUserNextCategoryIdColumn : Migration
 {
     /// <inheritdoc />
-    public partial class CreateDomainUserNextCategoryIdColumn : Migration
+    protected override void Up(MigrationBuilder migrationBuilder)
     {
-        /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.AddColumn<int>(
-                name: "next_category_id",
-                table: "domain_users",
-                type: "integer",
-                nullable: false,
-                defaultValue: 1);
+        migrationBuilder.AddColumn<int>(
+            name: "next_category_id",
+            table: "domain_users",
+            type: "integer",
+            nullable: false,
+            defaultValue: 1);
 
-            migrationBuilder.AddColumn<int>(
-                name: "next_payment_id",
-                table: "domain_users",
-                type: "integer",
-                nullable: false,
-                defaultValue: 1);
+        migrationBuilder.AddColumn<int>(
+            name: "next_payment_id",
+            table: "domain_users",
+            type: "integer",
+            nullable: false,
+            defaultValue: 1);
 
-            migrationBuilder.Sql(
+        migrationBuilder.Sql(
 @"UPDATE public.domain_users
 SET next_category_id = u2.next_id
 FROM public.domain_users u
@@ -35,18 +35,17 @@ FROM public.domain_users u
             GROUP BY user_id
         ) AS u2 ON u2.user_id = u.id
 WHERE public.domain_users.id = u.id");
-        }
+    }
 
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropColumn(
-                name: "next_category_id",
-                table: "domain_users");
+    /// <inheritdoc />
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.DropColumn(
+            name: "next_category_id",
+            table: "domain_users");
 
-            migrationBuilder.DropColumn(
-                name: "next_payment_id",
-                table: "domain_users");
-        }
+        migrationBuilder.DropColumn(
+            name: "next_payment_id",
+            table: "domain_users");
     }
 }

@@ -5,11 +5,18 @@ public class RegularTaskBackgroundService(IServiceProvider serviceProvider, ILog
     private readonly PeriodicTimer _timer = new(TimeSpan.FromSeconds(10));
     private DateTime _lastExecuteDate = DateTime.Now.Date.AddDays(-1);
 
-    public override Task StopAsync(CancellationToken stoppingToken)
+    public override void Dispose()
+    {
+        base.Dispose();
+        _timer.Dispose();
+        GC.SuppressFinalize(this);
+    }
+
+    public override Task StopAsync(CancellationToken cancellationToken)
     {
         logger.LogInformation("{Name} останавливается", nameof(RegularTaskBackgroundService));
         _timer.Dispose();
-        return base.StopAsync(stoppingToken);
+        return base.StopAsync(cancellationToken);
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)

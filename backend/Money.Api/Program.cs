@@ -1,3 +1,4 @@
+#pragma warning disable S2139
 using Money.CoreLib;
 using NLog;
 using NLog.Web;
@@ -22,7 +23,7 @@ try
     app.UseDefinitions();
     app.MapDefaultEndpoints();
     AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-    app.Run();
+    await app.RunAsync();
 }
 catch (Exception exception)
 {
@@ -34,4 +35,9 @@ finally
     LogManager.Shutdown();
 }
 
-public partial class Program;
+public partial class Program
+{
+    protected Program()
+    {
+    }
+}

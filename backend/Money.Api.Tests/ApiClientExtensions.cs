@@ -10,15 +10,20 @@ public static class ApiClientExtensions
         client.SetUser(user.Login, user.Password);
     }
 
-    public static ApiClientResponse<T> IsSuccess<T>(this ApiClientResponse<T> response)
-    {
-        Assert.That(response.Code, Is.AnyOf(HttpStatusCode.OK, HttpStatusCode.Created), response.StringContent);
-        return response;
-    }
-
     public static ApiClientResponse IsSuccess(this ApiClientResponse response)
     {
         Assert.That(response.Code, Is.AnyOf(HttpStatusCode.OK, HttpStatusCode.Created));
+        return response;
+    }
+
+    public static Task<ApiClientResponse> IsSuccess(this Task<ApiClientResponse> responseTask)
+    {
+        return IsStatus(responseTask, HttpStatusCode.OK, HttpStatusCode.Created);
+    }
+
+    public static ApiClientResponse<T> IsSuccess<T>(this ApiClientResponse<T> response)
+    {
+        Assert.That(response.Code, Is.AnyOf(HttpStatusCode.OK, HttpStatusCode.Created), response.StringContent);
         return response;
     }
 
@@ -34,11 +39,6 @@ public static class ApiClientExtensions
         var response = await responseTask;
         Assert.That(response.Code, Is.AnyOf(statusCode), response.StringContent);
         return response;
-    }
-
-    public static Task<ApiClientResponse> IsSuccess(this Task<ApiClientResponse> responseTask)
-    {
-        return IsStatus(responseTask, HttpStatusCode.OK, HttpStatusCode.Created);
     }
 
     public static Task<ApiClientResponse> IsBadRequest(this Task<ApiClientResponse> responseTask)

@@ -131,11 +131,11 @@ public class AuthService(UserManager<ApplicationUser> userManager, SignInManager
 
         await Task.WhenAll(userIdTask, emailTask, userNameTask, rolesTask);
 
-        identity.SetClaim(OpenIddictConstants.Claims.Subject, userIdTask.Result)
-            .SetClaim(OpenIddictConstants.Claims.Email, emailTask.Result)
-            .SetClaim(OpenIddictConstants.Claims.Name, userNameTask.Result)
-            .SetClaim(OpenIddictConstants.Claims.PreferredUsername, userNameTask.Result)
-            .SetClaims(OpenIddictConstants.Claims.Role, [.. rolesTask.Result]);
+        identity.SetClaim(OpenIddictConstants.Claims.Subject, await userIdTask)
+            .SetClaim(OpenIddictConstants.Claims.Email, await emailTask)
+            .SetClaim(OpenIddictConstants.Claims.Name, await userNameTask)
+            .SetClaim(OpenIddictConstants.Claims.PreferredUsername, await userNameTask)
+            .SetClaims(OpenIddictConstants.Claims.Role, [.. await rolesTask]);
 
         if (scopes != null)
         {

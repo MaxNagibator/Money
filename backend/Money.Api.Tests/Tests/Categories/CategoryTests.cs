@@ -78,7 +78,7 @@ public class CategoryTests
         };
 
         var createdCategoryId = await _apiClient.Category.Create(request).IsSuccessWithContent();
-        var dbCategory = _dbClient.CreateApplicationDbContext().Categories.SingleOrDefault(_user.Id, createdCategoryId);
+        var dbCategory = await _dbClient.CreateApplicationDbContext().Categories.FirstOrDefaultAsync(_user.Id, createdCategoryId);
 
         Assert.That(dbCategory, Is.Not.Null);
 
@@ -108,7 +108,7 @@ public class CategoryTests
         };
 
         await _apiClient.Category.Update(category.Id, request).IsSuccess();
-        var dbCategory = _dbClient.CreateApplicationDbContext().Categories.SingleOrDefault(_user.Id, category.Id);
+        var dbCategory = await _dbClient.CreateApplicationDbContext().Categories.FirstOrDefaultAsync(_user.Id, category.Id);
 
         Assert.That(dbCategory, Is.Not.Null);
 
@@ -123,11 +123,13 @@ public class CategoryTests
     }
 
     [Test]
-    public async Task UpdateRecursiveFailTest()
+    [TestCase(OperationTypes.Costs)]
+    [TestCase(OperationTypes.Income)]
+    public async Task UpdateRecursiveFailTest(OperationTypes operationType)
     {
-        var category1 = _user.WithCategory();
-        var category2 = _user.WithCategory();
-        var category3 = _user.WithCategory();
+        var category1 = _user.WithCategory().SetOperationType(operationType);
+        var category2 = _user.WithCategory().SetOperationType(operationType);
+        var category3 = _user.WithCategory().SetOperationType(operationType);
         category2.SetParent(category1);
         category3.SetParent(category2);
         _dbClient.Save();
@@ -161,14 +163,14 @@ public class CategoryTests
 
         await using var context = _dbClient.CreateApplicationDbContext();
 
-        var dbCategory = context.Categories
-            .SingleOrDefault(_user.Id, category.Id);
+        var dbCategory = await context.Categories
+            .FirstOrDefaultAsync(_user.Id, category.Id);
 
         Assert.That(dbCategory, Is.Null);
 
-        dbCategory = context.Categories
+        dbCategory = await context.Categories
             .IgnoreQueryFilters()
-            .SingleOrDefault(_user.Id, category.Id);
+            .FirstOrDefaultAsync(_user.Id, category.Id);
 
         Assert.That(dbCategory, Is.Not.Null);
         Assert.That(dbCategory.IsDeleted, Is.EqualTo(true));
@@ -184,13 +186,13 @@ public class CategoryTests
 
         await using var context = _dbClient.CreateApplicationDbContext();
 
-        var dbCategory = context.Categories.SingleOrDefault(_user.Id, category.Id);
+        var dbCategory = await context.Categories.FirstOrDefaultAsync(_user.Id, category.Id);
         Assert.That(dbCategory, Is.Not.Null);
         Assert.That(dbCategory.IsDeleted, Is.EqualTo(false));
     }
 
     [Test]
-    public async Task RestoreFail_WhenNotDeletedTest()
+    public async Task RestoreFailWhenNotDeletedTest()
     {
         var category = _user.WithCategory();
         _dbClient.Save();
@@ -199,7 +201,7 @@ public class CategoryTests
     }
 
     [Test]
-    public async Task RestoreFail_WhenNotExistTest()
+    public async Task RestoreFailWhenNotExistTest()
     {
         _dbClient.Save();
 
@@ -207,7 +209,7 @@ public class CategoryTests
     }
 
     [Test]
-    public async Task RestoreFail_WhenParentDeletedTest()
+    public async Task RestoreFailWhenParentDeletedTest()
     {
         var parent = _user.WithCategory();
         var child = _user.WithCategory();

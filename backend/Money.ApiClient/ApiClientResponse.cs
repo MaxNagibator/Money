@@ -13,7 +13,7 @@ public class ApiClientResponse(HttpStatusCode code, string content)
     /// <summary>
     /// Код успешный.
     /// </summary>
-    public bool IsSuccessStatusCode => (int)Code >= 200 && (int)Code <= 299;
+    public bool IsSuccessStatusCode => (int)Code is >= 200 and <= 299;
 
     /// <summary>
     /// Содержимое ответа в строковом представлении.

@@ -236,8 +236,8 @@ public class OperationTests
         };
 
         var createdId = await _apiClient.Operation.Create(request).IsSuccessWithContent();
-        var dbOperation = _dbClient.CreateApplicationDbContext().Operations.SingleOrDefault(_user.Id, createdId);
-        var dbPlace = _dbClient.CreateApplicationDbContext().Places.FirstOrDefault(x => x.UserId == _user.Id && x.Name == place.Name);
+        var dbOperation = await _dbClient.CreateApplicationDbContext().Operations.FirstOrDefaultAsync(_user.Id, createdId);
+        var dbPlace = await _dbClient.CreateApplicationDbContext().Places.FirstOrDefaultAsync(x => x.UserId == _user.Id && x.Name == place.Name);
 
         Assert.Multiple(() =>
         {
@@ -275,8 +275,8 @@ public class OperationTests
         };
 
         await _apiClient.Operation.Update(operation.Id, request).IsSuccess();
-        var dbOperation = _dbClient.CreateApplicationDbContext().Operations.SingleOrDefault(_user.Id, operation.Id);
-        var dbPlace = _dbClient.CreateApplicationDbContext().Places.FirstOrDefault(x => x.UserId == _user.Id && x.Name == place.Name);
+        var dbOperation = await _dbClient.CreateApplicationDbContext().Operations.FirstOrDefaultAsync(_user.Id, operation.Id);
+        var dbPlace = await _dbClient.CreateApplicationDbContext().Places.FirstOrDefaultAsync(x => x.UserId == _user.Id && x.Name == place.Name);
 
         Assert.Multiple(() =>
         {
@@ -365,13 +365,13 @@ public class OperationTests
 
         await using var context = _dbClient.CreateApplicationDbContext();
 
-        var dbOperation = context.Operations.SingleOrDefault(_user.Id, operation.Id);
+        var dbOperation = await context.Operations.FirstOrDefaultAsync(_user.Id, operation.Id);
 
         Assert.That(dbOperation, Is.Null);
 
-        dbOperation = context.Operations
+        dbOperation = await context.Operations
             .IgnoreQueryFilters()
-            .SingleOrDefault(_user.Id, operation.Id);
+            .FirstOrDefaultAsync(_user.Id, operation.Id);
 
         Assert.That(dbOperation, Is.Not.Null);
         Assert.That(dbOperation.IsDeleted, Is.EqualTo(true));
@@ -387,7 +387,7 @@ public class OperationTests
 
         await using var context = _dbClient.CreateApplicationDbContext();
 
-        var dbOperation = context.Operations.SingleOrDefault(_user.Id, operation.Id);
+        var dbOperation = await context.Operations.FirstOrDefaultAsync(_user.Id, operation.Id);
         Assert.That(dbOperation, Is.Not.Null);
         Assert.That(dbOperation.IsDeleted, Is.EqualTo(false));
     }

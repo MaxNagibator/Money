@@ -15,9 +15,19 @@ public class FileService(IOptionsSnapshot<FilesStorageConfig> config)
 
     private readonly FilesStorageConfig _config = config.Value;
 
+    public static void CheckFileType(string filename)
+    {
+        var fileExtension = Path.GetExtension(filename).ToLowerInvariant();
+
+        if (SupportedFilesExtensions.Values.Any(x => x.Contains(fileExtension)) == false)
+        {
+            throw new UnsupportedFileExtensionException("К сожалению, такой тип файла не поддерживается. Попробуйте выбрать другой файл.");
+        }
+    }
+
     public async Task<File> Upload(IFormFile file, CancellationToken cancellationToken = default)
     {
-        var fileExt = Path.GetExtension(file.FileName).ToLower();
+        var fileExt = Path.GetExtension(file.FileName).ToLowerInvariant();
         var fileName = Guid.NewGuid() + fileExt;
         var source = Path.Combine(_config.Path, fileName);
 
@@ -35,24 +45,14 @@ public class FileService(IOptionsSnapshot<FilesStorageConfig> config)
         };
     }
 
-    public void CheckFileType(string filename)
-    {
-        var fileExtension = Path.GetExtension(filename).ToLower();
-
-        if (SupportedFilesExtensions.Values.Any(x => x.Contains(fileExtension)) == false)
-        {
-            throw new UnsupportedFileExtensionException("К сожалению, такой тип файла не поддерживается. Попробуйте выбрать другой файл.");
-        }
-    }
-
     private static FileTypes GetFileType(string fileName)
     {
-        if (fileName.Contains('.') == false)
+        if (fileName.Contains('.', StringComparison.Ordinal) == false)
         {
             throw new IncorrectFileException("Вы выбрали неправильный файл. Попробуйте выбрать другой.");
         }
 
-        var fileExtension = Path.GetExtension(fileName).ToLower();
+        var fileExtension = Path.GetExtension(fileName).ToLowerInvariant();
 
         var fileType = SupportedFilesExtensions.Where(kvp => kvp.Value.Contains(fileExtension))
             .Select(kvp => kvp.Key)

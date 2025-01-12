@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Money.Api.Dto.Operations;
 using Money.Business.Enums;
 using OpenIddict.Validation.AspNetCore;
+using System.Globalization;
 
 namespace Money.Api.Controllers;
 
@@ -32,15 +33,15 @@ public class OperationsController(OperationService operationService, PlaceServic
     public async Task<IActionResult> GetExcel([FromServices] CategoryService categoryService, [FromQuery] OperationFilterDto filter, CancellationToken cancellationToken)
     {
         var businessFilter = filter.ToBusinessModel();
-        var operations = await operationService.GetAsync(businessFilter, cancellationToken);
-        var categories = await categoryService.GetAsync(null, cancellationToken);
+        var operations = (await operationService.GetAsync(businessFilter, cancellationToken)).ToArray();
+        var categories = (await categoryService.GetAsync(null, cancellationToken)).ToArray();
 
-        var workBook = new XLWorkbook();
-        var pg = operations.GroupBy(x => x.CategoryId);
-        var types = new List<OperationTypes> { OperationTypes.Costs, OperationTypes.Income };
-        foreach (var type in types)
+        using var workBook = new XLWorkbook();
+        // var pg = operations.GroupBy(x => x.CategoryId)
+
+        foreach (var type in Enum.GetValues<OperationTypes>())
         {
-            var workSheet = workBook.Worksheets.Add(type.DescriptionAttr());
+            var workSheet = workBook.Worksheets.Add(type.DescriptionAttr() ?? "?");
             var categoriesByType = categories.Where(x => x.OperationType == type).Select(x => x.Id);
             var operationsByType = operations.Where(x => categoriesByType.Contains(x.CategoryId)).ToArray();
             workSheet.Cell("A1").Value = "Id";
@@ -51,6 +52,7 @@ public class OperationsController(OperationService operationService, PlaceServic
             workSheet.Cell("F1").Value = "Комментарий";
 
             var row = 1;
+
             foreach (var operation in operationsByType)
             {
                 row++;
@@ -64,23 +66,18 @@ public class OperationsController(OperationService operationService, PlaceServic
                 column++;
                 workSheet.Cell(row, column).Value = operation.Date.ToShortDateString();
                 column++;
-                workSheet.Cell(row, column).Value = operation.Sum.ToString();
+                workSheet.Cell(row, column).Value = operation.Sum.ToString(CultureInfo.InvariantCulture);
                 workSheet.Cell(row, column).Style.NumberFormat.Format = "0.00";
                 column++;
                 workSheet.Cell(row, column).Value = operation.Comment;
             }
         }
+
         var date = DateTime.Now;
         var directory = Path.GetTempPath();
 
-        string filename = String.Format("BobMoney-{0}{1}{2}{3}{4}{5}{6}.xlsx",
-                                        date.Year.ToString("0000"),
-                                        date.Month.ToString("00"),
-                                        date.Day.ToString("00"),
-                                        date.Hour.ToString("00"),
-                                        date.Minute.ToString("00"),
-                                        date.Second.ToString("00"),
-                                        date.Millisecond.ToString("000"));
+        var filename = $"BobMoney-{date.Year:0000}{date.Month:00}{date.Day:00}{date.Hour:00}{date.Minute:00}{date.Second:00}{date.Millisecond:000}.xlsx";
+
         var filePath = Path.Combine(directory, filename);
         workBook.SaveAs(filePath);
         return PhysicalFile(filePath, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", Path.GetFileName(filePath));
@@ -117,7 +114,11 @@ public class OperationsController(OperationService operationService, PlaceServic
     {
         var business = request.ToBusinessModel();
         var result = await operationService.CreateAsync(business, cancellationToken);
-        return CreatedAtAction(nameof(GetById), new { id = result }, result);
+
+        return CreatedAtAction(nameof(GetById), new
+        {
+            id = result,
+        }, result);
     }
 
     /// <summary>
