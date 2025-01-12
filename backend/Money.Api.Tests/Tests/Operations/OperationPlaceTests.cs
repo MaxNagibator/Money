@@ -104,7 +104,7 @@ public class OperationPlaceTests
             Place = "place1",
         };
 
-        var operationId1 = await _apiClient.Operation.Create(request).IsSuccessWithContent();
+        await _apiClient.Operation.Create(request).IsSuccessWithContent();
         var operationId2 = await _apiClient.Operation.Create(request).IsSuccessWithContent();
 
         request.Place = null;
@@ -274,15 +274,15 @@ public class OperationPlaceTests
         _user.WithPlace();
         _dbClient.Save();
 
-        var apiPlaces = await _apiClient.Operation.GetPlaces(0, 1, place.Name.Substring(0, 1)).IsSuccessWithContent();
+        var apiPlaces = await _apiClient.Operation.GetPlaces(0, 1, place.Name[..1]).IsSuccessWithContent();
         Assert.That(apiPlaces, Is.Not.Null);
         Assert.That(apiPlaces, Has.Length.EqualTo(1));
 
-        apiPlaces = await _apiClient.Operation.GetPlaces(1, 10, place.Name.Substring(0, 1)).IsSuccessWithContent();
+        apiPlaces = await _apiClient.Operation.GetPlaces(1, 10, place.Name[..1]).IsSuccessWithContent();
         Assert.That(apiPlaces, Is.Not.Null);
         Assert.That(apiPlaces, Has.Length.EqualTo(2));
 
-        apiPlaces = await _apiClient.Operation.GetPlaces(2, 10, place.Name.Substring(0, 1)).IsSuccessWithContent();
+        apiPlaces = await _apiClient.Operation.GetPlaces(2, 10, place.Name[..1]).IsSuccessWithContent();
         Assert.That(apiPlaces, Is.Not.Null);
         Assert.That(apiPlaces, Has.Length.EqualTo(1));
     }

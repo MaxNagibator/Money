@@ -5,7 +5,7 @@ namespace Money.Api.Definitions;
 
 public class FilesStorageDefinition : AppDefinition
 {
-    public override bool Enabled => false; // todo ждёт починки https://github.com/MaxNagibator/Money/issues/23
+    public override bool Enabled => false; // TODO: ждёт починки https://github.com/MaxNagibator/Money/issues/23
     public override int ApplicationOrderIndex => 2;
 
     public override void ConfigureServices(WebApplicationBuilder builder)
@@ -16,7 +16,7 @@ public class FilesStorageDefinition : AppDefinition
 
         if (string.IsNullOrEmpty(filesStorageConfig?.Path))
         {
-            throw new ApplicationException("FilesStoragePath is missing");
+            throw new ArgumentException("FilesStoragePath is missing");
         }
 
         if (Directory.Exists(filesStorageConfig.Path) == false)

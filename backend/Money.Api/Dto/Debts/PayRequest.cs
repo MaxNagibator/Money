@@ -8,7 +8,7 @@ public class PayRequest
     /// <summary>
     /// Сумма.
     /// </summary>
-    public decimal Sum { get; init; }
+    public required decimal Sum { get; init; }
 
     /// <summary>
     /// Комментарий.
@@ -18,7 +18,7 @@ public class PayRequest
     /// <summary>
     /// Дата.
     /// </summary>
-    public DateTime Date { get; set; }
+    public required DateTime Date { get; set; }
 
     /// <summary>
     /// Преобразует текущую DTO-модель в бизнес-модель.

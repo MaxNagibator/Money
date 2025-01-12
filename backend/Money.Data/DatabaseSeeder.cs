@@ -517,8 +517,15 @@ public static class DatabaseSeeder
 
         return (operations, places);
 
-        int GetCategoryId(string name) => categoryDictionary[name];
-        int? GetPlaceId(string name) => placeDictionary.TryGetValue(name, out var id) ? id : null;
+        int GetCategoryId(string name)
+        {
+            return categoryDictionary[name];
+        }
+
+        int? GetPlaceId(string name)
+        {
+            return placeDictionary.TryGetValue(name, out var id) ? id : null;
+        }
     }
 
     private static List<Place> SeedPlaces(int userId, int startIndex = 0)

@@ -13,7 +13,7 @@ public class ForgiveRequest
     /// <summary>
     /// Идентификатор категории расходов.
     /// </summary>
-    public int OperationCategoryId { get; init; }
+    public required int OperationCategoryId { get; init; }
 
     /// <summary>
     /// Комментарий в расходах.

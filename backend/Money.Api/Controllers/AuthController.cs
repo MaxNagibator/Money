@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore;
+﻿#pragma warning disable S6931
+
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

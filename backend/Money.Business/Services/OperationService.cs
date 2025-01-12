@@ -75,7 +75,7 @@ public class OperationService(
 
     public async Task UpdateAsync(Operation operation, CancellationToken cancellationToken)
     {
-        var dbOperation = await context.Operations.SingleOrDefaultAsync(environment.UserId, operation.Id, cancellationToken)
+        var dbOperation = await context.Operations.FirstOrDefaultAsync(environment.UserId, operation.Id, cancellationToken)
                           ?? throw new NotFoundException("операция", operation.Id);
 
         var category = await categoryService.GetByIdAsync(operation.CategoryId, cancellationToken);
@@ -103,7 +103,7 @@ public class OperationService(
         var dbOperation = await context.Operations
                               .IgnoreQueryFilters()
                               .Where(x => x.IsDeleted)
-                              .SingleOrDefaultAsync(environment.UserId, id, cancellationToken)
+                              .FirstOrDefaultAsync(environment.UserId, id, cancellationToken)
                           ?? throw new NotFoundException("операция", id);
 
         dbOperation.IsDeleted = false;

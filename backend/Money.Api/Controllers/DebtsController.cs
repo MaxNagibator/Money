@@ -54,7 +54,11 @@ public class DebtsController(DebtService debtService) : ControllerBase
     {
         var business = request.ToBusinessModel();
         var result = await debtService.CreateAsync(business, cancellationToken);
-        return CreatedAtAction(nameof(GetById), new { id = result }, result);
+
+        return CreatedAtAction(nameof(GetById), new
+        {
+            id = result,
+        }, result);
     }
 
     /// <summary>

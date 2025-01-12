@@ -13,7 +13,7 @@ public class SaveRequest
     /// <summary>
     /// Сумма.
     /// </summary>
-    public decimal Sum { get; set; }
+    public required decimal Sum { get; set; }
 
     /// <summary>
     /// Комментарий.
@@ -28,7 +28,7 @@ public class SaveRequest
     /// <summary>
     /// Дата.
     /// </summary>
-    public DateTime Date { get; set; }
+    public required DateTime Date { get; set; }
 
     /// <summary>
     /// Преобразует текущую DTO-модель в бизнес-модель.

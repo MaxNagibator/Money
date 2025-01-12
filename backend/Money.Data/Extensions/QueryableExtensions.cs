@@ -4,22 +4,22 @@ namespace Money.Data.Extensions;
 
 public static class QueryableExtensions
 {
-    public static T Single<T>(this IQueryable<T> queryable, int? userId, int? entityId)
+    public static T First<T>(this IQueryable<T> queryable, int? userId, int? entityId)
         where T : UserEntity
     {
-        return queryable.Single(GetUserEntity<T>(userId, entityId));
+        return queryable.First(GetUserEntity<T>(userId, entityId));
     }
 
-    public static T? SingleOrDefault<T>(this IQueryable<T> queryable, int? userId, int? entityId)
+    public static T? FirstOrDefault<T>(this IQueryable<T> queryable, int? userId, int? entityId)
         where T : UserEntity
     {
-        return queryable.SingleOrDefault(GetUserEntity<T>(userId, entityId));
+        return queryable.FirstOrDefault(GetUserEntity<T>(userId, entityId));
     }
 
-    public static Task<T?> SingleOrDefaultAsync<T>(this IQueryable<T> queryable, int? userId, int? entityId, CancellationToken cancellationToken = default)
+    public static Task<T?> FirstOrDefaultAsync<T>(this IQueryable<T> queryable, int? userId, int? entityId, CancellationToken cancellationToken = default)
         where T : UserEntity
     {
-        return queryable.SingleOrDefaultAsync(GetUserEntity<T>(userId, entityId), cancellationToken);
+        return queryable.FirstOrDefaultAsync(GetUserEntity<T>(userId, entityId), cancellationToken);
     }
 
     public static IQueryable<T> IsUserEntity<T>(this IQueryable<T> queryable, int? userId)
