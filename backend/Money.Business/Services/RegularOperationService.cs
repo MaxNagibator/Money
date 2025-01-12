@@ -151,7 +151,7 @@ public class RegularOperationService(
                     Date = dbTask.DateFrom,
                 };
 
-                // todo это гавнина
+                // TODO: это гавнина
                 environment.UserId = dbTask.UserId;
                 await operationService.CreateAsync(operation, cancellationToken);
 

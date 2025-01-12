@@ -114,6 +114,7 @@ public class DebtsController(DebtService debtService) : ControllerBase
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     [HttpPost("{id:int}/Pay")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Pay(int id, [FromBody] PayRequest request, CancellationToken cancellationToken)
@@ -133,6 +134,7 @@ public class DebtsController(DebtService debtService) : ControllerBase
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     [HttpPost("MergeOwners/{fromUserId:int}/with/{toUserId:int}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> MergeOwners(int fromUserId, int toUserId, CancellationToken cancellationToken)
@@ -158,9 +160,11 @@ public class DebtsController(DebtService debtService) : ControllerBase
     /// <summary>
     /// Простить долг.
     /// </summary>
+    /// <param name="request">Данные для прощения долга.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     [HttpPost("Forgive")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Forgive([FromBody] ForgiveRequest request, CancellationToken cancellationToken)

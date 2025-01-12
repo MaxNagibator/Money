@@ -214,7 +214,6 @@ public class DebtTests
         });
     }
 
-
     [Test]
     public async Task EditPayedDebtWithOverflowPaySumTest()
     {
@@ -280,10 +279,11 @@ public class DebtTests
 
         var owners = await _apiClient.Debt.GetOwners().IsSuccessWithContent();
 
+        Assert.That(owners, Is.Not.Null);
+
         Assert.Multiple(() =>
         {
-            Assert.That(owners, Is.Not.Null);
-            Assert.That(owners.Length, Is.EqualTo(1));
+            Assert.That(owners, Has.Length.EqualTo(1));
             Assert.That(owners[0].Name, Is.EqualTo(debt.OwnerName));
         });
     }
@@ -300,12 +300,15 @@ public class DebtTests
 
         await using var context = _dbClient.CreateApplicationDbContext();
 
-        var dbOperations = context.Operations.Where(x => x.UserId == debt.User.Id).ToList();
+        var dbOperations = context.Operations
+            .Where(x => x.UserId == debt.User.Id)
+            .ToList();
+
+        Assert.That(dbOperations, Is.Not.Null);
+        Assert.That(dbOperations, Has.Count.EqualTo(1));
 
         Assert.Multiple(() =>
         {
-            Assert.That(dbOperations, Is.Not.Null);
-            Assert.That(dbOperations.Count, Is.EqualTo(1));
             Assert.That(dbOperations[0].Date, Is.EqualTo(debt.Date));
             Assert.That(dbOperations[0].Sum, Is.EqualTo(debt.Sum));
             Assert.That(dbOperations[0].Comment?.Contains(comment), Is.True);

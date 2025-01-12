@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Money.ApiClient;
+using Money.Business.Enums;
 using Money.Data.Extensions;
 
 namespace Money.Api.Tests.Categories;
@@ -20,18 +21,20 @@ public class CategoryTests
     }
 
     [Test]
-    public async Task GetTest()
+    [TestCase(OperationTypes.Costs)]
+    [TestCase(OperationTypes.Income)]
+    public async Task GetTest(OperationTypes operationType)
     {
         TestCategory[] categories =
         [
-            _user.WithCategory(),
-            _user.WithCategory(),
-            _user.WithCategory(),
+            _user.WithCategory().SetOperationType(operationType),
+            _user.WithCategory().SetOperationType(operationType),
+            _user.WithCategory().SetOperationType(operationType),
         ];
 
         _dbClient.Save();
 
-        var apiCategories = await _apiClient.Category.Get(1).IsSuccessWithContent();
+        var apiCategories = await _apiClient.Category.Get((int)operationType).IsSuccessWithContent();
         Assert.That(apiCategories, Is.Not.Null);
         Assert.That(apiCategories.Count, Is.GreaterThanOrEqualTo(3));
 

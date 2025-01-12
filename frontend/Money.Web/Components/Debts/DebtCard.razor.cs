@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 using Money.ApiClient;
+using System.ComponentModel.DataAnnotations;
 
 namespace Money.Web.Components.Debts;
 
@@ -110,14 +112,31 @@ public partial class DebtCard : ComponentBase
         _isExpanded = !_isExpanded;
     }
 
-    private async Task SubmitPayment(Debt model)
+    private async Task SubmitPayment(EditContext editContext)
     {
-        if (Payment.Sum <= 0)
+        DebtClient.PayRequest request = new()
+        {
+            Comment = Payment.Comment,
+            Date = Payment.Date!.Value,
+            Sum = Payment.Sum,
+        };
+
+        var payResponse = await MoneyClient.Debt.Pay(Model.Id!.Value, request);
+
+        if (payResponse.GetError().ShowMessage(SnackbarService).HasError())
         {
             return;
         }
 
-        // TODO: Pay
+        var response = await MoneyClient.Debt.GetById(Model.Id!.Value);
+        var debt = response.Content;
+
+        if (debt != null)
+        {
+            Model.PaySum = debt.PaySum;
+            Model.Sum = debt.Sum;
+            Model.PayComment = debt.PayComment;
+        }
 
         Payment = new(DateTime.Now, 0, string.Empty);
         _open = false;
@@ -151,10 +170,14 @@ public partial class DebtCard : ComponentBase
         return payments;
     }
 
-    public class DebtPayment(DateTime date, decimal sum, string comment)
+    public class DebtPayment(DateTime date, decimal sum, string? comment)
     {
-        public string Comment { get; set; } = comment;
+        public string? Comment { get; set; } = comment;
+
+        [Required(ErrorMessage = "Заполни меня")]
         public DateTime? Date { get; set; } = date;
+
+        [Range(1, double.MaxValue, ErrorMessage = "Недопустимое значение")]
         public decimal Sum { get; set; } = sum;
     }
 }
