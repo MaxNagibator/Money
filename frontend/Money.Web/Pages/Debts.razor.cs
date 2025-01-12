@@ -140,9 +140,7 @@ public partial class Debts
         _filteredTypes = string.IsNullOrWhiteSpace(_searchQuery)
             ? _types
             : _types.Where(type => type.Owners
-                    .Any(owner => owner.UserName.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase)
-                                  || owner.Debts.Any(debt =>
-                                      debt.PayComment?.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase) ?? false)))
+                    .Any(owner => owner.Search(_searchQuery)))
                 .ToList();
     }
 
@@ -177,6 +175,13 @@ public record DebtOwner(string UserName, List<Debt> Debts)
         var paid = Debts.Sum(d => d.PaySum);
         var percentage = total > 0 ? Math.Round(paid / total, 2) : 0;
         return percentage;
+    }
+
+    public bool Search(string value)
+    {
+        return UserName.Contains(value, StringComparison.OrdinalIgnoreCase)
+                || Debts.Any(debt => (debt.Comment?.Contains(value, StringComparison.OrdinalIgnoreCase) ?? false)
+                || (debt.PayComment?.Contains(value, StringComparison.OrdinalIgnoreCase) ?? false));
     }
 
     public decimal CalculateRemainder()

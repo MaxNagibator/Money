@@ -30,7 +30,7 @@
                       AdornmentIcon="@Icons.Material.Filled.Search"
                       Clearable
                       FullWidth
-                      Placeholder="Поиск по названию или владельцу..."
+                      Placeholder="Поиск..."
                       T="string"
                       Text="@_searchQuery"
                       TextChanged="OnSearchQueryChanged" />
@@ -72,6 +72,11 @@
         <MudStack Spacing="2">
             @foreach (var owner in type.Owners)
             {
+                if (!string.IsNullOrWhiteSpace(_searchQuery)
+                    && !owner.Search(_searchQuery))
+                {
+                    continue;
+                }
                 <div>
                     <MudPaper Class="pa-2"
                               Elevation="1">
