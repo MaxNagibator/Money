@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using ClosedXML.Excel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Money.Api.Dto.Operations;
+using Money.Business.Enums;
 using OpenIddict.Validation.AspNetCore;
 
 namespace Money.Api.Controllers;
@@ -24,6 +26,64 @@ public class OperationsController(OperationService operationService, PlaceServic
         var businessFilter = filter.ToBusinessModel();
         var operations = await operationService.GetAsync(businessFilter, cancellationToken);
         return Ok(operations.Select(OperationDto.FromBusinessModel));
+    }
+
+    [HttpGet("ExcelFile")]
+    public async Task<IActionResult> GetExcel([FromServices] CategoryService categoryService, [FromQuery] OperationFilterDto filter, CancellationToken cancellationToken)
+    {
+        var businessFilter = filter.ToBusinessModel();
+        var operations = await operationService.GetAsync(businessFilter, cancellationToken);
+        var categories = await categoryService.GetAsync(null, cancellationToken);
+
+        var workBook = new XLWorkbook();
+        var pg = operations.GroupBy(x => x.CategoryId);
+        var types = new List<OperationTypes> { OperationTypes.Costs, OperationTypes.Income };
+        foreach (var type in types)
+        {
+            var workSheet = workBook.Worksheets.Add(type.DescriptionAttr());
+            var categoriesByType = categories.Where(x => x.OperationType == type).Select(x => x.Id);
+            var operationsByType = operations.Where(x => categoriesByType.Contains(x.CategoryId)).ToArray();
+            workSheet.Cell("A1").Value = "Id";
+            workSheet.Cell("B1").Value = "Id категории";
+            workSheet.Cell("C1").Value = "Категория";
+            workSheet.Cell("D1").Value = "Дата";
+            workSheet.Cell("E1").Value = "Сумма";
+            workSheet.Cell("F1").Value = "Комментарий";
+
+            var row = 1;
+            foreach (var operation in operationsByType)
+            {
+                row++;
+                var column = 1;
+                workSheet.Cell(row, column).Value = operation.Id;
+                column++;
+                workSheet.Cell(row, column).Value = operation.CategoryId;
+                column++;
+                var cat = categories.Single(x => x.Id == operation.CategoryId);
+                workSheet.Cell(row, column).Value = cat.Name;
+                column++;
+                workSheet.Cell(row, column).Value = operation.Date.ToShortDateString();
+                column++;
+                workSheet.Cell(row, column).Value = operation.Sum.ToString();
+                workSheet.Cell(row, column).Style.NumberFormat.Format = "0.00";
+                column++;
+                workSheet.Cell(row, column).Value = operation.Comment;
+            }
+        }
+        var date = DateTime.Now;
+        var directory = Path.GetTempPath();
+
+        string filename = String.Format("BobMoney-{0}{1}{2}{3}{4}{5}{6}.xlsx",
+                                        date.Year.ToString("0000"),
+                                        date.Month.ToString("00"),
+                                        date.Day.ToString("00"),
+                                        date.Hour.ToString("00"),
+                                        date.Minute.ToString("00"),
+                                        date.Second.ToString("00"),
+                                        date.Millisecond.ToString("000"));
+        var filePath = Path.Combine(directory, filename);
+        workBook.SaveAs(filePath);
+        return PhysicalFile(filePath, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", Path.GetFileName(filePath));
     }
 
     /// <summary>
