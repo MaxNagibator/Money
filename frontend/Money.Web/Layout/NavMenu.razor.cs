@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Components.Routing;
 
 namespace Money.Web.Layout;
 
-public partial class NavMenu : IDisposable
+public sealed partial class NavMenu : IDisposable
 {
     private string? _currentUrl;
 
@@ -13,7 +13,6 @@ public partial class NavMenu : IDisposable
     public void Dispose()
     {
         NavigationManager.LocationChanged -= OnLocationChanged;
-        GC.SuppressFinalize(this);
     }
 
     protected override void OnInitialized()

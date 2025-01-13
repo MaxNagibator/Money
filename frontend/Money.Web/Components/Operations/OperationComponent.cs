@@ -9,9 +9,13 @@ public abstract class OperationComponent : ComponentBase, IDisposable
 
     public void Dispose()
     {
-        OperationsFilter.OnSearch -= OnSearchChanged;
-
+        Dispose(true);
         GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        OperationsFilter.OnSearch -= OnSearchChanged;
     }
 
     protected override void OnAfterRender(bool firstRender)

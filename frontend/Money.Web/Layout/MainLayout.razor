@@ -21,7 +21,7 @@
         <DarkModeToggle AppSettings="_appSettings"
                         @ref="_darkModeToggle" />
     </MudAppBar>
-    <MudDrawer @bind-Open="DrawerOpen"
+    <MudDrawer @bind-Open="_drawerOpen"
                Elevation="2">
         <MudDrawerHeader>
             <MudStack AlignItems="AlignItems.Center"

@@ -9,7 +9,7 @@ public class RefreshTokenService(AuthenticationStateProvider authProvider, Authe
         var authState = await authProvider.GetAuthenticationStateAsync();
         var user = authState.User;
 
-        var exp = user.FindFirst(c => c.Type.Equals("exp"))?.Value;
+        var exp = user.FindFirst(c => c.Type.Equals("exp", StringComparison.Ordinal))?.Value;
 
         if (string.IsNullOrWhiteSpace(exp))
         {

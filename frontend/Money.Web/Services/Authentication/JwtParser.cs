@@ -16,7 +16,7 @@ public class JwtParser(HttpClient client)
 
         List<Claim> claims = [];
 
-        foreach ((var key, var value) in claimsDictionary)
+        foreach (var (key, value) in claimsDictionary)
         {
             var claimType = key switch
             {
@@ -36,7 +36,7 @@ public class JwtParser(HttpClient client)
 
     private async Task<Dictionary<string, object>?> ParseJwt(string accessToken)
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, "connect/userinfo");
+        using var request = new HttpRequestMessage(HttpMethod.Get, "connect/userinfo");
         request.Headers.Authorization = new("Bearer", accessToken);
 
         var response = await client.SendAsync(request);

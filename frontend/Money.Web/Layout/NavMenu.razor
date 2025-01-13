@@ -59,7 +59,7 @@
                 @context.User.Identity?.Name
             </MudNavLink>
 
-            <MudNavLink Href="@(NavigationManager.GetUriWithReturnUrl("Account/Logout", _currentUrl))"
+            <MudNavLink Href="@(NavigationManager.GetUriWithReturnUrl("Account/Logout", _currentUrl).ToString())"
                         Icon="@Icons.Material.Rounded.Logout"
                         IconColor="Color.Info"
                         Match="NavLinkMatch.Prefix">

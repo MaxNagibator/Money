@@ -37,10 +37,14 @@
                 <MudItem xs="12">
                     <MudSelect AdornmentColor="Color.Tertiary"
                                @bind-Value="Input.Type"
-                               For="() => Input.Type" Label="Тип">
+                               For="() => Input.Type"
+                               Label="Тип">
                         @foreach (var state in DebtTypes.Values.Values)
                         {
-                            <MudSelectItem @key="state.Id" Value="state">@state.Name</MudSelectItem>
+                            <MudSelectItem @key="state.Id"
+                                           Value="state">
+                                @state.Name
+                            </MudSelectItem>
                         }
                     </MudSelect>
                 </MudItem>

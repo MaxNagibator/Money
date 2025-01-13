@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Money.Web.Components.Debts;
+using System.Globalization;
 
 namespace Money.Web.Pages;
 
@@ -21,6 +22,11 @@ public partial class Debts
     protected override async Task OnInitializedAsync()
     {
         await LoadDebtsAsync();
+    }
+
+    private static void ToggleType(DeptType type)
+    {
+        type.Expanded = !type.Expanded;
     }
 
     private async Task LoadDebtsAsync()
@@ -154,16 +160,13 @@ public partial class Debts
     {
         DialogParameters<DebtDialog> parameters = new()
         {
-            { dialog => dialog.Entity, entity },
+            {
+                dialog => dialog.Entity, entity
+            },
         };
 
         var dialog = await DialogService.ShowAsync<DebtDialog>(title, parameters);
         return await dialog.GetReturnValueAsync<Debt>();
-    }
-
-    private static bool ToggleType(DeptType type)
-    {
-        return type.Expanded = !type.Expanded;
     }
 }
 
@@ -180,8 +183,8 @@ public record DebtOwner(string UserName, List<Debt> Debts)
     public bool Search(string value)
     {
         return UserName.Contains(value, StringComparison.OrdinalIgnoreCase)
-                || Debts.Any(debt => (debt.Comment?.Contains(value, StringComparison.OrdinalIgnoreCase) ?? false)
-                || (debt.PayComment?.Contains(value, StringComparison.OrdinalIgnoreCase) ?? false));
+               || Debts.Any(debt => (debt.Comment?.Contains(value, StringComparison.OrdinalIgnoreCase) ?? false)
+                                    || (debt.PayComment?.Contains(value, StringComparison.OrdinalIgnoreCase) ?? false));
     }
 
     public decimal CalculateRemainder()
@@ -211,9 +214,9 @@ public record DebtOwner(string UserName, List<Debt> Debts)
             return null;
         }
 
-        var spaceIndex = lastRecord.IndexOf(' ');
+        var spaceIndex = lastRecord.IndexOf(' ', StringComparison.Ordinal);
 
-        if (DateTime.TryParse(lastRecord[..spaceIndex], out var date))
+        if (DateTime.TryParse(lastRecord[..spaceIndex], CultureInfo.InvariantCulture, out var date))
         {
             return date;
         }

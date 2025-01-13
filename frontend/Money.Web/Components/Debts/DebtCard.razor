@@ -20,25 +20,25 @@
 
                 <MudDivider Class="mt-1 mb-1" />
 
-                <MudText Typo="Typo.subtitle2"
-                         Color="Color.Primary">
+                <MudText Color="Color.Primary"
+                         Typo="Typo.subtitle2">
                     Остаток: @(Model.Sum - Model.PaySum) ₽
                 </MudText>
 
-                <MudProgressLinear Value="@GetPaymentProgress(Model)"
+                <MudProgressLinear BufferValue="100"
+                                   Class="my-2"
                                    Color="Color.Primary"
-                                   BufferValue="100"
-                                   Class="my-2" />
+                                   Value="@GetPaymentProgress()" />
 
                 @if (Model.PaySum > 0 && string.IsNullOrWhiteSpace(Model.PayComment) == false)
                 {
-                    <MudText Typo="Typo.subtitle2"
-                             Color="Color.Secondary">
+                    <MudText Color="Color.Secondary"
+                             Typo="Typo.subtitle2">
                         История погашений:
                     </MudText>
 
-                    <MudTable Items="ParsePaymentHistory(Model.PayComment)"
-                              Dense>
+                    <MudTable Dense
+                              Items="DebtPayment.ParsePaymentHistory(Model.PayComment)">
                         <RowTemplate>
                             <MudTr>
                                 <MudTd>@context.Date?.ToShortDateString()</MudTd>
@@ -49,16 +49,16 @@
                     </MudTable>
                 }
 
-                <MudStack Row
-                          AlignItems="AlignItems.Center"
-                          StretchItems="StretchItems.Start"
-                          Spacing="1">
+                <MudStack AlignItems="AlignItems.Center"
+                          Row
+                          Spacing="1"
+                          StretchItems="StretchItems.Start">
                     <MudText Typo="Typo.body2">Статус:</MudText>
-                    <MudIcon Icon="@GetStatusIcon(Model)"
-                             Color="@GetStatusColor(Model)" />
-                    <MudText Typo="Typo.body2"
-                             Color="@GetStatusColor(Model)">
-                        @GetStatusText(Model)
+                    <MudIcon Icon="@GetStatusIcon()"
+                             Color="@GetStatusColor()" />
+                    <MudText Color="@GetStatusColor()"
+                             Typo="Typo.body2">
+                        @GetStatusText()
                     </MudText>
                 </MudStack>
             </MudStack>
@@ -99,7 +99,7 @@
 
             <MudPopover Open="_open">
                 <MudPaper Class="pa-3">
-                    <EditForm Model="@Payment"
+                    <EditForm Model="Payment"
                               OnValidSubmit="SubmitPayment">
                         <DataAnnotationsValidator />
                         <MudStack Spacing="2">
@@ -142,29 +142,29 @@
             @if (Model.IsDeleted)
             {
                 <MudTooltip Text="Восстановить">
-                    <MudIconButton Color="Color.Success"
+                    <MudIconButton Class="hover-scale"
+                                   Color="Color.Success"
                                    Icon="@Icons.Material.Filled.Restore"
-                                   OnClick="() => Restore(Model)"
-                                   Size="Size.Small"
-                                   Class="hover-scale" />
+                                   OnClick="Restore"
+                                   Size="Size.Small" />
                 </MudTooltip>
             }
             else
             {
                 <MudTooltip Text="Редактировать">
-                    <MudIconButton Color="Color.Warning"
+                    <MudIconButton Class="hover-scale"
+                                   Color="Color.Warning"
                                    Icon="@Icons.Material.Filled.Edit"
-                                   OnClick="() => Update(Model)"
-                                   Size="Size.Small"
-                                   Class="hover-scale" />
+                                   OnClick="Update"
+                                   Size="Size.Small" />
                 </MudTooltip>
 
                 <MudTooltip Text="Удалить">
-                    <MudIconButton Color="Color.Error"
+                    <MudIconButton Class="hover-scale"
+                                   Color="Color.Error"
                                    Icon="@Icons.Material.Filled.Delete"
-                                   OnClick="() => Delete(Model)"
-                                   Size="Size.Small"
-                                   Class="hover-scale" />
+                                   OnClick="Delete"
+                                   Size="Size.Small" />
                 </MudTooltip>
             }
         </MudCardActions>

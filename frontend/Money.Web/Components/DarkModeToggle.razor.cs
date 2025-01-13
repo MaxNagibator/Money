@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Components.Routing;
 
 namespace Money.Web.Components;
 
-public partial class DarkModeToggle : IDisposable
+public sealed partial class DarkModeToggle : IDisposable
 {
     private PeriodicTimer? _timer;
     private Task? _scheduledTask;
@@ -93,8 +93,6 @@ public partial class DarkModeToggle : IDisposable
         _scheduledTask?.Dispose();
         _timer?.Dispose();
         NavigationManager.LocationChanged -= OnLocationChanged;
-
-        GC.SuppressFinalize(this);
     }
 
     public void UpdateState()

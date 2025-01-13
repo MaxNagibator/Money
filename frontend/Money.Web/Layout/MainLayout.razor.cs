@@ -11,16 +11,16 @@ public partial class MainLayout
     private MudThemeProvider _mudThemeProvider = null!;
     private DarkModeToggle _darkModeToggle = null!;
 
+    private bool _drawerOpen = true;
+
     [Inject]
     private ILocalStorageService StorageService { get; set; } = null!;
-
-    private bool DrawerOpen { get; set; } = true;
 
     protected override async Task OnInitializedAsync()
     {
         _appSettings = await StorageService.GetItemAsync<AppSettings>(nameof(AppSettings)) ?? new AppSettings();
 
-        _appSettings.OnChange += async () =>
+        _appSettings.OnChange += async (_, _) =>
         {
             await SaveSettings();
             StateHasChanged();
@@ -54,6 +54,6 @@ public partial class MainLayout
 
     private void ToggleDrawer()
     {
-        DrawerOpen = !DrawerOpen;
+        _drawerOpen = !_drawerOpen;
     }
 }

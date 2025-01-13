@@ -4,9 +4,9 @@ namespace Money.Web.Common;
 
 public static class NavigationManagerExtensions
 {
-    public static string GetUriWithReturnUrl(this NavigationManager navigationManager, string url, string? returnUrl)
+    public static Uri GetUriWithReturnUrl(this NavigationManager navigationManager, string url, string? returnUrl)
     {
-        return navigationManager.GetUriWithQueryParameters(url, new Dictionary<string, object?> { ["ReturnUrl"] = returnUrl });
+        return new(navigationManager.GetUriWithQueryParameters(url, new Dictionary<string, object?> { ["ReturnUrl"] = returnUrl }), UriKind.Relative);
     }
 
     public static void ReturnTo(this NavigationManager navigationManager, string? url, bool forceLoad = false)

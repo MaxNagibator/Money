@@ -15,7 +15,7 @@ insert_final_newline = true
 
 # Файлы C#
 
-[*.cs]
+[*.{cs,razor,chtml,razor.cs,chtml.cs}]
 
 #### Рекомендации по написанию кода .NET ####
 

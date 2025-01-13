@@ -10,7 +10,8 @@ public class RefreshTokenHandler(RefreshTokenService refreshTokenService, ILocal
     {
         var absolutePath = request.RequestUri?.AbsolutePath;
 
-        if (absolutePath != null && (absolutePath.Contains("token") || absolutePath.Contains("register")))
+        if (absolutePath != null
+            && (absolutePath.Contains("token", StringComparison.InvariantCultureIgnoreCase) || absolutePath.Contains("register", StringComparison.InvariantCultureIgnoreCase)))
         {
             return await base.SendAsync(request, cancellationToken);
         }
