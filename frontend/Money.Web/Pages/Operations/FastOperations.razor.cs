@@ -18,7 +18,7 @@ public partial class FastOperations
         _operations = await FastOperationService.GetAllAsync();
     }
 
-    private async Task Create()
+    private async Task Create(OperationTypes.Value? type = null)
     {
         var input = new FastOperation
         {
@@ -26,7 +26,7 @@ public partial class FastOperations
             Category = Category.Empty,
         };
 
-        var created = await ShowDialog("Создать", input);
+        var created = await ShowDialog("Создать", input, type);
 
         if (created == null)
         {
@@ -36,16 +36,17 @@ public partial class FastOperations
         _operations.Insert(0, created);
     }
 
-    private Task<FastOperation?> Update(FastOperation fastOperation)
+    private Task<FastOperation?> Update(FastOperation model)
     {
-        return ShowDialog("Обновить", fastOperation);
+        return ShowDialog("Обновить", model);
     }
 
-    private async Task<FastOperation?> ShowDialog(string title, FastOperation fastOperation)
+    private async Task<FastOperation?> ShowDialog(string title, FastOperation model, OperationTypes.Value? type = null)
     {
         DialogParameters<FastOperationDialog> parameters = new()
         {
-            { dialog => dialog.FastOperation, fastOperation },
+            { dialog => dialog.Model, model },
+            { dialog => dialog.RequiredType, type },
         };
 
         var dialog = await DialogService.ShowAsync<FastOperationDialog>(title, parameters);

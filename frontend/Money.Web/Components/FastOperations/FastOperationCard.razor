@@ -49,8 +49,7 @@
         @if (Operation.Order != null)
         {
             <MudTooltip Text="Приоритет сортировки">
-                <MudChip Class="sort-chip"
-                         Icon="@Icons.Material.Filled.Sort"
+                <MudChip Icon="@Icons.Material.Filled.Sort"
                          Size="Size.Small"
                          Value="@Operation.Order.ToString()" />
             </MudTooltip>
@@ -148,11 +147,6 @@
     .deleted-operation-card .mud-card-header {
         border-bottom: 1px solid rgba(128, 128, 128, 0.5);
         background-color: rgba(128, 128, 128, 0.2);
-    }
-
-    .sort-chip {
-        color: white;
-        background-color: #1976d2;
     }
 
 </style>

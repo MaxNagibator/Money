@@ -6,7 +6,7 @@ namespace Money.Web.Components.RegularOperations;
 public partial class RegularOperationCard : ComponentBase
 {
     [Parameter]
-    public RegularOperation Operation { get; set; } = null!;
+    public RegularOperation Model { get; set; } = null!;
 
     [Parameter]
     public EventCallback<RegularOperation> OnUpdate { get; set; }
@@ -22,12 +22,12 @@ public partial class RegularOperationCard : ComponentBase
 
     private string GetClassName()
     {
-        if (Operation.IsDeleted)
+        if (Model.IsDeleted)
         {
             return "deleted-operation-card";
         }
 
-        return Operation.Category.OperationType.Id == 1
+        return Model.Category.OperationType.Id == 1
             ? "expense-operation-card"
             : "income-operation-card";
     }

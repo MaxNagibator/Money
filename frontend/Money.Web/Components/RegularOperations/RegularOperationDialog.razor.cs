@@ -20,10 +20,10 @@ public partial class RegularOperationDialog
     public MudDialogInstance MudDialog { get; set; } = null!;
 
     [Parameter]
-    public Category Category { get; set; } = null!;
+    public RegularOperation Model { get; set; } = null!;
 
     [Parameter]
-    public RegularOperation RegularOperation { get; set; } = null!;
+    public OperationTypes.Value? RequiredType { get; set; }
 
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = InputModel.Empty;
@@ -44,27 +44,31 @@ public partial class RegularOperationDialog
     {
         Input = new()
         {
-            Category = RegularOperation.Category == Category.Empty ? null : RegularOperation.Category,
-            Comment = RegularOperation.Comment,
-            Name = RegularOperation.Name,
-            Place = RegularOperation.Place,
-            DateFrom = RegularOperation.DateFrom,
-            DateTo = RegularOperation.DateTo,
-            TimeType = RegularOperation.TimeType,
-            TimeValue = RegularOperation.TimeValue,
+            Category = Model.Category == Category.Empty ? null : Model.Category,
+            Comment = Model.Comment,
+            Name = Model.Name,
+            Place = Model.Place,
+            DateFrom = Model.DateFrom,
+            DateTo = Model.DateTo,
+            TimeType = Model.TimeType,
+            TimeValue = Model.TimeValue,
         };
 
         MudDialog.SetOptions(_dialogOptions);
 
         var categories = await CategoryService.GetAllAsync();
 
-        if (Input.Category == null)
+        if (RequiredType != null)
         {
-            Input.CategoryList = [.. categories];
+            Input.CategoryList = [.. categories.Where(x => x.OperationType == RequiredType)];
+        }
+        else if (Input.Category != null)
+        {
+            Input.CategoryList = [.. categories.Where(x => x.OperationType == Model.Category.OperationType)];
         }
         else
         {
-            Input.CategoryList = [.. categories.Where(x => x.OperationType == RegularOperation.Category.OperationType)];
+            Input.CategoryList = [.. categories];
         }
     }
 
@@ -86,17 +90,17 @@ public partial class RegularOperationDialog
             await SaveAsync();
             SnackbarService.Add("Успех!", Severity.Success);
 
-            RegularOperation.Name = Input.Name;
-            RegularOperation.Category = Input.Category ?? throw new MoneyException("Категория операции не может быть null");
-            RegularOperation.Sum = sum.Value;
-            RegularOperation.Comment = Input.Comment;
-            RegularOperation.Place = Input.Place;
-            RegularOperation.DateFrom = Input.DateFrom!.Value;
-            RegularOperation.DateTo = Input.DateTo;
-            RegularOperation.TimeType = Input.TimeType;
-            RegularOperation.TimeValue = Input.TimeValue;
+            Model.Name = Input.Name;
+            Model.Category = Input.Category ?? throw new MoneyException("Категория операции не может быть null");
+            Model.Sum = sum.Value;
+            Model.Comment = Input.Comment;
+            Model.Place = Input.Place;
+            Model.DateFrom = Input.DateFrom!.Value;
+            Model.DateTo = Input.DateTo;
+            Model.TimeType = Input.TimeType;
+            Model.TimeValue = Input.TimeValue;
 
-            MudDialog.Close(DialogResult.Ok(RegularOperation));
+            MudDialog.Close(DialogResult.Ok(Model));
         }
         catch (Exception)
         {
@@ -111,18 +115,18 @@ public partial class RegularOperationDialog
     {
         var saveRequest = CreateSaveRequest();
 
-        if (RegularOperation.Id == null)
+        if (Model.Id == null)
         {
             var result = await MoneyClient.RegularOperation.Create(saveRequest);
-            RegularOperation.Id = result.Content;
+            Model.Id = result.Content;
         }
         else
         {
-            await MoneyClient.RegularOperation.Update(RegularOperation.Id.Value, saveRequest);
+            await MoneyClient.RegularOperation.Update(Model.Id.Value, saveRequest);
         }
 
-        var getOperations = await MoneyClient.RegularOperation.GetById(RegularOperation.Id.Value);
-        RegularOperation.RunTime = getOperations.Content!.RunTime;
+        var getOperations = await MoneyClient.RegularOperation.GetById(Model.Id.Value);
+        Model.RunTime = getOperations.Content!.RunTime;
     }
 
     private RegularOperationClient.SaveRequest CreateSaveRequest()
@@ -137,7 +141,7 @@ public partial class RegularOperationDialog
             DateFrom = Input.DateFrom!.Value,
             DateTo = Input.DateTo,
             TimeTypeId = Input.TimeType.Id,
-            TimeValue = Input.TimeValue,
+            TimeValue = Input.IsTimeValueAvailable ? Input.TimeValue : null,
         };
     }
 
@@ -160,7 +164,7 @@ public partial class RegularOperationDialog
         MudDialog.Cancel();
     }
 
-    private sealed class InputModel
+    private sealed class InputModel : IValidatableObject
     {
         public static readonly InputModel Empty = new()
         {
@@ -181,13 +185,24 @@ public partial class RegularOperationDialog
 
         public string? Place { get; set; }
 
+        [Required(ErrorMessage = "Заполни меня")]
         public required RegularOperationTimeTypes.Value TimeType { get; set; }
 
         public int? TimeValue { get; set; }
 
-        [Required(ErrorMessage = "Укажите дату")]
+        [Required(ErrorMessage = "Заполни меня")]
         public DateTime? DateFrom { get; set; }
 
         public DateTime? DateTo { get; set; }
+
+        public bool IsTimeValueAvailable => TimeType != RegularOperationTimeTypes.Values.First().Value;
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (IsTimeValueAvailable && TimeValue == null)
+            {
+                yield return new("Заполни меня", [nameof(TimeValue)]);
+            }
+        }
     }
 }

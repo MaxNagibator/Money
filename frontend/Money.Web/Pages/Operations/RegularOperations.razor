@@ -8,13 +8,25 @@
 
 <MudGrid Spacing="2"
          Class="mb-2">
-    @*TODO: Добавить кнопки создания с определенным типом*@
+    @foreach (var type in OperationTypes.Values)
+    {
+        <MudItem lg="3"
+                 md="4"
+                 xs="12">
+            <MudButton Color="@type.Color"
+                       EndIcon="@Icons.Material.Filled.Add"
+                       OnClick="() => Create(type)"
+                       FullWidth
+                       Variant="Variant.Outlined">
+                @type.AddText
+            </MudButton>
+        </MudItem>
+    }
     <MudItem lg="3"
              md="4"
              xs="12">
-        <MudButton Color="Color.Primary"
-                   EndIcon="@Icons.Material.Filled.Add"
-                   OnClick="Create"
+        <MudButton EndIcon="@Icons.Material.Filled.Add"
+                   OnClick="() => Create()"
                    FullWidth
                    Variant="Variant.Outlined">
             Добавить
@@ -22,7 +34,8 @@
     </MudItem>
 </MudGrid>
 
-<MudDivider Class="mt-4 mb-4" />
+<MudDivider Class="my-4" />
+
 <MudGrid Spacing="2">
     <Virtualize Context="operation"
                 Items="_operations">
@@ -31,8 +44,7 @@
                  md="4"
                  xs="12">
             <RegularOperationCard OnUpdate="Update"
-                                  Operation="operation" />
+                                  Model="operation" />
         </MudItem>
     </Virtualize>
 </MudGrid>
-
