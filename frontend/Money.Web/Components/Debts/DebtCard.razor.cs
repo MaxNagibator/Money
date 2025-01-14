@@ -6,10 +6,13 @@ using System.Globalization;
 
 namespace Money.Web.Components.Debts;
 
-public partial class DebtCard : ComponentBase
+public sealed partial class DebtCard : ComponentBase, IDisposable
 {
-    private bool _open;
-    private bool _isExpanded = true;
+    private bool _idOpen;
+    private bool _isExpanded;
+    private bool _isExpandedSummary = true;
+
+    private Timer? _debounceTimer;
 
     [Parameter]
     public Debt Model { get; set; } = null!;
@@ -29,6 +32,40 @@ public partial class DebtCard : ComponentBase
         : string.Empty;
 
     private DebtPayment Payment { get; set; } = new(DateTime.Now, 0, string.Empty);
+
+    public void Dispose()
+    {
+        _debounceTimer?.Dispose();
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        _debounceTimer = new(OnTimerElapsed, null, Timeout.Infinite, Timeout.Infinite);
+    }
+
+    private void OnMouseOver()
+    {
+        _debounceTimer?.Change(Timeout.Infinite, Timeout.Infinite);
+        _isExpanded = true;
+        StateHasChanged();
+    }
+
+    private void OnMouseLeave()
+    {
+        if (_idOpen)
+        {
+            return;
+        }
+
+        _debounceTimer?.Change(600, Timeout.Infinite);
+    }
+
+    private void OnTimerElapsed(object? state)
+    {
+        _isExpanded = false;
+        InvokeAsync(StateHasChanged);
+    }
 
     private Task Update()
     {
@@ -62,11 +99,6 @@ public partial class DebtCard : ComponentBase
         Model.IsDeleted = isDeleted;
     }
 
-    private void ToggleExpand()
-    {
-        _isExpanded = !_isExpanded;
-    }
-
     private async Task SubmitPayment(EditContext editContext)
     {
         DebtClient.PayRequest request = new()
@@ -94,7 +126,13 @@ public partial class DebtCard : ComponentBase
         }
 
         Payment = new(DateTime.Now, 0, string.Empty);
-        _open = false;
+        HidePaymentDialog();
+    }
+
+    private void HidePaymentDialog()
+    {
+        _idOpen = false;
+        OnMouseLeave();
     }
 
     private string GetStatusIcon()
@@ -103,9 +141,9 @@ public partial class DebtCard : ComponentBase
 
         return progress switch
         {
-            100 => Icons.Material.Filled.CheckCircle,
-            > 0 and < 100 => Icons.Material.Filled.Pending,
-            var _ => Icons.Material.Filled.Warning,
+            100 => Icons.Material.Rounded.CheckCircle,
+            > 0 and < 100 => Icons.Material.Rounded.Pending,
+            _ => Icons.Material.Rounded.WarningAmber,
         };
     }
 
@@ -117,7 +155,7 @@ public partial class DebtCard : ComponentBase
         {
             100 => Color.Success,
             > 0 and < 100 => Color.Info,
-            var _ => Color.Error,
+            _ => Color.Secondary,
         };
     }
 
@@ -129,7 +167,7 @@ public partial class DebtCard : ComponentBase
         {
             100 => "Погашено",
             > 0 and < 100 => "В процессе",
-            var _ => "Не начато",
+            _ => "Не начато",
         };
     }
 

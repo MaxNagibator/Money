@@ -11,20 +11,31 @@
 
 <MudGrid Class="mb-4"
          Spacing="2">
-    @*TODO: Добавить кнопки создания с определенным типом*@
-    <MudItem lg="3"
-             md="4"
+    @foreach (var type in DebtTypes.Values.Values)
+    {
+        <MudItem lg="2"
+                 md="3"
+                 xs="12">
+            <MudButton EndIcon="@Icons.Material.Filled.Add"
+                       OnClick="() => Create(type)"
+                       FullWidth
+                       Variant="Variant.Outlined">
+                @type.AddText
+            </MudButton>
+        </MudItem>
+    }
+    <MudItem lg="2"
+             md="2"
              xs="12">
-        <MudButton Color="Color.Primary"
-                   EndIcon="@Icons.Material.Filled.Add"
+        <MudButton EndIcon="@Icons.Material.Filled.Add"
+                   OnClick="() => Create()"
                    FullWidth
-                   OnClick="Create"
-                   Variant="Variant.Filled">
-            Добавить долг
+                   Variant="Variant.Outlined">
+            Добавить
         </MudButton>
     </MudItem>
     <MudItem lg="6"
-             md="8"
+             md="4"
              xs="12">
         <MudTextField Adornment="Adornment.Start"
                       AdornmentIcon="@Icons.Material.Filled.Search"
@@ -60,10 +71,11 @@
             @type.Type.Name
         </MudText>
         <MudSpacer />
-        <MudText Color="Color.Secondary"
-                 Typo="Typo.subtitle2">
-            Общая сумма: @type.Owners.Sum(owner => owner.CalculateSum()).ToString("N0") ₽
-        </MudText>
+        <MudTooltip Text="Общая сумма">
+            <MudText Typo="Typo.subtitle2">
+                @type.Owners.Sum(owner => owner.CalculateSum()).ToString("N0")
+            </MudText>
+        </MudTooltip>
         <MudIconButton Icon="@(type.Expanded ? Icons.Material.Rounded.ExpandLess : Icons.Material.Rounded.ExpandMore)"
                        OnClick="() => ToggleType(type)" />
     </MudStack>
@@ -72,12 +84,6 @@
         <MudStack Spacing="2">
             @foreach (var owner in type.Owners)
             {
-                if (!string.IsNullOrWhiteSpace(_searchQuery)
-                    && !owner.Search(_searchQuery))
-                {
-                    continue;
-                }
-
                 <div>
                     <MudPaper Class="pa-2"
                               Elevation="1">

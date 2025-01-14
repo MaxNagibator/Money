@@ -6,7 +6,7 @@ namespace Money.Web.Pages;
 
 public partial class Debts
 {
-    private Dictionary<DebtTypes.Value, List<DebtOwner>> _debts = new();
+    private Dictionary<DebtTypes.Value, List<DebtOwner>> _debts = [];
 
     private List<DeptType> _types = [];
     private List<DeptType> _filteredTypes = [];
@@ -46,7 +46,7 @@ public partial class Debts
         _filteredTypes = _types;
     }
 
-    private async Task Create()
+    private async Task Create(DebtTypes.Value? type = null)
     {
         var input = new Debt
         {
@@ -55,7 +55,7 @@ public partial class Debts
             Date = DateTime.Now.Date,
         };
 
-        var created = await ShowDialog("Создать", input);
+        var created = await ShowDialog("Создать", input, type);
 
         if (created == null)
         {
@@ -81,34 +81,34 @@ public partial class Debts
         UpdateTypes();
     }
 
-    private async Task<Debt?> Update(Debt entity)
+    private async Task<Debt?> Update(Debt model)
     {
-        var updated = await ShowDialog("Обновить", entity);
+        var updated = await ShowDialog("Обновить", model);
 
         if (updated == null)
         {
             return null;
         }
 
-        if (updated.Type != entity.Type || updated.OwnerName != entity.OwnerName)
+        if (updated.Type != model.Type || updated.OwnerName != model.OwnerName)
         {
-            RemoveDebt(entity);
-            AddDebt(updated);
+            Remove(model);
+            Add(updated);
         }
 
         UpdateTypes();
         return updated;
     }
 
-    private void RemoveDebt(Debt debt)
+    private void Remove(Debt model)
     {
-        if (_debts.TryGetValue(debt.Type, out var owners) == false)
+        if (_debts.TryGetValue(model.Type, out var owners) == false)
         {
             return;
         }
 
-        var owner = owners.Find(x => x.UserName == debt.OwnerName);
-        owner?.Debts.Remove(debt);
+        var owner = owners.Find(x => x.UserName == model.OwnerName);
+        owner?.Debts.Remove(model);
 
         if (owner?.Debts.Count == 0)
         {
@@ -116,22 +116,22 @@ public partial class Debts
         }
     }
 
-    private void AddDebt(Debt debt)
+    private void Add(Debt model)
     {
-        if (_debts.TryGetValue(debt.Type, out var owners) == false)
+        if (_debts.TryGetValue(model.Type, out var owners) == false)
         {
-            _debts[debt.Type] = owners = [];
+            _debts[model.Type] = owners = [];
         }
 
-        var owner = owners.Find(x => x.UserName == debt.OwnerName);
+        var owner = owners.Find(x => x.UserName == model.OwnerName);
 
         if (owner == null)
         {
-            owners.Add(new(debt.OwnerName, [debt]));
+            owners.Add(new(model.OwnerName, [model]));
         }
         else
         {
-            owner.Debts.Add(debt);
+            owner.Debts.Add(model);
         }
     }
 
@@ -143,11 +143,22 @@ public partial class Debts
 
     private void ApplySearchQuery()
     {
-        _filteredTypes = string.IsNullOrWhiteSpace(_searchQuery)
-            ? _types
-            : _types.Where(type => type.Owners
-                    .Any(owner => owner.Search(_searchQuery)))
+        _filteredTypes = [];
+
+        foreach (var type in _types)
+        {
+            var debtOwners = type.Owners
+                .Where(owner => string.IsNullOrWhiteSpace(_searchQuery) || owner.Search(_searchQuery))
                 .ToList();
+
+            if (debtOwners.Count != 0)
+            {
+                _filteredTypes.Add(type with
+                {
+                    Owners = debtOwners,
+                });
+            }
+        }
     }
 
     private void OnSearchQueryChanged(string searchQuery)
@@ -156,13 +167,12 @@ public partial class Debts
         ApplySearchQuery();
     }
 
-    private async Task<Debt?> ShowDialog(string title, Debt entity)
+    private async Task<Debt?> ShowDialog(string title, Debt model, DebtTypes.Value? type = null)
     {
         DialogParameters<DebtDialog> parameters = new()
         {
-            {
-                dialog => dialog.Entity, entity
-            },
+            { dialog => dialog.Model, model },
+            { dialog => dialog.RequiredType, type },
         };
 
         var dialog = await DialogService.ShowAsync<DebtDialog>(title, parameters);

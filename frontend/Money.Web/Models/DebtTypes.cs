@@ -10,10 +10,13 @@ public static class DebtTypes
     {
         return new[]
         {
-            new Value(1, "Нужно забрать"),
-            new Value(2, "Нужно отдать"),
+            new Value(1, "Нужно забрать", "Забрать своё"),
+            new Value(2, "Нужно отдать", "Отдать чужое"),
         }.ToDictionary(x => x.Id, x => x);
     }
 
-    public record Value(int Id, string Name);
+    public record Value(int Id, string Name, string? AddText = null)
+    {
+        public string AddText { get; } = AddText ?? "Добавить";
+    }
 }

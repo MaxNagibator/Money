@@ -20,10 +20,10 @@ public partial class DebtDialog
     public MudDialogInstance MudDialog { get; set; } = null!;
 
     [Parameter]
-    public Category Category { get; set; } = null!;
+    public Debt Model { get; set; } = null!;
 
     [Parameter]
-    public Debt Entity { get; set; } = null!;
+    public DebtTypes.Value? RequiredType { get; set; }
 
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = InputModel.Empty;
@@ -36,12 +36,27 @@ public partial class DebtDialog
 
     protected override void OnParametersSet()
     {
+        DebtTypes.Value? type;
+
+        if (RequiredType != null)
+        {
+            type = RequiredType;
+        }
+        else if (Model.Type != DebtTypes.None)
+        {
+            type = Model.Type;
+        }
+        else
+        {
+            type = null;
+        }
+
         Input = new()
         {
-            Type = Entity.Type == DebtTypes.None ? null : Entity.Type,
-            Comment = Entity.Comment,
-            OwnerName = Entity.OwnerName,
-            Date = Entity.Date,
+            Type = type,
+            Comment = Model.Comment,
+            OwnerName = Model.OwnerName,
+            Date = Model.Date,
         };
 
         MudDialog.SetOptions(_dialogOptions);
@@ -65,13 +80,13 @@ public partial class DebtDialog
             await SaveAsync();
             SnackbarService.Add("Успех!", Severity.Success);
 
-            Entity.Type = Input.Type!;
-            Entity.Sum = _smartSum.Sum;
-            Entity.Comment = Input.Comment;
-            Entity.OwnerName = Input.OwnerName!;
-            Entity.Date = Input.Date!.Value;
+            Model.Type = Input.Type!;
+            Model.Sum = _smartSum.Sum;
+            Model.Comment = Input.Comment;
+            Model.OwnerName = Input.OwnerName!;
+            Model.Date = Input.Date!.Value;
 
-            MudDialog.Close(DialogResult.Ok(Entity));
+            MudDialog.Close(DialogResult.Ok(Model));
         }
         catch (Exception)
         {
@@ -86,14 +101,14 @@ public partial class DebtDialog
     {
         var saveRequest = CreateSaveRequest();
 
-        if (Entity.Id == null)
+        if (Model.Id == null)
         {
             var result = await MoneyClient.Debt.Create(saveRequest);
-            Entity.Id = result.Content;
+            Model.Id = result.Content;
         }
         else
         {
-            await MoneyClient.Debt.Update(Entity.Id.Value, saveRequest);
+            await MoneyClient.Debt.Update(Model.Id.Value, saveRequest);
         }
     }
 
