@@ -4,10 +4,85 @@
 
 <PageTitle>Долги</PageTitle>
 
-<MudText Class="mb-3"
-         Typo="Typo.h3">
-    Долги
-</MudText>
+<MudStack AlignItems="AlignItems.Center"
+          Class="mb-3"
+          Row>
+    <MudText Typo="Typo.h3">
+        Долги
+    </MudText>
+    <MudSpacer />
+    <MudTooltip Text="Слияние держателей">
+        <MudIconButton Color="Color.Tertiary"
+                       Icon="@Icons.Material.Rounded.Merge"
+                       OnClick="OpenMergeAsync"
+                       Variant="Variant.Outlined"  />
+    </MudTooltip>
+
+    <MudPopover AnchorOrigin="Origin.BottomRight"
+                Open="_isMergeOpen"
+                TransformOrigin="Origin.TopRight">
+        <MudPaper Class="pa-3">
+            <MudStack Spacing="2">
+                <MudText>
+                    Объединить долги @OwnerFrom?.UserName с долгами @OwnerTo?.UserName
+                </MudText>
+                <MudSelect Adornment="Adornment.Start"
+                           AdornmentColor="Color.Tertiary"
+                           AdornmentIcon="@Icons.Material.Rounded.Output"
+                           @bind-Value="OwnerFrom"
+                           Clearable
+                           HelperText="Кто удалится"
+                           Label="Сливаемый должник">
+                    @foreach (var owner in _owners ?? [])
+                    {
+                        <MudSelectItem Disabled="@(owner.Id == OwnerTo?.Id)"
+                                       @key="owner.Id"
+                                       Value="owner">
+                            @owner.UserName
+                        </MudSelectItem>
+                    }
+                </MudSelect>
+                <MudSelect Adornment="Adornment.Start"
+                           AdornmentColor="Color.Tertiary"
+                           AdornmentIcon="@Icons.Material.Rounded.Input"
+                           @bind-Value="OwnerTo"
+                           Clearable
+                           HelperText="Кто останется"
+                           Label="Поглощающий должник">
+                    @foreach (var owner in _owners ?? [])
+                    {
+                        <MudSelectItem Disabled="@(owner.Id == OwnerFrom?.Id)"
+                                       @key="owner.Id"
+                                       Value="owner">
+                            @owner.UserName
+                        </MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudStack AlignItems="AlignItems.Center"
+                          Class="mt-3"
+                          Row>
+                    <MudButton Color="Color.Error"
+                               OnClick="() => _isMergeOpen = false">
+                        Закрыть
+                    </MudButton>
+                    <MudIconButton Color="Color.Tertiary"
+                                   Icon="@Icons.Material.Rounded.SwapHoriz"
+                                   OnClick="SwapOwners"
+                                   Size="Size.Small" />
+                    <MudSpacer />
+                    <MudButton ButtonType="ButtonType.Submit"
+                               Color="Color.Tertiary"
+                               Variant="Variant.Filled"
+                               Disabled="@(OwnerTo == null || OwnerFrom == null)"
+                               OnClick="MergeOwnersAsync">
+                        Объединить
+                    </MudButton>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+    </MudPopover>
+</MudStack>
 
 <MudGrid Class="mb-4"
          Spacing="2">
@@ -17,7 +92,7 @@
                  md="3"
                  xs="12">
             <MudButton EndIcon="@Icons.Material.Filled.Add"
-                       OnClick="() => Create(type)"
+                       OnClick="() => CreateAsync(type)"
                        FullWidth
                        Variant="Variant.Outlined">
                 @type.AddText
@@ -28,7 +103,7 @@
              md="2"
              xs="12">
         <MudButton EndIcon="@Icons.Material.Filled.Add"
-                   OnClick="() => Create()"
+                   OnClick="() => CreateAsync()"
                    FullWidth
                    Variant="Variant.Outlined">
             Добавить
@@ -134,7 +209,7 @@
                                      md="4"
                                      xs="12">
                                 <DebtCard Model="model"
-                                          OnUpdate="Update" />
+                                          OnUpdate="UpdateAsync" />
                             </MudItem>
                         </Virtualize>
                     </MudGrid>

@@ -11,12 +11,17 @@ public static class ProblemDetailsExtensions
             return null;
         }
 
-        snackbar.Add(problemDetails.Title, Severity.Error);
+        snackbar.Add(problemDetails.Title, Severity.Warning);
         return problemDetails;
     }
 
     public static bool HasError(this ProblemDetails? problemDetails)
     {
         return problemDetails != null;
+    }
+
+    public static bool IsBadRequest(this ApiClientResponse response, ISnackbar snackbar)
+    {
+        return response.GetError().ShowMessage(snackbar).HasError();
     }
 }

@@ -10,6 +10,7 @@ public sealed partial class DebtCard : ComponentBase, IDisposable
 {
     private bool _idOpen;
     private bool _isExpanded;
+    private bool _isTimerRunning;
     private bool _isExpandedSummary = true;
 
     private Timer? _debounceTimer;
@@ -46,24 +47,45 @@ public sealed partial class DebtCard : ComponentBase, IDisposable
 
     private void OnMouseOver()
     {
-        _debounceTimer?.Change(Timeout.Infinite, Timeout.Infinite);
-        _isExpanded = true;
-        StateHasChanged();
+        if (_isExpanded)
+        {
+            if (_isTimerRunning)
+            {
+                _debounceTimer?.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+            }
+
+            return;
+        }
+
+        _isTimerRunning = true;
+        _debounceTimer?.Change(TimeSpan.FromMilliseconds(300), Timeout.InfiniteTimeSpan);
     }
 
     private void OnMouseLeave()
     {
+        if (_isExpanded == false)
+        {
+            if (_isTimerRunning)
+            {
+                _debounceTimer?.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+            }
+
+            return;
+        }
+
         if (_idOpen)
         {
             return;
         }
 
+        _isTimerRunning = true;
         _debounceTimer?.Change(TimeSpan.FromMilliseconds(1000), Timeout.InfiniteTimeSpan);
     }
 
     private void OnTimerElapsed(object? state)
     {
-        _isExpanded = false;
+        _isExpanded = !_isExpanded;
+        _isTimerRunning = false;
         InvokeAsync(StateHasChanged);
     }
 

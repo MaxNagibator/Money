@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Money.ApiClient;
 using Money.Web.Components.Debts;
 using System.Globalization;
 
@@ -10,14 +11,25 @@ public partial class Debts
 
     private List<DeptType> _types = [];
     private List<DeptType> _filteredTypes = [];
+    private List<DebtOwnerMerged>? _owners;
 
     private string _searchQuery = string.Empty;
+    private bool _isMergeOpen;
+
+    public DebtOwnerMerged? OwnerFrom { get; set; }
+    public DebtOwnerMerged? OwnerTo { get; set; }
 
     [Inject]
     private DebtService DebtService { get; set; } = null!;
 
     [Inject]
+    private MoneyClient MoneyClient { get; set; } = null!;
+
+    [Inject]
     private IDialogService DialogService { get; set; } = null!;
+
+    [Inject]
+    private ISnackbar SnackbarService { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -27,6 +39,47 @@ public partial class Debts
     private static void ToggleType(DeptType type)
     {
         type.Expanded = !type.Expanded;
+    }
+
+    private void SwapOwners()
+    {
+        (OwnerFrom, OwnerTo) = (OwnerTo, OwnerFrom);
+    }
+
+    private async Task OpenMergeAsync()
+    {
+        if (_isMergeOpen == false && _owners == null)
+        {
+            var response = await MoneyClient.Debt.GetOwners();
+
+            _owners = response.Content?
+                          .Select(x => new DebtOwnerMerged(x.Id, x.Name ?? "Неназванный держатель"))
+                          .ToList()
+                      ?? [];
+        }
+
+        _isMergeOpen = true;
+    }
+
+    private async Task MergeOwnersAsync()
+    {
+        if (OwnerFrom == null || OwnerTo == null || OwnerFrom.Id == OwnerTo.Id)
+        {
+            return;
+        }
+
+        var response = await MoneyClient.Debt.MergeOwners(OwnerFrom.Id, OwnerTo.Id);
+
+        if (response.IsBadRequest(SnackbarService))
+        {
+            return;
+        }
+
+        SnackbarService.Add("Долги успешно объеденины!", Severity.Success);
+        OwnerFrom = OwnerTo = null;
+        _isMergeOpen = false;
+
+        await LoadDebtsAsync();
     }
 
     private async Task LoadDebtsAsync()
@@ -39,14 +92,14 @@ public partial class Debts
 
         _debts = typedDebts.ToDictionary(x => x.Key, x => x
             .GroupBy(d => d.OwnerName)
-            .Select(d => new DebtOwner(d.Key, d.ToList()))
+            .Select(d => new DebtOwner(d.Key, [..d]))
             .ToList());
 
         _types = _debts.Select(x => new DeptType(x.Key, x.Value)).ToList();
         _filteredTypes = _types;
     }
 
-    private async Task Create(DebtTypes.Value? type = null)
+    private async Task CreateAsync(DebtTypes.Value? type = null)
     {
         var input = new Debt
         {
@@ -55,7 +108,7 @@ public partial class Debts
             Date = DateTime.Now.Date,
         };
 
-        var created = await ShowDialog("Создать", input, type);
+        var created = await ShowDialogAsync("Создать", input, type);
 
         if (created == null)
         {
@@ -81,9 +134,9 @@ public partial class Debts
         UpdateTypes();
     }
 
-    private async Task<Debt?> Update(Debt model)
+    private async Task<Debt?> UpdateAsync(Debt model)
     {
-        var updated = await ShowDialog("Обновить", model);
+        var updated = await ShowDialogAsync("Обновить", model);
 
         if (updated == null)
         {
@@ -167,7 +220,7 @@ public partial class Debts
         ApplySearchQuery();
     }
 
-    private async Task<Debt?> ShowDialog(string title, Debt model, DebtTypes.Value? type = null)
+    private async Task<Debt?> ShowDialogAsync(string title, Debt model, DebtTypes.Value? type = null)
     {
         DialogParameters<DebtDialog> parameters = new()
         {
@@ -179,6 +232,8 @@ public partial class Debts
         return await dialog.GetReturnValueAsync<Debt>();
     }
 }
+
+public record DebtOwnerMerged(int Id, string UserName);
 
 public record DebtOwner(string UserName, List<Debt> Debts)
 {
