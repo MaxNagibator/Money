@@ -260,7 +260,7 @@ public class RegularOperationService(
             case RegularOperationTimeTypes.EveryMonth:
                 var dt = new DateTime(date.Year, date.Month, 1);
 
-                if (dt.Day >= timeValue)
+                if (dateNow.Day >= timeValue)
                 {
                     dt = dt.AddMonths(1);
                 }

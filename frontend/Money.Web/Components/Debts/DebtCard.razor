@@ -67,16 +67,20 @@
                         История погашений:
                     </MudText>
 
-                    <MudTable Dense
-                              Items="DebtPayment.ParsePaymentHistory(Model.PayComment)">
-                        <RowTemplate>
-                            <MudTr>
-                                <MudTd>@context.Date?.ToShortDateString()</MudTd>
-                                <MudTd>@context.Sum</MudTd>
-                                <MudTd>@context.Comment</MudTd>
-                            </MudTr>
-                        </RowTemplate>
-                    </MudTable>
+                    <MudSimpleTable Class="mx-n3"
+                                    Dense
+                                    Hover>
+                        <tbody>
+                        @foreach (var context in DebtPayment.ParsePaymentHistory(Model.PayComment))
+                        {
+                            <tr>
+                                <td>@context.Date?.ToShortDateString()</td>
+                                <td>@context.Sum.ToString("N0")</td>
+                                <td class="large-text">@context.Comment</td>
+                            </tr>
+                        }
+                        </tbody>
+                    </MudSimpleTable>
                 }
             </MudStack>
         </MudCollapse>

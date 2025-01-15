@@ -58,7 +58,7 @@ public sealed partial class DebtCard : ComponentBase, IDisposable
             return;
         }
 
-        _debounceTimer?.Change(600, Timeout.Infinite);
+        _debounceTimer?.Change(TimeSpan.FromMilliseconds(1000), Timeout.InfiniteTimeSpan);
     }
 
     private void OnTimerElapsed(object? state)

@@ -28,9 +28,15 @@
                       Justify="Justify.SpaceBetween"
                       Row
                       Spacing="3">
-                <MudImage Height="64"
+                <MudImage Class="cursor-pointer"
+                          Height="64"
+                          @onclick="NavigateToHome"
                           Src="./icon-192.png" />
-                <MudText Typo="Typo.h5">Филочки</MudText>
+                <MudText Class="cursor-pointer"
+                         @onclick="NavigateToHome"
+                         Typo="Typo.h5">
+                    Филочки
+                </MudText>
             </MudStack>
         </MudDrawerHeader>
         <NavMenu />

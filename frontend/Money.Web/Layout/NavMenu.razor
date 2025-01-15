@@ -1,19 +1,4 @@
 ﻿<MudNavMenu>
-    <MudNavLink Href=""
-                Icon="@Icons.Material.Rounded.Home"
-                Match="NavLinkMatch.All">
-        Главная
-    </MudNavLink>
-    <MudNavLink Href="auth"
-                Icon="@Icons.Material.Rounded.Lock"
-                Match="NavLinkMatch.Prefix">
-        Требуется авторизация
-    </MudNavLink>
-    <MudNavLink Href="settings"
-                Icon="@Icons.Material.Rounded.SettingsApplications">
-        Настройки
-    </MudNavLink>
-
     <AuthorizeView>
         <Authorized>
             <MudNavGroup Expanded
@@ -53,7 +38,12 @@
                 Долги
             </MudNavLink>
 
-            <MudNavLink Href="Account/Manage"
+            <MudNavLink Href="settings"
+                        Icon="@Icons.Material.Rounded.SettingsApplications">
+                Настройки
+            </MudNavLink>
+
+            <MudNavLink Href="auth"
                         Icon="@Icons.Material.Rounded.Person"
                         Match="NavLinkMatch.Prefix">
                 @context.User.Identity?.Name
