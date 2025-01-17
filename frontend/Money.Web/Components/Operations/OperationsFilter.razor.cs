@@ -48,7 +48,7 @@ public partial class OperationsFilter
 
         var filter = new OperationClient.OperationFilterDto
         {
-            CategoryIds = _categorySelector?.GetSelectedCategories(),
+            CategoryIds = _categorySelector?.GetSelectedCategories().ToList(),
             Comment = Comment,
             Place = Place,
             DateFrom = DateRange.Start,

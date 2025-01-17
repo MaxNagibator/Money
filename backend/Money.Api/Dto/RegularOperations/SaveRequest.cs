@@ -15,7 +15,7 @@ public class SaveRequest
     /// <summary>
     /// Сумма.
     /// </summary>
-    public decimal Sum { get; set; }
+    public required decimal Sum { get; set; }
 
     /// <summary>
     /// Комментарий.
@@ -35,7 +35,7 @@ public class SaveRequest
     /// <summary>
     /// Идентификатор типа временного шага.
     /// </summary>
-    public int TimeTypeId { get; set; }
+    public required int TimeTypeId { get; set; }
 
     /// <summary>
     /// Значение временного шага.
@@ -45,7 +45,7 @@ public class SaveRequest
     /// <summary>
     /// Дата начала.
     /// </summary>
-    public DateTime DateFrom { get; set; }
+    public required DateTime DateFrom { get; set; }
 
     /// <summary>
     /// Дата окончания.

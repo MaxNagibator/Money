@@ -17,6 +17,6 @@ public static class OperationTypes
 
     public record Value(int Id, string Name, string Icon, Color Color)
     {
-        public string AddText { get; } = "Добавить " + Name.ToLower();
+        public string AddText { get; } = "Добавить " + Name.ToLowerInvariant();
     }
 }

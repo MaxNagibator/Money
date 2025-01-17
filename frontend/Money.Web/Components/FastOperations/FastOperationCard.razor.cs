@@ -18,11 +18,19 @@ public partial class FastOperationCard : ComponentBase
     private ISnackbar SnackbarService { get; set; } = null!;
 
     // TODO: Подумать как более грамотно сделать
-    private string ClassName => Operation.IsDeleted
-        ? "deleted-operation-card"
-        : Operation.Category.OperationType.Id == 1
+    private string ClassName => GetClassName();
+
+    private string GetClassName()
+    {
+        if (Operation.IsDeleted)
+        {
+            return "deleted-operation-card";
+        }
+
+        return Operation.Category.OperationType.Id == 1
             ? "expense-operation-card"
             : "income-operation-card";
+    }
 
     private Task Update(FastOperation fastOperation)
     {

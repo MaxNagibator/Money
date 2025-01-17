@@ -44,21 +44,30 @@
 
                 <MudItem md="6"
                          xs="12">
-                    <MudSelect @bind-Value="Input.TimeType">
+                    <MudSelect AdornmentColor="Color.Tertiary"
+                               @bind-Value="Input.TimeType"
+                               Clearable
+                               For="() => Input.TimeType"
+                               Label="Временной шаг">
                         @foreach (var state in RegularOperationTimeTypes.Values.Values)
                         {
-                            <MudSelectItem Value="state">@state.Name</MudSelectItem>
+                            <MudSelectItem @key="state.Id"
+                                           Value="state">
+                                @state.Name
+                            </MudSelectItem>
                         }
                     </MudSelect>
                 </MudItem>
                 <MudItem md="6"
                          xs="12">
-                    @if (Input.TimeType != RegularOperationTimeTypes.Values.First().Value)
+                    @if (Input.IsTimeValueAvailable)
                     {
                         <MudNumericField AdornmentColor="Color.Tertiary"
                                          AdornmentIcon="@Icons.Material.Rounded.PunchClock"
                                          @bind-Value="Input.TimeValue"
+                                         Clearable
                                          For="@(() => Input.TimeValue)"
+                                         Label="Значение временного шага"
                                          Min="1"
                                          T="int?" />
                     }
@@ -66,7 +75,7 @@
                 <MudItem md="6"
                          xs="12">
                     <SmartSum @ref="_smartSum"
-                              GetInitialSum="() => RegularOperation.Sum" />
+                              GetInitialSum="() => Model.Sum" />
                 </MudItem>
                 <MudItem md="6"
                          xs="12">

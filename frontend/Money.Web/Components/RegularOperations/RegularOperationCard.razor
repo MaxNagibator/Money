@@ -1,10 +1,10 @@
 ﻿<MudCard Class="@ClassName">
     <MudCardHeader Style="padding: 4px 6px;">
         <MudTooltip RootClass="mud-card-header-text"
-                    Text="@Operation.Name">
+                    Text="@Model.Name">
             <MudText Class="mud-card-header-text"
                      Typo="Typo.h6">
-                @Operation.Name (@Operation.RunTime!.Value.ToShortDateString())
+                @Model.Name
             </MudText>
         </MudTooltip>
     </MudCardHeader>
@@ -12,7 +12,7 @@
         <MudTooltip Arrow
                     Placement="Placement.Right"
                     Text="Категория">
-            <MudText Typo="Typo.subtitle2">@Operation.Category.Name</MudText>
+            <MudText Typo="Typo.subtitle2">@Model.Category.Name</MudText>
         </MudTooltip>
 
         <MudDivider Class="mb-1" />
@@ -20,41 +20,47 @@
         <MudTooltip Arrow
                     Placement="Placement.Right"
                     Text="Сумма">
-            <MudText Typo="Typo.body2">@Operation.Sum</MudText>
+            <MudText Typo="Typo.body2">@Model.Sum</MudText>
         </MudTooltip>
 
-        @if (string.IsNullOrEmpty(Operation.Place) == false)
+        @if (string.IsNullOrEmpty(Model.Place) == false)
         {
             <MudDivider Class="mb-1" />
 
             <MudTooltip Arrow
                         Placement="Placement.Right"
                         Text="Место">
-                <MudText Typo="Typo.body2">@Operation.Place</MudText>
+                <MudText Typo="Typo.body2">@Model.Place</MudText>
             </MudTooltip>
         }
 
-        @if (string.IsNullOrEmpty(Operation.Comment) == false)
+        @if (string.IsNullOrEmpty(Model.Comment) == false)
         {
             <MudDivider Class="mb-1" />
 
             <MudTooltip Arrow
                         Placement="Placement.Right"
                         Text="Комментарий">
-                <MudText Typo="Typo.body2">@Operation.Comment</MudText>
+                <MudText Typo="Typo.body2">@Model.Comment</MudText>
             </MudTooltip>
         }
     </MudCardContent>
     <MudCardActions Style="padding: 4px 2px">
+        <MudTooltip Text="Следующий запуск">
+            <MudChip Icon="@Icons.Material.Rounded.CalendarToday"
+                     Size="Size.Small"
+                     T="string"
+                     Text="@(Model.RunTime?.ToShortDateString() ?? "\u221e")" />
+        </MudTooltip>
 
         <MudSpacer />
 
-        @if (Operation.IsDeleted)
+        @if (Model.IsDeleted)
         {
             <MudTooltip Text="Восстановить">
                 <MudIconButton Color="Color.Success"
                                Icon="@Icons.Material.Filled.Restore"
-                               OnClick="() => Restore(Operation)"
+                               OnClick="() => Restore(Model)"
                                Size="Size.Small" />
             </MudTooltip>
         }
@@ -63,14 +69,14 @@
             <MudTooltip Text="Редактировать">
                 <MudIconButton Color="Color.Warning"
                                Icon="@Icons.Material.Filled.Edit"
-                               OnClick="() => Update(Operation)"
+                               OnClick="() => Update(Model)"
                                Size="Size.Small" />
             </MudTooltip>
 
             <MudTooltip Text="Удалить">
                 <MudIconButton Color="Color.Default"
                                Icon="@Icons.Material.Filled.Delete"
-                               OnClick="() => Delete(Operation)"
+                               OnClick="() => Delete(Model)"
                                Size="Size.Small" />
             </MudTooltip>
         }

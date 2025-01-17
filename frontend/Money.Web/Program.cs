@@ -5,7 +5,6 @@ using Money.ApiClient;
 using Money.Web.Services.Authentication;
 using Money.WebAssembly.CoreLib;
 using MudBlazor.Services;
-using MudBlazor.Translations;
 using NCalc.DependencyInjection;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -21,7 +20,6 @@ builder.Services.AddMudServices(configuration =>
 });
 
 builder.Services.AddMemoryCache();
-builder.Services.AddMudTranslations();
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddLocalization();
 builder.Services.AddAuthorizationCore();

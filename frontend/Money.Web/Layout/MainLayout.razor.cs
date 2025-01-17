@@ -11,16 +11,24 @@ public partial class MainLayout
     private MudThemeProvider _mudThemeProvider = null!;
     private DarkModeToggle _darkModeToggle = null!;
 
+    private bool _drawerOpen = true;
+
     [Inject]
     private ILocalStorageService StorageService { get; set; } = null!;
 
-    private bool DrawerOpen { get; set; } = true;
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = null!;
+
+    [Inject]
+    private AuthenticationStateProvider AuthenticationStateProvider { get; set; } = null!;
+
+    private bool IsHomePage => string.Equals(NavigationManager.BaseUri, NavigationManager.Uri, StringComparison.OrdinalIgnoreCase);
 
     protected override async Task OnInitializedAsync()
     {
         _appSettings = await StorageService.GetItemAsync<AppSettings>(nameof(AppSettings)) ?? new AppSettings();
 
-        _appSettings.OnChange += async () =>
+        _appSettings.OnChange += async (_, _) =>
         {
             await SaveSettings();
             StateHasChanged();
@@ -29,12 +37,25 @@ public partial class MainLayout
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if (firstRender == false)
         {
-            _appSettings.IsDarkModeSystem = await _mudThemeProvider.GetSystemPreference();
-            await _mudThemeProvider.WatchSystemPreference(OnSystemPreferenceChanged);
-            _darkModeToggle.UpdateState();
-            StateHasChanged();
+            return;
+        }
+
+        _appSettings.IsDarkModeSystem = await _mudThemeProvider.GetSystemPreference();
+        await _mudThemeProvider.WatchSystemPreference(OnSystemPreferenceChanged);
+        _darkModeToggle.UpdateState();
+        StateHasChanged();
+
+        if (IsHomePage)
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (user.Identity is { IsAuthenticated: true })
+            {
+                NavigationManager.NavigateTo("operations");
+            }
         }
     }
 
@@ -54,6 +75,16 @@ public partial class MainLayout
 
     private void ToggleDrawer()
     {
-        DrawerOpen = !DrawerOpen;
+        _drawerOpen = !_drawerOpen;
+    }
+
+    private void NavigateToHome()
+    {
+        if (IsHomePage)
+        {
+            return;
+        }
+
+        NavigationManager.NavigateTo("");
     }
 }

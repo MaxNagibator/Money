@@ -1,25 +1,84 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Money.ApiClient;
 using Money.Web.Components.Debts;
+using System.Globalization;
 
 namespace Money.Web.Pages;
 
 public partial class Debts
 {
-    private Dictionary<DebtTypes.Value, List<DebtOwner>> _debts = new();
+    private Dictionary<DebtTypes.Value, List<DebtOwner>> _debts = [];
 
     private List<DeptType> _types = [];
     private List<DeptType> _filteredTypes = [];
+    private List<DebtOwnerMerged>? _owners;
 
     private string _searchQuery = string.Empty;
+    private bool _isMergeOpen;
+
+    public DebtOwnerMerged? OwnerFrom { get; set; }
+    public DebtOwnerMerged? OwnerTo { get; set; }
 
     [Inject]
     private DebtService DebtService { get; set; } = null!;
 
     [Inject]
+    private MoneyClient MoneyClient { get; set; } = null!;
+
+    [Inject]
     private IDialogService DialogService { get; set; } = null!;
+
+    [Inject]
+    private ISnackbar SnackbarService { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadDebtsAsync();
+    }
+
+    private static void ToggleType(DeptType type)
+    {
+        type.Expanded = !type.Expanded;
+    }
+
+    private void SwapOwners()
+    {
+        (OwnerFrom, OwnerTo) = (OwnerTo, OwnerFrom);
+    }
+
+    private async Task OpenMergeAsync()
+    {
+        if (_isMergeOpen == false && _owners == null)
+        {
+            var response = await MoneyClient.Debt.GetOwners();
+
+            _owners = response.Content?
+                          .Select(x => new DebtOwnerMerged(x.Id, x.Name ?? "Неназванный держатель"))
+                          .ToList()
+                      ?? [];
+        }
+
+        _isMergeOpen = true;
+    }
+
+    private async Task MergeOwnersAsync()
+    {
+        if (OwnerFrom == null || OwnerTo == null || OwnerFrom.Id == OwnerTo.Id)
+        {
+            return;
+        }
+
+        var response = await MoneyClient.Debt.MergeOwners(OwnerFrom.Id, OwnerTo.Id);
+
+        if (response.IsBadRequest(SnackbarService))
+        {
+            return;
+        }
+
+        SnackbarService.Add("Долги успешно объеденины!", Severity.Success);
+        OwnerFrom = OwnerTo = null;
+        _isMergeOpen = false;
+
         await LoadDebtsAsync();
     }
 
@@ -33,14 +92,14 @@ public partial class Debts
 
         _debts = typedDebts.ToDictionary(x => x.Key, x => x
             .GroupBy(d => d.OwnerName)
-            .Select(d => new DebtOwner(d.Key, d.ToList()))
+            .Select(d => new DebtOwner(d.Key, [..d]))
             .ToList());
 
         _types = _debts.Select(x => new DeptType(x.Key, x.Value)).ToList();
         _filteredTypes = _types;
     }
 
-    private async Task Create()
+    private async Task CreateAsync(DebtTypes.Value? type = null)
     {
         var input = new Debt
         {
@@ -49,7 +108,7 @@ public partial class Debts
             Date = DateTime.Now.Date,
         };
 
-        var created = await ShowDialog("Создать", input);
+        var created = await ShowDialogAsync("Создать", input, type);
 
         if (created == null)
         {
@@ -75,34 +134,34 @@ public partial class Debts
         UpdateTypes();
     }
 
-    private async Task<Debt?> Update(Debt entity)
+    private async Task<Debt?> UpdateAsync(Debt model)
     {
-        var updated = await ShowDialog("Обновить", entity);
+        var updated = await ShowDialogAsync("Обновить", model);
 
         if (updated == null)
         {
             return null;
         }
 
-        if (updated.Type != entity.Type || updated.OwnerName != entity.OwnerName)
+        if (updated.Type != model.Type || updated.OwnerName != model.OwnerName)
         {
-            RemoveDebt(entity);
-            AddDebt(updated);
+            Remove(model);
+            Add(updated);
         }
 
         UpdateTypes();
         return updated;
     }
 
-    private void RemoveDebt(Debt debt)
+    private void Remove(Debt model)
     {
-        if (_debts.TryGetValue(debt.Type, out var owners) == false)
+        if (_debts.TryGetValue(model.Type, out var owners) == false)
         {
             return;
         }
 
-        var owner = owners.Find(x => x.UserName == debt.OwnerName);
-        owner?.Debts.Remove(debt);
+        var owner = owners.Find(x => x.UserName == model.OwnerName);
+        owner?.Debts.Remove(model);
 
         if (owner?.Debts.Count == 0)
         {
@@ -110,22 +169,22 @@ public partial class Debts
         }
     }
 
-    private void AddDebt(Debt debt)
+    private void Add(Debt model)
     {
-        if (_debts.TryGetValue(debt.Type, out var owners) == false)
+        if (_debts.TryGetValue(model.Type, out var owners) == false)
         {
-            _debts[debt.Type] = owners = [];
+            _debts[model.Type] = owners = [];
         }
 
-        var owner = owners.Find(x => x.UserName == debt.OwnerName);
+        var owner = owners.Find(x => x.UserName == model.OwnerName);
 
         if (owner == null)
         {
-            owners.Add(new(debt.OwnerName, [debt]));
+            owners.Add(new(model.OwnerName, [model]));
         }
         else
         {
-            owner.Debts.Add(debt);
+            owner.Debts.Add(model);
         }
     }
 
@@ -137,11 +196,22 @@ public partial class Debts
 
     private void ApplySearchQuery()
     {
-        _filteredTypes = string.IsNullOrWhiteSpace(_searchQuery)
-            ? _types
-            : _types.Where(type => type.Owners
-                    .Any(owner => owner.Search(_searchQuery)))
+        _filteredTypes = [];
+
+        foreach (var type in _types)
+        {
+            var debtOwners = type.Owners
+                .Where(owner => string.IsNullOrWhiteSpace(_searchQuery) || owner.Search(_searchQuery))
                 .ToList();
+
+            if (debtOwners.Count != 0)
+            {
+                _filteredTypes.Add(type with
+                {
+                    Owners = debtOwners,
+                });
+            }
+        }
     }
 
     private void OnSearchQueryChanged(string searchQuery)
@@ -150,22 +220,20 @@ public partial class Debts
         ApplySearchQuery();
     }
 
-    private async Task<Debt?> ShowDialog(string title, Debt entity)
+    private async Task<Debt?> ShowDialogAsync(string title, Debt model, DebtTypes.Value? type = null)
     {
         DialogParameters<DebtDialog> parameters = new()
         {
-            { dialog => dialog.Entity, entity },
+            { dialog => dialog.Model, model },
+            { dialog => dialog.RequiredType, type },
         };
 
         var dialog = await DialogService.ShowAsync<DebtDialog>(title, parameters);
         return await dialog.GetReturnValueAsync<Debt>();
     }
-
-    private static bool ToggleType(DeptType type)
-    {
-        return type.Expanded = !type.Expanded;
-    }
 }
+
+public record DebtOwnerMerged(int Id, string UserName);
 
 public record DebtOwner(string UserName, List<Debt> Debts)
 {
@@ -180,8 +248,8 @@ public record DebtOwner(string UserName, List<Debt> Debts)
     public bool Search(string value)
     {
         return UserName.Contains(value, StringComparison.OrdinalIgnoreCase)
-                || Debts.Any(debt => (debt.Comment?.Contains(value, StringComparison.OrdinalIgnoreCase) ?? false)
-                || (debt.PayComment?.Contains(value, StringComparison.OrdinalIgnoreCase) ?? false));
+               || Debts.Any(debt => (debt.Comment?.Contains(value, StringComparison.OrdinalIgnoreCase) ?? false)
+                                    || (debt.PayComment?.Contains(value, StringComparison.OrdinalIgnoreCase) ?? false));
     }
 
     public decimal CalculateRemainder()
@@ -211,9 +279,9 @@ public record DebtOwner(string UserName, List<Debt> Debts)
             return null;
         }
 
-        var spaceIndex = lastRecord.IndexOf(' ');
+        var spaceIndex = lastRecord.IndexOf(' ', StringComparison.Ordinal);
 
-        if (DateTime.TryParse(lastRecord[..spaceIndex], out var date))
+        if (DateTime.TryParse(lastRecord[..spaceIndex], CultureInfo.InvariantCulture, out var date))
         {
             return date;
         }

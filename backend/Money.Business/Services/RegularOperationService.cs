@@ -1,4 +1,5 @@
-﻿using Money.Data.Extensions;
+﻿using Microsoft.Extensions.Logging;
+using Money.Data.Extensions;
 
 namespace Money.Business.Services;
 
@@ -8,7 +9,8 @@ public class RegularOperationService(
     UserService userService,
     CategoryService categoryService,
     PlaceService placeService,
-    OperationService operationService)
+    OperationService operationService,
+    ILogger<RegularOperationService> logger)
 {
     public async Task<IEnumerable<RegularOperation>> GetAsync(CancellationToken cancellationToken)
     {
@@ -158,9 +160,9 @@ public class RegularOperationService(
                 dbTask.RunTime = GetRegularTaskRunTime(dbTask.DateFrom, dbTask.DateTo, dbTask.RunTime!.Value, (RegularOperationTimeTypes)dbTask.TimeTypeId, dbTask.TimeValue);
                 await context.SaveChangesAsync(cancellationToken);
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
-                Console.WriteLine(ex.Message);
+                logger.LogError(exception, "Ошибка при запуске регулярой операции ({UserId},{Id})", dbTask.UserId, dbTask.Id);
             }
         }
     }
@@ -200,14 +202,17 @@ public class RegularOperationService(
         switch (timeType)
         {
             case RegularOperationTimeTypes.EveryDay when timeValue != null:
-                throw new("Извините, но значение интервала должно отсутствовать при Каждый день");
+                throw new BusinessException("Извините, но значение интервала должно отсутствовать при Каждый день");
 
             case RegularOperationTimeTypes.EveryWeek when timeValue is null or < 1 or > 7:
-                throw new("Извините, но значение интервала должно быть в диапазоне от 1 до 7 при Каждую неделю");
+                throw new BusinessException("Извините, но значение интервала должно быть в диапазоне от 1 до 7 при Каждую неделю");
 
             case RegularOperationTimeTypes.EveryMonth when timeValue is null or < 1 or > 31:
-                throw new("Извините, но значение интервала должно быть в диапазоне от 1 до 31 при Каждый месяц");
+                throw new BusinessException("Извините, но значение интервала должно быть в диапазоне от 1 до 31 при Каждый месяц");
 
+            case RegularOperationTimeTypes.EveryDay:
+            case RegularOperationTimeTypes.EveryWeek:
+            case RegularOperationTimeTypes.EveryMonth:
             default:
                 return;
         }
@@ -255,7 +260,7 @@ public class RegularOperationService(
             case RegularOperationTimeTypes.EveryMonth:
                 var dt = new DateTime(date.Year, date.Month, 1);
 
-                if (dt.Day >= timeValue)
+                if (dateNow.Day >= timeValue)
                 {
                     dt = dt.AddMonths(1);
                 }

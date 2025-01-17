@@ -59,6 +59,7 @@ public class DebtClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
             OperationCategoryId = operationCategoryId,
             OperationComment = operationComment,
         };
+
         return PostAsync($"{BaseUri}/Forgive", request);
     }
 

@@ -23,7 +23,11 @@ public class DebtOwnerConfiguration : UserEntityConfiguration<DebtOwner>
 
         builder.HasMany(x => x.Debts)
             .WithOne(x => x.Owner)
-            .HasForeignKey(x => new { x.UserId, DebtOwnerId = x.OwnerId })
+            .HasForeignKey(x => new
+            {
+                x.UserId,
+                DebtOwnerId = x.OwnerId,
+            })
             .IsRequired();
     }
 }

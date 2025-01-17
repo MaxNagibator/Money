@@ -16,13 +16,13 @@ public partial class Statistics
 
     protected override async Task OnInitializedAsync()
     {
-        Dictionary<int, BarChart> barCharts = new();
-        Dictionary<int, PieChart> pieCharts = new();
+        Dictionary<int, BarChart> barCharts = [];
+        Dictionary<int, PieChart> pieCharts = [];
 
-        foreach (var operationType in OperationTypes.Values)
+        foreach (var operationType in OperationTypes.Values.Select(x => x.Id))
         {
-            barCharts.Add(operationType.Id, BarChart.Create(operationType.Id));
-            pieCharts.Add(operationType.Id, PieChart.Create(operationType.Id));
+            barCharts.Add(operationType, BarChart.Create(operationType));
+            pieCharts.Add(operationType, PieChart.Create(operationType));
         }
 
         _barCharts = barCharts;
@@ -38,29 +38,29 @@ public partial class Statistics
             .GroupBy(x => x.Category.Id!.Value)
             .ToDictionary(x => x.Key, x => x.ToArray());
 
-        foreach (var operationType in OperationTypes.Values)
+        foreach (var operationTypeId in OperationTypes.Values.Select(x => x.Id))
         {
             var categories = args.Operations?
-                                 .Where(x => x.Category.OperationType.Id == operationType.Id)
+                                 .Where(x => x.Category.OperationType.Id == operationTypeId)
                                  .Select(x => x.Category)
                                  .DistinctBy(x => x.Id)
                                  .ToList()
                              ?? [];
 
-            tasks.Add(_barCharts![operationType.Id].UpdateAsync(args.Operations, categories, OperationsFilter.DateRange));
+            tasks.Add(_barCharts![operationTypeId].UpdateAsync(args.Operations, categories, OperationsFilter.DateRange));
 
             if (_categories is not { Count: not 0 } || operationGroups == null)
             {
                 continue;
             }
 
-            var cats = _categories.Where(x => x.OperationType.Id == operationType.Id).ToList();
+            var cats = _categories.Where(x => x.OperationType.Id == operationTypeId).ToList();
             var categorySums = CalculateCategorySums(cats, operationGroups, null);
 
-            tasks.Add(_pieCharts![operationType.Id].UpdateAsync(categorySums));
+            tasks.Add(_pieCharts![operationTypeId].UpdateAsync(categorySums));
             var sums = BuildChildren(categorySums);
 
-            Sums[operationType.Id] =
+            Sums[operationTypeId] =
             [
                 new TreeItemData<OperationCategorySum>
                 {
@@ -80,16 +80,18 @@ public partial class Statistics
 
     private List<TreeItemData<OperationCategorySum>> BuildChildren(List<OperationCategorySum> categories)
     {
-        return categories.Where(x => x.TotalSum > 0)
-            .Select(child => new TreeItemData<OperationCategorySum>
-            {
-                Text = child.Name,
-                Value = child,
-                Children = child.SubCategories == null ? null : BuildChildren(child.SubCategories),
-            })
-            .OrderBy(item => item.Value?.TotalSum)
-            .ThenBy(item => item.Value?.Name)
-            .ToList();
+        return
+        [
+            .. categories.Where(x => x.TotalSum > 0)
+                .Select(child => new TreeItemData<OperationCategorySum>
+                {
+                    Text = child.Name,
+                    Value = child,
+                    Children = child.SubCategories == null ? null : BuildChildren(child.SubCategories),
+                })
+                .OrderBy(item => item.Value?.TotalSum)
+                .ThenBy(item => item.Value?.Name),
+        ];
     }
 
     private List<OperationCategorySum> CalculateCategorySums(List<Category> categories, Dictionary<int, Operation[]> operations, int? parentId)

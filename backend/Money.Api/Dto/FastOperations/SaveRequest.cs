@@ -13,7 +13,7 @@ public class SaveRequest
     /// <summary>
     /// Сумма.
     /// </summary>
-    public decimal Sum { get; set; }
+    public required decimal Sum { get; set; }
 
     /// <summary>
     /// Комментарий.

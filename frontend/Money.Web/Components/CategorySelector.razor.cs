@@ -23,9 +23,9 @@ public partial class CategorySelector : ComponentBase, IAsyncDisposable
     private List<TreeItemData<Category>> InitialTreeItems { get; set; } = [];
     private IReadOnlyCollection<Category>? SelectedCategories { get; set; }
 
-    public List<int>? GetSelectedCategories()
+    public IEnumerable<int> GetSelectedCategories()
     {
-        return SelectedCategories?.Select(x => x.Id!.Value).ToList();
+        return SelectedCategories?.Select(x => x.Id!.Value) ?? [];
     }
 
     public void Reset()

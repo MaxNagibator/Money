@@ -9,6 +9,7 @@ public class RegularOperationTests
 {
     private DatabaseClient _dbClient;
     private TestUser _user;
+
     private MoneyClient _apiClient;
 
     [SetUp]
@@ -92,8 +93,8 @@ public class RegularOperationTests
         };
 
         var createdId = await _apiClient.RegularOperation.Create(request).IsSuccessWithContent();
-        var dbOperation = _dbClient.CreateApplicationDbContext().RegularOperations.SingleOrDefault(_user.Id, createdId);
-        var dbPlace = _dbClient.CreateApplicationDbContext().Places.FirstOrDefault(x => x.UserId == _user.Id && x.Name == place.Name);
+        var dbOperation = await _dbClient.CreateApplicationDbContext().RegularOperations.FirstOrDefaultAsync(_user.Id, createdId);
+        var dbPlace = await _dbClient.CreateApplicationDbContext().Places.FirstOrDefaultAsync(x => x.UserId == _user.Id && x.Name == place.Name);
 
         Assert.Multiple(() =>
         {
@@ -138,8 +139,8 @@ public class RegularOperationTests
         };
 
         await _apiClient.RegularOperation.Update(operation.Id, request).IsSuccess();
-        var dbOperation = _dbClient.CreateApplicationDbContext().RegularOperations.SingleOrDefault(_user.Id, operation.Id);
-        var dbPlace = _dbClient.CreateApplicationDbContext().Places.FirstOrDefault(x => x.UserId == _user.Id && x.Name == place.Name);
+        var dbOperation = await _dbClient.CreateApplicationDbContext().RegularOperations.FirstOrDefaultAsync(_user.Id, operation.Id);
+        var dbPlace = await _dbClient.CreateApplicationDbContext().Places.FirstOrDefaultAsync(x => x.UserId == _user.Id && x.Name == place.Name);
 
         Assert.Multiple(() =>
         {
@@ -172,13 +173,13 @@ public class RegularOperationTests
 
         await using var context = _dbClient.CreateApplicationDbContext();
 
-        var dbOperation = context.RegularOperations.SingleOrDefault(_user.Id, operation.Id);
+        var dbOperation = await context.RegularOperations.FirstOrDefaultAsync(_user.Id, operation.Id);
 
         Assert.That(dbOperation, Is.Null);
 
-        dbOperation = context.RegularOperations
+        dbOperation = await context.RegularOperations
             .IgnoreQueryFilters()
-            .SingleOrDefault(_user.Id, operation.Id);
+            .FirstOrDefaultAsync(_user.Id, operation.Id);
 
         Assert.That(dbOperation, Is.Not.Null);
         Assert.That(dbOperation.IsDeleted, Is.EqualTo(true));
@@ -194,7 +195,7 @@ public class RegularOperationTests
 
         await using var context = _dbClient.CreateApplicationDbContext();
 
-        var dbOperation = context.RegularOperations.SingleOrDefault(_user.Id, operation.Id);
+        var dbOperation = await context.RegularOperations.FirstOrDefaultAsync(_user.Id, operation.Id);
         Assert.That(dbOperation, Is.Not.Null);
         Assert.That(dbOperation.IsDeleted, Is.EqualTo(false));
     }
@@ -234,14 +235,11 @@ public class RegularOperationTests
                 break;
 
             case RegularOperationTimeTypes.EveryWeek:
-            {
                 var daysToAdd = (timeValue!.Value - (int)DateTime.Now.Date.AddDays(1).DayOfWeek + 7) % 7;
                 runTime = DateTime.Now.Date.AddDays(1).AddDays(daysToAdd);
                 break;
-            }
 
             case RegularOperationTimeTypes.EveryMonth:
-            {
                 runTime = new(DateTime.Now.Year, DateTime.Now.Month, 1);
 
                 if (DateTime.Now.Day >= timeValue)
@@ -257,14 +255,13 @@ public class RegularOperationTests
                     : nextDt;
 
                 break;
-            }
 
             default:
                 throw new ArgumentOutOfRangeException(nameof(timeType), timeType, null);
         }
 
         var createdId = await _apiClient.RegularOperation.Create(request).IsSuccessWithContent();
-        var dbOperation = _dbClient.CreateApplicationDbContext().RegularOperations.SingleOrDefault(_user.Id, createdId);
+        var dbOperation = await _dbClient.CreateApplicationDbContext().RegularOperations.FirstOrDefaultAsync(_user.Id, createdId);
         Assert.That(dbOperation, Is.Not.Null);
         Assert.That(dbOperation.RunTime, Is.Not.Null);
         Assert.That(dbOperation.RunTime.Value, Is.EqualTo(runTime));

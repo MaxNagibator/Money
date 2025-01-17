@@ -8,7 +8,7 @@ public class AppSettings
     private bool _isManualMode;
     private bool _isSchedule;
 
-    public event Action? OnChange;
+    public event EventHandler? OnChange;
 
     public bool ShowDividers
     {
@@ -49,6 +49,6 @@ public class AppSettings
         }
 
         field = value;
-        OnChange?.Invoke();
+        OnChange?.Invoke(this, EventArgs.Empty);
     }
 }

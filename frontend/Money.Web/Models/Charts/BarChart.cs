@@ -110,7 +110,7 @@ public class BarChart : BaseChart<BarOptions>
 
     private void FillBarChart(ChartData configData, List<Operation> operations, List<Category> categories, DateRange range)
     {
-        (var start, var finish, var totalDays) = GetOperationsDateRange(operations, range);
+        var (start, finish, totalDays) = GetOperationsDateRange(operations, range);
         var mode = DetermineTimeFrame(totalDays, ref start, ref finish);
 
         var datasets = CreateDatasets(configData, categories);
@@ -156,7 +156,7 @@ public class BarChart : BaseChart<BarOptions>
         return TimeFrame.Mode.Month;
     }
 
-    private record TimeFrame(
+    private sealed record TimeFrame(
         Func<Operation, DateTime, bool> Predicate,
         Func<DateTime, string> Labeling,
         Func<DateTime, DateTime> Modifier)

@@ -20,10 +20,10 @@ public partial class FastOperationDialog
     public MudDialogInstance MudDialog { get; set; } = null!;
 
     [Parameter]
-    public Category Category { get; set; } = null!;
+    public FastOperation Model { get; set; } = null!;
 
     [Parameter]
-    public FastOperation FastOperation { get; set; } = null!;
+    public OperationTypes.Value? RequiredType { get; set; }
 
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = InputModel.Empty;
@@ -44,24 +44,28 @@ public partial class FastOperationDialog
     {
         Input = new()
         {
-            Category = FastOperation.Category == Category.Empty ? null : FastOperation.Category,
-            Comment = FastOperation.Comment,
-            Name = FastOperation.Name,
-            Order = FastOperation.Order,
-            Place = FastOperation.Place,
+            Category = Model.Category == Category.Empty ? null : Model.Category,
+            Comment = Model.Comment,
+            Name = Model.Name,
+            Order = Model.Order,
+            Place = Model.Place,
         };
 
         MudDialog.SetOptions(_dialogOptions);
 
         var categories = await CategoryService.GetAllAsync();
 
-        if (Input.Category == null)
+        if (RequiredType != null)
         {
-            Input.CategoryList = [.. categories];
+            Input.CategoryList = [.. categories.Where(x => x.OperationType == RequiredType)];
+        }
+        else if (Input.Category != null)
+        {
+            Input.CategoryList = [.. categories.Where(x => x.OperationType == Model.Category.OperationType)];
         }
         else
         {
-            Input.CategoryList = [.. categories.Where(x => x.OperationType == FastOperation.Category.OperationType)];
+            Input.CategoryList = [.. categories];
         }
     }
 
@@ -83,14 +87,14 @@ public partial class FastOperationDialog
             await SaveAsync();
             SnackbarService.Add("Успех!", Severity.Success);
 
-            FastOperation.Name = Input.Name!;
-            FastOperation.Category = Input.Category ?? throw new MoneyException("Категория операции не может быть null");
-            FastOperation.Sum = sum.Value;
-            FastOperation.Comment = Input.Comment;
-            FastOperation.Place = Input.Place;
-            FastOperation.Order = Input.Order;
+            Model.Name = Input.Name!;
+            Model.Category = Input.Category ?? throw new MoneyException("Категория операции не может быть null");
+            Model.Sum = sum.Value;
+            Model.Comment = Input.Comment;
+            Model.Place = Input.Place;
+            Model.Order = Input.Order;
 
-            MudDialog.Close(DialogResult.Ok(FastOperation));
+            MudDialog.Close(DialogResult.Ok(Model));
         }
         catch (Exception)
         {
@@ -105,14 +109,14 @@ public partial class FastOperationDialog
     {
         var saveRequest = CreateSaveRequest();
 
-        if (FastOperation.Id == null)
+        if (Model.Id == null)
         {
             var result = await MoneyClient.FastOperation.Create(saveRequest);
-            FastOperation.Id = result.Content;
+            Model.Id = result.Content;
         }
         else
         {
-            await MoneyClient.FastOperation.Update(FastOperation.Id.Value, saveRequest);
+            await MoneyClient.FastOperation.Update(Model.Id.Value, saveRequest);
         }
     }
 

@@ -1,0 +1,5 @@
+# Файлы C#
+[*.cs]
+
+# IDE0130: Пространство имен (namespace) не соответствует структуре папок.
+dotnet_diagnostic.IDE0130.severity = suggestion

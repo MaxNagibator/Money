@@ -18,15 +18,12 @@ public class PlaceService(MoneyClient moneyClient)
 
         var diff = value.Length - _lastSearchedValue.Length;
 
-        if (diff > 0 && value[..^diff] == _lastSearchedValue)
+        if (diff > 0
+            && value[..^diff] == _lastSearchedValue
+            && Cache.TryGetValue(_lastSearchedValue, out var cachedPlaces)
+            && cachedPlaces.Length == 0)
         {
-            if (Cache.TryGetValue(_lastSearchedValue, out var cachedPlaces))
-            {
-                if (cachedPlaces.Length == 0)
-                {
-                    return [value];
-                }
-            }
+            return [value];
         }
 
         var response = await moneyClient.Operation.GetPlaces(0, 10, value, token);

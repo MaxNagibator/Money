@@ -1,32 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
 
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
-        <Nullable>enable</Nullable>
-        <ImplicitUsings>enable</ImplicitUsings>
         <RunAOTCompilation>true</RunAOTCompilation>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
-        <PackageReference Include="ChartJs.Blazor.Fork" Version="2.0.2" />
-        <PackageReference Include="CSharpFunctionalExtensions" Version="3.1.0" />
-        <PackageReference Include="CSharpFunctionalExtensions.Analyzers" Version="1.4.1">
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        <PackageReference Include="Blazored.LocalStorage" />
+        <PackageReference Include="ChartJs.Blazor.Fork" />
+        <PackageReference Include="CSharpFunctionalExtensions" />
+        <PackageReference Include="CSharpFunctionalExtensions.Analyzers">
             <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.10" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.10" PrivateAssets="all" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="8.0.10" />
-        <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
-        <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
-        <PackageReference Include="MudBlazor" Version="7.15.0" />
-        <PackageReference Include="MudBlazor.Translations" Version="1.4.0" />
-        <PackageReference Include="NCalc.DependencyInjection" Version="5.2.10" />
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.1.2" />
-        <PackageReference Include="System.Text.Encodings.Web" Version="8.0.0" />
-        <PackageReference Include="System.Text.Json" Version="8.0.5" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" />
+        <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
+        <PackageReference Include="Microsoft.Extensions.Http" />
+        <PackageReference Include="MudBlazor" />
+        <PackageReference Include="NCalc.DependencyInjection" />
     </ItemGroup>
 
     <ItemGroup>

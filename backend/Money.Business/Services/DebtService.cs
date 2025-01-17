@@ -13,14 +13,9 @@ public class DebtService(
     {
         var query = context.Debts.IsUserEntity(environment.UserId);
 
-        if (withPaid)
-        {
-            query = query.Where(x => x.StatusId == (int)DebtStatus.Actual || x.StatusId == (int)DebtStatus.Paid);
-        }
-        else
-        {
-            query = query.Where(x => x.StatusId == (int)DebtStatus.Actual);
-        }
+        query = withPaid
+            ? query.Where(x => x.StatusId == (int)DebtStatus.Actual || x.StatusId == (int)DebtStatus.Paid)
+            : query.Where(x => x.StatusId == (int)DebtStatus.Actual);
 
         var dbDebts = await query.ToListAsync(cancellationToken);
 

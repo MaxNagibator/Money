@@ -4,7 +4,7 @@ namespace Money.Web.Services;
 
 public class DebtService(MoneyClient moneyClient)
 {
-    public async Task<List<Debt>> GetAllAsync()
+    public async Task<IEnumerable<Debt>> GetAllAsync()
     {
         var response = await moneyClient.Debt.Get();
 
@@ -20,7 +20,6 @@ public class DebtService(MoneyClient moneyClient)
                        PaySum = x.PaySum,
                        PayComment = x.PayComment,
                    })
-                   .ToList()
                ?? [];
     }
 }

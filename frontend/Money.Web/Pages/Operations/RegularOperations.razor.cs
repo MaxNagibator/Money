@@ -18,7 +18,7 @@ public partial class RegularOperations
         _operations = await RegularOperationService.GetAllAsync();
     }
 
-    private async Task Create()
+    private async Task Create(OperationTypes.Value? type = null)
     {
         var input = new RegularOperation
         {
@@ -29,7 +29,7 @@ public partial class RegularOperations
             TimeValue = 1,
         };
 
-        var created = await ShowDialog("Создать", input);
+        var created = await ShowDialog("Создать", input, type);
 
         if (created == null)
         {
@@ -39,16 +39,17 @@ public partial class RegularOperations
         _operations.Insert(0, created);
     }
 
-    private Task<RegularOperation?> Update(RegularOperation operation)
+    private Task<RegularOperation?> Update(RegularOperation model)
     {
-        return ShowDialog("Обновить", operation);
+        return ShowDialog("Обновить", model);
     }
 
-    private async Task<RegularOperation?> ShowDialog(string title, RegularOperation operation)
+    private async Task<RegularOperation?> ShowDialog(string title, RegularOperation model, OperationTypes.Value? type = null)
     {
         DialogParameters<RegularOperationDialog> parameters = new()
         {
-            { dialog => dialog.RegularOperation, operation },
+            { dialog => dialog.Model, model },
+            { dialog => dialog.RequiredType, type },
         };
 
         var dialog = await DialogService.ShowAsync<RegularOperationDialog>(title, parameters);

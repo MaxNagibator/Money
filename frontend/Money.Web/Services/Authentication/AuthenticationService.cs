@@ -31,7 +31,7 @@ public class AuthenticationService(
 
     public async Task<Result> LoginAsync(UserDto user)
     {
-        var requestContent = new FormUrlEncodedContent([new("grant_type", "password"), new("username", user.Email), new("password", user.Password)]);
+        using var requestContent = new FormUrlEncodedContent([new("grant_type", "password"), new("username", user.Email), new("password", user.Password)]);
 
         var result = await AuthenticateAsync(requestContent);
 
@@ -55,7 +55,7 @@ public class AuthenticationService(
             return Result.Failure<string>("Не удалось загрузить токен доступа или токен обновления.");
         }
 
-        var requestContent = new FormUrlEncodedContent([new("grant_type", "refresh_token"), new("refresh_token", refreshToken)]);
+        using var requestContent = new FormUrlEncodedContent([new("grant_type", "refresh_token"), new("refresh_token", refreshToken)]);
 
         client.DefaultRequestHeaders.Authorization = new("Bearer", token);
         var result = await AuthenticateAsync(requestContent);
@@ -64,7 +64,7 @@ public class AuthenticationService(
 
     private async Task<Result<AuthData>> AuthenticateAsync(FormUrlEncodedContent requestContent)
     {
-        var response = await client.PostAsync("connect/token", requestContent);
+        var response = await client.PostAsync(new Uri("connect/token", UriKind.Relative), requestContent);
         client.DefaultRequestHeaders.Clear();
 
         if (response.IsSuccessStatusCode == false)

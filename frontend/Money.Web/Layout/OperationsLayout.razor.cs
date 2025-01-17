@@ -4,7 +4,7 @@ using System.Globalization;
 
 namespace Money.Web.Layout;
 
-public partial class OperationsLayout : IDisposable
+public sealed partial class OperationsLayout : IDisposable
 {
     private OperationsFilter? _operationsFilter;
 
@@ -22,8 +22,6 @@ public partial class OperationsLayout : IDisposable
         }
 
         NavigationManager.LocationChanged -= OnLocationChanged;
-
-        GC.SuppressFinalize(this);
     }
 
     protected override void OnAfterRender(bool firstRender)
@@ -68,6 +66,9 @@ public partial class OperationsLayout : IDisposable
         return $"Период с {FormatDate(dateFrom)} "
                + $"по {FormatDate(dateTo)}";
 
-        string FormatDate(DateTime? date) => date?.ToString("d MMMM yyyy", CultureInfo.CurrentCulture) ?? "-";
+        static string FormatDate(DateTime? date)
+        {
+            return date?.ToString("d MMMM yyyy", CultureInfo.CurrentCulture) ?? "-";
+        }
     }
 }

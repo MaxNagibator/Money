@@ -44,8 +44,13 @@ public class MoneyClient
 
     public async Task RegisterAsync(string email, string password)
     {
-        var requestContent = JsonContent.Create(new { email, password });
-        var response = await HttpClient.PostAsync("Account/register", requestContent);
+        using var requestContent = JsonContent.Create(new
+        {
+            email,
+            password,
+        });
+
+        var response = await HttpClient.PostAsync(new Uri("Account/register", UriKind.Relative), requestContent);
         response.EnsureSuccessStatusCode();
 
         var content = await response.Content.ReadAsStringAsync();
@@ -54,14 +59,13 @@ public class MoneyClient
 
     public async Task<AuthData> LoginAsync(string username, string password, CancellationToken token = default)
     {
-        var requestContent = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>
-        {
+        using var requestContent = new FormUrlEncodedContent([
             new("grant_type", "password"),
             new("username", username),
             new("password", password),
-        });
+        ]);
 
-        var response = await HttpClient.PostAsync("connect/token", requestContent, token);
+        var response = await HttpClient.PostAsync(new Uri("connect/token", UriKind.Relative), requestContent, token);
         response.EnsureSuccessStatusCode();
 
         return await response.Content.ReadFromJsonAsync<AuthData>(token) ?? throw new InvalidOperationException();

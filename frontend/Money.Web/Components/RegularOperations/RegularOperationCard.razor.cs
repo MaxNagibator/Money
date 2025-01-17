@@ -6,7 +6,7 @@ namespace Money.Web.Components.RegularOperations;
 public partial class RegularOperationCard : ComponentBase
 {
     [Parameter]
-    public RegularOperation Operation { get; set; } = null!;
+    public RegularOperation Model { get; set; } = null!;
 
     [Parameter]
     public EventCallback<RegularOperation> OnUpdate { get; set; }
@@ -18,11 +18,19 @@ public partial class RegularOperationCard : ComponentBase
     private ISnackbar SnackbarService { get; set; } = null!;
 
     // TODO: Подумать как более грамотно сделать
-    private string ClassName => Operation.IsDeleted
-        ? "deleted-operation-card"
-        : Operation.Category.OperationType.Id == 1
+    private string ClassName => GetClassName();
+
+    private string GetClassName()
+    {
+        if (Model.IsDeleted)
+        {
+            return "deleted-operation-card";
+        }
+
+        return Model.Category.OperationType.Id == 1
             ? "expense-operation-card"
             : "income-operation-card";
+    }
 
     private Task Update(RegularOperation entity)
     {

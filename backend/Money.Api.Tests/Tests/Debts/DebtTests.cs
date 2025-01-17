@@ -78,7 +78,7 @@ public class DebtTests
         };
 
         var createdCategoryId = await _apiClient.Debt.Create(request).IsSuccessWithContent();
-        var dbDebt = _dbClient.CreateApplicationDbContext().Debts.SingleOrDefault(_user.Id, createdCategoryId);
+        var dbDebt = await _dbClient.CreateApplicationDbContext().Debts.FirstOrDefaultAsync(_user.Id, createdCategoryId);
 
         Assert.That(dbDebt, Is.Not.Null);
 
@@ -109,7 +109,7 @@ public class DebtTests
         };
 
         await _apiClient.Debt.Update(debt.Id, request).IsSuccess();
-        var dbDebt = _dbClient.CreateApplicationDbContext().Debts.SingleOrDefault(_user.Id, debt.Id);
+        var dbDebt = await _dbClient.CreateApplicationDbContext().Debts.FirstOrDefaultAsync(_user.Id, debt.Id);
 
         Assert.Multiple(() =>
         {
@@ -135,13 +135,13 @@ public class DebtTests
 
         await using var context = _dbClient.CreateApplicationDbContext();
 
-        var dbDebt = context.Debts.SingleOrDefault(_user.Id, debt.Id);
+        var dbDebt = await context.Debts.FirstOrDefaultAsync(_user.Id, debt.Id);
 
         Assert.That(dbDebt, Is.Null);
 
-        dbDebt = context.Debts
+        dbDebt = await context.Debts
             .IgnoreQueryFilters()
-            .SingleOrDefault(_user.Id, debt.Id);
+            .FirstOrDefaultAsync(_user.Id, debt.Id);
 
         Assert.That(dbDebt, Is.Not.Null);
         Assert.That(dbDebt.IsDeleted, Is.EqualTo(true));
@@ -157,7 +157,7 @@ public class DebtTests
 
         await using var context = _dbClient.CreateApplicationDbContext();
 
-        var dbDebt = context.Debts.SingleOrDefault(_user.Id, debt.Id);
+        var dbDebt = await context.Debts.FirstOrDefaultAsync(_user.Id, debt.Id);
         Assert.That(dbDebt, Is.Not.Null);
         Assert.That(dbDebt.IsDeleted, Is.EqualTo(false));
     }
@@ -179,7 +179,7 @@ public class DebtTests
 
         await using var context = _dbClient.CreateApplicationDbContext();
 
-        var dbDebt = context.Debts.Single(_user.Id, debt.Id);
+        var dbDebt = context.Debts.First(_user.Id, debt.Id);
 
         Assert.Multiple(() =>
         {
@@ -205,7 +205,7 @@ public class DebtTests
 
         await using var context = _dbClient.CreateApplicationDbContext();
 
-        var dbDebt = context.Debts.Single(_user.Id, debt.Id);
+        var dbDebt = context.Debts.First(_user.Id, debt.Id);
 
         Assert.Multiple(() =>
         {
@@ -255,8 +255,8 @@ public class DebtTests
 
         await using var context = _dbClient.CreateApplicationDbContext();
 
-        var dbDebts = context.Debts.Where(x => x.UserId == debt1.User.Id).ToList();
-        var dbDebtOwner = context.DebtOwners.FirstOrDefault(x => x.UserId == debt1.User.Id && x.Id == fromUserId);
+        var dbDebts = await context.Debts.Where(x => x.UserId == debt1.User.Id).ToListAsync();
+        var dbDebtOwner = await context.DebtOwners.FirstOrDefaultAsync(x => x.UserId == debt1.User.Id && x.Id == fromUserId);
 
         Assert.Multiple(() =>
         {
@@ -300,9 +300,9 @@ public class DebtTests
 
         await using var context = _dbClient.CreateApplicationDbContext();
 
-        var dbOperations = context.Operations
+        var dbOperations = await context.Operations
             .Where(x => x.UserId == debt.User.Id)
-            .ToList();
+            .ToListAsync();
 
         Assert.That(dbOperations, Is.Not.Null);
         Assert.That(dbOperations, Has.Count.EqualTo(1));
@@ -311,7 +311,7 @@ public class DebtTests
         {
             Assert.That(dbOperations[0].Date, Is.EqualTo(debt.Date));
             Assert.That(dbOperations[0].Sum, Is.EqualTo(debt.Sum));
-            Assert.That(dbOperations[0].Comment?.Contains(comment), Is.True);
+            Assert.That(dbOperations[0].Comment?.Contains(comment, StringComparison.Ordinal), Is.True);
             Assert.That(dbOperations[0].CategoryId, Is.EqualTo(category.Id));
         });
     }

@@ -2,7 +2,7 @@
 
 public class FileUploadMiddleware(RequestDelegate next)
 {
-    public async Task Invoke(HttpContext context, FileService fileService)
+    public async Task Invoke(HttpContext context)
     {
         if (context.Request.HasFormContentType && context.Request.Form.Files.Any())
         {
@@ -10,7 +10,7 @@ public class FileUploadMiddleware(RequestDelegate next)
 
             foreach (var file in form.Files)
             {
-                fileService.CheckFileType(file.FileName);
+                FileService.CheckFileType(file.FileName);
             }
         }
 

@@ -61,7 +61,7 @@ public partial class ListOperations
                 var operationsDay = new OperationsDay
                 {
                     Date = g.Key,
-                    Operations = g.ToList(),
+                    Operations = [..g],
                 };
 
                 operationsDay.AddAction = x => AddOperation(x, operationsDay);
@@ -82,7 +82,9 @@ public partial class ListOperations
 
         void FillZeroDays(List<OperationsDay> operationsDays)
         {
-            for (var i = 0; i < operationsDays.Count - 1; i++)
+            var i = 0;
+
+            while (i < operationsDays.Count - 1)
             {
                 var day = operationsDays[i].Date;
                 var nextDay = operationsDays[i + 1].Date.AddDays(1);
@@ -104,7 +106,7 @@ public partial class ListOperations
                     operationsDays.Insert(i + shift, operationsDay);
                 }
 
-                i += shift;
+                i += shift + 1;
             }
         }
     }
