@@ -7,7 +7,8 @@ import (
 )
 
 type TransporterMapping struct {
-	DebtMove DebtMove
+	DebtOwnerMove DebtOwnerMove
+	DebtMove      DebtMove
 	//OperationMove OperationMove
 }
 
@@ -18,6 +19,14 @@ type BaseTable struct {
 
 func GetMapping() TransporterMapping {
 	mapping := TransporterMapping{
+		DebtOwnerMove: DebtOwnerMove{
+			BaseTable: BaseTable{
+				OldName: "\"Money\".\"DebtUser\"",
+				NewName: "debt_owners",
+			},
+			OldRows: []OldDebtOwner{},
+			NewRows: []NewDebtOwner{},
+		},
 		DebtMove: DebtMove{
 			BaseTable: BaseTable{
 				OldName: "\"Money\".\"Debt\"",
