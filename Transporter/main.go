@@ -1,7 +1,11 @@
 package main
 
 import (
-	"fmt",
+	"database/sql"
+	"fmt"
+	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
+	"log"
 )
 
 func main() {
@@ -38,13 +42,27 @@ func main() {
 	//	is_deleted boolean NOT NULL,
 
 	type Debt struct {
-		id      int
-		user_id int
-		comment string
+		Id      int `db:"id"`
+		UserId  int `db:"user_id"`
+		Comment sql.NullString
 	}
 
 	debts := []Debt{}
 
+	db222, err := sqlx.Connect("postgres", databaseConnectionString)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	err = db222.Select(&debts, "SELECT id, user_id, comment FROM debts")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(debts[0].Id)
+	fmt.Println(debts[0].UserId)
+	fmt.Println(debts[0].Comment.String)
+	return
 	for index, table := range tables {
 		fmt.Println(index)
 
