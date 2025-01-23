@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -10,23 +9,31 @@ import (
 
 func main() {
 	const (
-		host     = "localhost"
-		port     = 5432
-		user     = "postgres"
-		password = "RjirfLeyz"
-		dbname   = "money-dev2"
+		host      = "localhost"
+		port      = 5432
+		user      = "postgres"
+		password  = "RjirfLeyz"
+		dbNewName = "money-dev2"
+		dbOldName = "money-dev"
 	)
 
 	databaseConnectionString := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
+		host, port, user, password, dbNewName)
 
-	var dbProvider = sqlProvider{
-		connectionString: databaseConnectionString,
-		state:            false,
-	}
+	databaseOldConnectionString := fmt.Sprintf("host=%s port=%d user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbOldName)
 
-	tables := GetTables()
+	//var dbProvider = sqlProvider{
+	//	connectionString: databaseConnectionString,
+	//	state:            false,
+	//}
+
+	tables := GetMapping()
+	fmt.Println(tables.DebtMove.OldName)
+	fmt.Println(tables.DebtMove.BaseTable.NewName)
+
 	//columns := []string{"user_id", "id", "date"}
 	//sqlColumns := strings.Join(columns[:], ",")
 	//user_id
@@ -41,45 +48,65 @@ func main() {
 	//	owner_id integer NOT NULL,
 	//	is_deleted boolean NOT NULL,
 
-	type Debt struct {
-		Id      int `db:"id"`
-		UserId  int `db:"user_id"`
-		Comment sql.NullString
-	}
-
-	debts := []Debt{}
-
 	db222, err := sqlx.Connect("postgres", databaseConnectionString)
 	if err != nil {
 		log.Fatalln(err)
 	}
+	db333, err := sqlx.Connect("postgres", databaseOldConnectionString)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-	err = db222.Select(&debts, "SELECT id, user_id, comment FROM debts")
+	//oldTags := GetDBTags(&tables.DebtMove.NewColumns[0])
+	//newTags := GetDBTags(&tables.DebtMove.OldColumns[0])
+
+	selectColumns, err := GetColumnNames(tables.DebtMove.NewColumns)
+	if err != nil {
+		fmt.Println("Ошибка анализа OldColumns:", err)
+	}
+
+	fmt.Println("read old table")
+	err = db333.Select(&tables.DebtMove.OldColumns, "SELECT "+selectColumns+" FROM "+tables.DebtMove.OldName)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(debts[0].Id)
-	fmt.Println(debts[0].UserId)
-	fmt.Println(debts[0].Comment.String)
-	return
-	for index, table := range tables {
-		fmt.Println(index)
+	fmt.Println("huy")
 
-		sqlColumns := table.GetColumnNames(true)
-		rows, err := dbProvider.ExecuteQuery("SELECT " + sqlColumns + " FROM public.debts")
-		if err != nil {
-			fmt.Println("Error execute: %v\n", err)
-			return
-		}
-
-		for rows.Next() {
-			var id int
-			rows.Columns()
-			rows.Scan(&id)
-			fmt.Println(id)
-		}
+	// todo будем делать вставку
+	debts := new NewDebt{
+		Id: tables.DebtMove.OldColumns[0].Id,
+		Comment: tables.DebtMove.OldColumns[0].Comment,
 	}
+	fmt.Println("insert new table")
+	err = db222.Select(&tables.DebtMove.NewColumns, "SELECT "+oldTags+" FROM "+tables.DebtMove.NewName)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println(tables.DebtMove.NewColumns[0].Id)
+	fmt.Println(tables.DebtMove.NewColumns[0].UserId)
+	fmt.Println(tables.DebtMove.NewColumns[0].Comment.String)
+
+	return
+	//for index, table := range tables {
+	//	fmt.Println(index)
+	//
+	//	sqlColumns := table.GetColumnNames(true)
+	//	rows, err := dbProvider.ExecuteQuery("SELECT " + sqlColumns + " FROM public.debts")
+	//	if err != nil {
+	//		fmt.Println("Error execute: %v\n", err)
+	//		return
+	//	}
+	//
+	//	for rows.Next() {
+	//		var id int
+	//		rows.Columns()
+	//		rows.Scan(&id)
+	//		fmt.Println(id)
+	//	}
+	//}
 	//rows, err := dbProvider.ExecuteQuery("SELECT " + sqlColumns + " FROM public.debts")
 	//if err != nil {
 	//	fmt.Println("Error execute: %v\n", err)
