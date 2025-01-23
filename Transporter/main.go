@@ -48,11 +48,11 @@ func main() {
 	//	owner_id integer NOT NULL,
 	//	is_deleted boolean NOT NULL,
 
-	db222, err := sqlx.Connect("postgres", databaseConnectionString)
+	newDatabase, err := sqlx.Connect("postgres", databaseConnectionString)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	db333, err := sqlx.Connect("postgres", databaseOldConnectionString)
+	oldDatabase, err := sqlx.Connect("postgres", databaseOldConnectionString)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -60,64 +60,39 @@ func main() {
 	//oldTags := GetDBTags(&tables.DebtMove.NewColumns[0])
 	//newTags := GetDBTags(&tables.DebtMove.OldColumns[0])
 
-	selectColumns, err := GetColumnNames(tables.DebtMove.NewColumns)
+	selectColumns, err := GetColumnNames(tables.DebtMove.OldRows, "\"", "\"")
 	if err != nil {
 		fmt.Println("Ошибка анализа OldColumns:", err)
 	}
 
 	fmt.Println("read old table")
-	err = db333.Select(&tables.DebtMove.OldColumns, "SELECT "+selectColumns+" FROM "+tables.DebtMove.OldName)
+	err = oldDatabase.Select(&tables.DebtMove.OldRows, "SELECT "+selectColumns+" FROM "+tables.DebtMove.OldName+"")
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 	fmt.Println("huy")
 
-	// todo будем делать вставку
-	debts := new NewDebt{
-		Id: tables.DebtMove.OldColumns[0].Id,
-		Comment: tables.DebtMove.OldColumns[0].Comment,
-	}
+	fmt.Println(tables.DebtMove.OldRows[0].Id)
+	fmt.Println(tables.DebtMove.OldRows[0].UserId)
+	fmt.Println(tables.DebtMove.OldRows[0].Comment.String)
+
+	tables.DebtMove.Move()
+
 	fmt.Println("insert new table")
-	err = db222.Select(&tables.DebtMove.NewColumns, "SELECT "+oldTags+" FROM "+tables.DebtMove.NewName)
+
+	fmt.Println(tables.DebtMove.NewRows[0].Id)
+	fmt.Println(tables.DebtMove.NewRows[0].UserId)
+	fmt.Println(tables.DebtMove.NewRows[0].Comment.String)
+
+	insertColumns, err := GetColumnNames(tables.DebtMove.NewRows, "", "")
+	insertColumnsValues, err := GetColumnNames(tables.DebtMove.NewRows, ":", "")
+	insertQuery := "INSERT INTO " + tables.DebtMove.NewName + " (" + insertColumns + ")" +
+		" VALUES(" + insertColumnsValues + ")"
+	fmt.Println(insertQuery)
+	_, err = newDatabase.NamedExec(insertQuery, tables.DebtMove.NewRows)
 	if err != nil {
 		fmt.Println(err)
-		return
 	}
-
-	fmt.Println(tables.DebtMove.NewColumns[0].Id)
-	fmt.Println(tables.DebtMove.NewColumns[0].UserId)
-	fmt.Println(tables.DebtMove.NewColumns[0].Comment.String)
-
-	return
-	//for index, table := range tables {
-	//	fmt.Println(index)
-	//
-	//	sqlColumns := table.GetColumnNames(true)
-	//	rows, err := dbProvider.ExecuteQuery("SELECT " + sqlColumns + " FROM public.debts")
-	//	if err != nil {
-	//		fmt.Println("Error execute: %v\n", err)
-	//		return
-	//	}
-	//
-	//	for rows.Next() {
-	//		var id int
-	//		rows.Columns()
-	//		rows.Scan(&id)
-	//		fmt.Println(id)
-	//	}
-	//}
-	//rows, err := dbProvider.ExecuteQuery("SELECT " + sqlColumns + " FROM public.debts")
-	//if err != nil {
-	//	fmt.Println("Error execute: %v\n", err)
-	//	return
-	//}-
-	//for rows.Next() {
-	//	rowIndex++
-	//	var userId int
-	//	var id int
-	//	var date string
-	//	rows.Scan(&userId, &id, &date)
-	//	fmt.Println(rowIndex, userId, id, date)
-	//}
+	fmt.Println("complete")
 }

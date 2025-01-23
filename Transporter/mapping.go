@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"reflect"
 	"strings"
@@ -17,39 +16,21 @@ type BaseTable struct {
 	NewName string
 }
 
-type DebtMove struct {
-	BaseTable
-	OldColumns []OldDebt
-	NewColumns []NewDebt
-}
-
-type OldDebt struct {
-	Id      int            `db:"Id"`
-	UserId  int            `db:"UserId"`
-	Comment sql.NullString `db:"Comment"`
-}
-
-type NewDebt struct {
-	Id      int            `db:"id"`
-	UserId  int            `db:"user_id"`
-	Comment sql.NullString `db:"comment"`
-}
-
 func GetMapping() TransporterMapping {
 	mapping := TransporterMapping{
 		DebtMove: DebtMove{
 			BaseTable: BaseTable{
-				OldName: "Debts",
+				OldName: "\"Money\".\"Debt\"",
 				NewName: "debts",
 			},
-			OldColumns: []OldDebt{},
-			NewColumns: []NewDebt{},
+			OldRows: []OldDebt{},
+			NewRows: []NewDebt{},
 		},
 	}
 	return mapping
 }
 
-func GetColumnNames(slice interface{}) (string, error) {
+func GetColumnNames(slice interface{}, prefix string, postfix string) (string, error) {
 	// Получаем тип переданного значения
 	val := reflect.ValueOf(slice)
 	if val.Kind() != reflect.Slice {
@@ -75,7 +56,7 @@ func GetColumnNames(slice interface{}) (string, error) {
 				stringBuilder.WriteString(",")
 			}
 			isFirst = false
-			stringBuilder.WriteString(dbTag)
+			stringBuilder.WriteString(prefix + dbTag + postfix)
 		}
 	}
 
