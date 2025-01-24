@@ -59,10 +59,13 @@ func main() {
 	}
 
 	test(newDatabase, oldDatabase, &tables.DebtOwnerMove)
+	fmt.Println(tables.DebtOwnerMove.OldRows[0])
+	fmt.Println(tables.DebtOwnerMove.OldRows[0].UserId)
+	fmt.Println(tables.DebtOwnerMove.NewRows[0].UserId)
 	//test(newDatabase, oldDatabase, &tables.DebtMove)
 }
 
-func test(newDatabase *sqlx.DB, oldDatabase *sqlx.DB, table any) {
+func test(newDatabase *sqlx.DB, oldDatabase *sqlx.DB, table TableMapping) {
 	oldColumnNames := reflect.ValueOf(table).Elem().FieldByName("OldRows")
 	oldName := reflect.ValueOf(table).Elem().FieldByName("OldName")
 	selectColumns, err := GetColumnNames(oldColumnNames.Interface(), "\"", "\"")
@@ -78,7 +81,8 @@ func test(newDatabase *sqlx.DB, oldDatabase *sqlx.DB, table any) {
 
 	oelemType := reflect.ValueOf(oldColumnNames.Interface()).Type().Elem()
 	fmt.Println(oelemType)
-	array222 := reflect.MakeSlice(oelemType, 0, 0)
+	//array222 := reflect.MakeSlice(oelemType, 0, 0)
+	array222 := reflect.MakeSlice(reflect.SliceOf(oelemType), 0, 0)
 	for rows.Next() {
 		intPtr := reflect.New(oelemType).Interface()
 		err2 := rows.StructScan(intPtr)
@@ -86,32 +90,39 @@ func test(newDatabase *sqlx.DB, oldDatabase *sqlx.DB, table any) {
 			log.Fatalln(err2)
 		}
 		fmt.Println(intPtr)
-		append(array222, intPtr)
+
+		fmt.Println(reflect.ValueOf(intPtr).Elem())
+
+		array222 = reflect.Append(array222, reflect.ValueOf(intPtr).Elem())
 	}
+	reflect.ValueOf(table).Elem().FieldByName("OldRows").Set(array222)
 
-	//fmt.Println("read old table complete")
-	//val := reflect.ValueOf(oldColumnNames)
-	//elemType := val.Type().Elem()
-	//slice := reflect.Zero(reflect.SliceOf(elemType)).Interface()
-	//arrayType := reflect.ArrayOf(0, elemType)
-	//slice2 := reflect.Zero(arrayType).Interface()
-	err = oldDatabase.Select(&oldColumnNames, "SELECT "+selectColumns+" FROM "+oldName.String()+"")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Println("huy")
+	//fmt.Println(array222)
+	////fmt.Println("read old table complete")
+	////val := reflect.ValueOf(oldColumnNames)
+	////elemType := val.Type().Elem()
+	////slice := reflect.Zero(reflect.SliceOf(elemType)).Interface()
+	////arrayType := reflect.ArrayOf(0, elemType)
+	////slice2 := reflect.Zero(arrayType).Interface()
+	//oldRows := GetOldRows(table)
+	//err = oldDatabase.Select(&oldRows, "SELECT "+selectColumns+" FROM "+oldName.String()+"")
+	//if err != nil {
+	//	fmt.Println(err)
+	//	return
+	//}
+	//fmt.Println("huy")
+	//
+	//fmt.Println(oldColumnNames)
 
-	fmt.Println(oldColumnNames)
-
-	//tables.DebtMove.Move()
+	Move(table)
+	//table.Move()
 	//
 	////fmt.Println("insert new table")
 	////
 	////fmt.Println(tables.DebtMove.NewRows[0].Id)
 	////fmt.Println(tables.DebtMove.NewRows[0].UserId)
 	////fmt.Println(tables.DebtMove.NewRows[0].Comment.String)
-	//
+
 	//insertColumns, err := GetColumnNames(tables.DebtMove.NewRows, "", "")
 	//insertColumnsValues, err := GetColumnNames(tables.DebtMove.NewRows, ":", "")
 	//insertQuery := "INSERT INTO " + tables.DebtMove.NewName + " (" + insertColumns + ")" +

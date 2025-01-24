@@ -17,6 +17,14 @@ type BaseTable struct {
 	NewName string
 }
 
+type TableMapping interface {
+	Move()
+}
+
+func Move(m TableMapping) {
+	m.Move()
+}
+
 func GetMapping() TransporterMapping {
 	mapping := TransporterMapping{
 		DebtOwnerMove: DebtOwnerMove{
