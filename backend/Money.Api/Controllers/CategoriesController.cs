@@ -65,7 +65,7 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     /// <param name="request">Данные для обновления категории.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     [HttpPut("{id:int}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -74,7 +74,7 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
         var business = request.ToBusinessModel();
         business.Id = id;
         await categoryService.UpdateAsync(business, cancellationToken);
-        return Ok();
+        return NoContent();
     }
 
     /// <summary>
@@ -83,14 +83,14 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     /// <param name="id">Идентификатор категории.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     [HttpDelete("{id:int}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
         await categoryService.DeleteAsync(id, cancellationToken);
-        return Ok();
+        return NoContent();
     }
 
     /// <summary>
@@ -99,14 +99,14 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     /// <param name="id">Идентификатор категории.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     [HttpPost("{id:int}/Restore")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Restore(int id, CancellationToken cancellationToken)
     {
         await categoryService.RestoreAsync(id, cancellationToken);
-        return Ok();
+        return NoContent();
     }
 
     /// <summary>
@@ -120,11 +120,11 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     /// </param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     [HttpPost("/LoadDefault/{isAdd:bool?}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> LoadDefault(bool? isAdd, CancellationToken cancellationToken)
     {
         await categoryService.LoadDefaultAsync(isAdd ?? true, cancellationToken);
-        return Ok();
+        return NoContent();
     }
 }

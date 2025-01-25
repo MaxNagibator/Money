@@ -18,11 +18,11 @@ public class AccountController(AccountService accountService) : ControllerBase
     /// <returns>Статус выполнения операции.</returns>
     [HttpPost("register")]
     [AllowAnonymous]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Register([FromBody] RegisterModel model, CancellationToken cancellationToken)
     {
         await accountService.RegisterAsync(model, cancellationToken);
-        return Ok();
+        return NoContent();
     }
 }

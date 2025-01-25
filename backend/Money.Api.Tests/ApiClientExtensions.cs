@@ -5,6 +5,13 @@ namespace Money.Api.Tests;
 
 public static class ApiClientExtensions
 {
+    private static readonly HttpStatusCode[] SuccessStatusCodes =
+    [
+        HttpStatusCode.OK,
+        HttpStatusCode.Created,
+        HttpStatusCode.NoContent,
+    ];
+
     public static void SetUser(this MoneyClient client, TestUser user)
     {
         client.SetUser(user.Login, user.Password);
@@ -12,32 +19,25 @@ public static class ApiClientExtensions
 
     public static ApiClientResponse IsSuccess(this ApiClientResponse response)
     {
-        Assert.That(response.Code, Is.AnyOf(HttpStatusCode.OK, HttpStatusCode.Created));
+        AssertIsSuccessStatusCode(response.Code, response.StringContent);
         return response;
     }
 
     public static Task<ApiClientResponse> IsSuccess(this Task<ApiClientResponse> responseTask)
     {
-        return IsStatus(responseTask, HttpStatusCode.OK, HttpStatusCode.Created);
+        return IsStatus(responseTask, SuccessStatusCodes);
     }
 
     public static ApiClientResponse<T> IsSuccess<T>(this ApiClientResponse<T> response)
     {
-        Assert.That(response.Code, Is.AnyOf(HttpStatusCode.OK, HttpStatusCode.Created), response.StringContent);
+        AssertIsSuccessStatusCode(response.Code, response.StringContent);
         return response;
     }
 
     public static async Task<ApiClientResponse<T>> IsSuccess<T>(this Task<ApiClientResponse<T>> responseTask)
     {
         var response = await responseTask;
-        Assert.That(response.Code, Is.AnyOf(HttpStatusCode.OK, HttpStatusCode.Created), response.StringContent);
-        return response;
-    }
-
-    public static async Task<ApiClientResponse> IsStatus(this Task<ApiClientResponse> responseTask, params HttpStatusCode[] statusCode)
-    {
-        var response = await responseTask;
-        Assert.That(response.Code, Is.AnyOf(statusCode), response.StringContent);
+        AssertIsSuccessStatusCode(response.Code, response.StringContent);
         return response;
     }
 
@@ -54,7 +54,19 @@ public static class ApiClientExtensions
     public static async Task<T?> IsSuccessWithContent<T>(this Task<ApiClientResponse<T>> responseTask)
     {
         var response = await responseTask;
-        Assert.That(response.Code, Is.AnyOf(HttpStatusCode.OK, HttpStatusCode.Created), response.StringContent);
+        AssertIsSuccessStatusCode(response.Code, response.StringContent);
         return response.Content;
+    }
+
+    private static async Task<ApiClientResponse> IsStatus(this Task<ApiClientResponse> responseTask, params HttpStatusCode[] statusCodes)
+    {
+        var response = await responseTask;
+        Assert.That(response.Code, Is.AnyOf(statusCodes), response.StringContent);
+        return response;
+    }
+
+    private static void AssertIsSuccessStatusCode(HttpStatusCode statusCode, string? message = null)
+    {
+        Assert.That(statusCode, Is.AnyOf(SuccessStatusCodes), message);
     }
 }

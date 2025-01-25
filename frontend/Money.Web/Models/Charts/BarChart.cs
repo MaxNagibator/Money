@@ -1,7 +1,6 @@
 ﻿using ChartJs.Blazor.BarChart;
 using ChartJs.Blazor.BarChart.Axes;
 using ChartJs.Blazor.Common;
-using ChartJs.Blazor.Common.Axes;
 
 namespace Money.Web.Models.Charts;
 
@@ -35,15 +34,15 @@ public class BarChart : BaseChart<BarOptions>
                     Responsive = true,
                     Scales = new()
                     {
-                        XAxes = new List<CartesianAxis>
-                        {
+                        XAxes =
+                        [
                             new BarCategoryAxis
                             {
                                 Stacked = true,
                             },
-                        },
-                        YAxes = new List<CartesianAxis>
-                        {
+                        ],
+                        YAxes =
+                        [
                             new BarLinearCartesianAxis
                             {
                                 Stacked = true,
@@ -52,7 +51,7 @@ public class BarChart : BaseChart<BarOptions>
                                     BeginAtZero = true,
                                 },
                             },
-                        },
+                        ],
                     },
                 },
             },

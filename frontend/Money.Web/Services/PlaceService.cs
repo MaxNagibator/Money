@@ -4,7 +4,7 @@ namespace Money.Web.Services;
 
 public class PlaceService(MoneyClient moneyClient)
 {
-    private static readonly Dictionary<string, string[]> Cache = new();
+    private static readonly Dictionary<string, string[]> Cache = [];
     private string _lastSearchedValue = string.Empty;
 
     public async Task<IEnumerable<string>> SearchPlace(string? value, CancellationToken token = default)

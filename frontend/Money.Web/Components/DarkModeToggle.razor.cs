@@ -129,7 +129,7 @@ public sealed partial class DarkModeToggle : IDisposable
     {
         if (AppSettings is { IsManualMode: false } && Settings is { IsLocationChangedEnabled: true })
         {
-            CheckScheduledMode();
+            UpdateState();
         }
     }
 
@@ -151,7 +151,7 @@ public sealed partial class DarkModeToggle : IDisposable
 
     private void CheckScheduledMode()
     {
-        if (AppSettings is { IsManualMode: true })
+        if (AppSettings is { IsSchedule: false })
         {
             return;
         }
