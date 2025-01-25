@@ -37,7 +37,6 @@ public class OperationsController(OperationService operationService, PlaceServic
         var categories = (await categoryService.GetAsync(null, cancellationToken)).ToArray();
 
         using var workBook = new XLWorkbook();
-        // var pg = operations.GroupBy(x => x.CategoryId)
 
         foreach (var type in Enum.GetValues<OperationTypes>())
         {
@@ -128,7 +127,7 @@ public class OperationsController(OperationService operationService, PlaceServic
     /// <param name="request">Данные для обновления операции.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     [HttpPut("{id:int}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(int id, [FromBody] SaveRequest request, CancellationToken cancellationToken)
@@ -136,7 +135,7 @@ public class OperationsController(OperationService operationService, PlaceServic
         var business = request.ToBusinessModel();
         business.Id = id;
         await operationService.UpdateAsync(business, cancellationToken);
-        return Ok();
+        return NoContent();
     }
 
     /// <summary>
@@ -160,13 +159,13 @@ public class OperationsController(OperationService operationService, PlaceServic
     /// <param name="id">Идентификатор категории.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     [HttpDelete("{id:int}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
         await operationService.DeleteAsync(id, cancellationToken);
-        return Ok();
+        return NoContent();
     }
 
     /// <summary>
@@ -175,14 +174,14 @@ public class OperationsController(OperationService operationService, PlaceServic
     /// <param name="id">Идентификатор категории.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     [HttpPost("{id:int}/Restore")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Restore(int id, CancellationToken cancellationToken)
     {
         await operationService.RestoreAsync(id, cancellationToken);
-        return Ok();
+        return NoContent();
     }
 
     /// <summary>
