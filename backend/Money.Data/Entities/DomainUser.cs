@@ -1,4 +1,4 @@
-﻿namespace Money.Data.Entities;
+namespace Money.Data.Entities;
 
 public class DomainUser
 {
@@ -22,6 +22,26 @@ public class DomainUser
     public int NextDebtOwnerId { get; set; }
 
     public byte[]? RowVersion { get; set; }
+
+    /// <summary>
+    /// Данные перенесённые со старой БД.
+    /// </summary>
+    public string? TransporterEmail { get; set; }
+
+    /// <summary>
+    /// Данные перенесённые со старой БД.
+    /// </summary>
+    public string? TransporterPassword { get; set; }
+
+    /// <summary>
+    /// Данные перенесённые со старой БД.
+    /// </summary>
+    public string? TransporterLogin { get; set; }
+
+    /// <summary>
+    /// Данные перенесённые со старой БД.
+    /// </summary>
+    public DateTime? TransporterCreateDate { get; set; }
 }
 
 public class DomainUserConfiguration : IEntityTypeConfiguration<DomainUser>

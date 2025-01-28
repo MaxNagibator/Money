@@ -9,12 +9,15 @@ import (
 type TransporterMapping struct {
 	DebtOwnerMove DebtOwnerMove
 	DebtMove      DebtMove
+	AuthUser      AuthUser
+	DomainUser    DomainUser
 	//OperationMove OperationMove
 }
 
 type BaseTable struct {
-	OldName string
-	NewName string
+	OldName  string
+	NewName  string
+	JoinPart string
 }
 
 type TableMapping interface {
@@ -37,11 +40,27 @@ func GetMapping() TransporterMapping {
 		},
 		DebtMove: DebtMove{
 			BaseTable: BaseTable{
-				OldName: "\"Money\".\"Debt\"",
+				OldName: `"Money"."Debt"`,
 				NewName: "debts",
 			},
 			OldRows: []OldDebt{},
 			NewRows: []NewDebt{},
+		},
+		AuthUser: AuthUser{
+			BaseTable: BaseTable{
+				OldName: `"System"."User"`,
+				NewName: "AspNetUsers",
+			},
+			OldRows: []OldAuthUser{},
+			NewRows: []NewAuthUser{},
+		},
+		DomainUser: DomainUser{
+			BaseTable: BaseTable{
+				OldName: `"System"."User"`,
+				NewName: "domain_users",
+			},
+			OldRows: []OldDomainUser{},
+			NewRows: []NewDomainUser{},
 		},
 	}
 	return mapping
