@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	. "transporter/entities"
 )
 
 type TransporterMapping struct {
@@ -12,12 +13,6 @@ type TransporterMapping struct {
 	AuthUser      AuthUser
 	DomainUser    DomainUser
 	//OperationMove OperationMove
-}
-
-type BaseTable struct {
-	OldName  string
-	NewName  string
-	JoinPart string
 }
 
 type TableMapping interface {
