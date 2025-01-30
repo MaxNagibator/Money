@@ -4,17 +4,13 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	. "transporter/entities"
 )
 
 type TransporterMapping struct {
 	DebtOwnerMove DebtOwnerMove
 	DebtMove      DebtMove
 	//OperationMove OperationMove
-}
-
-type BaseTable struct {
-	OldName string
-	NewName string
 }
 
 type TableMapping interface {
