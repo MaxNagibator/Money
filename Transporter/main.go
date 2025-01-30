@@ -37,6 +37,7 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	test(newDatabase, oldDatabase, &tables.AuthUser)
 	test(newDatabase, oldDatabase, &tables.DomainUser)
 	test(newDatabase, oldDatabase, &tables.DebtOwnerMove)
 	test(newDatabase, oldDatabase, &tables.DebtMove)
@@ -52,9 +53,6 @@ func test(newDatabase *sqlx.DB, oldDatabase *sqlx.DB, table TableMapping) {
 
 	fmt.Println("read old table")
 	selectQuery := "SELECT " + selectColumns + " FROM " + oldName + ""
-	if table.JoinPart != nil {
-		selectQuery += table.JoinPart
-	}
 	rows, err := oldDatabase.Queryx(selectQuery)
 	if err != nil {
 		log.Fatalln(err)

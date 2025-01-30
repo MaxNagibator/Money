@@ -2,7 +2,6 @@ package entities
 
 import (
 	"database/sql"
-	"fmt"
 )
 
 type DomainUser struct {
@@ -11,18 +10,19 @@ type DomainUser struct {
 	NewRows []NewDomainUser
 }
 
+// ALTER TABLE [System].[User]
+// ADD Guid uniqueidentifier NULL;
+// UPDATE [System].[User]
+// SET Guid = NEWID()
 func (table *DomainUser) Move() {
 	for i := 0; i < len(table.OldRows); i++ {
 		row := NewDomainUser{
-			Id: table.OldRows[i].Id,
-			//TransporterLogin:      table.OldRows[i].Login,
-			//TransporterEmail:      table.OldRows[i].GetEmail(),
+			Id:                    table.OldRows[i].Id,
 			TransporterPassword:   table.OldRows[i].Password,
 			TransporterCreateDate: table.OldRows[i].CreateDate,
-			AuthUserId:            sql.NullString{String: "4377d3e7-6ab8-4ea9-b27f-d44fc25c902c", Valid: true},
+			AuthUserId:            table.OldRows[i].Guid,
 		}
 		table.NewRows = append(table.NewRows, row)
-		fmt.Println(table.NewRows[i].AuthUserId)
 	}
 }
 
@@ -36,6 +36,7 @@ func (user *OldDomainUser) GetEmail() sql.NullString {
 
 type OldDomainUser struct {
 	Id           int            `db:"Id"`
+	Guid         sql.NullString `db:"Guid"`
 	Login        sql.NullString `db:"Login"`
 	Password     sql.NullString `db:"Password"`
 	Email        sql.NullString `db:"Email"`

@@ -2,6 +2,8 @@ package entities
 
 import (
 	"database/sql"
+	"fmt"
+	"strings"
 )
 
 type AuthUser struct {
@@ -13,14 +15,15 @@ type AuthUser struct {
 func (table *AuthUser) Move() {
 	for i := 0; i < len(table.OldRows); i++ {
 		row := NewAuthUser{
-			Id:                    table.OldRows[i].Id,
-			TransporterLogin:      table.OldRows[i].Login,
-			TransporterEmail:      table.OldRows[i].GetEmail(),
-			TransporterPassword:   table.OldRows[i].Password,
-			TransporterCreateDate: table.OldRows[i].CreateDate,
-			AuthUserId:            sql.NullString{String: "4377d3e7-6ab8-4ea9-b27f-d44fc25c902c", Valid: true},
+			Id:                 table.OldRows[i].Guid,
+			UserName:           table.OldRows[i].Login,
+			UserNameNormalized: strings.ToUpper(table.OldRows[i].Login),
+			EmailConfirmed:     table.OldRows[i].EmailConfirm,
+			Email:              table.OldRows[i].GetEmail(),
+			EmailNormalized:    sql.NullString{String: strings.ToUpper(table.OldRows[i].GetEmail().String)},
 		}
 		table.NewRows = append(table.NewRows, row)
+		fmt.Println(table.NewRows[i].UserName)
 	}
 }
 
@@ -34,7 +37,8 @@ func (user *OldAuthUser) GetEmail() sql.NullString {
 
 type OldAuthUser struct {
 	Id           int            `db:"Id"`
-	Login        sql.NullString `db:"Login"`
+	Guid         string         `db:"Guid"`
+	Login        string         `db:"Login"`
 	Password     sql.NullString `db:"Password"`
 	Email        sql.NullString `db:"Email"`
 	EmailConfirm bool           `db:"EmailConfirm"`
@@ -42,10 +46,14 @@ type OldAuthUser struct {
 }
 
 type NewAuthUser struct {
-	Id                 int            `db:"id"`
-	UserName           sql.NullString `db:"user_name"`
-	UserNameNormalized sql.NullString `db:"normalized_user_name"`
-	Email              sql.NullString `db:"email"`
-	EmailNormalized    sql.NullString `db:"normalized_email"`
-	EmailConfirmed     sql.NullString `db:"email_confirmed"`
+	Id                   string         `db:"id"`
+	UserName             string         `db:"user_name"`
+	UserNameNormalized   string         `db:"normalized_user_name"`
+	Email                sql.NullString `db:"email"`
+	EmailNormalized      sql.NullString `db:"normalized_email"`
+	EmailConfirmed       bool           `db:"email_confirmed"`
+	PhoneNumberConfirmed bool           `db:"phone_number_confirmed"`
+	TwoFactorEnabled     bool           `db:"two_factor_enabled"`
+	LockoutEnabled       bool           `db:"lockout_enabled"`
+	AccessFailedCount    int            `db:"access_failed_count"`
 }

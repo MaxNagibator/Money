@@ -2,6 +2,7 @@ package entities
 
 import (
 	"database/sql"
+	"fmt"
 )
 
 type DebtMove struct {
@@ -25,19 +26,20 @@ func (table *DebtMove) Move() {
 			IsDeleted: false,
 		}
 		table.NewRows = append(table.NewRows, row)
+		fmt.Println(table.NewRows[i].OwnerId)
 	}
 }
 
 type OldDebt struct {
 	Id       int            `db:"Id"`
-	UserId   int            `db:"DebtUserId"`
+	UserId   int            `db:"UserId"`
 	Comment  sql.NullString `db:"Comment"`
 	Date     string         `db:"Date"`
 	Sum      string         `db:"Sum"`
 	TypeId   int            `db:"Type"`
 	PaySum   string         `db:"PaySum"`
 	StatusId string         `db:"StatusId"`
-	OwnerId  string         `db:"UserId"`
+	OwnerId  string         `db:"DebtUserId"`
 }
 
 type NewDebt struct {

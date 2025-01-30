@@ -44,7 +44,7 @@ func GetMapping() TransporterMapping {
 		AuthUser: AuthUser{
 			BaseTable: BaseTable{
 				OldName: `"System"."User"`,
-				NewName: "AspNetUsers",
+				NewName: `"AspNetUsers"`,
 			},
 			OldRows: []OldAuthUser{},
 			NewRows: []NewAuthUser{},
