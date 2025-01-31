@@ -2,28 +2,21 @@ package entities
 
 import (
 	"database/sql"
-	"fmt"
 	"strings"
 )
 
 type AuthUser struct {
-	BaseTable
-	OldRows []OldAuthUser
-	NewRows []NewAuthUser
+	BaseTable[OldAuthUser, NewAuthUser]
 }
 
-func (table *AuthUser) Move() {
-	for i := 0; i < len(table.OldRows); i++ {
-		row := NewAuthUser{
-			Id:                 table.OldRows[i].Guid,
-			UserName:           table.OldRows[i].Login,
-			UserNameNormalized: strings.ToUpper(table.OldRows[i].Login),
-			EmailConfirmed:     table.OldRows[i].EmailConfirm,
-			Email:              table.OldRows[i].GetEmail(),
-			EmailNormalized:    sql.NullString{String: strings.ToUpper(table.OldRows[i].GetEmail().String)},
-		}
-		table.NewRows = append(table.NewRows, row)
-		fmt.Println(table.NewRows[i].UserName)
+func (table *AuthUser) Transform(old OldAuthUser) NewAuthUser {
+	return NewAuthUser{
+		Id:                 old.Guid,
+		UserName:           old.Login,
+		UserNameNormalized: strings.ToUpper(old.Login),
+		EmailConfirmed:     old.EmailConfirm,
+		Email:              old.GetEmail(),
+		EmailNormalized:    sql.NullString{String: strings.ToUpper(old.GetEmail().String)},
 	}
 }
 

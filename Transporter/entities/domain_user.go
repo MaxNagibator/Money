@@ -5,32 +5,15 @@ import (
 )
 
 type DomainUser struct {
-	BaseTable
-	OldRows []OldDomainUser
-	NewRows []NewDomainUser
+	BaseTable[OldDomainUser, NewDomainUser]
 }
 
-// ALTER TABLE [System].[User]
-// ADD Guid uniqueidentifier NULL;
-// UPDATE [System].[User]
-// SET Guid = NEWID()
-func (table *DomainUser) Move() {
-	for i := 0; i < len(table.OldRows); i++ {
-		row := NewDomainUser{
-			Id:                    table.OldRows[i].Id,
-			TransporterPassword:   table.OldRows[i].Password,
-			TransporterCreateDate: table.OldRows[i].CreateDate,
-			AuthUserId:            table.OldRows[i].Guid,
-		}
-		table.NewRows = append(table.NewRows, row)
-	}
-}
-
-func (user *OldDomainUser) GetEmail() sql.NullString {
-	if user.EmailConfirm == true {
-		return user.Email
-	} else {
-		return sql.NullString{}
+func (table *DomainUser) Transform(old OldDomainUser) NewDomainUser {
+	return NewDomainUser{
+		Id:                    old.Id,
+		TransporterPassword:   old.Password,
+		TransporterCreateDate: old.CreateDate,
+		AuthUserId:            old.Guid,
 	}
 }
 

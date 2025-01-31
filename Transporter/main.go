@@ -5,7 +5,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"log"
-	"reflect"
 )
 
 func main() {
@@ -26,7 +25,7 @@ func main() {
 		"password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbOldName)
 
-	tables := GetMapping()
+	transporter := CreateTransporter()
 
 	newDatabase, err := sqlx.Connect("postgres", databaseConnectionString)
 	if err != nil {
@@ -37,52 +36,54 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	test(newDatabase, oldDatabase, &tables.AuthUser)
-	test(newDatabase, oldDatabase, &tables.DomainUser)
-	test(newDatabase, oldDatabase, &tables.DebtOwnerMove)
-	test(newDatabase, oldDatabase, &tables.DebtMove)
+	ProcessTable(newDatabase, oldDatabase, &transporter.AuthUser)
+	ProcessTable(newDatabase, oldDatabase, &transporter.DomainUser)
+	ProcessTable(newDatabase, oldDatabase, &transporter.DebtOwner)
+	ProcessTable(newDatabase, oldDatabase, &transporter.Debt)
 }
 
-func test(newDatabase *sqlx.DB, oldDatabase *sqlx.DB, table TableMapping) {
-	oldColumnNames := reflect.ValueOf(table).Elem().FieldByName("OldRows")
-	oldName := reflect.ValueOf(table).Elem().FieldByName("OldName").String()
-	selectColumns, err := GetColumnNames(oldColumnNames.Interface(), "\"", "\"")
-	if err != nil {
-		fmt.Println("Ошибка анализа OldColumns:", err)
-	}
+func ProcessTable[O any, N any](newDatabase *sqlx.DB, oldDatabase *sqlx.DB, table TableMapping[O, N]) {
+	baseTable := table.GetBaseTable()
 
-	fmt.Println("read old table")
-	selectQuery := "SELECT " + selectColumns + " FROM " + oldName + ""
-	rows, err := oldDatabase.Queryx(selectQuery)
+	oldColumns, err := baseTable.GetEscapedColumnNames()
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	readArrayType := reflect.ValueOf(oldColumnNames.Interface()).Type().Elem()
-	oldRowsArray := reflect.MakeSlice(reflect.SliceOf(readArrayType), 0, 0)
-	for rows.Next() {
-		intPtr := reflect.New(readArrayType).Interface()
-		err2 := rows.StructScan(intPtr)
-		if err2 != nil {
-			log.Fatalln(err2)
-		}
-		oldRowsArray = reflect.Append(oldRowsArray, reflect.ValueOf(intPtr).Elem())
-	}
-	reflect.ValueOf(table).Elem().FieldByName("OldRows").Set(oldRowsArray)
+	fmt.Println("read old table")
+	selectQuery := "SELECT " + oldColumns + " FROM " + baseTable.OldName + ""
+	fmt.Println(selectQuery)
 
-	Move(table)
-
-	newColumnNames := reflect.ValueOf(table).Elem().FieldByName("NewRows")
-	insertColumns, err := GetColumnNames(newColumnNames.Interface(), "", "")
-	insertColumnsValues, err := GetColumnNames(newColumnNames.Interface(), ":", "")
-	newName := reflect.ValueOf(table).Elem().FieldByName("NewName").String()
-
-	insertQuery := "INSERT INTO " + newName + " (" + insertColumns + ")" +
-		" VALUES(" + insertColumnsValues + ")"
-
-	_, err = newDatabase.NamedExec(insertQuery, newColumnNames.Interface())
+	var oldRows []O
+	err = oldDatabase.Select(&oldRows, selectQuery)
 	if err != nil {
-		fmt.Println(err)
+		log.Fatalln("ошибка при выполнении запроса: %v\n", err)
 	}
+
+	var newRows []N
+	for _, oldRow := range oldRows {
+		newRows = append(newRows, table.Transform(oldRow))
+	}
+
+	newColumns, err := baseTable.GetNewColumnNames()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	insertColumns, err := baseTable.GetInsertColumnNames()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	insertQuery := "INSERT INTO " + baseTable.NewName + " (" + newColumns + ")" +
+		" VALUES(" + insertColumns + ")"
+
+	fmt.Println(insertQuery)
+
+	_, err = newDatabase.NamedExec(insertQuery, newRows)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	fmt.Println("complete")
 }
