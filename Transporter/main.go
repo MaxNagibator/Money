@@ -51,13 +51,12 @@ func ProcessTable[O any, N any](newDatabase *sqlx.DB, oldDatabase *sqlx.DB, tabl
 	}
 
 	fmt.Println("read old table")
-	selectQuery := "SELECT " + oldColumns + " FROM " + baseTable.OldName + ""
-	fmt.Println(selectQuery)
+	selectQuery := fmt.Sprintf("SELECT %s FROM %s", oldColumns, baseTable.OldName)
 
 	var oldRows []O
 	err = oldDatabase.Select(&oldRows, selectQuery)
 	if err != nil {
-		log.Fatalln("ошибка при выполнении запроса: %v\n", err)
+		log.Fatalln(err)
 	}
 
 	var newRows []N
@@ -75,10 +74,12 @@ func ProcessTable[O any, N any](newDatabase *sqlx.DB, oldDatabase *sqlx.DB, tabl
 		log.Fatalln(err)
 	}
 
-	insertQuery := "INSERT INTO " + baseTable.NewName + " (" + newColumns + ")" +
-		" VALUES(" + insertColumns + ")"
-
-	fmt.Println(insertQuery)
+	insertQuery := fmt.Sprintf(
+		"INSERT INTO %s (%s) VALUES(%s)",
+		baseTable.NewName,
+		newColumns,
+		insertColumns,
+	)
 
 	_, err = newDatabase.NamedExec(insertQuery, newRows)
 	if err != nil {

@@ -16,40 +16,27 @@ func (t *BaseTable[O, N]) GetBaseTable() *BaseTable[O, N] {
 }
 
 func (t *BaseTable[O, N]) GetNewColumnNames() (string, error) {
-	newColumns, err := getColumnNamesFromType[N]()
+	columns, err := getColumnNamesFromType[N]()
 	if err != nil {
 		return "", fmt.Errorf("ошибка при получении колонок: %v", err)
 	}
-
-	return strings.Join(newColumns, ", "), nil
+	return joinColumns(columns), nil
 }
 
 func (t *BaseTable[O, N]) GetEscapedColumnNames() (string, error) {
-	oldColumns, err := getColumnNamesFromType[O]()
+	columns, err := getColumnNamesFromType[O]()
 	if err != nil {
 		return "", fmt.Errorf("ошибка при получении колонок: %v", err)
 	}
-
-	escapedColumns := make([]string, len(oldColumns))
-	for i, col := range oldColumns {
-		escapedColumns[i] = `"` + col + `"`
-	}
-
-	return strings.Join(escapedColumns, ", "), nil
+	return escapeColumns(columns), nil
 }
 
 func (t *BaseTable[O, N]) GetInsertColumnNames() (string, error) {
-	newColumns, err := getColumnNamesFromType[N]()
+	columns, err := getColumnNamesFromType[N]()
 	if err != nil {
 		return "", fmt.Errorf("ошибка при получении колонок: %v", err)
 	}
-
-	insertColumns := make([]string, len(newColumns))
-	for i, col := range newColumns {
-		insertColumns[i] = ":" + col
-	}
-
-	return strings.Join(insertColumns, ", "), nil
+	return prepareInsertColumns(columns), nil
 }
 
 func getColumnNamesFromType[V any]() ([]string, error) {
@@ -60,15 +47,47 @@ func getColumnNamesFromType[V any]() ([]string, error) {
 		return nil, fmt.Errorf("тип не является структурой")
 	}
 
-	var columns []string
-
+	columns := make([]string, 0, tType.NumField())
 	for i := 0; i < tType.NumField(); i++ {
-		field := tType.Field(i)
-		tag := field.Tag.Get("db")
-		if tag != "" {
+		if tag := tType.Field(i).Tag.Get("db"); tag != "" {
 			columns = append(columns, tag)
 		}
 	}
-
 	return columns, nil
+}
+
+func joinColumns(columns []string) string {
+	var b strings.Builder
+	for i, col := range columns {
+		if i > 0 {
+			b.WriteString(", ")
+		}
+		b.WriteString(col)
+	}
+	return b.String()
+}
+
+func escapeColumns(columns []string) string {
+	var b strings.Builder
+	for i, col := range columns {
+		if i > 0 {
+			b.WriteString(", ")
+		}
+		b.WriteString(`"`)
+		b.WriteString(col)
+		b.WriteString(`"`)
+	}
+	return b.String()
+}
+
+func prepareInsertColumns(columns []string) string {
+	var b strings.Builder
+	for i, col := range columns {
+		if i > 0 {
+			b.WriteString(", ")
+		}
+		b.WriteString(":")
+		b.WriteString(col)
+	}
+	return b.String()
 }
