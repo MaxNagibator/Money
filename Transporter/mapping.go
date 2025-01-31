@@ -9,6 +9,8 @@ type TransporterMapping struct {
 	DebtOwner  DebtOwner
 	Debt       Debt
 	DomainUser DomainUser
+	Category   Category
+	Operation  Operation
 }
 
 type TableMapping[O any, N any] interface {
@@ -40,6 +42,18 @@ func CreateTransporter() *TransporterMapping {
 			BaseTable: BaseTable[OldDebt, NewDebt]{
 				OldName: `"Money"."Debt"`,
 				NewName: "debts",
+			},
+		},
+		Category: Category{
+			BaseTable: BaseTable[OldCategory, NewCategory]{
+				OldName: `"Money"."Category"`,
+				NewName: "categories",
+			},
+		},
+		Operation: Operation{
+			BaseTable: BaseTable[OldOperation, NewOperation]{
+				OldName: `"Money"."Payment"`,
+				NewName: "operations",
 			},
 		},
 	}

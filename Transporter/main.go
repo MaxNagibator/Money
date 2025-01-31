@@ -1,7 +1,9 @@
+//go:debug x509negativeserial=1
 package main
 
 import (
 	"fmt"
+	_ "github.com/denisenkom/go-mssqldb"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"log"
@@ -24,6 +26,7 @@ func main() {
 	databaseOldConnectionString := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbOldName)
+	//oldDatabase, err := sqlx.Connect("sqlserver", "Data Source=localhost,1433;Initial Catalog=money-dev;Persist Security Info=True;User ID=money;Password=money;TrustServerCertificate=True;")
 
 	transporter := CreateTransporter()
 
@@ -40,6 +43,8 @@ func main() {
 	ProcessTable(newDatabase, oldDatabase, &transporter.DomainUser)
 	ProcessTable(newDatabase, oldDatabase, &transporter.DebtOwner)
 	ProcessTable(newDatabase, oldDatabase, &transporter.Debt)
+	ProcessTable(newDatabase, oldDatabase, &transporter.Category)
+	ProcessTable(newDatabase, oldDatabase, &transporter.Operation)
 }
 
 func ProcessTable[O any, N any](newDatabase *sqlx.DB, oldDatabase *sqlx.DB, table TableMapping[O, N]) {
