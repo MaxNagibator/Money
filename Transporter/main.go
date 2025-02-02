@@ -66,27 +66,22 @@ func main() {
 }
 
 func ProcessTable[O any, N any](newDatabase *sqlx.DB, oldDatabase *sqlx.DB, table TableMapping[O, N]) {
+	batchSize := 1000
 	baseTable := table.GetBaseTable()
-
 	oldColumns, _ := baseTable.GetEscapedColumnNames()
-
-	fmt.Println("read old table", baseTable.OldName)
-	selectQuery := fmt.Sprintf("SELECT %s FROM %s", oldColumns, baseTable.OldName)
-
-	var oldRows []O
-	err := oldDatabase.Select(&oldRows, selectQuery)
-	if err != nil {
-		log.Fatalln("Select\n", err)
-	}
-
-	var newRows []N
-	for _, oldRow := range oldRows {
-		newRow := table.Transform(oldRow)
-		newRows = append(newRows, newRow)
-	}
-
 	newColumns, _ := baseTable.GetNewColumnNames()
 	insertColumns, _ := baseTable.GetInsertColumnNames()
+
+	tx, err := newDatabase.Beginx()
+	if err != nil {
+		log.Fatalln("Failed to start transaction:", err)
+	}
+	defer func() {
+		if p := recover(); p != nil || err != nil {
+			_ = tx.Rollback()
+			log.Fatalln("Transaction rolled back due to error")
+		}
+	}()
 
 	insertQuery := fmt.Sprintf(
 		"INSERT INTO %s (%s) VALUES(%s)",
@@ -95,10 +90,42 @@ func ProcessTable[O any, N any](newDatabase *sqlx.DB, oldDatabase *sqlx.DB, tabl
 		insertColumns,
 	)
 
-	_, err = newDatabase.NamedExec(insertQuery, newRows)
-	if err != nil {
-		log.Fatalln("NamedExec\n", err)
+	offset := 0
+	for {
+		selectQuery := fmt.Sprintf(
+			"SELECT %s FROM %s ORDER BY 1 OFFSET %d ROWS FETCH NEXT %d ROWS ONLY",
+			oldColumns,
+			baseTable.OldName,
+			offset,
+			batchSize,
+		)
+
+		var oldBatch []O
+		if err := oldDatabase.Select(&oldBatch, selectQuery); err != nil {
+			_ = tx.Rollback()
+			log.Fatalln("Failed to select batch:", err)
+		}
+
+		if len(oldBatch) == 0 {
+			break
+		}
+
+		newBatch := make([]N, 0, len(oldBatch))
+		for _, oldRow := range oldBatch {
+			newBatch = append(newBatch, table.Transform(oldRow))
+		}
+
+		if _, err := tx.NamedExec(insertQuery, newBatch); err != nil {
+			_ = tx.Rollback()
+			log.Fatalln("Failed to insert batch:", err)
+		}
+
+		offset += len(oldBatch)
 	}
 
-	fmt.Println("complete")
+	if err := tx.Commit(); err != nil {
+		log.Fatalln("Failed to commit transaction:", err)
+	}
+
+	fmt.Printf("Completed %s\n", baseTable.NewName)
 }

@@ -8,7 +8,7 @@ type Category struct {
 
 func (table *Category) Transform(old OldCategory) NewCategory {
 	return NewCategory{
-		Id:          old.Id,
+		Id:          old.CategoryId,
 		UserId:      old.UserId,
 		Name:        old.Name,
 		Description: sql.NullString{},
