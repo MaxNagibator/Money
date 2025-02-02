@@ -2,6 +2,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	_ "github.com/denisenkom/go-mssqldb"
 	"github.com/jmoiron/sqlx"
@@ -58,18 +59,76 @@ func main() {
 		log.Fatalln("New connect\n", err)
 	}
 
+	prepareDatabases(oldDatabase)
+	clearDatabase(newDatabase)
+
 	transporter := CreateTransporter()
 
-	ProcessTable(newDatabase, oldDatabase, &transporter.AuthUser)
-	ProcessTable(newDatabase, oldDatabase, &transporter.DomainUser)
-	ProcessTable(newDatabase, oldDatabase, &transporter.DebtOwner)
-	ProcessTable(newDatabase, oldDatabase, &transporter.Debt)
-	ProcessTable(newDatabase, oldDatabase, &transporter.Category)
-	ProcessTable(newDatabase, oldDatabase, &transporter.Operation)
-	ProcessTable(newDatabase, oldDatabase, &transporter.FastOperation)
+	processTable(newDatabase, oldDatabase, &transporter.AuthUser)
+	processTable(newDatabase, oldDatabase, &transporter.DomainUser)
+	processTable(newDatabase, oldDatabase, &transporter.DebtOwner)
+	processTable(newDatabase, oldDatabase, &transporter.Debt)
+	processTable(newDatabase, oldDatabase, &transporter.Category)
+	processTable(newDatabase, oldDatabase, &transporter.Operation)
+	processTable(newDatabase, oldDatabase, &transporter.FastOperation)
+	processTable(newDatabase, oldDatabase, &transporter.RegularOperation)
+	processTable(newDatabase, oldDatabase, &transporter.Place)
 }
 
-func ProcessTable[O any, N any](newDatabase *sqlx.DB, oldDatabase *sqlx.DB, table TableMapping[O, N]) {
+func clearDatabase(newDatabase *sqlx.DB) sql.Result {
+	return newDatabase.MustExec(`
+TRUNCATE "AspNetUsers" CASCADE;
+TRUNCATE "domain_users" CASCADE;
+TRUNCATE "debt_owners" CASCADE;
+TRUNCATE "debts" CASCADE;
+TRUNCATE "categories" CASCADE;
+TRUNCATE "operations" CASCADE;
+TRUNCATE "fast_operations" CASCADE;
+TRUNCATE "places" CASCADE;
+TRUNCATE "regular_operations" CASCADE;
+`)
+}
+
+func prepareDatabases(oldDatabase *sqlx.DB) {
+	tx, err := oldDatabase.Beginx()
+	if err != nil {
+		log.Fatalln("Transaction start failed:\n", err)
+	}
+	defer func() {
+		if p := recover(); p != nil {
+			_ = tx.Rollback()
+			log.Fatalln("Panic occurred:\n", p)
+		}
+	}()
+
+	tx.MustExec(`
+ALTER TABLE [System].[User]
+ADD Guid uniqueidentifier;
+UPDATE [System].[User]
+SET Guid = NEWID(); 
+`)
+
+	tx.MustExec(`
+ALTER TABLE Money.RegularTask
+    ADD Sum decimal(18, 2), CategoryId int, Comment nvarchar(4000), PlaceId int;
+`)
+
+	tx.MustExec(`
+UPDATE Money.RegularTask
+SET Sum        = p.Sum,
+    CategoryId = p.CategoryId,
+    Comment    = p.Comment,
+    PlaceId    = p.PlaceId
+FROM Money.RegularTask r
+         JOIN Money.Payment p ON r.TaskId = p.TaskId;
+`)
+
+	if err := tx.Commit(); err != nil {
+		log.Fatalln("Commit failed:\n", err)
+	}
+}
+
+func processTable[O any, N any](newDatabase *sqlx.DB, oldDatabase *sqlx.DB, table TableMapping[O, N]) {
 	batchSize := 1000
 	totalRows := 0
 	startTime := time.Now()
