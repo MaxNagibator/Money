@@ -3,6 +3,7 @@ package entities
 import (
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 )
 
@@ -62,7 +63,13 @@ func joinColumns(columns []string) string {
 		if i > 0 {
 			b.WriteString(", ")
 		}
-		b.WriteString(col)
+
+		if col == "order" {
+			quote := strconv.Quote(col)
+			b.WriteString(quote)
+		} else {
+			b.WriteString(col)
+		}
 	}
 	return b.String()
 }

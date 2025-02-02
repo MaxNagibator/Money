@@ -9,35 +9,53 @@ import (
 	"log"
 )
 
+type config struct {
+	host     string
+	port     int
+	user     string
+	password string
+	dbName   string
+	provider string
+}
+
 func main() {
-	const (
-		host      = "localhost"
-		port      = 5432
-		user      = "postgres"
-		password  = "RjirfLeyz"
-		dbNewName = "money-dev2"
-		dbOldName = "money-dev"
-	)
+	newConfig := config{
+		host:     "localhost",
+		port:     5432,
+		user:     "postgres",
+		password: "RjirfLeyz",
+		dbName:   "money-dev3",
+		provider: "postgres",
+	}
 
-	databaseConnectionString := fmt.Sprintf("host=%s port=%d user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbNewName)
+	oldConfig := config{
+		host:     "localhost",
+		port:     1433,
+		user:     "money",
+		password: "money",
+		dbName:   "money-dev",
+		provider: "sqlserver",
+	}
 
-	databaseOldConnectionString := fmt.Sprintf("host=%s port=%d user=%s "+
+	oldDatabaseConnectionString := fmt.Sprintf("Data Source=%s,%d;Initial Catalog=%s;"+
+		"Persist Security Info=True;User ID=%s;Password=%s;TrustServerCertificate=True;",
+		oldConfig.host, oldConfig.port, oldConfig.dbName, oldConfig.user, oldConfig.password)
+
+	newDatabaseConnectionString := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbOldName)
-	//oldDatabase, err := sqlx.Connect("sqlserver", "Data Source=localhost,1433;Initial Catalog=money-dev;Persist Security Info=True;User ID=money;Password=money;TrustServerCertificate=True;")
+		newConfig.host, newConfig.port, newConfig.user, newConfig.password, newConfig.dbName)
+
+	oldDatabase, err := sqlx.Connect(oldConfig.provider, oldDatabaseConnectionString)
+	if err != nil {
+		log.Fatalln("Old connect\n", err)
+	}
+
+	newDatabase, err := sqlx.Connect(newConfig.provider, newDatabaseConnectionString)
+	if err != nil {
+		log.Fatalln("New connect\n", err)
+	}
 
 	transporter := CreateTransporter()
-
-	newDatabase, err := sqlx.Connect("postgres", databaseConnectionString)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	oldDatabase, err := sqlx.Connect("postgres", databaseOldConnectionString)
-	if err != nil {
-		log.Fatalln(err)
-	}
 
 	ProcessTable(newDatabase, oldDatabase, &transporter.AuthUser)
 	ProcessTable(newDatabase, oldDatabase, &transporter.DomainUser)
@@ -50,34 +68,25 @@ func main() {
 func ProcessTable[O any, N any](newDatabase *sqlx.DB, oldDatabase *sqlx.DB, table TableMapping[O, N]) {
 	baseTable := table.GetBaseTable()
 
-	oldColumns, err := baseTable.GetEscapedColumnNames()
-	if err != nil {
-		log.Fatalln(err)
-	}
+	oldColumns, _ := baseTable.GetEscapedColumnNames()
 
-	fmt.Println("read old table")
+	fmt.Println("read old table", baseTable.OldName)
 	selectQuery := fmt.Sprintf("SELECT %s FROM %s", oldColumns, baseTable.OldName)
 
 	var oldRows []O
-	err = oldDatabase.Select(&oldRows, selectQuery)
+	err := oldDatabase.Select(&oldRows, selectQuery)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalln("Select\n", err)
 	}
 
 	var newRows []N
 	for _, oldRow := range oldRows {
-		newRows = append(newRows, table.Transform(oldRow))
+		newRow := table.Transform(oldRow)
+		newRows = append(newRows, newRow)
 	}
 
-	newColumns, err := baseTable.GetNewColumnNames()
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	insertColumns, err := baseTable.GetInsertColumnNames()
-	if err != nil {
-		log.Fatalln(err)
-	}
+	newColumns, _ := baseTable.GetNewColumnNames()
+	insertColumns, _ := baseTable.GetInsertColumnNames()
 
 	insertQuery := fmt.Sprintf(
 		"INSERT INTO %s (%s) VALUES(%s)",
@@ -88,7 +97,7 @@ func ProcessTable[O any, N any](newDatabase *sqlx.DB, oldDatabase *sqlx.DB, tabl
 
 	_, err = newDatabase.NamedExec(insertQuery, newRows)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalln("NamedExec\n", err)
 	}
 
 	fmt.Println("complete")

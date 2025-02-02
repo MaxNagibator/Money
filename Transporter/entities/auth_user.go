@@ -2,6 +2,7 @@ package entities
 
 import (
 	"database/sql"
+	"github.com/denisenkom/go-mssqldb"
 	"strings"
 )
 
@@ -11,7 +12,7 @@ type AuthUser struct {
 
 func (table *AuthUser) Transform(old OldAuthUser) NewAuthUser {
 	return NewAuthUser{
-		Id:                 old.Guid,
+		Id:                 old.Guid.String(),
 		UserName:           old.Login,
 		UserNameNormalized: strings.ToUpper(old.Login),
 		EmailConfirmed:     old.EmailConfirm,
@@ -29,13 +30,13 @@ func (user *OldAuthUser) GetEmail() sql.NullString {
 }
 
 type OldAuthUser struct {
-	Id           int            `db:"Id"`
-	Guid         string         `db:"Guid"`
-	Login        string         `db:"Login"`
-	Password     sql.NullString `db:"Password"`
-	Email        sql.NullString `db:"Email"`
-	EmailConfirm bool           `db:"EmailConfirm"`
-	CreateDate   sql.NullString `db:"CreateDate"`
+	Id           int                    `db:"Id"`
+	Guid         mssql.UniqueIdentifier `db:"Guid"`
+	Login        string                 `db:"Login"`
+	Password     sql.NullString         `db:"Password"`
+	Email        sql.NullString         `db:"Email"`
+	EmailConfirm bool                   `db:"EmailConfirm"`
+	CreateDate   sql.NullString         `db:"CreateDate"`
 }
 
 type NewAuthUser struct {
