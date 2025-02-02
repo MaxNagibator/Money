@@ -5,12 +5,13 @@ import (
 )
 
 type TransporterMapping struct {
-	AuthUser   AuthUser
-	DebtOwner  DebtOwner
-	Debt       Debt
-	DomainUser DomainUser
-	Category   Category
-	Operation  Operation
+	AuthUser      AuthUser
+	DebtOwner     DebtOwner
+	Debt          Debt
+	DomainUser    DomainUser
+	Category      Category
+	Operation     Operation
+	FastOperation FastOperation
 }
 
 type TableMapping[O any, N any] interface {
@@ -54,6 +55,12 @@ func CreateTransporter() *TransporterMapping {
 			BaseTable: BaseTable[OldOperation, NewOperation]{
 				OldName: `"Money"."Payment"`,
 				NewName: "operations",
+			},
+		},
+		FastOperation: FastOperation{
+			BaseTable: BaseTable[OldFastOperation, NewFastOperation]{
+				OldName: `"Money"."FastOperation"`,
+				NewName: "fast_operations",
 			},
 		},
 	}

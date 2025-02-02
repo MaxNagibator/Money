@@ -7,6 +7,9 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"log"
+	"os"
+	"strings"
+	"time"
 )
 
 type config struct {
@@ -63,23 +66,31 @@ func main() {
 	ProcessTable(newDatabase, oldDatabase, &transporter.Debt)
 	ProcessTable(newDatabase, oldDatabase, &transporter.Category)
 	ProcessTable(newDatabase, oldDatabase, &transporter.Operation)
+	ProcessTable(newDatabase, oldDatabase, &transporter.FastOperation)
 }
 
 func ProcessTable[O any, N any](newDatabase *sqlx.DB, oldDatabase *sqlx.DB, table TableMapping[O, N]) {
 	batchSize := 1000
+	totalRows := 0
+	startTime := time.Now()
+	logger := log.New(os.Stdout, "", log.Lshortfile)
+
 	baseTable := table.GetBaseTable()
 	oldColumns, _ := baseTable.GetEscapedColumnNames()
 	newColumns, _ := baseTable.GetNewColumnNames()
 	insertColumns, _ := baseTable.GetInsertColumnNames()
 
+	logger.Printf("Starting processing table %s -> %s", baseTable.OldName, baseTable.NewName)
+
 	tx, err := newDatabase.Beginx()
 	if err != nil {
-		log.Fatalln("Failed to start transaction:", err)
+		logger.Fatalf("Transaction start failed: %v", err)
 	}
 	defer func() {
-		if p := recover(); p != nil || err != nil {
+		if p := recover(); p != nil {
+			logger.Printf("Panic occurred: %v. Rolling back", p)
 			_ = tx.Rollback()
-			log.Fatalln("Transaction rolled back due to error")
+			panic(p)
 		}
 	}()
 
@@ -91,7 +102,11 @@ func ProcessTable[O any, N any](newDatabase *sqlx.DB, oldDatabase *sqlx.DB, tabl
 	)
 
 	offset := 0
+	batchCount := 0
 	for {
+		batchStart := time.Now()
+		batchCount++
+
 		selectQuery := fmt.Sprintf(
 			"SELECT %s FROM %s ORDER BY 1 OFFSET %d ROWS FETCH NEXT %d ROWS ONLY",
 			oldColumns,
@@ -103,10 +118,11 @@ func ProcessTable[O any, N any](newDatabase *sqlx.DB, oldDatabase *sqlx.DB, tabl
 		var oldBatch []O
 		if err := oldDatabase.Select(&oldBatch, selectQuery); err != nil {
 			_ = tx.Rollback()
-			log.Fatalln("Failed to select batch:", err)
+			logger.Fatalf("Batch %d read failed: %v", batchCount, err)
 		}
 
 		if len(oldBatch) == 0 {
+			logger.Printf("No more rows. Total batches: %d", batchCount-1)
 			break
 		}
 
@@ -117,15 +133,24 @@ func ProcessTable[O any, N any](newDatabase *sqlx.DB, oldDatabase *sqlx.DB, tabl
 
 		if _, err := tx.NamedExec(insertQuery, newBatch); err != nil {
 			_ = tx.Rollback()
-			log.Fatalln("Failed to insert batch:", err)
+			logger.Fatalf("Batch %d insert failed: %v", batchCount, err)
 		}
 
-		offset += len(oldBatch)
+		processed := len(oldBatch)
+		totalRows += processed
+		offset += processed
+		logger.Printf("Batch %d: Completed %d rows (total %d) in %v",
+			batchCount, processed, totalRows, time.Since(batchStart))
 	}
 
 	if err := tx.Commit(); err != nil {
-		log.Fatalln("Failed to commit transaction:", err)
+		logger.Fatalf("Commit failed: %v", err)
 	}
 
-	fmt.Printf("Completed %s\n", baseTable.NewName)
+	totalTime := time.Since(startTime)
+	logger.Printf("Completed %s -> %s", baseTable.OldName, baseTable.NewName)
+	logger.Printf("Total rows: %d | Batches: %d | Total time: %v",
+		totalRows, batchCount-1, totalTime.Round(time.Millisecond))
+	logger.Printf("Average speed: %.1f rows/sec", float64(totalRows)/totalTime.Seconds())
+	logger.Printf(strings.Repeat("-", 30))
 }

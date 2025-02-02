@@ -12,4 +12,5 @@ truncate "debt_owners" CASCADE;
 truncate "debts" CASCADE;
 truncate "categories" CASCADE;
 truncate "operations" CASCADE;
+truncate "fast_operations" CASCADE;
 ```
