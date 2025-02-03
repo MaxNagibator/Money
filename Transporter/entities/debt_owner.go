@@ -4,20 +4,15 @@ import (
 	"database/sql"
 )
 
-type DebtOwnerMove struct {
-	BaseTable
-	OldRows []OldDebtOwner
-	NewRows []NewDebtOwner
+type DebtOwner struct {
+	BaseTable[OldDebtOwner, NewDebtOwner]
 }
 
-func (table *DebtOwnerMove) Move() {
-	for i := 0; i < len(table.OldRows); i++ {
-		row := NewDebtOwner{
-			Id:     table.OldRows[i].Id,
-			UserId: table.OldRows[i].UserId,
-			Name:   table.OldRows[i].Name,
-		}
-		table.NewRows = append(table.NewRows, row)
+func (table *DebtOwner) Transform(old OldDebtOwner) NewDebtOwner {
+	return NewDebtOwner{
+		Id:     old.Id,
+		UserId: old.UserId,
+		Name:   old.Name,
 	}
 }
 

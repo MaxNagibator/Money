@@ -2,31 +2,24 @@ package entities
 
 import (
 	"database/sql"
-	"fmt"
 )
 
-type DebtMove struct {
-	BaseTable
-	OldRows []OldDebt
-	NewRows []NewDebt
+type Debt struct {
+	BaseTable[OldDebt, NewDebt]
 }
 
-func (table *DebtMove) Move() {
-	for i := 0; i < len(table.OldRows); i++ {
-		row := NewDebt{
-			Id:        table.OldRows[i].Id,
-			UserId:    table.OldRows[i].UserId,
-			Comment:   table.OldRows[i].Comment,
-			Date:      table.OldRows[i].Date,
-			Sum:       table.OldRows[i].Sum,
-			TypeId:    table.OldRows[i].TypeId,
-			PaySum:    table.OldRows[i].PaySum,
-			StatusId:  table.OldRows[i].StatusId,
-			OwnerId:   table.OldRows[i].OwnerId,
-			IsDeleted: false,
-		}
-		table.NewRows = append(table.NewRows, row)
-		fmt.Println(table.NewRows[i].OwnerId)
+func (table *Debt) Transform(old OldDebt) NewDebt {
+	return NewDebt{
+		Id:        old.Id,
+		UserId:    old.UserId,
+		Comment:   old.Comment,
+		Date:      old.Date,
+		Sum:       old.Sum,
+		TypeId:    old.TypeId,
+		PaySum:    old.PaySum,
+		StatusId:  old.StatusId,
+		OwnerId:   old.OwnerId,
+		IsDeleted: false,
 	}
 }
 
