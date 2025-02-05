@@ -44,13 +44,30 @@
     <MudMainContent Class="pt-3 px-8">
         <MudContainer Gutters
                       MaxWidth="MaxWidth.Large">
-            <CascadingValue IsFixed="true"
-                            Value="_appSettings">
-                <CascadingValue IsFixed="true"
-                                Value="_darkModeToggle">
-                    @Body
-                </CascadingValue>
-            </CascadingValue>
+            <ErrorBoundary>
+                <ChildContent>
+                    <CascadingValue IsFixed="true"
+                                    Value="_appSettings">
+                        <CascadingValue IsFixed="true"
+                                        Value="_darkModeToggle">
+                            @Body
+                        </CascadingValue>
+                    </CascadingValue>
+                </ChildContent>
+                <ErrorContent Context="ex">
+                    @{
+    #if DEBUG
+                        <p>@ex.Message</p>
+                        <p>@ex.ToString()</p>
+    #endif
+                    }
+                    <MudAlert Icon="@Icons.Material.Rounded.Error"
+                              Severity="Severity.Error">
+                        Извините, произошла ошибка.
+                        Пожалуйста, попробуйте снова.
+                    </MudAlert>
+                </ErrorContent>
+            </ErrorBoundary>
         </MudContainer>
     </MudMainContent>
 </MudLayout>

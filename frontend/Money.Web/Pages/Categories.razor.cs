@@ -25,11 +25,6 @@ public partial class Categories
     {
         var categories = await CategoryService.GetAllAsync();
 
-        if (categories.Count == 0)
-        {
-            return;
-        }
-
         foreach (var operationType in OperationTypes.Values)
         {
             var filteredCategories = categories
