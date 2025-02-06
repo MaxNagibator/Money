@@ -118,6 +118,7 @@ public class OperationService(
         var dbOperations = await context.Operations
             .IsUserEntity(environment.UserId)
             .Where(x => operationIds.Contains(x.Id))
+            .Include(x => x.Category)
             .ToListAsync(cancellationToken);
 
         if (dbOperations.Count != operationIds.Count)
@@ -128,6 +129,11 @@ public class OperationService(
         foreach (var operation in dbOperations)
         {
             operation.CategoryId = category.Id;
+
+            if (operation.Category?.TypeId != (int)category.OperationType)
+            {
+                operation.Sum = -operation.Sum;
+            }
         }
 
         await context.SaveChangesAsync(cancellationToken);

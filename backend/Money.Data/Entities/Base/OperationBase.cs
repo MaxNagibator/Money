@@ -26,6 +26,11 @@ public abstract class OperationBase : UserEntity
     /// Флаг, указывающий, что операция была удалена.
     /// </summary>
     public bool IsDeleted { get; set; }
+
+    /// <summary>
+    /// Категория.
+    /// </summary>
+    public Category? Category { get; set; }
 }
 
 public abstract class OperationBaseConfiguration<T> : UserEntityConfiguration<T> where T : OperationBase
@@ -33,9 +38,6 @@ public abstract class OperationBaseConfiguration<T> : UserEntityConfiguration<T>
     protected sealed override void AddBaseConfiguration(EntityTypeBuilder<T> builder)
     {
         builder.Property(x => x.Sum)
-            .IsRequired();
-
-        builder.Property(x => x.CategoryId)
             .IsRequired();
 
         builder.Property(x => x.Comment)
@@ -46,6 +48,11 @@ public abstract class OperationBaseConfiguration<T> : UserEntityConfiguration<T>
             .IsRequired(false);
 
         builder.Property(x => x.IsDeleted)
+            .IsRequired();
+
+        builder.HasOne(x => x.Category)
+            .WithMany()
+            .HasForeignKey(x => new { x.UserId, x.CategoryId })
             .IsRequired();
 
         builder.HasQueryFilter(x => x.IsDeleted == false);

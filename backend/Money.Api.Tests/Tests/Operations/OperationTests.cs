@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Money.ApiClient;
+using Money.Business.Enums;
 using Money.Data.Extensions;
 
 namespace Money.Api.Tests.Operations;
@@ -353,6 +354,49 @@ public class OperationTests
             .ToListAsync();
 
         Assert.That(allUserOperations, Has.Count.EqualTo(operationsToUpdate.Length));
+    }
+
+    [Test]
+    public async Task UpdateBatchReversSumTest()
+    {
+        var initialCategory = _user.WithCategory().SetOperationType(OperationTypes.Income);
+
+        TestOperation[] operationsToUpdate =
+        [
+            initialCategory.WithOperation().SetSum(-217),
+            initialCategory.WithOperation().SetSum(217),
+            initialCategory.WithOperation().SetSum(-217),
+        ];
+
+        var targetCategory = _user.WithCategory().SetOperationType(OperationTypes.Costs);
+        _dbClient.Save();
+
+        var updateRequest = new OperationClient.UpdateOperationsBatchRequest
+        {
+            OperationIds = operationsToUpdate.Select(x => x.Id).ToList(),
+            CategoryId = targetCategory.Id,
+        };
+
+        await _apiClient.Operation.UpdateBatch(updateRequest).IsSuccessWithContent();
+
+        var targetCategoryOperations = await _dbClient.CreateApplicationDbContext()
+            .Operations
+            .IsUserEntity(_user.Id)
+            .Where(x => x.CategoryId == targetCategory.Id)
+            .ToListAsync();
+
+        Assert.That(targetCategoryOperations, Has.Count.EqualTo(operationsToUpdate.Length));
+
+        for (var i = 0; i < targetCategoryOperations.Count; i++)
+        {
+            var operation = targetCategoryOperations[i];
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(operation.CategoryId, Is.EqualTo(targetCategory.Id));
+                Assert.That(operation.Sum, Is.EqualTo(-operationsToUpdate[i].Sum));
+            });
+        }
     }
 
     [Test]

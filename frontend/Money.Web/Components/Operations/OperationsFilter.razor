@@ -148,34 +148,39 @@
                                          Variant="Variant.Filled" />
                 </MudTooltip>
 
-                <MudStack Row
-                          AlignItems="AlignItems.Baseline">
-                    <MudTooltip
-                        Text="@(_showChangeCategorySelector ? "Отменить перенос" : "Перекинуть все отображённые на странице операции в выбранную категорию")">
-                        <MudToggleIconButton Color="Color.Tertiary"
-                                             Icon="@Icons.Material.Rounded.MoveToInbox"
-                                             Size="Size.Medium"
-                                             @bind-Toggled="_showChangeCategorySelector"
-                                             ToggledIcon="@Icons.Material.Rounded.Close"
-                                             ToggledVariant="Variant.Outlined"
-                                             Variant="Variant.Filled" />
-                    </MudTooltip>
+                <MudTooltip Text="@(_showChangeCategorySelector ? "Отменить перенос" : "Перекинуть все отображённые на странице операции в выбранную категорию")">
+                    <MudToggleIconButton Color="Color.Tertiary"
+                                         Icon="@Icons.Material.Rounded.MoveToInbox"
+                                         Size="Size.Medium"
+                                         @bind-Toggled="_showChangeCategorySelector"
+                                         ToggledIcon="@Icons.Material.Rounded.Close"
+                                         ToggledVariant="Variant.Outlined"
+                                         Variant="Variant.Filled" />
+                </MudTooltip>
 
-                    @if (_showChangeCategorySelector)
-                    {
-                        <CategorySelector @ref="_changeCategorySelector"
-                                          SelectionMode="SelectionMode.SingleSelection" />
-
-                        <MudTooltip Text="Подтвердить перенос">
-                            <MudIconButton Color="Color.Tertiary"
-                                           Disabled="@(_changeCategorySelector?.SelectedCategory == null)"
-                                           Icon="@Icons.Material.Rounded.Check"
-                                           OnClick="TransferOperationsAsync"
-                                           Size="Size.Medium"
-                                           Variant="Variant.Filled" />
-                        </MudTooltip>
-                    }
-                </MudStack>
+                <MudPopover AnchorOrigin="Origin.BottomLeft"
+                            Class="mt-4 mx-4 pa-4"
+                            Open="@_showChangeCategorySelector"
+                            TransformOrigin="Origin.TopCenter">
+                    <CategorySelector @ref="_changeCategorySelector"
+                                      SelectionMode="SelectionMode.SingleSelection" />
+                    <MudStack AlignItems="AlignItems.Center"
+                              Class="mt-3"
+                              Justify="Justify.SpaceBetween"
+                              Row>
+                        <MudButton Color="Color.Error"
+                                   OnClick="() => _showChangeCategorySelector = !_showChangeCategorySelector"
+                                   Size="Size.Small">
+                            Закрыть
+                        </MudButton>
+                        <MudButton Color="Color.Tertiary"
+                                   OnClick="TransferOperationsAsync"
+                                   Size="Size.Small"
+                                   Variant="Variant.Filled">
+                            Подтвердить перенос
+                        </MudButton>
+                    </MudStack>
+                </MudPopover>
                 <MudSpacer />
                 <MudButton Color="Color.Info"
                            EndIcon="@Icons.Material.Rounded.Search"

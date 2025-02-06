@@ -1,11 +1,11 @@
-﻿<div class="d-flex flex-column"
-     id="categories-container">
+﻿<div class="d-flex flex-column">
     <MudStack AlignItems="AlignItems.Center"
               Justify="Justify.FlexStart"
               Row>
         <MudTextField Adornment="Adornment.Start"
                       AdornmentColor="Color.Tertiary"
                       AdornmentIcon="@Icons.Material.Filled.Search"
+                      Class="click-ignore"
                       Clearable
                       HelperText="@(GetHelperText())"
                       Immediate
@@ -20,11 +20,11 @@
                        Size="Size.Small" />
     </MudStack>
     <MudPopover AnchorOrigin="Origin.BottomLeft"
+                Class="click-ignore"
                 MaxHeight="400"
                 Open="@_isCategoriesTreeOpen"
                 RelativeWidth="DropdownWidth.Relative"
-                TransformOrigin="Origin.TopLeft"
-                Class="categories-popover-tree">
+                TransformOrigin="Origin.TopLeft">
         <MudTreeView AutoSelectParent
                      @bind-SelectedValue="SelectedCategory"
                      @bind-SelectedValues="SelectedCategories"
@@ -37,6 +37,8 @@
                      TriState>
             <ItemTemplate>
                 <MudTreeViewItem @bind-Expanded="@context.Expanded"
+                                 EndIcon="@context.Value!.OperationType.Icon"
+                                 EndIconColor="@context.Value.OperationType.Color"
                                  Icon="@context.Icon"
                                  Items="@context.Children"
                                  Text="@context.Text"
@@ -53,11 +55,14 @@
 
     window.initializeClickInterceptor = dotNetHelper => {
         handler = function (e) {
-            const containerElement = document.getElementById("categories-container");
-            const popoverElement = document.getElementsByClassName("categories-popover-tree")[0];
-
-            if (containerElement && !containerElement.contains(e.target)
-                && (!popoverElement || !popoverElement.contains(e.target))) {
+            const ignoreElements = document.getElementsByClassName("click-ignore");
+            let isIgnore = false;
+            for (let i = 0; i < ignoreElements.length; i++) {
+                if (e.target === ignoreElements[i] || ignoreElements[i].contains(e.target)) {
+                    isIgnore = true;
+                }
+            }
+            if (isIgnore === false) {
                 dotNetHelper.invokeMethodAsync("OnClick");
             }
         };
