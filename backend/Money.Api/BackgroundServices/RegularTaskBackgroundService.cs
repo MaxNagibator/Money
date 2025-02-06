@@ -2,7 +2,7 @@
 
 public class RegularTaskBackgroundService(IServiceProvider serviceProvider, ILogger<RegularTaskBackgroundService> logger) : BackgroundService
 {
-    private readonly PeriodicTimer _timer = new(TimeSpan.FromHours(1));
+    private readonly PeriodicTimer _timer = new(TimeSpan.FromSeconds(10));
     private DateTime _lastExecuteDate = DateTime.Now.Date.AddDays(-1);
 
     public override void Dispose()

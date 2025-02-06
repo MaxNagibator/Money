@@ -1,40 +1,40 @@
 ﻿<Project>
-    <PropertyGroup>
-        <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    </PropertyGroup>
-    <ItemGroup>
-        <PackageVersion Include="EFCore.NamingConventions" Version="8.0.3" />
-        <PackageVersion Include="Microsoft.OpenApi" Version="1.6.22" />
-        <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.10" />
-        <PackageVersion Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.10" />
-        <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.10" />
-        <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.10" />
-        <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.10" />
-        <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="8.0.10" />
-        <PackageVersion Include="Microsoft.Extensions.Identity.Core" Version="8.0.10" />
-        <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.2" />
-        <PackageVersion Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
-        <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
-        <PackageVersion Include="Microsoft.Identity.Web" Version="3.2.2" />
-        <PackageVersion Include="Microsoft.Identity.Web.DownstreamApi" Version="3.2.2" />
-        <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="8.0.10" />
-        <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.10" />
-        <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.10" />
-        <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.10" />
-        <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.10" />
-        <PackageVersion Include="NLog.Schema" Version="5.3.4" />
-        <PackageVersion Include="NLog.Web.AspNetCore" Version="5.3.14" />
-        <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.9.0" />
-        <PackageVersion Include="OpenIddict" Version="5.8.0" />
-        <PackageVersion Include="OpenIddict.EntityFrameworkCore" Version="5.8.0" />
-        <PackageVersion Include="OpenIddict.AspNetCore" Version="5.8.0" />
-        <PackageVersion Include="OpenIddict.Server.AspNetCore" Version="5.8.0" />
-        <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
-        <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.5.0.109200" />
-        <PackageVersion Include="coverlet.collector" Version="6.0.2" />
-        <PackageVersion Include="NUnit" Version="4.2.2" />
-        <PackageVersion Include="NUnit.Analyzers" Version="4.3.0" />
-        <PackageVersion Include="NUnit3TestAdapter" Version="4.6.0" />
-        <PackageVersion Include="ClosedXML" Version="0.104.2" />
-    </ItemGroup>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="EFCore.NamingConventions" Version="8.0.3" />
+    <PackageVersion Include="Microsoft.OpenApi" Version="1.6.22" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.10" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.10" />
+    <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.10" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.10" />
+    <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.10" />
+    <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="8.0.10" />
+    <PackageVersion Include="Microsoft.Extensions.Identity.Core" Version="8.0.10" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
+    <PackageVersion Include="Microsoft.Identity.Web" Version="3.2.2" />
+    <PackageVersion Include="Microsoft.Identity.Web.DownstreamApi" Version="3.2.2" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="8.0.10" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.10" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.10" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.10" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.10" />
+    <PackageVersion Include="NLog.Schema" Version="5.3.4" />
+    <PackageVersion Include="NLog.Web.AspNetCore" Version="5.3.14" />
+    <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.9.0" />
+    <PackageVersion Include="OpenIddict" Version="5.8.0" />
+    <PackageVersion Include="OpenIddict.EntityFrameworkCore" Version="5.8.0" />
+    <PackageVersion Include="OpenIddict.AspNetCore" Version="5.8.0" />
+    <PackageVersion Include="OpenIddict.Server.AspNetCore" Version="5.8.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.5.0.109200" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.2" />
+    <PackageVersion Include="NUnit" Version="4.2.2" />
+    <PackageVersion Include="NUnit.Analyzers" Version="4.3.0" />
+    <PackageVersion Include="NUnit3TestAdapter" Version="4.6.0" />
+    <PackageVersion Include="ClosedXML" Version="0.104.2" />
+  </ItemGroup>
 </Project>
