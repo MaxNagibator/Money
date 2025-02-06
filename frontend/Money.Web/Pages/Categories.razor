@@ -19,73 +19,86 @@
     return;
 }
 
-<MudTabs Color="@Color.Primary"
+<MudTabs @bind-ActivePanelIndex="_activeIndex"
          Elevation="4">
-    @foreach (var operationType in OperationTypes.Values)
-    {
-        <MudTabPanel Text="@operationType.Name">
-            <MudTreeView ExpandOnClick
-                         Hover
-                         Items="@InitialTreeItems[operationType.Id]"
-                         ReadOnly
-                         Ripple>
-                <ItemTemplate>
-                    @{
-                        var category = context.Value!;
-                    }
-                    <MudStack Row
-                              StretchItems="StretchItems.Start">
-                        <MudTreeViewItem @bind-Expanded="@context.Expanded"
-                                         Disabled="category.IsDeleted"
-                                         Items="@context.Children"
-                                         Value="@context.Value">
-                            <Content>
-                                <MudTreeViewItemToggleButton @bind-Expanded="@context.Expanded"
-                                                             Visible="@context.HasChildren" />
-                                <MudText>@category.Name</MudText>
-                                <MudSpacer />
-                                @if (category is { Color: not null, IsDeleted: false })
-                                {
-                                    <div class="chip"
-                                         style="background-color: @category.Color">
-                                    </div>
-                                }
+    <TabPanelHeader>
+        @{
+            var operationType = OperationTypes.Values[_activeIndex];
 
-                                @if (category.IsDeleted == false)
-                                {
-                                    <MudIconButton Color="Color.Success"
-                                                   Icon="@Icons.Material.Rounded.Add"
-                                                   OnClick="() => Create(operationType, category.Id)" />
-
-                                    <MudIconButton Color="Color.Warning"
-                                                   Icon="@Icons.Material.Rounded.Edit"
-                                                   OnClick="() => Update(category)" />
-
-                                    <MudIconButton Icon="@Icons.Material.Rounded.Delete"
-                                                   OnClick="() => Delete(category)" />
-                                }
-                            </Content>
-                        </MudTreeViewItem>
-
-                        @if (category.IsDeleted)
-                        {
-                            <MudSpacer />
-
-                            <MudButton Color="Color.Info"
-                                       EndIcon="@Icons.Material.Rounded.Cancel"
-                                       OnClick="() => Restore(category)"
-                                       Size="Size.Large">
-                                Восстановить
-                            </MudButton>
+            if (string.Equals(context.Text, operationType.Name, StringComparison.Ordinal))
+            {
+                <MudTooltip Text="@operationType.AddText">
+                    <MudIconButton Color="@operationType.Color"
+                                   Icon="@Icons.Material.Rounded.Add"
+                                   OnClick="() => Create(operationType, null)"
+                                   Size="Size.Small"
+                                   Variant="Variant.Filled" />
+                </MudTooltip>
+            }
+        }
+    </TabPanelHeader>
+    <ChildContent>
+        @foreach (var operationType in OperationTypes.Values)
+        {
+            <MudTabPanel Text="@operationType.Name">
+                <MudTreeView ExpandOnClick
+                             Hover
+                             Items="@InitialTreeItems[operationType.Id]"
+                             ReadOnly
+                             Ripple>
+                    <ItemTemplate>
+                        @{
+                            var category = context.Value!;
                         }
-                    </MudStack>
-                </ItemTemplate>
-            </MudTreeView>
-            <MudButton EndIcon="@Icons.Material.Rounded.Add"
-                       OnClick="() => Create(operationType, null)"
-                       Variant="Variant.Filled">
-                Создать
-            </MudButton>
-        </MudTabPanel>
-    }
+                        <MudStack Row
+                                  StretchItems="StretchItems.Start">
+                            <MudTreeViewItem @bind-Expanded="@context.Expanded"
+                                             Disabled="category.IsDeleted"
+                                             Items="@context.Children"
+                                             Value="@context.Value">
+                                <Content>
+                                    <MudTreeViewItemToggleButton @bind-Expanded="@context.Expanded"
+                                                                 Visible="@context.HasChildren" />
+                                    <MudText>@category.Name</MudText>
+                                    <MudSpacer />
+                                    @if (category is { Color: not null, IsDeleted: false })
+                                    {
+                                        <div class="chip"
+                                             style="background-color: @category.Color">
+                                        </div>
+                                    }
+
+                                    @if (category.IsDeleted == false)
+                                    {
+                                        <MudIconButton Color="Color.Success"
+                                                       Icon="@Icons.Material.Rounded.Add"
+                                                       OnClick="() => Create(operationType, category.Id)" />
+
+                                        <MudIconButton Color="Color.Warning"
+                                                       Icon="@Icons.Material.Rounded.Edit"
+                                                       OnClick="() => Update(category)" />
+
+                                        <MudIconButton Icon="@Icons.Material.Rounded.Delete"
+                                                       OnClick="() => Delete(category)" />
+                                    }
+                                </Content>
+                            </MudTreeViewItem>
+
+                            @if (category.IsDeleted)
+                            {
+                                <MudSpacer />
+
+                                <MudButton Color="Color.Info"
+                                           EndIcon="@Icons.Material.Rounded.Cancel"
+                                           OnClick="() => Restore(category)"
+                                           Size="Size.Large">
+                                    Восстановить
+                                </MudButton>
+                            }
+                        </MudStack>
+                    </ItemTemplate>
+                </MudTreeView>
+            </MudTabPanel>
+        }
+    </ChildContent>
 </MudTabs>

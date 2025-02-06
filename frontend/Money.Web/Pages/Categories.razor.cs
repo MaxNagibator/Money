@@ -6,6 +6,7 @@ namespace Money.Web.Pages;
 public partial class Categories
 {
     private bool _init;
+    private int _activeIndex;
 
     private Dictionary<int, List<TreeItemData<Category>>> InitialTreeItems { get; } = [];
 
