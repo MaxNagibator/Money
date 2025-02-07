@@ -60,7 +60,7 @@ func main() {
 	}
 
 	prepareDatabases(oldDatabase)
-	clearDatabase(newDatabase)
+	truncateDatabase(newDatabase)
 
 	transporter := CreateTransporter()
 
@@ -73,9 +73,11 @@ func main() {
 	processTable(newDatabase, oldDatabase, &transporter.FastOperation)
 	processTable(newDatabase, oldDatabase, &transporter.RegularOperation)
 	processTable(newDatabase, oldDatabase, &transporter.Place)
+
+	resetDatabase(oldDatabase)
 }
 
-func clearDatabase(newDatabase *sqlx.DB) sql.Result {
+func truncateDatabase(newDatabase *sqlx.DB) sql.Result {
 	return newDatabase.MustExec(`
 TRUNCATE "AspNetUsers" CASCADE;
 TRUNCATE "domain_users" CASCADE;
@@ -103,14 +105,17 @@ func prepareDatabases(oldDatabase *sqlx.DB) {
 
 	tx.MustExec(`
 ALTER TABLE [System].[User]
-ADD Guid uniqueidentifier;
+ADD Guid uniqueidentifier
+`)
+
+	tx.MustExec(`
 UPDATE [System].[User]
-SET Guid = NEWID(); 
+SET Guid = NEWID()
 `)
 
 	tx.MustExec(`
 ALTER TABLE Money.RegularTask
-    ADD Sum decimal(18, 2), CategoryId int, Comment nvarchar(4000), PlaceId int;
+    ADD Sum decimal(18, 2), CategoryId int, Comment nvarchar(4000), PlaceId int
 `)
 
 	tx.MustExec(`
@@ -120,7 +125,33 @@ SET Sum        = p.Sum,
     Comment    = p.Comment,
     PlaceId    = p.PlaceId
 FROM Money.RegularTask r
-         JOIN Money.Payment p ON r.TaskId = p.TaskId;
+         JOIN Money.Payment p ON r.TaskId = p.TaskId
+`)
+
+	if err := tx.Commit(); err != nil {
+		log.Fatalln("Commit failed:\n", err)
+	}
+}
+
+func resetDatabase(oldDatabase *sqlx.DB) {
+	tx, err := oldDatabase.Beginx()
+	if err != nil {
+		log.Fatalln("Transaction start failed:\n", err)
+	}
+	defer func() {
+		if p := recover(); p != nil {
+			_ = tx.Rollback()
+			log.Fatalln("Panic occurred:\n", p)
+		}
+	}()
+
+	tx.MustExec(`
+ALTER TABLE Money.RegularTask
+DROP COLUMN Sum, CategoryId, Comment, PlaceId
+`)
+	tx.MustExec(`
+ALTER TABLE [System].[User]
+DROP COLUMN Guid
 `)
 
 	if err := tx.Commit(); err != nil {
