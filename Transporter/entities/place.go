@@ -26,14 +26,14 @@ type OldPlace struct {
 }
 
 /*
-create table [money-dev].Money.Place (
-  Id int primary key not null,
-  UserId int not null,
-  Name nvarchar(500) not null,
-  Description nvarchar(4000),
-  LastUsedDate datetime,
-  PlaceId int not null,
-  foreign key (UserId) references [User] (Id)
+create table [money-dev].Money.Place
+(
+    Id           int primary key not null,
+    UserId       int             not null,
+    Name         nvarchar(500)   not null,
+    Description  nvarchar(4000),
+    LastUsedDate datetime,
+    PlaceId      int             not null,
 );
 */
 
@@ -46,14 +46,12 @@ type NewPlace struct {
 }
 
 /*
-create table public.places (
-  user_id integer not null,
-  id integer not null,
-  name character varying(500) not null,
-  last_used_date timestamp with time zone not null default '-infinity'::timestamp with time zone,
-  is_deleted boolean not null,
-  primary key (user_id, id),
-  foreign key (user_id) references public.domain_users (id)
-  match simple on update no action on delete cascade
+create table public.places
+(
+    user_id        integer                  not null,
+    id             integer                  not null,
+    name           character varying(500)   not null,
+    last_used_date timestamp with time zone not null default '-infinity'::timestamp with time zone,
+    is_deleted     boolean                  not null
 );
 */

@@ -33,17 +33,17 @@ type OldCategory struct {
 }
 
 /*
-create table [money-dev].Money.Category (
-  Id int primary key not null,
-  UserId int not null,
-  CategoryId int not null,
-  Name nvarchar(500) not null,
-  Description nvarchar(4000),
-  ParentId int,
-  Color nvarchar(100),
-  TypeId int not null,
-  [Order] int,
-  foreign key (UserId) references [User] (Id)
+create table [money-dev].Money.Category
+(
+    Id          int primary key not null,
+    UserId      int             not null,
+    CategoryId  int             not null,
+    Name        nvarchar(500)   not null,
+    Description nvarchar(4000),
+    ParentId    int,
+    Color       nvarchar(100),
+    TypeId      int             not null,
+    [Order]     int,
 );
 */
 
@@ -60,20 +60,16 @@ type NewCategory struct {
 }
 
 /*
-create table public.categories (
-  user_id integer not null,
-  id integer not null,
-  name character varying(500) not null,
-  description character varying(4000),
-  parent_id integer,
-  color character varying(100),
-  type_id integer not null,
-  "order" integer,
-  is_deleted boolean not null default false,
-  primary key (user_id, id),
-  foreign key (user_id, parent_id) references public.categories (user_id, id)
-  match simple on update no action on delete no action,
-  foreign key (user_id) references public.domain_users (id)
-  match simple on update no action on delete no action
+create table public.categories
+(
+    user_id     integer                not null,
+    id          integer                not null,
+    name        character varying(500) not null,
+    description character varying(4000),
+    parent_id   integer,
+    color       character varying(100),
+    type_id     integer                not null,
+    "order"     integer,
+    is_deleted  boolean                not null default false
 );
 */
