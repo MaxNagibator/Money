@@ -28,9 +28,7 @@ public sealed partial class DebtCard : ComponentBase, IDisposable
     private ISnackbar SnackbarService { get; set; } = null!;
 
     // TODO: Подумать как более грамотно сделать
-    private string ClassName => Model.IsDeleted
-        ? "deleted-operation-card"
-        : string.Empty;
+    private string ClassName => GetClassName();
 
     private DebtPayment Payment { get; set; } = new(DateTime.Now, 0, string.Empty);
 
@@ -45,20 +43,31 @@ public sealed partial class DebtCard : ComponentBase, IDisposable
         _debounceTimer = new(OnTimerElapsed, null, Timeout.Infinite, Timeout.Infinite);
     }
 
-    private void OnMouseOver()
+    private string GetClassName()
+    {
+        var className = string.Empty;
+
+        if (Model.IsDeleted)
+        {
+            className = "deleted-operation-card";
+        }
+
+        if (_isExpanded == false)
+        {
+            className += " cursor-pointer";
+        }
+
+        return className;
+    }
+
+    private void OnMouseClicked()
     {
         if (_isExpanded)
         {
-            if (_isTimerRunning)
-            {
-                _debounceTimer?.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-            }
-
             return;
         }
 
-        _isTimerRunning = true;
-        _debounceTimer?.Change(TimeSpan.FromMilliseconds(300), Timeout.InfiniteTimeSpan);
+        _isExpanded = !_isExpanded;
     }
 
     private void OnMouseLeave()
