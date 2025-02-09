@@ -1,65 +1,66 @@
 ﻿<MudCard Elevation="3">
     <MudCardHeader Class="border-b-2 border-solid pa-2"
                    Style="border-color: var(--mud-palette-divider)">
-        <MudItem md="2"
-                 xs="4">
-            <MudStack Justify="Justify.FlexStart"
+        <MudItem xs="12">
+            <MudStack AlignItems="AlignItems.Center"
                       Row
-                      StretchItems="StretchItems.End">
-                <MudIcon Icon="@Icons.Material.Rounded.CalendarToday"
-                         Size="Size.Small" />
-                <MudText>
-                    @OperationsDay.Date.ToShortDateString()
-                </MudText>
-            </MudStack>
-        </MudItem>
+                      Spacing="3"
+                      Wrap="Wrap.Wrap">
 
-        <MudItem md="2"
-                 xs="4">
-            @*TODO Требуется оптимизация. 140ms из 240ms *@
-            <OperationDialog OnSubmit="OnSubmit"
-                             Operation="@(new Operation { Date = OperationsDay.Date, Category = Category.Empty })"
-                             @ref="_dialog">
-                <div class="align-center d-flex flex-row gap-4">
-                    @foreach (var type in OperationTypes)
-                    {
-                        @RenderOperationButton(type)
-                    }
-
-                    <MudMenu AnchorOrigin="Origin.BottomCenter"
-                             Color="Color.Info"
-                             Dense
-                             Disabled="_dialog.IsOpen"
-                             Icon="@Icons.Material.Rounded.Add"
-                             MaxHeight="500"
-                             Size="Size.Small"
-                             TransformOrigin="Origin.TopCenter">
-                        <Virtualize Context="fastOperation"
-                                    Items="FastOperations"
-                                    TItem="FastOperation">
-                            <MudMenuItem OnClick="() => _dialog.ToggleOpen(fastOperation)">
-                                @fastOperation.Name
-                            </MudMenuItem>
-                        </Virtualize>
-                    </MudMenu>
-                </div>
-            </OperationDialog>
-        </MudItem>
-
-        @foreach (var operationType in OperationTypes)
-        {
-            <MudItem md="2"
-                     xs="2">
-                <div class="align-center d-flex flex-row gap-4">
-                    <MudIcon Color="@operationType.Color"
-                             Icon="@operationType.Icon"
+                <MudStack Justify="Justify.FlexStart"
+                          Row
+                          StretchItems="StretchItems.End">
+                    <MudIcon Icon="@Icons.Material.Rounded.CalendarToday"
                              Size="Size.Small" />
                     <MudText>
-                        @OperationsDay.CalculateSum(operationType).ToString("N0")
+                        @OperationsDay.Date.ToShortDateString()
                     </MudText>
-                </div>
-            </MudItem>
-        }
+                </MudStack>
+
+                @*TODO Требуется оптимизация. 140ms из 240ms *@
+                <OperationDialog OnSubmit="OnSubmit"
+                                 Operation="@(new Operation { Date = OperationsDay.Date, Category = Category.Empty })"
+                                 @ref="_dialog">
+                    <div class="align-center d-flex flex-row gap-4">
+                        @foreach (var type in OperationTypes)
+                        {
+                            @RenderOperationButton(type)
+                        }
+
+                        <MudMenu AnchorOrigin="Origin.BottomCenter"
+                                 Color="Color.Info"
+                                 Dense
+                                 Disabled="_dialog.IsOpen"
+                                 Icon="@Icons.Material.Rounded.Add"
+                                 MaxHeight="500"
+                                 Size="Size.Small"
+                                 TransformOrigin="Origin.TopCenter">
+                            <Virtualize Context="fastOperation"
+                                        Items="FastOperations"
+                                        TItem="FastOperation">
+                                <MudMenuItem OnClick="() => _dialog.ToggleOpen(fastOperation)">
+                                    @fastOperation.Name
+                                </MudMenuItem>
+                            </Virtualize>
+                        </MudMenu>
+                    </div>
+                </OperationDialog>
+
+                <MudSpacer />
+
+                @foreach (var operationType in OperationTypes)
+                {
+                    <div class="align-center d-flex flex-row gap-2">
+                        <MudIcon Color="@operationType.Color"
+                                 Icon="@operationType.Icon"
+                                 Size="Size.Small" />
+                        <MudText>
+                            @OperationsDay.CalculateSum(operationType).ToString("N0")
+                        </MudText>
+                    </div>
+                }
+            </MudStack>
+        </MudItem>
     </MudCardHeader>
     <MudCardContent Class="pa-2">
         <MudStack Spacing="0">

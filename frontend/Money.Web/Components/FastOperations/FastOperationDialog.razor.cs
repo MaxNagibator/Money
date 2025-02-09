@@ -17,7 +17,7 @@ public partial class FastOperationDialog
     private bool _isProcessing;
 
     [CascadingParameter]
-    public MudDialogInstance MudDialog { get; set; } = null!;
+    public IMudDialogInstance MudDialog { get; set; } = null!;
 
     [Parameter]
     public FastOperation Model { get; set; } = null!;
@@ -51,8 +51,6 @@ public partial class FastOperationDialog
             Place = Model.Place,
         };
 
-        MudDialog.SetOptions(_dialogOptions);
-
         var categories = await CategoryService.GetAllAsync();
 
         if (RequiredType != null)
@@ -67,6 +65,8 @@ public partial class FastOperationDialog
         {
             Input.CategoryList = [.. categories];
         }
+
+        await MudDialog.SetOptionsAsync(_dialogOptions);
     }
 
     private async Task SubmitAsync()

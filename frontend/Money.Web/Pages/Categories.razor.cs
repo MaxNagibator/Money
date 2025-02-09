@@ -6,6 +6,7 @@ namespace Money.Web.Pages;
 public partial class Categories
 {
     private bool _init;
+    private int _activeIndex;
 
     private Dictionary<int, List<TreeItemData<Category>>> InitialTreeItems { get; } = [];
 
@@ -24,11 +25,6 @@ public partial class Categories
     protected override async Task OnInitializedAsync()
     {
         var categories = await CategoryService.GetAllAsync();
-
-        if (categories.Count == 0)
-        {
-            return;
-        }
 
         foreach (var operationType in OperationTypes.Values)
         {

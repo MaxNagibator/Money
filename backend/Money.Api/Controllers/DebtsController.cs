@@ -55,10 +55,7 @@ public class DebtsController(DebtService debtService) : ControllerBase
         var business = request.ToBusinessModel();
         var result = await debtService.CreateAsync(business, cancellationToken);
 
-        return CreatedAtAction(nameof(GetById), new
-        {
-            id = result,
-        }, result);
+        return CreatedAtAction(nameof(GetById), new { id = result }, result);
     }
 
     /// <summary>
@@ -68,7 +65,7 @@ public class DebtsController(DebtService debtService) : ControllerBase
     /// <param name="request">Данные для обновления долга.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     [HttpPut("{id:int}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(int id, [FromBody] SaveRequest request, CancellationToken cancellationToken)
@@ -76,7 +73,7 @@ public class DebtsController(DebtService debtService) : ControllerBase
         var business = request.ToBusinessModel();
         business.Id = id;
         await debtService.UpdateAsync(business, cancellationToken);
-        return Ok();
+        return NoContent();
     }
 
     /// <summary>
@@ -85,13 +82,13 @@ public class DebtsController(DebtService debtService) : ControllerBase
     /// <param name="id">Идентификатор.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     [HttpDelete("{id:int}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
         await debtService.DeleteAsync(id, cancellationToken);
-        return Ok();
+        return NoContent();
     }
 
     /// <summary>
@@ -100,14 +97,14 @@ public class DebtsController(DebtService debtService) : ControllerBase
     /// <param name="id">Идентификатор.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     [HttpPost("{id:int}/Restore")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Restore(int id, CancellationToken cancellationToken)
     {
         await debtService.RestoreAsync(id, cancellationToken);
-        return Ok();
+        return NoContent();
     }
 
     /// <summary>
@@ -117,7 +114,7 @@ public class DebtsController(DebtService debtService) : ControllerBase
     /// <param name="request">Данные для обновления операции.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     [HttpPost("{id:int}/Pay")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -126,7 +123,7 @@ public class DebtsController(DebtService debtService) : ControllerBase
         var business = request.ToBusinessModel();
         business.Id = id;
         await debtService.PayAsync(business, cancellationToken);
-        return Ok();
+        return NoContent();
     }
 
     // TODO: Подумать над with
@@ -137,14 +134,14 @@ public class DebtsController(DebtService debtService) : ControllerBase
     /// <param name="toUserId">Идентификатор поглощающего должника.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     [HttpPost("MergeOwners/{fromUserId:int}/with/{toUserId:int}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> MergeOwners(int fromUserId, int toUserId, CancellationToken cancellationToken)
     {
         await debtService.MergeOwnersAsync(fromUserId, toUserId, cancellationToken);
-        return Ok();
+        return NoContent();
     }
 
     /// <summary>
@@ -167,13 +164,13 @@ public class DebtsController(DebtService debtService) : ControllerBase
     /// <param name="request">Данные для прощения долга.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     [HttpPost("Forgive")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Forgive([FromBody] ForgiveRequest request, CancellationToken cancellationToken)
     {
         await debtService.ForgiveAsync(request.DebtIds, request.OperationCategoryId, request.OperationComment, cancellationToken);
-        return Ok();
+        return NoContent();
     }
 }

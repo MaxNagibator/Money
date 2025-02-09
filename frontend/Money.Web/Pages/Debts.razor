@@ -1,21 +1,72 @@
 ﻿@page "/debts"
-@using Money.Web.Components.Debts
 @attribute [Authorize]
 
 <PageTitle>Долги</PageTitle>
 
 <MudStack AlignItems="AlignItems.Center"
           Class="mb-3"
-          Row>
+          Row
+          Spacing="1">
     <MudText Typo="Typo.h3">
         Долги
     </MudText>
     <MudSpacer />
+    <MudTooltip Text="Простить долги">
+        <MudToggleIconButton Color="Color.Tertiary"
+                             Icon="@Icons.Material.Rounded.Handshake"
+                             Toggled="_isForgiveOpen"
+                             ToggledChanged="OpenForgiveAsync"
+                             ToggledVariant="Variant.Outlined"
+                             Variant="Variant.Filled" />
+    </MudTooltip>
+
+    <MudPopover AnchorOrigin="Origin.BottomRight"
+                Open="_isForgiveOpen"
+                TransformOrigin="Origin.TopRight">
+        <MudPaper Class="pa-3">
+            <MudStack Spacing="2">
+                <MudText>
+                    Перенос долгов держателей в расходы
+                </MudText>
+
+                <CategorySelector @ref="_categorySelector"
+                                  SelectionMode="SelectionMode.SingleSelection" />
+
+                <MudTextField Adornment="Adornment.Start"
+                              AdornmentColor="Color.Tertiary"
+                              AdornmentIcon="@Icons.Material.Rounded.Comment"
+                              AutoGrow
+                              @bind-Value="_forgiveComment"
+                              Clearable
+                              Immediate
+                              Label="Приписка" />
+
+                <MudStack AlignItems="AlignItems.Center"
+                          Class="mt-3"
+                          Row>
+                    <MudButton Color="Color.Error"
+                               OnClick="() => _isForgiveOpen = false">
+                        Закрыть
+                    </MudButton>
+                    <MudSpacer />
+                    <MudButton ButtonType="ButtonType.Submit"
+                               Color="Color.Tertiary"
+                               OnClick="ForgiveAsync"
+                               Variant="Variant.Filled">
+                        Простить
+                    </MudButton>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+    </MudPopover>
+
     <MudTooltip Text="Слияние держателей">
-        <MudIconButton Color="Color.Tertiary"
-                       Icon="@Icons.Material.Rounded.Merge"
-                       OnClick="OpenMergeAsync"
-                       Variant="Variant.Outlined"  />
+        <MudToggleIconButton Color="Color.Tertiary"
+                             Icon="@Icons.Material.Rounded.Merge"
+                             Toggled="_isMergeOpen"
+                             ToggledChanged="OpenMergeAsync"
+                             ToggledVariant="Variant.Outlined"
+                             Variant="Variant.Filled" />
     </MudTooltip>
 
     <MudPopover AnchorOrigin="Origin.BottomRight"

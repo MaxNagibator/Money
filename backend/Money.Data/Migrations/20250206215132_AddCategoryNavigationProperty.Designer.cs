@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Money.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Money.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250206215132_AddCategoryNavigationProperty")]
+    partial class AddCategoryNavigationProperty
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -462,22 +465,6 @@ namespace Money.Data.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea")
                         .HasColumnName("row_version");
-
-                    b.Property<DateTime?>("TransporterCreateDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("transporter_create_date");
-
-                    b.Property<string>("TransporterEmail")
-                        .HasColumnType("text")
-                        .HasColumnName("transporter_email");
-
-                    b.Property<string>("TransporterLogin")
-                        .HasColumnType("text")
-                        .HasColumnName("transporter_login");
-
-                    b.Property<string>("TransporterPassword")
-                        .HasColumnType("text")
-                        .HasColumnName("transporter_password");
 
                     b.HasKey("Id")
                         .HasName("pk_domain_users");

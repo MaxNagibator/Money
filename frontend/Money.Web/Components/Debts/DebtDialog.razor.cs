@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
 using Money.ApiClient;
 using System.ComponentModel.DataAnnotations;
 
@@ -17,7 +17,7 @@ public partial class DebtDialog
     private bool _isProcessing;
 
     [CascadingParameter]
-    public MudDialogInstance MudDialog { get; set; } = null!;
+    public IMudDialogInstance MudDialog { get; set; } = null!;
 
     [Parameter]
     public Debt Model { get; set; } = null!;
@@ -34,7 +34,7 @@ public partial class DebtDialog
     [Inject]
     private ISnackbar SnackbarService { get; set; } = null!;
 
-    protected override void OnParametersSet()
+    protected override Task OnParametersSetAsync()
     {
         DebtTypes.Value? type;
 
@@ -59,7 +59,7 @@ public partial class DebtDialog
             Date = Model.Date,
         };
 
-        MudDialog.SetOptions(_dialogOptions);
+        return MudDialog.SetOptionsAsync(_dialogOptions);
     }
 
     private async Task SubmitAsync()

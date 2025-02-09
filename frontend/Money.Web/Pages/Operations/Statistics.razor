@@ -5,7 +5,7 @@
 
 <PageTitle>Статистика</PageTitle>
 
-@if (_barCharts == null || _pieCharts == null)
+@if (_typesStatistics == null)
 {
     return;
 }
@@ -13,55 +13,73 @@
 <MudExpansionPanels MultiExpansion>
     @foreach (var operationType in OperationTypes.Values)
     {
+        var statistic = _typesStatistics[operationType.Id];
+
         <MudExpansionPanel Expanded
                            Text="@operationType.Name">
-            <Chart Config="_barCharts[operationType.Id].Config"
-                   @ref="_barCharts[operationType.Id].Chart" />
+            <Chart Config="statistic.BarChart.Config"
+                   @ref="statistic.BarChart.Chart" />
             <MudGrid>
                 <MudItem md="6"
                          xs="12">
-                    <Chart Config="_pieCharts[operationType.Id].Config"
-                           @ref="_pieCharts[operationType.Id].Chart" />
+                    <Chart Config="statistic.PieChart.Config"
+                           @ref="statistic.PieChart.Chart" />
+
+                    <MudStack AlignItems="AlignItems.Center"
+                              Class="mt-2"
+                              Row>
+                        <MudButton EndIcon="@Icons.Material.Rounded.ExpandLess"
+                                   FullWidth
+                                   OnClick="async () => await statistic.TreeView!.CollapseAllAsync()"
+                                   Variant="Variant.Outlined">
+                            Свернуть
+                        </MudButton>
+                        <MudButton EndIcon="@Icons.Material.Rounded.ExpandMore"
+                                   FullWidth
+                                   OnClick="async () => await statistic.TreeView!.ExpandAllAsync()"
+                                   Variant="Variant.Outlined">
+                            Развернуть
+                        </MudButton>
+                    </MudStack>
                 </MudItem>
                 <MudItem md="6"
                          xs="12">
-                    @if (Sums.TryGetValue(operationType.Id, out var sum))
-                    {
-                        <MudTreeView ExpandOnClick
-                                     Hover
-                                     Dense
-                                     Items="sum"
-                                     ReadOnly
-                                     Ripple>
-                            <ItemTemplate>
-                                @{
-                                    var catSum = context.Value!;
-                                }
+                    <MudTreeView Dense
+                                 ExpandOnClick
+                                 Hover
+                                 Items="statistic.Sums"
+                                 ReadOnly
+                                 @ref="statistic.TreeView"
+                                 Ripple>
+                        <ItemTemplate>
+                            @{
+                                var catSum = context.Value!;
+                            }
 
-                                <MudTreeViewItem @bind-Expanded="@context.Expanded"
-                                                 Items="@context.Children"
-                                                 Value="@context.Value">
-                                    <Content>
-                                        <MudTreeViewItemToggleButton @bind-Expanded="@context.Expanded"
-                                                                     Visible="@context.HasChildren" />
-                                        <MudText>@catSum.Name</MudText>
-                                        <MudSpacer />
-                                        <MudChip>
-                                            <MudStack Spacing="0"
-                                                      AlignItems="AlignItems.Center"
-                                                      Row>
-                                                @catSum.TotalSum.ToString("N2")
-                                                <MudIcon Style="width: 14px;"
-                                                         Size="Size.Small"
-                                                         Icon="@Icons.Material.Rounded.CurrencyRuble" />
-                                            </MudStack>
-                                        </MudChip>
-                                    </Content>
-                                </MudTreeViewItem>
-                            </ItemTemplate>
-                        </MudTreeView>
-                    }
+                            <MudTreeViewItem @bind-Expanded="@context.Expanded"
+                                             Items="@context.Children"
+                                             Value="@context.Value">
+                                <Content>
+                                    <MudTreeViewItemToggleButton @bind-Expanded="@context.Expanded"
+                                                                 Visible="@context.HasChildren" />
+                                    <MudText>@catSum.Name</MudText>
+                                    <MudSpacer />
+                                    <MudChip>
+                                        <MudStack Spacing="0"
+                                                  AlignItems="AlignItems.Center"
+                                                  Row>
+                                            @catSum.TotalSum.ToString("N0")
+                                            <MudIcon Style="width: 14px;"
+                                                     Size="Size.Small"
+                                                     Icon="@Icons.Material.Rounded.CurrencyRuble" />
+                                        </MudStack>
+                                    </MudChip>
+                                </Content>
+                            </MudTreeViewItem>
+                        </ItemTemplate>
+                    </MudTreeView>
                 </MudItem>
+
             </MudGrid>
         </MudExpansionPanel>
     }

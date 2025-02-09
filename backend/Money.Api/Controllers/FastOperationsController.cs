@@ -65,7 +65,7 @@ public class FastOperationsController(FastOperationService fastOperationService)
     /// <param name="request">Данные для обновления операции.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     [HttpPut("{id:int}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(int id, [FromBody] SaveRequest request, CancellationToken cancellationToken)
@@ -73,7 +73,7 @@ public class FastOperationsController(FastOperationService fastOperationService)
         var business = request.ToBusinessModel();
         business.Id = id;
         await fastOperationService.UpdateAsync(business, cancellationToken);
-        return Ok();
+        return NoContent();
     }
 
     /// <summary>
@@ -82,13 +82,13 @@ public class FastOperationsController(FastOperationService fastOperationService)
     /// <param name="id">Идентификатор категории.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     [HttpDelete("{id:int}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
         await fastOperationService.DeleteAsync(id, cancellationToken);
-        return Ok();
+        return NoContent();
     }
 
     /// <summary>
@@ -97,13 +97,13 @@ public class FastOperationsController(FastOperationService fastOperationService)
     /// <param name="id">Идентификатор категории.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     [HttpPost("{id:int}/Restore")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Restore(int id, CancellationToken cancellationToken)
     {
         await fastOperationService.RestoreAsync(id, cancellationToken);
-        return Ok();
+        return NoContent();
     }
 }

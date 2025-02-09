@@ -17,7 +17,7 @@ public partial class RegularOperationDialog
     private bool _isProcessing;
 
     [CascadingParameter]
-    public MudDialogInstance MudDialog { get; set; } = null!;
+    public IMudDialogInstance MudDialog { get; set; } = null!;
 
     [Parameter]
     public RegularOperation Model { get; set; } = null!;
@@ -54,8 +54,6 @@ public partial class RegularOperationDialog
             TimeValue = Model.TimeValue,
         };
 
-        MudDialog.SetOptions(_dialogOptions);
-
         var categories = await CategoryService.GetAllAsync();
 
         if (RequiredType != null)
@@ -70,6 +68,8 @@ public partial class RegularOperationDialog
         {
             Input.CategoryList = [.. categories];
         }
+
+        await MudDialog.SetOptionsAsync(_dialogOptions);
     }
 
     private async Task SubmitAsync()

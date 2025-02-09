@@ -17,7 +17,7 @@ public partial class CategoryDialog
     public Category Category { get; set; } = null!;
 
     [CascadingParameter]
-    public MudDialogInstance MudDialog { get; set; } = null!;
+    public IMudDialogInstance MudDialog { get; set; } = null!;
 
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = null!;
@@ -28,7 +28,7 @@ public partial class CategoryDialog
     [Inject]
     private ISnackbar SnackbarService { get; set; } = null!;
 
-    protected override void OnParametersSet()
+    protected override Task OnParametersSetAsync()
     {
         Input = new()
         {
@@ -37,7 +37,7 @@ public partial class CategoryDialog
             Color = Category.Color,
         };
 
-        MudDialog.SetOptions(_dialogOptions);
+        return MudDialog.SetOptionsAsync(_dialogOptions);
     }
 
     private async Task SubmitAsync()

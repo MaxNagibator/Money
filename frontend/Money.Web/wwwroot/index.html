@@ -9,9 +9,19 @@
     <base href="/" />
     <link href="css/app.css"
           rel="stylesheet" />
+
     <link href="favicon.png"
           rel="icon"
           type="image/png" />
+    <link href="manifest.webmanifest"
+          rel="manifest" />
+    <link href="icon-512.png"
+          rel="apple-touch-icon"
+          sizes="512x512" />
+    <link href="icon-192.png"
+          rel="apple-touch-icon"
+          sizes="192x192" />
+
     <link href="Money.Web.styles.css"
           rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
@@ -40,6 +50,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
     <script src="_content/ChartJs.Blazor.Fork/ChartJsBlazorInterop.js"></script>
+
+    <script src="/_framework/aspnetcore-browser-refresh.js"></script>
+    <script>navigator.serviceWorker.register('service-worker.js');</script>
 </body>
 
 </html>

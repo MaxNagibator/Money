@@ -11,15 +11,17 @@
     <MudAppBar Class="mud-theme-transparent"
                Elevation="0"
                Style="pointer-events: none;">
-        <MudIconButton Color="Color.Inherit"
-                       Edge="Edge.Start"
-                       Icon="@Icons.Material.Rounded.Menu"
-                       OnClick="ToggleDrawer"
-                       Size="Size.Small"
-                       Style="pointer-events: all;" />
-        <MudSpacer />
-        <DarkModeToggle AppSettings="_appSettings"
-                        @ref="_darkModeToggle" />
+        <MudStack Class="mt-3 ml-n4"
+                  Spacing="1">
+            <MudIconButton Color="Color.Inherit"
+                           Edge="Edge.Start"
+                           Icon="@Icons.Material.Rounded.Menu"
+                           OnClick="ToggleDrawer"
+                           Size="Size.Small"
+                           Style="pointer-events: all;" />
+            <DarkModeToggle AppSettings="_appSettings"
+                            @ref="_darkModeToggle" />
+        </MudStack>
     </MudAppBar>
     <MudDrawer @bind-Open="_drawerOpen"
                Elevation="2">
@@ -44,13 +46,30 @@
     <MudMainContent Class="pt-3 px-8">
         <MudContainer Gutters
                       MaxWidth="MaxWidth.Large">
-            <CascadingValue IsFixed="true"
-                            Value="_appSettings">
-                <CascadingValue IsFixed="true"
-                                Value="_darkModeToggle">
-                    @Body
-                </CascadingValue>
-            </CascadingValue>
+            <ErrorBoundary>
+                <ChildContent>
+                    <CascadingValue IsFixed="true"
+                                    Value="_appSettings">
+                        <CascadingValue IsFixed="true"
+                                        Value="_darkModeToggle">
+                            @Body
+                        </CascadingValue>
+                    </CascadingValue>
+                </ChildContent>
+                <ErrorContent Context="ex">
+                    @*TODO: Отладочный блок*@
+                    <p>@ex.Message</p>
+                    <br />
+                    <hr />
+                    <p>@ex.ToString()</p>
+
+                    <MudAlert Icon="@Icons.Material.Rounded.Error"
+                              Severity="Severity.Error">
+                        Извините, произошла ошибка.
+                        Пожалуйста, попробуйте снова.
+                    </MudAlert>
+                </ErrorContent>
+            </ErrorBoundary>
         </MudContainer>
     </MudMainContent>
 </MudLayout>

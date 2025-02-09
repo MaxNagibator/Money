@@ -1,6 +1,8 @@
-﻿<MudGrid Spacing="0">
+﻿<MudStack Row
+          Spacing="0"
+          Wrap="Wrap.Wrap">
     <MudItem md="2"
-             xs="2">
+             xs="4">
         <div class="align-center d-flex flex-row gap-0">
             <MudIcon Color="@Category.OperationType.Color"
                      Icon="@Category.OperationType.Icon"
@@ -18,22 +20,22 @@
             </MudText>
         </div>
     </MudItem>
-    <MudItem md="2"
-             xs="2">
+    <MudItem md="3"
+             xs="4">
         <MudText Class="large-text"
                  title="@Category.Name">
             @Category.Name
         </MudText>
     </MudItem>
     <MudItem md="3"
-             xs="3">
+             xs="4">
         <MudText Class="large-text"
                  title="@Operation.Place">
             @Operation.Place
         </MudText>
     </MudItem>
-    <MudItem md="4"
-             xs="4">
+    <MudItem md="3"
+             xs="11">
         <MudText Class="large-text"
                  title="@Operation.Comment">
             @Operation.Comment
@@ -55,4 +57,4 @@
                            Size="Size.Small" />
         </div>
     </MudItem>
-</MudGrid>
+</MudStack>

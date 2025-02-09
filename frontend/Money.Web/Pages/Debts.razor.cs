@@ -16,6 +16,10 @@ public partial class Debts
     private string _searchQuery = string.Empty;
     private bool _isMergeOpen;
 
+    private CategorySelector? _categorySelector;
+    private bool _isForgiveOpen;
+    private string _forgiveComment = "Перенос из долгов:";
+
     public DebtOwnerMerged? OwnerFrom { get; set; }
     public DebtOwnerMerged? OwnerTo { get; set; }
 
@@ -46,7 +50,7 @@ public partial class Debts
         (OwnerFrom, OwnerTo) = (OwnerTo, OwnerFrom);
     }
 
-    private async Task OpenMergeAsync()
+    private async Task OpenMergeAsync(bool state)
     {
         if (_isMergeOpen == false && _owners == null)
         {
@@ -58,7 +62,7 @@ public partial class Debts
                       ?? [];
         }
 
-        _isMergeOpen = true;
+        _isMergeOpen = state;
     }
 
     private async Task MergeOwnersAsync()
@@ -79,6 +83,17 @@ public partial class Debts
         OwnerFrom = OwnerTo = null;
         _isMergeOpen = false;
 
+        await LoadDebtsAsync();
+    }
+
+    private Task OpenForgiveAsync(bool state)
+    {
+        _isForgiveOpen = state;
+        return Task.CompletedTask;
+    }
+
+    private async Task ForgiveAsync()
+    {
         await LoadDebtsAsync();
     }
 

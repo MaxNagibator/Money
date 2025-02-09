@@ -1,8 +1,10 @@
 ﻿<MudTooltip Text="@(AppSettings.IsManualMode ? "Ручной" : "Авто")">
-    <MudBadge Class="cursor-pointer"
+    <MudBadge Bordered
+              Class="cursor-pointer"
               Color="@(AppSettings.IsManualMode ? Color.Primary : Color.Secondary)"
               Icon="@(AppSettings.IsManualMode ? Icons.Material.Rounded.Check : Icons.Material.Rounded.SwapHoriz)"
               OnClick="ToggleManualMode"
+              Origin="Origin.BottomRight"
               Overlap>
         <MudTooltip Text="@(AppSettings.IsDarkMode ? "Темный" : "Светлый")">
             <MudIconButton Color="Color.Inherit"

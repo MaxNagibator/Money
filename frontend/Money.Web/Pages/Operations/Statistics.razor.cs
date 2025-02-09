@@ -5,28 +5,22 @@ namespace Money.Web.Pages.Operations;
 
 public partial class Statistics
 {
-    private Dictionary<int, BarChart>? _barCharts;
-    private Dictionary<int, PieChart>? _pieCharts;
+    private Dictionary<int, OperationTypeStatistics>? _typesStatistics;
     private List<Category>? _categories;
-
-    private Dictionary<int, List<TreeItemData<OperationCategorySum>>> Sums { get; } = [];
 
     [Inject]
     private CategoryService CategoryService { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
-        Dictionary<int, BarChart> barCharts = [];
-        Dictionary<int, PieChart> pieCharts = [];
+        Dictionary<int, OperationTypeStatistics> typesStatistics = [];
 
         foreach (var operationType in OperationTypes.Values.Select(x => x.Id))
         {
-            barCharts.Add(operationType, BarChart.Create(operationType));
-            pieCharts.Add(operationType, PieChart.Create(operationType));
+            typesStatistics.Add(operationType, new(BarChart.Create(operationType), PieChart.Create(operationType)));
         }
 
-        _barCharts = barCharts;
-        _pieCharts = pieCharts;
+        _typesStatistics = typesStatistics;
         _categories = await CategoryService.GetAllAsync();
     }
 
@@ -47,7 +41,7 @@ public partial class Statistics
                                  .ToList()
                              ?? [];
 
-            tasks.Add(_barCharts![operationTypeId].UpdateAsync(args.Operations, categories, OperationsFilter.DateRange));
+            tasks.Add(_typesStatistics![operationTypeId].BarChart.UpdateAsync(args.Operations, categories, OperationsFilter.DateRange));
 
             if (_categories is not { Count: not 0 } || operationGroups == null)
             {
@@ -57,10 +51,10 @@ public partial class Statistics
             var cats = _categories.Where(x => x.OperationType.Id == operationTypeId).ToList();
             var categorySums = CalculateCategorySums(cats, operationGroups, null);
 
-            tasks.Add(_pieCharts![operationTypeId].UpdateAsync(categorySums));
+            tasks.Add(_typesStatistics![operationTypeId].PieChart.UpdateAsync(categorySums));
             var sums = BuildChildren(categorySums);
 
-            Sums[operationTypeId] =
+            _typesStatistics[operationTypeId].Sums =
             [
                 new TreeItemData<OperationCategorySum>
                 {

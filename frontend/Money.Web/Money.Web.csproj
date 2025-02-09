@@ -1,8 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
 
     <PropertyGroup>
+        <ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
+        <EmccMaximumHeapSize>268435456</EmccMaximumHeapSize>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)'!='DEBUG'">
         <RunAOTCompilation>true</RunAOTCompilation>
     </PropertyGroup>
+
 
     <ItemGroup>
         <PackageReference Include="Blazored.LocalStorage" />
