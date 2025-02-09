@@ -10,40 +10,78 @@ type Debt struct {
 
 func (table *Debt) Transform(old OldDebt) NewDebt {
 	return NewDebt{
-		Id:        old.Id,
-		UserId:    old.UserId,
-		Comment:   old.Comment,
-		Date:      old.Date,
-		Sum:       old.Sum,
-		TypeId:    old.TypeId,
-		PaySum:    old.PaySum,
-		StatusId:  old.StatusId,
-		OwnerId:   old.OwnerId,
-		IsDeleted: false,
+		Id:         old.DebtId,
+		UserId:     old.UserId,
+		Date:       old.Date,
+		Sum:        old.Sum,
+		TypeId:     old.Type,
+		Comment:    old.Comment,
+		PaySum:     old.PaySum,
+		StatusId:   old.StatusId,
+		PayComment: old.PayComment,
+		OwnerId:    old.DebtUserId,
+		IsDeleted:  old.StatusId == 2,
 	}
 }
 
 type OldDebt struct {
-	Id       int            `db:"Id"`
-	UserId   int            `db:"UserId"`
-	Comment  sql.NullString `db:"Comment"`
-	Date     string         `db:"Date"`
-	Sum      string         `db:"Sum"`
-	TypeId   int            `db:"Type"`
-	PaySum   string         `db:"PaySum"`
-	StatusId string         `db:"StatusId"`
-	OwnerId  string         `db:"DebtUserId"`
+	Id         int            `db:"Id"`
+	UserId     int            `db:"UserId"`
+	DebtId     int            `db:"DebtId"`
+	Date       string         `db:"Date"`
+	Sum        string         `db:"Sum"`
+	Type       int            `db:"Type"`
+	Comment    sql.NullString `db:"Comment"`
+	PaySum     string         `db:"PaySum"`
+	StatusId   int            `db:"StatusId"`
+	PayComment sql.NullString `db:"PayComment"`
+	DebtUserId int            `db:"DebtUserId"`
 }
 
+/*
+create table [money-dev].Money.Debt
+(
+    Id         int primary key not null,
+    UserId     int             not null,
+    DebtId     int             not null,
+    Date       datetime        not null,
+    Sum        decimal(18, 2)  not null,
+    Type       int             not null,
+    Comment    nvarchar(max),
+    PaySum     decimal(18, 2)  not null,
+    StatusId   int             not null,
+    PayComment nvarchar(max),
+    DebtUserId int             not null,
+);
+*/
+
 type NewDebt struct {
-	Id        int            `db:"id"`
-	UserId    int            `db:"user_id"`
-	Comment   sql.NullString `db:"comment"`
-	Date      string         `db:"date"`
-	Sum       string         `db:"sum"`
-	TypeId    int            `db:"type_id"`
-	PaySum    string         `db:"pay_sum"`
-	StatusId  string         `db:"status_id"`
-	OwnerId   string         `db:"owner_id"`
-	IsDeleted bool           `db:"is_deleted"`
+	Id         int            `db:"id"`
+	UserId     int            `db:"user_id"`
+	Date       string         `db:"date"`
+	Sum        string         `db:"sum"`
+	TypeId     int            `db:"type_id"`
+	Comment    sql.NullString `db:"comment"`
+	PaySum     string         `db:"pay_sum"`
+	StatusId   int            `db:"status_id"`
+	PayComment sql.NullString `db:"pay_comment"`
+	OwnerId    int            `db:"owner_id"`
+	IsDeleted  bool           `db:"is_deleted"`
 }
+
+/*
+create table public.debts
+(
+    user_id     integer 				not null,
+    id          integer 				not null,
+    date        date    				not null,
+    sum         numeric 				not null,
+    type_id     integer 				not null,
+    comment     character varying(4000),
+    pay_sum     numeric 				not null,
+    status_id   integer 				not null,
+    pay_comment character varying(4000),
+    owner_id    integer					not null,
+    is_deleted  boolean					not null,
+);
+*/

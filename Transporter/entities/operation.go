@@ -35,19 +35,19 @@ type OldOperation struct {
 }
 
 /*
-create table [money-dev].Money.Payment (
-  Id int primary key not null,
-  UserId int not null,
-  PaymentId int not null,
-  Sum decimal(18,2) not null,
-  CategoryId int,
-  TypeId int not null,
-  Comment nvarchar(4000),
-  Date datetime not null,
-  TaskId int,
-  CreatedTaskId int,
-  PlaceId int,
-  foreign key (UserId) references [User] (Id)
+create table [money-dev].Money.Payment
+(
+    Id            int primary key not null,
+    UserId        int             not null,
+    PaymentId     int             not null,
+    Sum           decimal(18, 2)  not null,
+    CategoryId    int,
+    TypeId        int             not null,
+    Comment       nvarchar(4000),
+    Date          datetime        not null,
+    TaskId        int,
+    CreatedTaskId int,
+    PlaceId       int,
 );
 */
 
@@ -64,18 +64,16 @@ type NewOperation struct {
 }
 
 /*
-create table public.operations (
-  user_id integer not null,
-  id integer not null,
-  sum numeric not null,
-  category_id integer not null,
-  comment character varying(4000),
-  date date not null,
-  created_task_id integer,
-  place_id integer,
-  is_deleted boolean not null,
-  primary key (user_id, id),
-  foreign key (user_id) references public.domain_users (id)
-  match simple on update no action on delete cascade
+create table public.operations
+(
+    user_id         integer not null,
+    id              integer not null,
+    sum             numeric not null,
+    category_id     integer not null,
+    comment         character varying(4000),
+    date            date    not null,
+    created_task_id integer,
+    place_id        integer,
+    is_deleted      boolean not null
 );
 */

@@ -34,18 +34,18 @@ type OldFastOperation struct {
 }
 
 /*
-create table [money-dev].Money.FastOperation (
-  Id int primary key not null,
-  UserId int not null,
-  FastOperationId int not null,
-  Name nvarchar(max) not null,
-  Sum decimal(18,2) not null,
-  CategoryId int,
-  TypeId int not null,
-  Comment nvarchar(4000),
-  PlaceId int,
-  [Order] int,
-  foreign key (UserId) references [User] (Id)
+create table [money-dev].Money.FastOperation
+(
+    Id              int primary key not null,
+    UserId          int             not null,
+    FastOperationId int             not null,
+    Name            nvarchar(max)   not null,
+    Sum             decimal(18, 2)  not null,
+    CategoryId      int,
+    TypeId          int             not null,
+    Comment         nvarchar(4000),
+    PlaceId         int,
+    [Order]         int
 );
 */
 
@@ -62,18 +62,16 @@ type NewFastOperation struct {
 }
 
 /*
-create table public.fast_operations (
-  user_id integer not null,
-  id integer not null,
-  "order" integer,
-  name character varying(500) not null,
-  sum numeric not null,
-  category_id integer not null,
-  comment character varying(4000),
-  place_id integer,
-  is_deleted boolean not null,
-  primary key (user_id, id),
-  foreign key (user_id) references public.domain_users (id)
-  match simple on update no action on delete cascade
+create table public.fast_operations
+(
+    user_id     integer                not null,
+    id          integer                not null,
+    "order"     integer,
+    name        character varying(500) not null,
+    sum         numeric                not null,
+    category_id integer                not null,
+    comment     character varying(4000),
+    place_id    integer,
+    is_deleted  boolean                not null
 );
 */

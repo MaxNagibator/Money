@@ -59,8 +59,23 @@ func main() {
 		log.Fatalln("New connect\n", err)
 	}
 
-	prepareDatabases(oldDatabase)
-	clearDatabase(newDatabase)
+	err = prepareDatabases(oldDatabase)
+	if err != nil {
+		resetError := resetDatabase(oldDatabase)
+		if resetError != nil {
+			log.Fatalf("Preparing error on reset:\n%v\nInitial error:\n%v", resetError, err)
+		}
+
+		prepareError := prepareDatabases(oldDatabase)
+		if prepareError != nil {
+			log.Fatalf("Preparing error after reset:\n%v\nInitial error:\n%v", prepareError, err)
+		}
+	}
+
+	_, err = truncateDatabase(newDatabase)
+	if err != nil {
+		log.Fatalln("Truncating error:\n", err)
+	}
 
 	transporter := CreateTransporter()
 
@@ -73,10 +88,15 @@ func main() {
 	processTable(newDatabase, oldDatabase, &transporter.FastOperation)
 	processTable(newDatabase, oldDatabase, &transporter.RegularOperation)
 	processTable(newDatabase, oldDatabase, &transporter.Place)
+
+	err = resetDatabase(oldDatabase)
+	if err != nil {
+		log.Fatalln("Reset error:\n", err)
+	}
 }
 
-func clearDatabase(newDatabase *sqlx.DB) sql.Result {
-	return newDatabase.MustExec(`
+func truncateDatabase(newDatabase *sqlx.DB) (sql.Result, error) {
+	return newDatabase.Exec(`
 TRUNCATE "AspNetUsers" CASCADE;
 TRUNCATE "domain_users" CASCADE;
 TRUNCATE "debt_owners" CASCADE;
@@ -89,43 +109,101 @@ TRUNCATE "regular_operations" CASCADE;
 `)
 }
 
-func prepareDatabases(oldDatabase *sqlx.DB) {
+func prepareDatabases(oldDatabase *sqlx.DB) error {
 	tx, err := oldDatabase.Beginx()
 	if err != nil {
-		log.Fatalln("Transaction start failed:\n", err)
+		return fmt.Errorf("Transaction start failed:\n%v", err)
 	}
-	defer func() {
-		if p := recover(); p != nil {
-			_ = tx.Rollback()
-			log.Fatalln("Panic occurred:\n", p)
-		}
-	}()
 
-	tx.MustExec(`
+	_, err = tx.Exec(`
 ALTER TABLE [System].[User]
-ADD Guid uniqueidentifier;
+ADD Guid uniqueidentifier
+
+`)
+	if err != nil {
+		if errT := tx.Rollback(); errT != nil {
+			return fmt.Errorf("Rollback failed:\n%v\nInitial error:\n%v", errT, err)
+		}
+		return err
+	}
+
+	_, err = tx.Exec(`
 UPDATE [System].[User]
-SET Guid = NEWID(); 
+SET Guid = NEWID()
 `)
+	if err != nil {
+		if errT := tx.Rollback(); errT != nil {
+			return fmt.Errorf("Rollback failed:\n%v\nInitial error:\n%v", errT, err)
+		}
+		return err
+	}
 
-	tx.MustExec(`
+	_, err = tx.Exec(`
 ALTER TABLE Money.RegularTask
-    ADD Sum decimal(18, 2), CategoryId int, Comment nvarchar(4000), PlaceId int;
+    ADD Sum decimal(18, 2), CategoryId int, Comment nvarchar(4000), PlaceId int
 `)
+	if err != nil {
+		if errT := tx.Rollback(); errT != nil {
+			return fmt.Errorf("Rollback failed:\n%v\nInitial error:\n%v", errT, err)
+		}
+		return err
+	}
 
-	tx.MustExec(`
+	_, err = tx.Exec(`
 UPDATE Money.RegularTask
 SET Sum        = p.Sum,
     CategoryId = p.CategoryId,
     Comment    = p.Comment,
     PlaceId    = p.PlaceId
 FROM Money.RegularTask r
-         JOIN Money.Payment p ON r.TaskId = p.TaskId;
+         JOIN Money.Payment p ON r.TaskId = p.TaskId
 `)
-
-	if err := tx.Commit(); err != nil {
-		log.Fatalln("Commit failed:\n", err)
+	if err != nil {
+		if errT := tx.Rollback(); errT != nil {
+			return fmt.Errorf("Rollback failed:\n%v\nInitial error:\n%v", errT, err)
+		}
+		return err
 	}
+
+	if err = tx.Commit(); err != nil {
+		err = fmt.Errorf("Commit failed:\n%v", err)
+	}
+
+	return err
+}
+
+func resetDatabase(oldDatabase *sqlx.DB) error {
+	tx, err := oldDatabase.Beginx()
+	if err != nil {
+		return fmt.Errorf("Transaction start failed:\n%v", err)
+	}
+
+	_, err = tx.Exec(`
+ALTER TABLE Money.RegularTask
+DROP COLUMN Sum, CategoryId, Comment, PlaceId
+`)
+	if err != nil {
+		if errT := tx.Rollback(); errT != nil {
+			return fmt.Errorf("Rollback failed:\n%v\nInitial error:\n%v", errT, err)
+		}
+		return err
+	}
+
+	_, err = tx.Exec(`
+ALTER TABLE [System].[User]
+DROP COLUMN Guid
+`)
+	if err != nil {
+		if errT := tx.Rollback(); errT != nil {
+			return fmt.Errorf("Rollback failed:\n%v\nInitial error:\n%v", errT, err)
+		}
+		return err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("Commit failed:\n%v", err)
+	}
+	return nil
 }
 
 func processTable[O any, N any](newDatabase *sqlx.DB, oldDatabase *sqlx.DB, table TableMapping[O, N]) {

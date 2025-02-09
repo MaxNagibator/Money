@@ -42,22 +42,22 @@ type OldRegularOperation struct {
 }
 
 /*
-create table [money-dev].Money.RegularTask (
-  Id int primary key not null,
-  UserId int not null,
-  TaskId int not null,
-  Name nvarchar(max) not null,
-  TypeId int not null,
-  TimeId int not null,
-  TimeValue int,
-  DateFrom date not null,
-  DateTo date,
-  RunTime datetime,
-  Sum decimal(18,2),
-  CategoryId int,
-  Comment nvarchar(4000),
-  PlaceId int,
-  foreign key (UserId) references [User] (Id)
+create table [money-dev].Money.RegularTask
+(
+    Id         int primary key not null,
+    UserId     int             not null,
+    TaskId     int             not null,
+    Name       nvarchar(max)   not null,
+    TypeId     int             not null,
+    TimeId     int             not null,
+    TimeValue  int,
+    DateFrom   date            not null,
+    DateTo     date,
+    RunTime    datetime,
+    Sum        decimal(18, 2),
+    CategoryId int,
+    Comment    nvarchar(4000),
+    PlaceId    int,
 );
 */
 
@@ -78,22 +78,20 @@ type NewRegularOperation struct {
 }
 
 /*
-create table public.regular_operations (
-  user_id integer not null,
-  id integer not null,
-  name character varying(500) not null,
-  sum numeric not null,
-  category_id integer not null,
-  comment character varying(4000),
-  place_id integer,
-  is_deleted boolean not null,
-  date_from date not null default '-infinity'::date,
-  date_to date,
-  run_time date,
-  time_type_id integer not null default 0,
-  time_value integer,
-  primary key (user_id, id),
-  foreign key (user_id) references public.domain_users (id)
-  match simple on update no action on delete cascade
+create table public.regular_operations
+(
+    user_id      integer                not null,
+    id           integer                not null,
+    name         character varying(500) not null,
+    sum          numeric                not null,
+    category_id  integer                not null,
+    comment      character varying(4000),
+    place_id     integer,
+    is_deleted   boolean                not null,
+    date_from    date                   not null default '-infinity'::date,
+    date_to      date,
+    run_time     date,
+    time_type_id integer                not null default 0,
+    time_value   integer
 );
 */
