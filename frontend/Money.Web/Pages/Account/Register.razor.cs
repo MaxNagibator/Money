@@ -1,4 +1,4 @@
-﻿using CSharpFunctionalExtensions;
+using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Money.Web.Services.Authentication;
@@ -28,10 +28,10 @@ public partial class Register
 
     public Task RegisterUserAsync(EditContext editContext)
     {
-        var user = new UserDto(Input.Email, Input.Password);
+        var user = new RegisterUserDto(Input.UserName, Input.Email, Input.Password);
 
         return AuthenticationService.RegisterAsync(user)
-            .Map(() => AuthenticationService.LoginAsync(user))
+            .Map(() => AuthenticationService.LoginAsync(new UserDto(Input.UserName, Input.Password)))
             .TapError(message => Snackbar.Add($"Ошибка во время регистрации {message}", Severity.Error))
             .Tap(() => NavigationManager.ReturnTo(ReturnUrl));
     }
@@ -48,10 +48,13 @@ public partial class Register
 
     private sealed class InputModel : IValidatableObject
     {
-        [Required(ErrorMessage = "Email обязателен.")]
+        [Required(ErrorMessage = "Логин обязателен.")]
+        [Display(Name = "Логин")]
+        public string UserName { get; set; } = "";
+
         [EmailAddress(ErrorMessage = "Некорректный email.")]
-        [Display(Name = "Электронная почта")]
-        public string Email { get; set; } = "";
+        [Display(Name = "Электронная почта(Необязательна, но вдруг забудите пароль)")]
+        public string? Email { get; set; } = null;
 
         [Required(ErrorMessage = "Пароль обязателен.")]
         [StringLength(100, ErrorMessage = "Пароль должен быть длиной от {2} до {1} символов.", MinimumLength = 6)]

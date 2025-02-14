@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Money.Data.Entities;
 
 namespace Money.Business.Services;
@@ -7,16 +7,34 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
 {
     public async Task RegisterAsync(RegisterModel model, CancellationToken cancellationToken = default)
     {
-        var user = await userManager.FindByNameAsync(model.Email);
+        var user = await userManager.FindByNameAsync(model.UserName);
 
         if (user != null)
         {
             throw new EntityExistsException("Извините, но пользователь с таким именем уже зарегистрирован. Пожалуйста, попробуйте другое имя пользователя.");
         }
 
+        if (model.Email != null)
+        {
+            user = await userManager.FindByEmailAsync(model.Email);
+            if (user != null)
+            {
+                if (user.EmailConfirmed)
+                {
+                    throw new EntityExistsException("Извините, но пользователь с таким email уже зарегистрирован. Пожалуйста, попробуйте другое имя пользователя.");
+                }
+                //else
+                //{
+                //    userForClearEmail = user;
+                //    user.Email = null;
+                //    await userManager.UpdateAsync(user);
+                //}
+            }
+
+        }
         user = new()
         {
-            UserName = model.Email,
+            UserName = model.UserName,
             Email = model.Email,
         };
 
@@ -28,6 +46,18 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
         }
 
         await AddNewUser(user.Id, cancellationToken);
+
+        if(1 > 0)
+        {
+            user.EmailConfirmed = true;
+            await userManager.UpdateAsync(user);
+        }
+
+    //    if (userForClearEmail != null)
+    //    {
+    //        userForClearEmail.Email = true;
+    //    await userForClearEmail.UpdateAsync(user);
+    //}
     }
 
     public async Task<int> EnsureUserIdAsync(Guid authUserId, CancellationToken cancellationToken = default)

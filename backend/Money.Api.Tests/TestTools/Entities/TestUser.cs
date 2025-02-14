@@ -1,4 +1,4 @@
-﻿namespace Money.Api.Tests.TestTools.Entities;
+namespace Money.Api.Tests.TestTools.Entities;
 
 /// <summary>
 /// Пользователь.
@@ -7,7 +7,8 @@ public class TestUser : TestObject
 {
     public TestUser()
     {
-        Login = $"test_{Guid.NewGuid()}@bobgroup.test.ru";
+        Login = $"test_{Guid.NewGuid()}";
+        Email = $"{Login}@bobgroup.test.ru";
         Password = "123Qwerty9000!";
     }
 
@@ -19,12 +20,29 @@ public class TestUser : TestObject
     /// <summary>
     /// Логин.
     /// </summary>
-    public string Login { get; }
+    public string Login { get; private set; }
+
+    /// <summary>
+    /// Email.
+    /// </summary>
+    public string? Email { get; private set; }
 
     /// <summary>
     /// Пароль.
     /// </summary>
     public string Password { get; }
+
+    public TestUser SetLogin(string value)
+    {
+        Login = value;
+        return this;
+    }
+
+    public TestUser SetEmail(string? value)
+    {
+        Email = value;
+        return this;
+    }
 
     public TestCategory WithCategory()
     {
@@ -72,7 +90,7 @@ public class TestUser : TestObject
     {
         if (IsNew)
         {
-            Environment.ApiClient.RegisterAsync(Login, Password).Wait();
+            Environment.ApiClient.RegisterAsync(Login, Email, Password).Wait();
 
             var dbUser = Environment.Context.Users
                 .Single(x => x.UserName == Login);

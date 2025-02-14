@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Money.Data.Entities;
@@ -22,10 +22,13 @@ public class AuthService(UserManager<ApplicationUser> userManager, SignInManager
         }
 
         var user = await userManager.FindByNameAsync(request.Username);
-
         if (user == null)
         {
-            throw new PermissionException("Неверное имя пользователя или пароль.");
+            user = await userManager.FindByEmailAsync(request.Username);
+            if (user == null || user.EmailConfirmed == false)
+            {
+                throw new PermissionException("Неверное имя пользователя или пароль.");
+            }
         }
 
         var result = await signInManager.CheckPasswordSignInAsync(user, request.Password, true);

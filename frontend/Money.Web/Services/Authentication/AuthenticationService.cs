@@ -1,4 +1,4 @@
-﻿using Blazored.LocalStorage;
+using Blazored.LocalStorage;
 using CSharpFunctionalExtensions;
 using Money.ApiClient;
 using System.Net.Http.Json;
@@ -15,9 +15,9 @@ public class AuthenticationService(
     public const string AccessTokenKey = "authToken";
     public const string RefreshTokenKey = "refreshToken";
 
-    public async Task<Result> RegisterAsync(UserDto user)
+    public async Task<Result> RegisterAsync(RegisterUserDto user)
     {
-        var response = await client.PostAsJsonAsync("Account/register", new { user.Email, user.Password });
+        var response = await client.PostAsJsonAsync("Account/register", new { user.UserName, user.Email, user.Password });
 
         if (response.IsSuccessStatusCode)
         {
@@ -31,7 +31,7 @@ public class AuthenticationService(
 
     public async Task<Result> LoginAsync(UserDto user)
     {
-        using var requestContent = new FormUrlEncodedContent([new("grant_type", "password"), new("username", user.Email), new("password", user.Password)]);
+        using var requestContent = new FormUrlEncodedContent([new("grant_type", "password"), new("username", user.Login), new("password", user.Password)]);
 
         var result = await AuthenticateAsync(requestContent);
 

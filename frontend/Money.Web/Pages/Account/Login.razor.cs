@@ -1,4 +1,4 @@
-﻿using CSharpFunctionalExtensions;
+using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Money.Web.Services.Authentication;
@@ -30,7 +30,7 @@ public partial class Login
 
     public Task LoginUserAsync(EditContext context)
     {
-        var user = new UserDto(Input.Email, Input.Password);
+        var user = new UserDto(Input.Login, Input.Password);
 
         return AuthenticationService.LoginAsync(user)
             .TapError(message => Snackbar.Add($"Ошибка во время входа {message}", Severity.Error))
@@ -40,10 +40,9 @@ public partial class Login
 
     private sealed class InputModel
     {
-        [Required(ErrorMessage = "Email обязателен.")]
-        [EmailAddress(ErrorMessage = "Некорректный email.")]
-        [Display(Name = "Электронная почта")]
-        public string Email { get; set; } = "";
+        [Required(ErrorMessage = "Login обязателен.")]
+        [Display(Name = "Логин или Email")]
+        public string Login { get; set; } = "";
 
         [Required(ErrorMessage = "Пароль обязателен.")]
         [StringLength(100, ErrorMessage = "Пароль должен быть длиной от {2} до {1} символов.", MinimumLength = 6)]

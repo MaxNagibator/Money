@@ -1,3 +1,4 @@
 namespace Money.Web.Models;
 
-public record UserDto(string Email, string Password);
+public record RegisterUserDto(string UserName, string? Email, string Password);
+public record UserDto(string Login, string Password);

@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
 
@@ -42,10 +42,11 @@ public class MoneyClient
         };
     }
 
-    public async Task RegisterAsync(string email, string password)
+    public async Task RegisterAsync(string username, string email, string password)
     {
         using var requestContent = JsonContent.Create(new
         {
+            username,
             email,
             password,
         });
