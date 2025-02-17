@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using Money.Data.Entities;
 
 namespace Money.Business.Services;
 
-public class AccountService(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+public class AccountService(UserManager<ApplicationUser> userManager, ApplicationDbContext context, QueueHolder queueHolder)
 {
+
     public async Task RegisterAsync(RegisterModel model, CancellationToken cancellationToken = default)
     {
         var user = await userManager.FindByNameAsync(model.UserName);
@@ -23,14 +25,13 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
                 {
                     throw new EntityExistsException("Извините, но пользователь с таким email уже зарегистрирован. Пожалуйста, попробуйте другое имя пользователя.");
                 }
-                //else
-                //{
-                //    userForClearEmail = user;
-                //    user.Email = null;
-                //    await userManager.UpdateAsync(user);
-                //}
+                else
+                {
+                    user.Email = null;
+                    user.ConfirmEmailCode = null;
+                    await userManager.UpdateAsync(user);
+                }
             }
-
         }
         user = new()
         {
@@ -38,8 +39,11 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
             Email = model.Email,
         };
 
+        if (model.Email == null)
+        {
+            user.ConfirmEmailCode = 606217;
+        }
         var result = await userManager.CreateAsync(user, model.Password);
-
         if (result.Succeeded == false)
         {
             throw new IncorrectDataException($"Ошибки: {string.Join("; ", result.Errors.Select(error => error.Description))}");
@@ -47,17 +51,12 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
 
         await AddNewUser(user.Id, cancellationToken);
 
-        if(1 > 0)
+        if (model.Email != null)
         {
-            user.EmailConfirmed = true;
-            await userManager.UpdateAsync(user);
+            var title = "Подтверждение регистрации";
+            var body = "Ваш код для подтверждения регистрации на сайте филочек" + user.ConfirmEmailCode;
+            queueHolder.MailMessages.Enqueue(new MailMessage(model.Email, title, body));
         }
-
-    //    if (userForClearEmail != null)
-    //    {
-    //        userForClearEmail.Email = true;
-    //    await userForClearEmail.UpdateAsync(user);
-    //}
     }
 
     public async Task<int> EnsureUserIdAsync(Guid authUserId, CancellationToken cancellationToken = default)

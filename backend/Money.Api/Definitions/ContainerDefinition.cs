@@ -1,4 +1,4 @@
-﻿using Money.Business;
+using Money.Business;
 
 namespace Money.Api.Definitions;
 
@@ -19,5 +19,6 @@ public class ContainerDefinition : AppDefinition
         builder.Services.AddScoped<PlaceService>();
         builder.Services.AddScoped<RegularOperationService>();
         builder.Services.AddScoped<FileService>();
+        builder.Services.AddSingleton<QueueHolder>();
     }
 }

@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
+using System.Security.Principal;
 
 namespace Money.ApiClient;
 
@@ -15,6 +16,7 @@ public class MoneyClient
         Operation = new(this);
         FastOperation = new(this);
         RegularOperation = new(this);
+        Account = new(this);
     }
 
     [ActivatorUtilitiesConstructor]
@@ -32,6 +34,7 @@ public class MoneyClient
     public OperationClient Operation { get; }
     public FastOperationClient FastOperation { get; }
     public RegularOperationClient RegularOperation { get; }
+    public AccountClient Account { get; }
 
     public void SetUser(string login, string password)
     {
@@ -51,11 +54,11 @@ public class MoneyClient
             password,
         });
 
-        var response = await HttpClient.PostAsync(new Uri("Account/register", UriKind.Relative), requestContent);
-        response.EnsureSuccessStatusCode();
-
-        var content = await response.Content.ReadAsStringAsync();
-        Log(content);
+        var response = await Account.RegisterAsync(new AccountClient.RegisterRequest { Password = password, UserName = username, Email = email });
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new Exception(response.StringContent);
+        }
     }
 
     public async Task<AuthData> LoginAsync(string username, string password, CancellationToken token = default)
