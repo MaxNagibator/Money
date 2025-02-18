@@ -7,8 +7,8 @@ public class TestUser : TestObject
 {
     public TestUser()
     {
-        Login = $"test_{Guid.NewGuid()}";
-        Email = $"{Login}@bobgroup.test.ru";
+        UserName = $"test_{Guid.NewGuid()}";
+        Email = $"{UserName}@bobgroup.test.ru";
         Password = "123Qwerty9000!";
     }
 
@@ -20,7 +20,7 @@ public class TestUser : TestObject
     /// <summary>
     /// Логин.
     /// </summary>
-    public string Login { get; private set; }
+    public string UserName { get; private set; }
 
     /// <summary>
     /// Email.
@@ -32,9 +32,9 @@ public class TestUser : TestObject
     /// </summary>
     public string Password { get; }
 
-    public TestUser SetLogin(string value)
+    public TestUser SetUserName(string value)
     {
-        Login = value;
+        UserName = value;
         return this;
     }
 
@@ -90,10 +90,10 @@ public class TestUser : TestObject
     {
         if (IsNew)
         {
-            Environment.ApiClient.RegisterAsync(Login, Email, Password).Wait();
+            Environment.ApiClient.RegisterAsync(UserName, Email, Password).Wait();
 
             var dbUser = Environment.Context.Users
-                .Single(x => x.UserName == Login);
+                .Single(x => x.UserName == UserName);
 
             var domainUser = Environment.Context.DomainUsers
                 .Single(x => x.AuthUserId == dbUser.Id);

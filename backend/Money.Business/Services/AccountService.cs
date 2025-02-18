@@ -1,11 +1,22 @@
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using Money.Data.Entities;
+using System.Text;
 
 namespace Money.Business.Services;
 
 public class AccountService(UserManager<ApplicationUser> userManager, ApplicationDbContext context, QueueHolder queueHolder)
 {
+    private static Random _random = new Random();
+    private string GetCode(int length)
+    {
+        var str = new StringBuilder();
+        for (var i = 0; i < length; i++)
+        {
+            var int1 = _random.Next();
+            str.Append(int1);
+        }
+        return str.ToString();
+    }
 
     public async Task RegisterAsync(RegisterModel model, CancellationToken cancellationToken = default)
     {
@@ -28,7 +39,7 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
                 else
                 {
                     user.Email = null;
-                    user.ConfirmEmailCode = null;
+                    user.EmailConfirmCode = null;
                     await userManager.UpdateAsync(user);
                 }
             }
@@ -41,7 +52,7 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
 
         if (model.Email == null)
         {
-            user.ConfirmEmailCode = 606217;
+            user.EmailConfirmCode = GetCode(6);
         }
         var result = await userManager.CreateAsync(user, model.Password);
         if (result.Succeeded == false)
@@ -54,7 +65,7 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
         if (model.Email != null)
         {
             var title = "Подтверждение регистрации";
-            var body = "Ваш код для подтверждения регистрации на сайте филочек" + user.ConfirmEmailCode;
+            var body = $"Здравствуйте, {user.UserName}\r\nВаш код для подтверждения регистрации на сайте филочек " + user.EmailConfirmCode;
             queueHolder.MailMessages.Enqueue(new MailMessage(model.Email, title, body));
         }
     }

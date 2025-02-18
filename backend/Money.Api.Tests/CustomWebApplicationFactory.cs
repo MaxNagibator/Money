@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Money.Business.Services;
 
 namespace Money.Api.Tests;
 
@@ -19,10 +20,12 @@ public class CustomWebApplicationFactory<TProgram> : WebApplicationFactory<TProg
         builder.ConfigureServices(services =>
         {
             services.AddSingleton(configRoot);
+            services.AddSingleton<IMailService, TestMailService>();
         });
 
         builder.UseConfiguration(configRoot);
         builder.UseContentRoot(Directory.GetCurrentDirectory());
         builder.UseEnvironment(env);
+
     }
 }

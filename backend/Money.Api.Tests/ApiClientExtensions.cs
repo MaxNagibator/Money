@@ -14,7 +14,7 @@ public static class ApiClientExtensions
 
     public static void SetUser(this MoneyClient client, TestUser user)
     {
-        client.SetUser(user.Login, user.Password);
+        client.SetUser(user.UserName, user.Password);
     }
 
     public static ApiClientResponse IsSuccess(this ApiClientResponse response)
