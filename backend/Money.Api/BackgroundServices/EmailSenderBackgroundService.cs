@@ -1,8 +1,11 @@
-using Money.Business.Services;
+using Money.Business;
 
 namespace Money.Api.BackgroundServices;
 
-public class EmailSenderBackgroundService(IServiceProvider serviceProvider, ILogger<EmailSenderBackgroundService> logger, QueueHolder queueHolder, IMailService mailService) : BackgroundService
+public class EmailSenderBackgroundService(
+    QueueHolder queueHolder,
+    IMailService mailService,
+    ILogger<EmailSenderBackgroundService> logger) : BackgroundService
 {
     private readonly PeriodicTimer _timer = new(TimeSpan.FromSeconds(10));
 
@@ -28,7 +31,7 @@ public class EmailSenderBackgroundService(IServiceProvider serviceProvider, ILog
         {
             try
             {
-                if (queueHolder.MailMessages.TryDequeue(out MailMessage? message))
+                if (queueHolder.MailMessages.TryDequeue(out var message))
                 {
                     mailService.Send(message);
                 }

@@ -1,3 +1,4 @@
+using Money.Business.Models;
 using Money.Business.Services;
 using System.Collections.Concurrent;
 
@@ -5,10 +6,21 @@ namespace Money.Api.Tests;
 
 internal class TestMailService : IMailService
 {
-    public static ConcurrentDictionary<string, List<MailMessage>> Emails = new ConcurrentDictionary<string, List<MailMessage>>();
+    private static readonly ConcurrentDictionary<string, List<MailMessage>> Emails = new();
 
     public void Send(MailMessage mailMessage)
     {
-        Emails.AddOrUpdate(mailMessage.Email, new List<MailMessage> { mailMessage }, (x, y) => { y.Add(mailMessage); return y; });
+        Emails.AddOrUpdate(mailMessage.Email, [mailMessage], (_, messages) =>
+        {
+            messages.Add(mailMessage);
+            return messages;
+        });
+    }
+
+    internal static bool IsEmailWithUserNameExists(TestUser user)
+    {
+        return Emails
+            .SelectMany(x => x.Value)
+            .Any(x => x.Body.Contains(user.UserName, StringComparison.InvariantCultureIgnoreCase));
     }
 }

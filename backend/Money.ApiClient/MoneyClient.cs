@@ -1,7 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
-using System.Security.Principal;
 
 namespace Money.ApiClient;
 
@@ -45,19 +44,18 @@ public class MoneyClient
         };
     }
 
-    public async Task RegisterAsync(string username, string email, string password)
+    public async Task RegisterAsync(string username, string? email, string password)
     {
-        using var requestContent = JsonContent.Create(new
+        var response = await Account.RegisterAsync(new()
         {
-            username,
-            email,
-            password,
+            Password = password,
+            UserName = username,
+            Email = email,
         });
 
-        var response = await Account.RegisterAsync(new AccountClient.RegisterRequest { Password = password, UserName = username, Email = email });
-        if (!response.IsSuccessStatusCode)
+        if (response.IsSuccessStatusCode == false)
         {
-            throw new Exception(response.StringContent);
+            throw new HttpRequestException(response.StringContent);
         }
     }
 

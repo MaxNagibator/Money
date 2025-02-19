@@ -22,9 +22,11 @@ public class AuthService(UserManager<ApplicationUser> userManager, SignInManager
         }
 
         var user = await userManager.FindByNameAsync(request.Username);
+
         if (user == null)
         {
             user = await userManager.FindByEmailAsync(request.Username);
+
             if (user == null || user.EmailConfirmed == false)
             {
                 throw new PermissionException("Неверное имя пользователя или пароль.");
