@@ -38,7 +38,7 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
             Email = model.Email,
         };
 
-        if (model.Email == null)
+        if (model.Email != null)
         {
             user.EmailConfirmCode = GetCode(6);
         }

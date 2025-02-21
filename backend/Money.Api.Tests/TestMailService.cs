@@ -8,13 +8,15 @@ internal class TestMailService : IMailService
 {
     private static readonly ConcurrentDictionary<string, List<MailMessage>> Emails = new();
 
-    public void Send(MailMessage mailMessage)
+    public Task SendAsync(MailMessage mailMessage, CancellationToken cancellationToken = default)
     {
         Emails.AddOrUpdate(mailMessage.Email, [mailMessage], (_, messages) =>
         {
             messages.Add(mailMessage);
             return messages;
         });
+
+        return Task.CompletedTask;
     }
 
     internal static bool IsEmailWithUserNameExists(TestUser user)

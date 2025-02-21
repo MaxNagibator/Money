@@ -20,7 +20,5 @@ public class ContainerDefinition : AppDefinition
         builder.Services.AddScoped<RegularOperationService>();
         builder.Services.AddScoped<FileService>();
         builder.Services.AddSingleton<QueueHolder>();
-
-        builder.Services.AddSingleton<IMailService, MailService>();
     }
 }

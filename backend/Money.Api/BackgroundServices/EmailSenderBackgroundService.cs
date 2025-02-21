@@ -29,16 +29,24 @@ public class EmailSenderBackgroundService(
 
         do
         {
+            if (queueHolder.MailMessages.TryDequeue(out var message) == false)
+            {
+                continue;
+            }
+
+            logger.LogInformation("Обработка сообщения");
+
             try
             {
-                if (queueHolder.MailMessages.TryDequeue(out var message))
-                {
-                    mailService.Send(message);
-                }
+                await mailService.SendAsync(message, stoppingToken);
+                logger.LogInformation("Сообщение успешно отправлено");
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Ошибка при выполнении обработки отправки почты");
+                logger.LogError(exception, "Ошибка при отправке сообщения");
+
+                queueHolder.MailMessages.Enqueue(message);
+                logger.LogWarning("Сообщение возвращено в очередь для повторной отправки");
             }
         } while (await _timer.WaitForNextTickAsync(stoppingToken));
     }
