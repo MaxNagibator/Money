@@ -1,5 +1,3 @@
-using System.Net.Http.Json;
-
 namespace Money.ApiClient;
 
 public class AccountClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)

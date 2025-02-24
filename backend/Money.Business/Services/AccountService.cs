@@ -6,18 +6,6 @@ namespace Money.Business.Services;
 
 public class AccountService(UserManager<ApplicationUser> userManager, ApplicationDbContext context, QueueHolder queueHolder)
 {
-    private static Random _random = new Random();
-    private string GetCode(int length)
-    {
-        var str = new StringBuilder();
-        for (var i = 0; i < length; i++)
-        {
-            var int1 = _random.Next();
-            str.Append(int1);
-        }
-        return str.ToString();
-    }
-
     public async Task RegisterAsync(RegisterModel model, CancellationToken cancellationToken = default)
     {
         var user = await userManager.FindByNameAsync(model.UserName);
@@ -30,31 +18,33 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
         if (model.Email != null)
         {
             user = await userManager.FindByEmailAsync(model.Email);
+
             if (user != null)
             {
                 if (user.EmailConfirmed)
                 {
-                    throw new EntityExistsException("Извините, но пользователь с таким email уже зарегистрирован. Пожалуйста, попробуйте другое имя пользователя.");
+                    throw new EntityExistsException("Извините, но пользователь с таким email уже зарегистрирован. Пожалуйста, попробуйте другое email.");
                 }
-                else
-                {
-                    user.Email = null;
-                    user.EmailConfirmCode = null;
-                    await userManager.UpdateAsync(user);
-                }
+
+                user.Email = null;
+                user.EmailConfirmCode = null;
+                await userManager.UpdateAsync(user);
             }
         }
+
         user = new()
         {
             UserName = model.UserName,
             Email = model.Email,
         };
 
-        if (model.Email == null)
+        if (model.Email != null)
         {
             user.EmailConfirmCode = GetCode(6);
         }
+
         var result = await userManager.CreateAsync(user, model.Password);
+
         if (result.Succeeded == false)
         {
             throw new IncorrectDataException($"Ошибки: {string.Join("; ", result.Errors.Select(error => error.Description))}");
@@ -65,8 +55,8 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
         if (model.Email != null)
         {
             var title = "Подтверждение регистрации";
-            var body = $"Здравствуйте, {user.UserName}\r\nВаш код для подтверждения регистрации на сайте филочек " + user.EmailConfirmCode;
-            queueHolder.MailMessages.Enqueue(new MailMessage(model.Email, title, body));
+            var body = $"Здравствуйте, {user.UserName}\r\nВаш код для подтверждения регистрации на сайте филочек {user.EmailConfirmCode}";
+            queueHolder.MailMessages.Enqueue(new(model.Email, title, body));
         }
     }
 
@@ -80,6 +70,19 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
         }
 
         return await AddNewUser(authUserId, cancellationToken);
+    }
+
+    private static string GetCode(int length, string allowedChars = "1234567890")
+    {
+        var result = new StringBuilder(length);
+
+        while (result.Length < length)
+        {
+            var index = Random.Shared.Next(allowedChars.Length);
+            result.Append(allowedChars[index]);
+        }
+
+        return result.ToString();
     }
 
     // TODO Подумать над переносом в сервис

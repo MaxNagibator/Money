@@ -1,8 +1,11 @@
-using Money.Business.Services;
+using Money.Business;
 
 namespace Money.Api.BackgroundServices;
 
-public class EmailSenderBackgroundService(IServiceProvider serviceProvider, ILogger<EmailSenderBackgroundService> logger, QueueHolder queueHolder, IMailService mailService) : BackgroundService
+public class EmailSenderBackgroundService(
+    QueueHolder queueHolder,
+    IMailService mailService,
+    ILogger<EmailSenderBackgroundService> logger) : BackgroundService
 {
     private readonly PeriodicTimer _timer = new(TimeSpan.FromSeconds(10));
 
@@ -26,16 +29,24 @@ public class EmailSenderBackgroundService(IServiceProvider serviceProvider, ILog
 
         do
         {
+            if (queueHolder.MailMessages.TryDequeue(out var message) == false)
+            {
+                continue;
+            }
+
+            logger.LogInformation("Обработка сообщения");
+
             try
             {
-                if (queueHolder.MailMessages.TryDequeue(out MailMessage? message))
-                {
-                    mailService.Send(message);
-                }
+                await mailService.SendAsync(message, stoppingToken);
+                logger.LogInformation("Сообщение успешно отправлено");
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Ошибка при выполнении обработки отправки почты");
+                logger.LogError(exception, "Ошибка при отправке сообщения");
+
+                queueHolder.MailMessages.Enqueue(message);
+                logger.LogWarning("Сообщение возвращено в очередь для повторной отправки");
             }
         } while (await _timer.WaitForNextTickAsync(stoppingToken));
     }
