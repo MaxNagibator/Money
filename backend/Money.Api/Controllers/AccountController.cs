@@ -15,7 +15,7 @@ public class AccountController(AccountService accountService) : ControllerBase
     /// <remarks>
     /// Этот метод позволяет зарегистрировать нового пользователя в системе.
     /// </remarks>
-    /// <param name="model">Модель регистрации, содержащая данные пользователя.</param>
+    /// <param name="model">Данные пользователя для регистрации.</param>
     /// <param name="cancellationToken">Токен отмены.</param>
     /// <returns>Статус выполнения операции.</returns>
     [HttpPost("Register")]
@@ -31,7 +31,7 @@ public class AccountController(AccountService accountService) : ControllerBase
     /// <summary>
     /// Подтверждение почты.
     /// </summary>
-    /// <param name="model">Модель регистрации, содержащая данные пользователя.</param>
+    /// <param name="model">Данные для подтверждения.</param>
     /// <param name="cancellationToken">Токен отмены.</param>
     /// <returns>Статус выполнения операции.</returns>
     [HttpPost("ConfirmEmail")]
@@ -40,6 +40,20 @@ public class AccountController(AccountService accountService) : ControllerBase
     public async Task<IActionResult> ConfirmEmailAsync([FromBody] ConfirmEmailDto model, CancellationToken cancellationToken)
     {
         await accountService.ConfirmEmailAsync(model.ConfirmCode, cancellationToken);
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Повторная отправка кода подтверждения.
+    /// </summary>
+    /// <param name="cancellationToken">Токен отмены.</param>
+    /// <returns>Статус выполнения операции.</returns>
+    [HttpPost("ResendConfirmCode")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ResendConfirmCodeAsync(CancellationToken cancellationToken)
+    {
+        await accountService.ResendConfirmCodeAsync(cancellationToken);
         return NoContent();
     }
 }

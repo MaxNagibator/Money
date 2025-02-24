@@ -7,7 +7,8 @@ public class EmailSenderBackgroundService(
     IMailService mailService,
     ILogger<EmailSenderBackgroundService> logger) : BackgroundService
 {
-    private readonly PeriodicTimer _timer = new(TimeSpan.FromSeconds(10));
+    public static readonly TimeSpan Delay = TimeSpan.FromSeconds(10);
+    private readonly PeriodicTimer _timer = new(Delay);
 
     public override void Dispose()
     {

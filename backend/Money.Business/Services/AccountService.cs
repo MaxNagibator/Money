@@ -4,7 +4,11 @@ using System.Text;
 
 namespace Money.Business.Services;
 
-public class AccountService(RequestEnvironment environment, UserManager<ApplicationUser> userManager, ApplicationDbContext context, QueueHolder queueHolder)
+public class AccountService(
+    RequestEnvironment environment,
+    UserManager<ApplicationUser> userManager,
+    ApplicationDbContext context,
+    QueueHolder queueHolder)
 {
     public async Task RegisterAsync(RegisterModel model, CancellationToken cancellationToken = default)
     {
@@ -54,9 +58,7 @@ public class AccountService(RequestEnvironment environment, UserManager<Applicat
 
         if (model.Email != null)
         {
-            var title = "Подтверждение регистрации";
-            var body = $"Здравствуйте, {user.UserName}\r\nВаш код для подтверждения регистрации на сайте филочек {user.EmailConfirmCode}";
-            queueHolder.MailMessages.Enqueue(new(model.Email, title, body));
+            SendEmail(user.UserName, model.Email, user.EmailConfirmCode!);
         }
     }
 
@@ -72,6 +74,61 @@ public class AccountService(RequestEnvironment environment, UserManager<Applicat
         return await AddNewUser(authUserId, cancellationToken);
     }
 
+    public async Task ConfirmEmailAsync(string confirmCode, CancellationToken cancellationToken)
+    {
+        var user = environment.AuthUser;
+
+        if (user == null)
+        {
+            throw new BusinessException("Извините, но пользователь не указан.");
+        }
+
+        if (user.EmailConfirmed)
+        {
+            return;
+        }
+
+        if (user.Email == null)
+        {
+            throw new BusinessException("Простите, но у вас не заполнен email.");
+        }
+
+        if (user.EmailConfirmCode != confirmCode)
+        {
+            throw new BusinessException("Извините, код подтверждения недействительный.");
+        }
+
+        user.EmailConfirmed = true;
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task ResendConfirmCodeAsync(CancellationToken cancellationToken)
+    {
+        var user = environment.AuthUser;
+
+        if (user == null)
+        {
+            throw new BusinessException("Извините, но пользователь не указан.");
+        }
+
+        if (user.EmailConfirmed)
+        {
+            return;
+        }
+
+        if (user.Email == null)
+        {
+            throw new BusinessException("Простите, но у вас не заполнен email.");
+        }
+
+        // TODO: Проверка на повторную отправку по времени (защита от частых запросов)
+
+        user.EmailConfirmCode = GetCode(6);
+        await context.SaveChangesAsync(cancellationToken);
+
+        SendEmail(user.UserName!, user.Email, user.EmailConfirmCode);
+    }
+
     private static string GetCode(int length, string allowedChars = "1234567890")
     {
         var result = new StringBuilder(length);
@@ -83,6 +140,15 @@ public class AccountService(RequestEnvironment environment, UserManager<Applicat
         }
 
         return result.ToString();
+    }
+
+    private void SendEmail(string userName, string email, string confirmCode)
+    {
+        const string Title = "Подтверждение регистрации";
+        var body = $"Здравствуйте, {userName}!\r\nВаш код для подтверждения регистрации на сайте Филочек:\r\n{confirmCode}";
+
+        // TODO: Стоит ли добавлять новое письмо, если уже есть в очереди письмо на тот же email
+        queueHolder.MailMessages.Enqueue(new(email, Title, body));
     }
 
     // TODO Подумать над переносом в сервис
@@ -97,22 +163,5 @@ public class AccountService(RequestEnvironment environment, UserManager<Applicat
         await context.SaveChangesAsync(cancellationToken);
 
         return domainUser.Id;
-    }
-
-    public async Task ConfirmEmailAsync(string confirmCode, CancellationToken cancellationToken)
-    {
-        if (environment.AuthUser.EmailConfirmed)
-        {
-            return;
-        }
-        if (environment.AuthUser.Email == null)
-        {
-            throw new BusinessException("Простите, но у вас не заполнен email.");
-        }
-        if (environment.AuthUser.EmailConfirmCode == confirmCode)
-        {
-            environment.AuthUser.EmailConfirmed = true;
-            await context.SaveChangesAsync(cancellationToken);
-        }
     }
 }
