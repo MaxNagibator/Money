@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Money.Business.Services;
 
-public class AccountService(UserManager<ApplicationUser> userManager, ApplicationDbContext context, QueueHolder queueHolder)
+public class AccountService(RequestEnvironment environment, UserManager<ApplicationUser> userManager, ApplicationDbContext context, QueueHolder queueHolder)
 {
     public async Task RegisterAsync(RegisterModel model, CancellationToken cancellationToken = default)
     {
@@ -97,5 +97,22 @@ public class AccountService(UserManager<ApplicationUser> userManager, Applicatio
         await context.SaveChangesAsync(cancellationToken);
 
         return domainUser.Id;
+    }
+
+    public async Task ConfirmEmailAsync(string confirmCode, CancellationToken cancellationToken)
+    {
+        if (environment.AuthUser.EmailConfirmed)
+        {
+            return;
+        }
+        if (environment.AuthUser.Email == null)
+        {
+            throw new BusinessException("Простите, но у вас не заполнен email.");
+        }
+        if (environment.AuthUser.EmailConfirmCode == confirmCode)
+        {
+            environment.AuthUser.EmailConfirmed = true;
+            await context.SaveChangesAsync(cancellationToken);
+        }
     }
 }

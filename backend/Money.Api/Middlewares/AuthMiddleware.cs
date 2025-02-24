@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Money.Business;
 using Money.Data.Entities;
 using OpenIddict.Abstractions;
@@ -22,6 +22,7 @@ public class AuthMiddleware(RequestDelegate next)
             if (user != null)
             {
                 environment.UserId = await accountService.EnsureUserIdAsync(user.Id, context.RequestAborted);
+                environment.AuthUser = user;
             }
         }
 

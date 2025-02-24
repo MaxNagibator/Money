@@ -19,10 +19,15 @@ internal class TestMailService : IMailService
         return Task.CompletedTask;
     }
 
-    internal static bool IsEmailWithUserNameExists(TestUser user)
+    internal static bool IsEmailWithUserNameExists(string userName)
+    {
+        return GetEmailWithUserNameExists(userName) != null;
+    }
+
+    internal static MailMessage GetEmailWithUserNameExists(string userName)
     {
         return Emails
             .SelectMany(x => x.Value)
-            .Any(x => x.Body.Contains(user.UserName, StringComparison.InvariantCultureIgnoreCase));
+            .FirstOrDefault(x => x.Body.Contains(userName, StringComparison.InvariantCultureIgnoreCase));
     }
 }

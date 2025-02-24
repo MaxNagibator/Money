@@ -34,7 +34,6 @@ public class AuthService(UserManager<ApplicationUser> userManager, SignInManager
         }
 
         var result = await signInManager.CheckPasswordSignInAsync(user, request.Password, true);
-
         if (result.Succeeded == false)
         {
             throw new PermissionException("Неверное имя пользователя или пароль.");
