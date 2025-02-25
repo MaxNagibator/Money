@@ -16,6 +16,11 @@ public class AccountClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
         return PostAsync($"{BaseUri}/ConfirmEmail", new ConfirmEmailRequest { ConfirmCode = code });
     }
 
+    public Task<ApiClientResponse> ResendConfirmCodeAsync()
+    {
+        return PostAsync($"{BaseUri}/ResendConfirmCode");
+    }
+
     public class RegisterRequest
     {
         public required string UserName { get; set; }
