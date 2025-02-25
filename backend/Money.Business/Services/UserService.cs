@@ -1,4 +1,4 @@
-﻿namespace Money.Business.Services;
+namespace Money.Business.Services;
 
 public class UserService(RequestEnvironment environment, ApplicationDbContext context)
 {
@@ -43,6 +43,16 @@ public class UserService(RequestEnvironment environment, ApplicationDbContext co
     public Task<int> GetNextDebtOwnerIdAsync(CancellationToken cancellationToken = default)
     {
         return GetNextIdAsync(x => x.NextDebtOwnerId, x => x.NextDebtOwnerId++, cancellationToken);
+    }
+
+    public Task<int> GetNextCarIdAsync(CancellationToken cancellationToken = default)
+    {
+        return GetNextIdAsync(x => x.NextCarId, x => x.NextCarId++, cancellationToken);
+    }
+
+    public Task<int> GetNextCarEventIdAsync(CancellationToken cancellationToken = default)
+    {
+        return GetNextIdAsync(x => x.NextCarEventId, x => x.NextCarEventId++, cancellationToken);
     }
 
     public async Task SetNextCategoryIdAsync(int index, CancellationToken cancellationToken = default)

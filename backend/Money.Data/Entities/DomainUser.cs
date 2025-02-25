@@ -21,6 +21,10 @@ public class DomainUser
 
     public int NextDebtOwnerId { get; set; }
 
+    public int NextCarId { get; set; }
+
+    public int NextCarEventId { get; set; }
+
     public byte[]? RowVersion { get; set; }
 
     /// <summary>

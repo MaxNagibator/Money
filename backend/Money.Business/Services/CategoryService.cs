@@ -1,4 +1,4 @@
-﻿using Money.Business.Mappers;
+using Money.Business.Mappers;
 using Money.Data.Extensions;
 
 namespace Money.Business.Services;
@@ -21,7 +21,7 @@ public class CategoryService(
             .OrderBy(x => x.Order == null)
             .ThenBy(x => x.Order)
             .ThenBy(x => x.Name)
-            .Select(x => x.Adapt())
+            .Select(x => Adapt(x))
             .ToListAsync(cancellationToken);
 
         return categories;
@@ -30,7 +30,21 @@ public class CategoryService(
     public async Task<Category> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
         var dbCategory = await GetByIdInternal(id, cancellationToken);
-        return dbCategory.Adapt();
+        return Adapt(dbCategory);
+    }
+
+    private Category Adapt(Data.Entities.Category model)
+    {
+        return new()
+        {
+            Id = model.Id,
+            Name = model.Name,
+            Description = model.Description,
+            Color = model.Color,
+            ParentId = model.ParentId,
+            Order = model.Order,
+            OperationType = (OperationTypes)model.TypeId,
+        };
     }
 
     public async Task<int> CreateAsync(Category category, CancellationToken cancellationToken = default)
@@ -97,7 +111,7 @@ public class CategoryService(
 
         if (dbCategory.IsDeleted == false)
         {
-            throw new BusinessException("Извините, но невозможно восстановить неудаленную категорию");
+            throw new BusinessException("Извините, но невозможно восстановить неудаленную сущность");
         }
 
         if (dbCategory.ParentId != null)

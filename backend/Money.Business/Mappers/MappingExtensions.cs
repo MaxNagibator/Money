@@ -1,4 +1,3 @@
-﻿using Category = Money.Business.Models.Category;
 using FastOperation = Money.Business.Models.FastOperation;
 using Operation = Money.Business.Models.Operation;
 using Place = Money.Business.Models.Place;
@@ -7,20 +6,7 @@ namespace Money.Business.Mappers;
 
 public static class MappingExtensions
 {
-    public static Category Adapt(this Data.Entities.Category model)
-    {
-        return new()
-        {
-            Id = model.Id,
-            Name = model.Name,
-            Description = model.Description,
-            Color = model.Color,
-            ParentId = model.ParentId,
-            Order = model.Order,
-            OperationType = (OperationTypes)model.TypeId,
-        };
-    }
-
+    [Obsolete("private GetBusinessModel")]
     public static Operation Adapt(this Data.Entities.Operation model, IEnumerable<Place>? dbPlaces = null)
     {
         return new()
@@ -37,6 +23,7 @@ public static class MappingExtensions
         };
     }
 
+    [Obsolete("private GetBusinessModel")]
     public static FastOperation Adapt(this Data.Entities.FastOperation model, IEnumerable<Place>? dbPlaces = null)
     {
         return new()
@@ -53,6 +40,7 @@ public static class MappingExtensions
         };
     }
 
+    [Obsolete("private GetBusinessModel")]
     public static Place Adapt(this Data.Entities.Place model)
     {
         return new()
