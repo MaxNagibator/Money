@@ -1,20 +1,20 @@
-﻿namespace Money.ApiClient;
+namespace Money.ApiClient;
 
-public class CategoryClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
+public class CarsClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
 {
-    private const string BaseUri = "/Categories";
+    private const string BaseUri = "/Cars";
 
     protected override string ApiPrefix => "";
 
-    public Task<ApiClientResponse<Category[]>> Get(int? type = null)
+    public Task<ApiClientResponse<Car[]>> Get(int? type = null)
     {
         var paramUri = type == null ? "" : $"?type={type}";
-        return GetAsync<Category[]>($"{BaseUri}{paramUri}");
+        return GetAsync<Car[]>($"{BaseUri}{paramUri}");
     }
 
-    public Task<ApiClientResponse<Category>> GetById(int id)
+    public Task<ApiClientResponse<Car>> GetById(int id)
     {
-        return GetAsync<Category>($"{BaseUri}/{id}");
+        return GetAsync<Car>($"{BaseUri}/{id}");
     }
 
     public Task<ApiClientResponse<int>> Create(SaveRequest request)
@@ -40,17 +40,9 @@ public class CategoryClient(MoneyClient apiClient) : ApiClientExecutor(apiClient
     public class SaveRequest
     {
         public required string Name { get; set; }
-
-        public required int OperationTypeId { get; set; }
-
-        public int? ParentId { get; set; }
-
-        public int? Order { get; set; }
-
-        public string? Color { get; set; }
     }
 
-    public class Category : SaveRequest
+    public class Car : SaveRequest
     {
         public required int Id { get; set; }
     }

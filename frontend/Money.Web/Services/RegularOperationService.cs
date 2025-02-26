@@ -1,4 +1,4 @@
-﻿using Money.ApiClient;
+using Money.ApiClient;
 
 namespace Money.Web.Services;
 
@@ -7,7 +7,7 @@ public class RegularOperationService(MoneyClient moneyClient, CategoryService ca
     // TODO: Подумать над вынесением ToDictionary() в CategoryService.
     public async Task<List<RegularOperation>> GetAllAsync()
     {
-        var response = await moneyClient.RegularOperation.Get();
+        var response = await moneyClient.RegularOperations.Get();
         var categories = (await categoryService.GetAllAsync()).ToDictionary(x => x.Id!.Value, x => x);
 
         return response.Content?

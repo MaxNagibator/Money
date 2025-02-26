@@ -35,7 +35,7 @@ public class RegularOperationTests
 
         _dbClient.Save();
 
-        var apiOperations = await _apiClient.RegularOperation.Get().IsSuccessWithContent();
+        var apiOperations = await _apiClient.RegularOperations.Get().IsSuccessWithContent();
         Assert.That(apiOperations, Is.Not.Null);
         Assert.That(apiOperations, Has.Length.GreaterThanOrEqualTo(operations.Length));
 
@@ -51,7 +51,7 @@ public class RegularOperationTests
         var operation = _user.WithRegularOperation().SetPlace(place);
         _dbClient.Save();
 
-        var apiOperation = await _apiClient.RegularOperation.GetById(operation.Id).IsSuccessWithContent();
+        var apiOperation = await _apiClient.RegularOperations.GetById(operation.Id).IsSuccessWithContent();
 
         Assert.That(apiOperation, Is.Not.Null);
 
@@ -79,7 +79,7 @@ public class RegularOperationTests
         var operation = _user.WithRegularOperation();
         var place = _user.WithPlace();
 
-        var request = new RegularOperationClient.SaveRequest
+        var request = new RegularOperationsClient.SaveRequest
         {
             CategoryId = category.Id,
             Sum = operation.Sum,
@@ -92,7 +92,7 @@ public class RegularOperationTests
             TimeValue = operation.TimeValue,
         };
 
-        var createdId = await _apiClient.RegularOperation.Create(request).IsSuccessWithContent();
+        var createdId = await _apiClient.RegularOperations.Create(request).IsSuccessWithContent();
         var dbOperation = await _dbClient.CreateApplicationDbContext().RegularOperations.FirstOrDefaultAsync(_user.Id, createdId);
         var dbPlace = await _dbClient.CreateApplicationDbContext().Places.FirstOrDefaultAsync(x => x.UserId == _user.Id && x.Name == place.Name);
 
@@ -126,7 +126,7 @@ public class RegularOperationTests
 
         var place = _user.WithPlace();
 
-        var request = new RegularOperationClient.SaveRequest
+        var request = new RegularOperationsClient.SaveRequest
         {
             Comment = "updateComment",
             CategoryId = updatedCategory.Id,
@@ -138,7 +138,7 @@ public class RegularOperationTests
             TimeValue = 3,
         };
 
-        await _apiClient.RegularOperation.Update(operation.Id, request).IsSuccess();
+        await _apiClient.RegularOperations.Update(operation.Id, request).IsSuccess();
         var dbOperation = await _dbClient.CreateApplicationDbContext().RegularOperations.FirstOrDefaultAsync(_user.Id, operation.Id);
         var dbPlace = await _dbClient.CreateApplicationDbContext().Places.FirstOrDefaultAsync(x => x.UserId == _user.Id && x.Name == place.Name);
 
@@ -169,7 +169,7 @@ public class RegularOperationTests
         var operation = _user.WithRegularOperation();
         _dbClient.Save();
 
-        await _apiClient.RegularOperation.Delete(operation.Id).IsSuccess();
+        await _apiClient.RegularOperations.Delete(operation.Id).IsSuccess();
 
         await using var context = _dbClient.CreateApplicationDbContext();
 
@@ -191,7 +191,7 @@ public class RegularOperationTests
         var operation = _user.WithRegularOperation().SetIsDeleted();
         _dbClient.Save();
 
-        await _apiClient.RegularOperation.Restore(operation.Id).IsSuccess();
+        await _apiClient.RegularOperations.Restore(operation.Id).IsSuccess();
 
         await using var context = _dbClient.CreateApplicationDbContext();
 
@@ -214,7 +214,7 @@ public class RegularOperationTests
 
         var operation = _user.WithRegularOperation();
 
-        var request = new RegularOperationClient.SaveRequest
+        var request = new RegularOperationsClient.SaveRequest
         {
             CategoryId = category.Id,
             Sum = operation.Sum,
@@ -260,7 +260,7 @@ public class RegularOperationTests
                 throw new ArgumentOutOfRangeException(nameof(timeType), timeType, null);
         }
 
-        var createdId = await _apiClient.RegularOperation.Create(request).IsSuccessWithContent();
+        var createdId = await _apiClient.RegularOperations.Create(request).IsSuccessWithContent();
         var dbOperation = await _dbClient.CreateApplicationDbContext().RegularOperations.FirstOrDefaultAsync(_user.Id, createdId);
         Assert.That(dbOperation, Is.Not.Null);
         Assert.That(dbOperation.RunTime, Is.Not.Null);

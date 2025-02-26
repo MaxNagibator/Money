@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
 using Money.ApiClient;
 using System.ComponentModel.DataAnnotations;
 
@@ -111,16 +111,16 @@ public partial class FastOperationDialog
 
         if (Model.Id == null)
         {
-            var result = await MoneyClient.FastOperation.Create(saveRequest);
+            var result = await MoneyClient.FastOperations.Create(saveRequest);
             Model.Id = result.Content;
         }
         else
         {
-            await MoneyClient.FastOperation.Update(Model.Id.Value, saveRequest);
+            await MoneyClient.FastOperations.Update(Model.Id.Value, saveRequest);
         }
     }
 
-    private FastOperationClient.SaveRequest CreateSaveRequest()
+    private FastOperationsClient.SaveRequest CreateSaveRequest()
     {
         return new()
         {

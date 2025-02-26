@@ -6,7 +6,7 @@ namespace Money.Api.Tests.Accounts;
 
 public class AccountsTests
 {
-    private readonly TimeSpan _emailServiceDelay = EmailSenderBackgroundService.Delay + TimeSpan.FromSeconds(1);
+    private readonly TimeSpan _emailServiceDelay = EmailSenderBackgroundService.Delay + TimeSpan.FromMilliseconds(100);
 
     private DatabaseClient _dbClient;
     private MoneyClient _apiClient;
@@ -104,7 +104,7 @@ public class AccountsTests
 
         _apiClient.SetUser(user);
         var code = TestMailService.GetConfirmCode(user.UserName)!;
-        await _apiClient.Account.ConfirmEmailAsync(code);
+        await _apiClient.Accounts.ConfirmEmailAsync(code);
 
         var dbUser = await _dbClient.CreateApplicationDbContext().Users.FirstAsync(x => x.UserName == user.UserName);
         Assert.That(dbUser.EmailConfirmed, Is.True);
@@ -119,7 +119,7 @@ public class AccountsTests
         await Task.Delay(_emailServiceDelay); // ждём по максимум бэкграунд сервис // todo это шляпа
 
         _apiClient.SetUser(user);
-        await _apiClient.Account.ResendConfirmCodeAsync();
+        await _apiClient.Accounts.ResendConfirmCodeAsync();
         await Task.Delay(_emailServiceDelay); // ждём по максимум бэкграунд сервис // todo это шляпа
 
         var codes = TestMailService

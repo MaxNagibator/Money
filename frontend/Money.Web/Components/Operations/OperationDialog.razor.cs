@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
 using Money.ApiClient;
 using System.ComponentModel.DataAnnotations;
 
@@ -119,16 +119,16 @@ public partial class OperationDialog
 
         if (Operation.Id == null)
         {
-            var result = await MoneyClient.Operation.Create(saveRequest);
+            var result = await MoneyClient.Operations.Create(saveRequest);
             Operation.Id = result.Content;
         }
         else
         {
-            await MoneyClient.Operation.Update(Operation.Id.Value, saveRequest);
+            await MoneyClient.Operations.Update(Operation.Id.Value, saveRequest);
         }
     }
 
-    private OperationClient.SaveRequest CreateSaveRequest()
+    private OperationsClient.SaveRequest CreateSaveRequest()
     {
         return new()
         {

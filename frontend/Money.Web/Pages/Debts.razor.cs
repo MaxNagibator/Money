@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
 using Money.ApiClient;
 using Money.Web.Components.Debts;
 using System.Globalization;
@@ -54,7 +54,7 @@ public partial class Debts
     {
         if (_isMergeOpen == false && _owners == null)
         {
-            var response = await MoneyClient.Debt.GetOwners();
+            var response = await MoneyClient.Debts.GetOwners();
 
             _owners = response.Content?
                           .Select(x => new DebtOwnerMerged(x.Id, x.Name ?? "Неназванный держатель"))
@@ -72,7 +72,7 @@ public partial class Debts
             return;
         }
 
-        var response = await MoneyClient.Debt.MergeOwners(OwnerFrom.Id, OwnerTo.Id);
+        var response = await MoneyClient.Debts.MergeOwners(OwnerFrom.Id, OwnerTo.Id);
 
         if (response.IsBadRequest(SnackbarService))
         {

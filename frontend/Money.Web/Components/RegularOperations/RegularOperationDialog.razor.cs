@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
 using Money.ApiClient;
 using System.ComponentModel.DataAnnotations;
 
@@ -117,19 +117,19 @@ public partial class RegularOperationDialog
 
         if (Model.Id == null)
         {
-            var result = await MoneyClient.RegularOperation.Create(saveRequest);
+            var result = await MoneyClient.RegularOperations.Create(saveRequest);
             Model.Id = result.Content;
         }
         else
         {
-            await MoneyClient.RegularOperation.Update(Model.Id.Value, saveRequest);
+            await MoneyClient.RegularOperations.Update(Model.Id.Value, saveRequest);
         }
 
-        var getOperations = await MoneyClient.RegularOperation.GetById(Model.Id.Value);
+        var getOperations = await MoneyClient.RegularOperations.GetById(Model.Id.Value);
         Model.RunTime = getOperations.Content!.RunTime;
     }
 
-    private RegularOperationClient.SaveRequest CreateSaveRequest()
+    private RegularOperationsClient.SaveRequest CreateSaveRequest()
     {
         return new()
         {

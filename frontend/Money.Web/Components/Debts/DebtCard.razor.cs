@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Money.ApiClient;
 using System.ComponentModel.DataAnnotations;
@@ -105,12 +105,12 @@ public sealed partial class DebtCard : ComponentBase, IDisposable
 
     private Task Delete()
     {
-        return Modify(MoneyClient.Debt.Delete, true);
+        return Modify(MoneyClient.Debts.Delete, true);
     }
 
     private Task Restore()
     {
-        return Modify(MoneyClient.Debt.Restore, false);
+        return Modify(MoneyClient.Debts.Restore, false);
     }
 
     private async Task Modify(Func<int, Task<ApiClientResponse>> action, bool isDeleted)
@@ -139,14 +139,14 @@ public sealed partial class DebtCard : ComponentBase, IDisposable
             Sum = Payment.Sum,
         };
 
-        var payResponse = await MoneyClient.Debt.Pay(Model.Id!.Value, request);
+        var payResponse = await MoneyClient.Debts.Pay(Model.Id!.Value, request);
 
         if (payResponse.GetError().ShowMessage(SnackbarService).HasError())
         {
             return;
         }
 
-        var response = await MoneyClient.Debt.GetById(Model.Id!.Value);
+        var response = await MoneyClient.Debts.GetById(Model.Id!.Value);
         var debt = response.Content;
 
         if (debt != null)

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
 using Money.ApiClient;
 
 namespace Money.Web.Components.FastOperations;
@@ -39,12 +39,12 @@ public partial class FastOperationCard : ComponentBase
 
     private Task Delete(FastOperation fastOperation)
     {
-        return Modify(fastOperation, MoneyClient.FastOperation.Delete, true);
+        return Modify(fastOperation, MoneyClient.FastOperations.Delete, true);
     }
 
     private Task Restore(FastOperation fastOperation)
     {
-        return Modify(fastOperation, MoneyClient.FastOperation.Restore, false);
+        return Modify(fastOperation, MoneyClient.FastOperations.Restore, false);
     }
 
     private async Task Modify(FastOperation fastOperation, Func<int, Task<ApiClientResponse>> action, bool isDeleted)

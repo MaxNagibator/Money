@@ -44,6 +44,13 @@ public class TestUser : TestObject
         return this;
     }
 
+    public TestCar WithCar()
+    {
+        var obj = new TestCar(this);
+        obj.Attach(Environment);
+        return obj;
+    }
+
     public TestCategory WithCategory()
     {
         var obj = new TestCategory(this);

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Money.Api.BackgroundServices;
 using Money.Data;
 using System.Collections.Concurrent;
 
@@ -41,6 +42,7 @@ public class Integration
     [OneTimeSetUp]
     public void OneTimeSetUp()
     {
+        EmailSenderBackgroundService.Delay = TimeSpan.FromMilliseconds(217);
         CustomWebApplicationFactory<Program> webHostBuilder = new();
         webHostBuilder.Server.PreserveExecutionContext = true;
 

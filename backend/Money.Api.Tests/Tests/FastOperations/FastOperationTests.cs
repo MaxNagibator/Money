@@ -33,7 +33,7 @@ public class FastOperationTests
 
         _dbClient.Save();
 
-        var apiOperations = await _apiClient.FastOperation.Get().IsSuccessWithContent();
+        var apiOperations = await _apiClient.FastOperations.Get().IsSuccessWithContent();
         Assert.That(apiOperations, Is.Not.Null);
         Assert.That(apiOperations, Has.Length.GreaterThanOrEqualTo(operations.Length));
 
@@ -49,7 +49,7 @@ public class FastOperationTests
         var operation = _user.WithFastOperation().SetOrder(217).SetPlace(place);
         _dbClient.Save();
 
-        var apiOperation = await _apiClient.FastOperation.GetById(operation.Id).IsSuccessWithContent();
+        var apiOperation = await _apiClient.FastOperations.GetById(operation.Id).IsSuccessWithContent();
 
         Assert.That(apiOperation, Is.Not.Null);
 
@@ -73,7 +73,7 @@ public class FastOperationTests
         var operation = _user.WithFastOperation();
         var place = _user.WithPlace();
 
-        var request = new FastOperationClient.SaveRequest
+        var request = new FastOperationsClient.SaveRequest
         {
             CategoryId = category.Id,
             Sum = operation.Sum,
@@ -83,7 +83,7 @@ public class FastOperationTests
             Place = place.Name,
         };
 
-        var createdId = await _apiClient.FastOperation.Create(request).IsSuccessWithContent();
+        var createdId = await _apiClient.FastOperations.Create(request).IsSuccessWithContent();
         var dbOperation = await _dbClient.CreateApplicationDbContext().FastOperations.FirstOrDefaultAsync(_user.Id, createdId);
         var dbPlace = await _dbClient.CreateApplicationDbContext().Places.FirstOrDefaultAsync(x => x.UserId == _user.Id && x.Name == place.Name);
 
@@ -114,7 +114,7 @@ public class FastOperationTests
         var place = _user.WithPlace();
         var updatedOperation = _user.WithFastOperation().SetOrder(10);
 
-        var request = new FastOperationClient.SaveRequest
+        var request = new FastOperationsClient.SaveRequest
         {
             Comment = updatedOperation.Comment,
             CategoryId = updatedCategory.Id,
@@ -124,7 +124,7 @@ public class FastOperationTests
             Sum = updatedOperation.Sum,
         };
 
-        await _apiClient.FastOperation.Update(operation.Id, request).IsSuccess();
+        await _apiClient.FastOperations.Update(operation.Id, request).IsSuccess();
         var dbOperation = await _dbClient.CreateApplicationDbContext().FastOperations.FirstOrDefaultAsync(_user.Id, operation.Id);
         var dbPlace = await _dbClient.CreateApplicationDbContext().Places.FirstOrDefaultAsync(x => x.UserId == _user.Id && x.Name == place.Name);
 
@@ -151,7 +151,7 @@ public class FastOperationTests
         var operation = _user.WithFastOperation();
         _dbClient.Save();
 
-        await _apiClient.FastOperation.Delete(operation.Id).IsSuccess();
+        await _apiClient.FastOperations.Delete(operation.Id).IsSuccess();
 
         await using var context = _dbClient.CreateApplicationDbContext();
 
@@ -173,7 +173,7 @@ public class FastOperationTests
         var operation = _user.WithFastOperation().SetIsDeleted();
         _dbClient.Save();
 
-        await _apiClient.FastOperation.Restore(operation.Id).IsSuccess();
+        await _apiClient.FastOperations.Restore(operation.Id).IsSuccess();
 
         await using var context = _dbClient.CreateApplicationDbContext();
 

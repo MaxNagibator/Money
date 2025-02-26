@@ -1,4 +1,4 @@
-﻿using CSharpFunctionalExtensions;
+using CSharpFunctionalExtensions;
 using Microsoft.Extensions.Caching.Memory;
 using Money.ApiClient;
 
@@ -16,7 +16,7 @@ public class CategoryService(MoneyClient moneyClient, IMemoryCache memoryCache, 
             return categories ?? [];
         }
 
-        var apiCategories = await moneyClient.Category.Get();
+        var apiCategories = await moneyClient.Categories.Get();
 
         categories = apiCategories.Content?
             .Select(apiCategory => new Category
@@ -43,7 +43,7 @@ public class CategoryService(MoneyClient moneyClient, IMemoryCache memoryCache, 
     {
         try
         {
-            var saveRequest = new CategoryClient.SaveRequest
+            var saveRequest = new CategoriesClient.SaveRequest
             {
                 Name = category.Name,
                 Order = category.Order,
@@ -54,12 +54,12 @@ public class CategoryService(MoneyClient moneyClient, IMemoryCache memoryCache, 
 
             if (category.Id == null)
             {
-                var result = await moneyClient.Category.Create(saveRequest);
+                var result = await moneyClient.Categories.Create(saveRequest);
                 category.Id = result.Content;
             }
             else
             {
-                await moneyClient.Category.Update(category.Id.Value, saveRequest);
+                await moneyClient.Categories.Update(category.Id.Value, saveRequest);
             }
 
             InvalidateCacheAsync();

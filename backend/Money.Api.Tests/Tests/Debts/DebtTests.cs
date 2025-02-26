@@ -32,7 +32,7 @@ public class DebtTests
 
         _dbClient.Save();
 
-        var apiDebts = await _apiClient.Debt.Get().IsSuccessWithContent();
+        var apiDebts = await _apiClient.Debts.Get().IsSuccessWithContent();
         Assert.That(apiDebts, Is.Not.Null);
         Assert.That(apiDebts.Count, Is.GreaterThanOrEqualTo(3));
 
@@ -47,7 +47,7 @@ public class DebtTests
         var debt = _user.WithDebt();
         _dbClient.Save();
 
-        var apiDebt = await _apiClient.Debt.GetById(debt.Id).IsSuccessWithContent();
+        var apiDebt = await _apiClient.Debts.GetById(debt.Id).IsSuccessWithContent();
 
         Assert.That(apiDebt, Is.Not.Null);
 
@@ -77,7 +77,7 @@ public class DebtTests
             TypeId = (int)debt.Type,
         };
 
-        var createdCategoryId = await _apiClient.Debt.Create(request).IsSuccessWithContent();
+        var createdCategoryId = await _apiClient.Debts.Create(request).IsSuccessWithContent();
         var dbDebt = await _dbClient.CreateApplicationDbContext().Debts.FirstOrDefaultAsync(_user.Id, createdCategoryId);
 
         Assert.That(dbDebt, Is.Not.Null);
@@ -108,7 +108,7 @@ public class DebtTests
             TypeId = (int)updateDebt.Type,
         };
 
-        await _apiClient.Debt.Update(debt.Id, request).IsSuccess();
+        await _apiClient.Debts.Update(debt.Id, request).IsSuccess();
         var dbDebt = await _dbClient.CreateApplicationDbContext().Debts.FirstOrDefaultAsync(_user.Id, debt.Id);
 
         Assert.Multiple(() =>
@@ -131,7 +131,7 @@ public class DebtTests
         var debt = _user.WithDebt();
         _dbClient.Save();
 
-        await _apiClient.Debt.Delete(debt.Id).IsSuccess();
+        await _apiClient.Debts.Delete(debt.Id).IsSuccess();
 
         await using var context = _dbClient.CreateApplicationDbContext();
 
@@ -153,7 +153,7 @@ public class DebtTests
         var debt = _user.WithDebt().SetIsDeleted();
         _dbClient.Save();
 
-        await _apiClient.Debt.Restore(debt.Id).IsSuccess();
+        await _apiClient.Debts.Restore(debt.Id).IsSuccess();
 
         await using var context = _dbClient.CreateApplicationDbContext();
 
@@ -175,7 +175,7 @@ public class DebtTests
             Date = DateTime.Now.Date,
         };
 
-        await _apiClient.Debt.Pay(debt.Id, request).IsSuccess();
+        await _apiClient.Debts.Pay(debt.Id, request).IsSuccess();
 
         await using var context = _dbClient.CreateApplicationDbContext();
 
@@ -201,7 +201,7 @@ public class DebtTests
             Date = DateTime.Now.Date,
         };
 
-        await _apiClient.Debt.Pay(debt.Id, request).IsSuccess();
+        await _apiClient.Debts.Pay(debt.Id, request).IsSuccess();
 
         await using var context = _dbClient.CreateApplicationDbContext();
 
@@ -227,7 +227,7 @@ public class DebtTests
             Date = DateTime.Now.Date,
         };
 
-        await _apiClient.Debt.Pay(debt.Id, request).IsSuccess();
+        await _apiClient.Debts.Pay(debt.Id, request).IsSuccess();
 
         var saveRequest = new DebtClient.SaveRequest
         {
@@ -238,7 +238,7 @@ public class DebtTests
             TypeId = (int)debt.Type,
         };
 
-        await _apiClient.Debt.Update(debt.Id, saveRequest).IsBadRequest();
+        await _apiClient.Debts.Update(debt.Id, saveRequest).IsBadRequest();
     }
 
     [Test]
@@ -251,7 +251,7 @@ public class DebtTests
         var fromUserId = debt1.OwnerId;
         var toUserId = debt2.OwnerId;
 
-        await _apiClient.Debt.MergeOwners(fromUserId, toUserId).IsSuccess();
+        await _apiClient.Debts.MergeOwners(fromUserId, toUserId).IsSuccess();
 
         await using var context = _dbClient.CreateApplicationDbContext();
 
@@ -277,7 +277,7 @@ public class DebtTests
         var debt = _user.WithDebt();
         _dbClient.Save();
 
-        var owners = await _apiClient.Debt.GetOwners().IsSuccessWithContent();
+        var owners = await _apiClient.Debts.GetOwners().IsSuccessWithContent();
 
         Assert.That(owners, Is.Not.Null);
 
@@ -296,7 +296,7 @@ public class DebtTests
         _dbClient.Save();
 
         var comment = "Прощаю";
-        await _apiClient.Debt.Forgive([debt.Id], category.Id, comment).IsSuccess();
+        await _apiClient.Debts.Forgive([debt.Id], category.Id, comment).IsSuccess();
 
         await using var context = _dbClient.CreateApplicationDbContext();
 

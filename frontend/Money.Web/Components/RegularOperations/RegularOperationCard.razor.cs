@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
 using Money.ApiClient;
 
 namespace Money.Web.Components.RegularOperations;
@@ -39,12 +39,12 @@ public partial class RegularOperationCard : ComponentBase
 
     private Task Delete(RegularOperation entity)
     {
-        return Modify(entity, MoneyClient.RegularOperation.Delete, true);
+        return Modify(entity, MoneyClient.RegularOperations.Delete, true);
     }
 
     private Task Restore(RegularOperation entity)
     {
-        return Modify(entity, MoneyClient.RegularOperation.Restore, false);
+        return Modify(entity, MoneyClient.RegularOperations.Restore, false);
     }
 
     private async Task Modify(RegularOperation entity, Func<int, Task<ApiClientResponse>> action, bool isDeleted)

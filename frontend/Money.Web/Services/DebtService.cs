@@ -1,4 +1,4 @@
-﻿using Money.ApiClient;
+using Money.ApiClient;
 
 namespace Money.Web.Services;
 
@@ -6,7 +6,7 @@ public class DebtService(MoneyClient moneyClient)
 {
     public async Task<IEnumerable<Debt>> GetAllAsync()
     {
-        var response = await moneyClient.Debt.Get();
+        var response = await moneyClient.Debts.Get();
 
         return response.Content?
                    .Select(x => new Debt

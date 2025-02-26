@@ -1,4 +1,4 @@
-﻿using Blazored.LocalStorage;
+using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components;
 using Money.ApiClient;
 
@@ -46,7 +46,7 @@ public partial class OperationsFilter
     {
         var categories = await CategoryService.GetAllAsync();
 
-        var filter = new OperationClient.OperationFilterDto
+        var filter = new OperationsClient.OperationFilterDto
         {
             CategoryIds = _categorySelector?.GetSelectedCategories().ToList(),
             Comment = Comment,
@@ -55,7 +55,7 @@ public partial class OperationsFilter
             DateTo = DateRange.End?.AddDays(1),
         };
 
-        var apiOperations = await MoneyClient.Operation.Get(filter);
+        var apiOperations = await MoneyClient.Operations.Get(filter);
 
         if (apiOperations.Content == null)
         {
@@ -167,13 +167,13 @@ public partial class OperationsFilter
             return;
         }
 
-        var request = new OperationClient.UpdateOperationsBatchRequest
+        var request = new OperationsClient.UpdateOperationsBatchRequest
         {
             OperationIds = _operations.Select(x => x.Id!.Value).ToList(),
             CategoryId = _changeCategorySelector.SelectedCategory.Id.Value,
         };
 
-        await MoneyClient.Operation.UpdateBatch(request);
+        await MoneyClient.Operations.UpdateBatch(request);
         _changeCategorySelector.Reset();
         _showChangeCategorySelector = false;
 

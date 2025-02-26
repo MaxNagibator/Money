@@ -19,6 +19,8 @@ public class ContainerDefinition : AppDefinition
         builder.Services.AddScoped<PlaceService>();
         builder.Services.AddScoped<RegularOperationService>();
         builder.Services.AddScoped<FileService>();
+        builder.Services.AddScoped<CarService>();
+        builder.Services.AddScoped<CarEventService>();
         builder.Services.AddSingleton<QueueHolder>();
     }
 }

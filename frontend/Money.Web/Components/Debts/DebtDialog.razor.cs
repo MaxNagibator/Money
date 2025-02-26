@@ -103,12 +103,12 @@ public partial class DebtDialog
 
         if (Model.Id == null)
         {
-            var result = await MoneyClient.Debt.Create(saveRequest);
+            var result = await MoneyClient.Debts.Create(saveRequest);
             Model.Id = result.Content;
         }
         else
         {
-            await MoneyClient.Debt.Update(Model.Id.Value, saveRequest);
+            await MoneyClient.Debts.Update(Model.Id.Value, saveRequest);
         }
     }
 

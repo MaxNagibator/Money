@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
 using Money.ApiClient;
 
 namespace Money.Web.Pages;
@@ -67,12 +67,12 @@ public partial class Categories
 
     private async Task Delete(Category category)
     {
-        await ModifyCategory(category, MoneyClient.Category.Delete, true);
+        await ModifyCategory(category, MoneyClient.Categories.Delete, true);
     }
 
     private async Task Restore(Category category)
     {
-        await ModifyCategory(category, MoneyClient.Category.Restore, false);
+        await ModifyCategory(category, MoneyClient.Categories.Restore, false);
     }
 
     private async Task<Category?> ShowCategoryDialog(string title, Category category)

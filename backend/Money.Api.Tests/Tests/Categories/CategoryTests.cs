@@ -34,7 +34,7 @@ public class CategoryTests
 
         _dbClient.Save();
 
-        var apiCategories = await _apiClient.Category.Get((int)operationType).IsSuccessWithContent();
+        var apiCategories = await _apiClient.Categories.Get((int)operationType).IsSuccessWithContent();
         Assert.That(apiCategories, Is.Not.Null);
         Assert.That(apiCategories.Count, Is.GreaterThanOrEqualTo(3));
 
@@ -49,7 +49,7 @@ public class CategoryTests
         var category = _user.WithCategory();
         _dbClient.Save();
 
-        var apiCategory = await _apiClient.Category.GetById(category.Id).IsSuccessWithContent();
+        var apiCategory = await _apiClient.Categories.GetById(category.Id).IsSuccessWithContent();
 
         Assert.That(apiCategory, Is.Not.Null);
 
@@ -68,7 +68,7 @@ public class CategoryTests
 
         var category = _user.WithCategory();
 
-        var request = new CategoryClient.SaveRequest
+        var request = new CategoriesClient.SaveRequest
         {
             Name = category.Name,
             OperationTypeId = (int)category.OperationType,
@@ -77,7 +77,7 @@ public class CategoryTests
             ParentId = null,
         };
 
-        var createdCategoryId = await _apiClient.Category.Create(request).IsSuccessWithContent();
+        var createdCategoryId = await _apiClient.Categories.Create(request).IsSuccessWithContent();
         var dbCategory = await _dbClient.CreateApplicationDbContext().Categories.FirstOrDefaultAsync(_user.Id, createdCategoryId);
 
         Assert.That(dbCategory, Is.Not.Null);
@@ -98,7 +98,7 @@ public class CategoryTests
         var category = _user.WithCategory();
         _dbClient.Save();
 
-        var request = new CategoryClient.SaveRequest
+        var request = new CategoriesClient.SaveRequest
         {
             Name = category.Name,
             OperationTypeId = (int)category.OperationType,
@@ -107,7 +107,7 @@ public class CategoryTests
             ParentId = null,
         };
 
-        await _apiClient.Category.Update(category.Id, request).IsSuccess();
+        await _apiClient.Categories.Update(category.Id, request).IsSuccess();
         var dbCategory = await _dbClient.CreateApplicationDbContext().Categories.FirstOrDefaultAsync(_user.Id, category.Id);
 
         Assert.That(dbCategory, Is.Not.Null);
@@ -134,14 +134,14 @@ public class CategoryTests
         category3.SetParent(category2);
         _dbClient.Save();
 
-        var request = new CategoryClient.SaveRequest
+        var request = new CategoriesClient.SaveRequest
         {
             Name = category1.Name,
             OperationTypeId = (int)category1.OperationType,
             ParentId = category3.Id,
         };
 
-        await _apiClient.Category.Update(category1.Id, request).IsBadRequest();
+        await _apiClient.Categories.Update(category1.Id, request).IsBadRequest();
 
         request = new()
         {
@@ -150,7 +150,7 @@ public class CategoryTests
             ParentId = category3.Id,
         };
 
-        await _apiClient.Category.Update(category2.Id, request).IsBadRequest();
+        await _apiClient.Categories.Update(category2.Id, request).IsBadRequest();
     }
 
     [Test]
@@ -159,7 +159,7 @@ public class CategoryTests
         var category = _user.WithCategory();
         _dbClient.Save();
 
-        await _apiClient.Category.Delete(category.Id).IsSuccess();
+        await _apiClient.Categories.Delete(category.Id).IsSuccess();
 
         await using var context = _dbClient.CreateApplicationDbContext();
 
@@ -182,7 +182,7 @@ public class CategoryTests
         var category = _user.WithCategory().SetIsDeleted();
         _dbClient.Save();
 
-        await _apiClient.Category.Restore(category.Id).IsSuccess();
+        await _apiClient.Categories.Restore(category.Id).IsSuccess();
 
         await using var context = _dbClient.CreateApplicationDbContext();
 
@@ -197,7 +197,7 @@ public class CategoryTests
         var category = _user.WithCategory();
         _dbClient.Save();
 
-        await _apiClient.Category.Restore(category.Id).IsBadRequest();
+        await _apiClient.Categories.Restore(category.Id).IsBadRequest();
     }
 
     [Test]
@@ -205,7 +205,7 @@ public class CategoryTests
     {
         _dbClient.Save();
 
-        await _apiClient.Category.Restore(-1).IsNotFound();
+        await _apiClient.Categories.Restore(-1).IsNotFound();
     }
 
     [Test]
@@ -216,9 +216,9 @@ public class CategoryTests
         child.SetParent(parent);
         _dbClient.Save();
 
-        await _apiClient.Category.Delete(child.Id).IsSuccess();
-        await _apiClient.Category.Delete(parent.Id).IsSuccess();
+        await _apiClient.Categories.Delete(child.Id).IsSuccess();
+        await _apiClient.Categories.Delete(parent.Id).IsSuccess();
 
-        await _apiClient.Category.Restore(child.Id).IsBadRequest();
+        await _apiClient.Categories.Restore(child.Id).IsBadRequest();
     }
 }

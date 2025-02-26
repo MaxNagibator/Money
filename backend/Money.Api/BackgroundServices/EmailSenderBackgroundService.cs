@@ -7,14 +7,20 @@ public class EmailSenderBackgroundService(
     IMailService mailService,
     ILogger<EmailSenderBackgroundService> logger) : BackgroundService
 {
-    public static readonly TimeSpan Delay = TimeSpan.FromSeconds(10);
-    private readonly PeriodicTimer _timer = new(Delay);
+    public static TimeSpan Delay { get; set; } = TimeSpan.FromSeconds(10);
+    private PeriodicTimer _timer;
 
     public override void Dispose()
     {
         base.Dispose();
         _timer.Dispose();
         GC.SuppressFinalize(this);
+    }
+
+    public override Task StartAsync(CancellationToken cancellationToken)
+    {
+        _timer = new(Delay);
+        return base.StartAsync(cancellationToken);
     }
 
     public override Task StopAsync(CancellationToken cancellationToken)

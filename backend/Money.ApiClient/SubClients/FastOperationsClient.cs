@@ -1,19 +1,19 @@
 ﻿namespace Money.ApiClient;
 
-public class RegularOperationClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
+public class FastOperationsClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
 {
-    private const string BaseUri = "/RegularOperations";
+    private const string BaseUri = "/FastOperations";
 
     protected override string ApiPrefix => "";
 
-    public Task<ApiClientResponse<RegularOperation[]>> Get()
+    public Task<ApiClientResponse<FastOperation[]>> Get()
     {
-        return GetAsync<RegularOperation[]>($"{BaseUri}");
+        return GetAsync<FastOperation[]>($"{BaseUri}");
     }
 
-    public Task<ApiClientResponse<RegularOperation>> GetById(int id)
+    public Task<ApiClientResponse<FastOperation>> GetById(int id)
     {
-        return GetAsync<RegularOperation>($"{BaseUri}/{id}");
+        return GetAsync<FastOperation>($"{BaseUri}/{id}");
     }
 
     public Task<ApiClientResponse<int>> Create(SaveRequest request)
@@ -60,19 +60,11 @@ public class RegularOperationClient(MoneyClient apiClient) : ApiClientExecutor(a
 
         public required string Name { get; set; }
 
-        public int TimeTypeId { get; set; }
-
-        public int? TimeValue { get; set; }
-
-        public DateTime DateFrom { get; set; }
-
-        public DateTime? DateTo { get; set; }
+        public int? Order { get; set; }
     }
 
-    public class RegularOperation : SaveRequest
+    public class FastOperation : SaveRequest
     {
         public int Id { get; set; }
-
-        public DateTime RunTime { get; set; }
     }
 }

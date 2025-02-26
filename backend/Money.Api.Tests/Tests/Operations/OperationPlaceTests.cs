@@ -27,7 +27,7 @@ public class OperationPlaceTests
         var category = _user.WithCategory();
         _dbClient.Save();
 
-        var request = new OperationClient.SaveRequest
+        var request = new OperationsClient.SaveRequest
         {
             CategoryId = category.Id,
             Sum = 1,
@@ -35,7 +35,7 @@ public class OperationPlaceTests
             Place = "place1",
         };
 
-        await _apiClient.Operation.Create(request).IsSuccess();
+        await _apiClient.Operations.Create(request).IsSuccess();
 
         var dbPlaces = _dbClient.CreateApplicationDbContext()
             .Places
@@ -63,7 +63,7 @@ public class OperationPlaceTests
         var category = _user.WithCategory();
         _dbClient.Save();
 
-        var request = new OperationClient.SaveRequest
+        var request = new OperationsClient.SaveRequest
         {
             CategoryId = category.Id,
             Sum = 1,
@@ -71,9 +71,9 @@ public class OperationPlaceTests
             Place = "place1",
         };
 
-        var operationId = await _apiClient.Operation.Create(request).IsSuccessWithContent();
+        var operationId = await _apiClient.Operations.Create(request).IsSuccessWithContent();
         request.Place = updatedPlace;
-        await _apiClient.Operation.Update(operationId, request).IsSuccess();
+        await _apiClient.Operations.Update(operationId, request).IsSuccess();
 
         var dbPlaces = _dbClient.CreateApplicationDbContext()
             .Places
@@ -96,7 +96,7 @@ public class OperationPlaceTests
         var category = _user.WithCategory();
         _dbClient.Save();
 
-        var request = new OperationClient.SaveRequest
+        var request = new OperationsClient.SaveRequest
         {
             CategoryId = category.Id,
             Sum = 1,
@@ -104,11 +104,11 @@ public class OperationPlaceTests
             Place = "place1",
         };
 
-        await _apiClient.Operation.Create(request).IsSuccessWithContent();
-        var operationId2 = await _apiClient.Operation.Create(request).IsSuccessWithContent();
+        await _apiClient.Operations.Create(request).IsSuccessWithContent();
+        var operationId2 = await _apiClient.Operations.Create(request).IsSuccessWithContent();
 
         request.Place = null;
-        await _apiClient.Operation.Update(operationId2, request).IsSuccess();
+        await _apiClient.Operations.Update(operationId2, request).IsSuccess();
 
         var dbPlaces = _dbClient.CreateApplicationDbContext()
             .Places
@@ -131,7 +131,7 @@ public class OperationPlaceTests
         var category = _user.WithCategory();
         _dbClient.Save();
 
-        var request = new OperationClient.SaveRequest
+        var request = new OperationsClient.SaveRequest
         {
             CategoryId = category.Id,
             Sum = 1,
@@ -139,12 +139,12 @@ public class OperationPlaceTests
             Place = "place1",
         };
 
-        var operationId1 = await _apiClient.Operation.Create(request).IsSuccessWithContent();
-        var operationId2 = await _apiClient.Operation.Create(request).IsSuccessWithContent();
+        var operationId1 = await _apiClient.Operations.Create(request).IsSuccessWithContent();
+        var operationId2 = await _apiClient.Operations.Create(request).IsSuccessWithContent();
 
         request.Place = null;
-        await _apiClient.Operation.Update(operationId1, request).IsSuccess();
-        await _apiClient.Operation.Update(operationId2, request).IsSuccess();
+        await _apiClient.Operations.Update(operationId1, request).IsSuccess();
+        await _apiClient.Operations.Update(operationId2, request).IsSuccess();
 
         var dbPlaces = _dbClient.CreateApplicationDbContext()
             .Places
@@ -168,7 +168,7 @@ public class OperationPlaceTests
         var category = _user.WithCategory();
         _dbClient.Save();
 
-        var request = new OperationClient.SaveRequest
+        var request = new OperationsClient.SaveRequest
         {
             CategoryId = category.Id,
             Sum = 1,
@@ -176,8 +176,8 @@ public class OperationPlaceTests
             Place = "place1",
         };
 
-        var operationId = await _apiClient.Operation.Create(request).IsSuccessWithContent();
-        await _apiClient.Operation.Delete(operationId).IsSuccess();
+        var operationId = await _apiClient.Operations.Create(request).IsSuccessWithContent();
+        await _apiClient.Operations.Delete(operationId).IsSuccess();
 
         var dbPlaces = _dbClient.CreateApplicationDbContext()
             .Places
@@ -202,7 +202,7 @@ public class OperationPlaceTests
         var category = _user.WithCategory();
         _dbClient.Save();
 
-        var request = new OperationClient.SaveRequest
+        var request = new OperationsClient.SaveRequest
         {
             CategoryId = category.Id,
             Sum = 1,
@@ -210,9 +210,9 @@ public class OperationPlaceTests
             Place = "place1",
         };
 
-        var operationId = await _apiClient.Operation.Create(request).IsSuccessWithContent();
-        await _apiClient.Operation.Delete(operationId).IsSuccess();
-        await _apiClient.Operation.Restore(operationId).IsSuccess();
+        var operationId = await _apiClient.Operations.Create(request).IsSuccessWithContent();
+        await _apiClient.Operations.Delete(operationId).IsSuccess();
+        await _apiClient.Operations.Restore(operationId).IsSuccess();
 
         var dbPlaces = _dbClient.CreateApplicationDbContext()
             .Places
@@ -238,7 +238,7 @@ public class OperationPlaceTests
         var category = _user.WithCategory();
         _dbClient.Save();
 
-        var request = new OperationClient.SaveRequest
+        var request = new OperationsClient.SaveRequest
         {
             CategoryId = category.Id,
             Sum = 1,
@@ -246,9 +246,9 @@ public class OperationPlaceTests
             Place = "place1",
         };
 
-        var operationId1 = await _apiClient.Operation.Create(request).IsSuccessWithContent();
-        await _apiClient.Operation.Delete(operationId1).IsSuccess();
-        await _apiClient.Operation.Create(request).IsSuccessWithContent();
+        var operationId1 = await _apiClient.Operations.Create(request).IsSuccessWithContent();
+        await _apiClient.Operations.Delete(operationId1).IsSuccess();
+        await _apiClient.Operations.Create(request).IsSuccessWithContent();
 
         var dbPlaces = _dbClient.CreateApplicationDbContext()
             .Places
@@ -274,15 +274,15 @@ public class OperationPlaceTests
         _user.WithPlace();
         _dbClient.Save();
 
-        var apiPlaces = await _apiClient.Operation.GetPlaces(0, 1, place.Name[..1]).IsSuccessWithContent();
+        var apiPlaces = await _apiClient.Operations.GetPlaces(0, 1, place.Name[..1]).IsSuccessWithContent();
         Assert.That(apiPlaces, Is.Not.Null);
         Assert.That(apiPlaces, Has.Length.EqualTo(1));
 
-        apiPlaces = await _apiClient.Operation.GetPlaces(1, 10, place.Name[..1]).IsSuccessWithContent();
+        apiPlaces = await _apiClient.Operations.GetPlaces(1, 10, place.Name[..1]).IsSuccessWithContent();
         Assert.That(apiPlaces, Is.Not.Null);
         Assert.That(apiPlaces, Has.Length.EqualTo(2));
 
-        apiPlaces = await _apiClient.Operation.GetPlaces(2, 10, place.Name[..1]).IsSuccessWithContent();
+        apiPlaces = await _apiClient.Operations.GetPlaces(2, 10, place.Name[..1]).IsSuccessWithContent();
         Assert.That(apiPlaces, Is.Not.Null);
         Assert.That(apiPlaces, Has.Length.EqualTo(1));
     }
@@ -297,11 +297,11 @@ public class OperationPlaceTests
         _user.WithPlace();
         _dbClient.Save();
 
-        var apiPlaces = await _apiClient.Operation.GetPlaces(0, 1).IsSuccessWithContent();
+        var apiPlaces = await _apiClient.Operations.GetPlaces(0, 1).IsSuccessWithContent();
         Assert.That(apiPlaces, Is.Not.Null);
         Assert.That(apiPlaces, Has.Length.EqualTo(1));
 
-        apiPlaces = await _apiClient.Operation.GetPlaces(0, 1, "").IsSuccessWithContent();
+        apiPlaces = await _apiClient.Operations.GetPlaces(0, 1, "").IsSuccessWithContent();
         Assert.That(apiPlaces, Is.Not.Null);
         Assert.That(apiPlaces, Has.Length.EqualTo(1));
     }
@@ -318,7 +318,7 @@ public class OperationPlaceTests
         var place1 = _user.WithPlace().SetLastUsedDate(DateTime.Now);
         _dbClient.Save();
 
-        var apiPlaces = await _apiClient.Operation.GetPlaces(0, 100).IsSuccessWithContent();
+        var apiPlaces = await _apiClient.Operations.GetPlaces(0, 100).IsSuccessWithContent();
         Assert.That(apiPlaces, Is.Not.Null);
         Assert.That(apiPlaces, Has.Length.EqualTo(3));
 

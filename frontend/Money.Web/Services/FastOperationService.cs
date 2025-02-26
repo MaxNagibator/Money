@@ -1,4 +1,4 @@
-﻿using Money.ApiClient;
+using Money.ApiClient;
 
 namespace Money.Web.Services;
 
@@ -7,7 +7,7 @@ public class FastOperationService(MoneyClient moneyClient, CategoryService categ
     // TODO: Подумать над вынесением ToDictionary() в CategoryService.
     public async Task<List<FastOperation>> GetAllAsync()
     {
-        var response = await moneyClient.FastOperation.Get();
+        var response = await moneyClient.FastOperations.Get();
         var categories = (await categoryService.GetAllAsync()).ToDictionary(x => x.Id!.Value, x => x);
 
         return response.Content?

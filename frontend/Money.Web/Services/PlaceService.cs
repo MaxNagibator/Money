@@ -1,4 +1,4 @@
-﻿using Money.ApiClient;
+using Money.ApiClient;
 
 namespace Money.Web.Services;
 
@@ -26,7 +26,7 @@ public class PlaceService(MoneyClient moneyClient)
             return [value];
         }
 
-        var response = await moneyClient.Operation.GetPlaces(0, 10, value, token);
+        var response = await moneyClient.Operations.GetPlaces(0, 10, value, token);
 
         if (response.Content == null)
         {

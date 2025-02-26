@@ -2,7 +2,7 @@
 
 namespace Money.ApiClient;
 
-public class OperationClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
+public class OperationsClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
 {
     private const string BaseUri = "/Operations";
 

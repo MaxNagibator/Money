@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
 using Money.ApiClient;
 
 namespace Money.Web.Pages.Operations;
@@ -113,12 +113,12 @@ public partial class ListOperations
 
     private async Task Delete(Operation operation)
     {
-        await ModifyOperation(operation, MoneyClient.Operation.Delete, true);
+        await ModifyOperation(operation, MoneyClient.Operations.Delete, true);
     }
 
     private async Task Restore(Operation operation)
     {
-        await ModifyOperation(operation, MoneyClient.Operation.Restore, false);
+        await ModifyOperation(operation, MoneyClient.Operations.Restore, false);
     }
 
     private async Task ModifyOperation(Operation operation, Func<int, Task<ApiClientResponse>> action, bool isDeleted)

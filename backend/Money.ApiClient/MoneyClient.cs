@@ -10,12 +10,13 @@ public class MoneyClient
     {
         HttpClient = client;
         Log = log;
-        Debt = new(this);
-        Category = new(this);
-        Operation = new(this);
-        FastOperation = new(this);
-        RegularOperation = new(this);
-        Account = new(this);
+        Debts = new(this);
+        Categories = new(this);
+        Operations = new(this);
+        FastOperations = new(this);
+        RegularOperations = new(this);
+        Accounts = new(this);
+        Cars = new(this);
     }
 
     [ActivatorUtilitiesConstructor]
@@ -28,12 +29,13 @@ public class MoneyClient
     public Action<string> Log { get; }
     public ApiUser? User { get; private set; }
 
-    public DebtClient Debt { get; }
-    public CategoryClient Category { get; }
-    public OperationClient Operation { get; }
-    public FastOperationClient FastOperation { get; }
-    public RegularOperationClient RegularOperation { get; }
-    public AccountClient Account { get; }
+    public DebtClient Debts { get; }
+    public CategoriesClient Categories { get; }
+    public OperationsClient Operations { get; }
+    public FastOperationsClient FastOperations { get; }
+    public RegularOperationsClient RegularOperations { get; }
+    public AccountsClient Accounts { get; }
+    public CarsClient Cars { get; }
 
     public void SetUser(string login, string password)
     {
@@ -46,7 +48,7 @@ public class MoneyClient
 
     public async Task RegisterAsync(string username, string? email, string password)
     {
-        var response = await Account.RegisterAsync(new()
+        var response = await Accounts.RegisterAsync(new()
         {
             Password = password,
             UserName = username,
