@@ -34,7 +34,7 @@ public class OperationsController(OperationService operationService, PlaceServic
     {
         var businessFilter = filter.ToBusinessModel();
         var operations = (await operationService.GetAsync(businessFilter, cancellationToken)).ToArray();
-        var categories = (await categoryService.GetAsync(null, cancellationToken)).ToArray();
+        var categories = (await categoryService.GetAsync(cancellationToken)).ToArray();
 
         using var workBook = new XLWorkbook();
 

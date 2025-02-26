@@ -1,5 +1,4 @@
-﻿using Money.Business.Mappers;
-using Money.Data.Extensions;
+﻿using Money.Data.Extensions;
 using OperationBase = Money.Data.Entities.Base.OperationBase;
 using Place = Money.Business.Models.Place;
 
@@ -12,21 +11,21 @@ public class PlaceService(
 {
     public Task<List<Place>> GetPlacesAsync(int offset, int count, string? name, CancellationToken cancellationToken)
     {
-        var dbPlaces = context.Places
+        var entities = context.Places
             .IsUserEntity(environment.UserId)
             .Where(x => x.IsDeleted == false);
 
         if (string.IsNullOrWhiteSpace(name) == false)
         {
-            dbPlaces = dbPlaces.Where(x => x.Name.Contains(name)); // todo сделать регистронезависимый поиск
+            entities = entities.Where(x => x.Name.Contains(name)); // todo сделать регистронезависимый поиск
         }
 
-        return dbPlaces
+        return entities
             .OrderByDescending(x => string.IsNullOrWhiteSpace(name) == false && x.Name.StartsWith(name))
             .ThenByDescending(x => x.LastUsedDate)
             .Skip(offset)
             .Take(count)
-            .Select(x => x.Adapt())
+            .Select(x => GetBusinessModel(x))
             .ToListAsync(cancellationToken);
     }
 
@@ -35,7 +34,7 @@ public class PlaceService(
         return context.Places
             .IsUserEntity(environment.UserId)
             .Where(x => placeIds.Contains(x.Id))
-            .Select(x => x.Adapt())
+            .Select(x => GetBusinessModel(x))
             .ToListAsync(cancellationToken);
     }
 
@@ -48,40 +47,40 @@ public class PlaceService(
             return null;
         }
 
-        var dbPlace = await context.Places
+        var entity = await context.Places
             .IsUserEntity(environment.UserId)
             .FirstOrDefaultAsync(x => x.Name == place, cancellationToken);
 
-        if (dbPlace == null)
+        if (entity == null)
         {
             var newPlaceId = await userService.GetNextPlaceIdAsync(cancellationToken);
 
-            dbPlace = new()
+            entity = new()
             {
                 UserId = await userService.GetIdAsync(cancellationToken),
                 Id = newPlaceId,
                 Name = place,
             };
 
-            await context.Places.AddAsync(dbPlace, cancellationToken);
+            await context.Places.AddAsync(entity, cancellationToken);
         }
 
-        dbPlace.LastUsedDate = DateTime.Now;
-        dbPlace.Name = place;
-        dbPlace.IsDeleted = false;
-        return dbPlace.Id;
+        entity.LastUsedDate = DateTime.Now;
+        entity.Name = place;
+        entity.IsDeleted = false;
+        return entity.Id;
     }
 
     public async Task<int?> GetPlaceIdAsync(string? place, OperationBase dbOperation, CancellationToken cancellationToken)
     {
-        var dbPlace = await GetPlaceByIdAsync(dbOperation.PlaceId, cancellationToken);
-        var hasAnyOperations = await IsPlaceBusyAsync(dbPlace, dbOperation.Id, cancellationToken);
+        var entity = await GetPlaceByIdAsync(dbOperation.PlaceId, cancellationToken);
+        var hasAnyOperations = await IsPlaceBusyAsync(entity, dbOperation.Id, cancellationToken);
 
         if (string.IsNullOrWhiteSpace(place))
         {
-            if (dbPlace != null && hasAnyOperations == false)
+            if (entity != null && hasAnyOperations == false)
             {
-                dbPlace.IsDeleted = true;
+                entity.IsDeleted = true;
             }
 
             return null;
@@ -93,16 +92,16 @@ public class PlaceService(
 
         if (dbNewPlace != null)
         {
-            if (dbPlace != null && hasAnyOperations == false && dbPlace.Id != dbNewPlace.Id)
+            if (entity != null && hasAnyOperations == false && entity.Id != dbNewPlace.Id)
             {
-                dbPlace.IsDeleted = true;
+                entity.IsDeleted = true;
             }
         }
         else
         {
-            if (dbPlace != null && hasAnyOperations == false)
+            if (entity != null && hasAnyOperations == false)
             {
-                dbNewPlace = dbPlace;
+                dbNewPlace = entity;
             }
             else
             {
@@ -128,31 +127,40 @@ public class PlaceService(
 
     public async Task CheckRemovePlaceAsync(int? placeId, int? operationId, CancellationToken cancellationToken)
     {
-        var dbPlace = await GetPlaceByIdAsync(placeId, cancellationToken);
+        var entity = await GetPlaceByIdAsync(placeId, cancellationToken);
 
-        if (dbPlace == null)
+        if (entity == null)
         {
             return;
         }
 
-        var hasAnyOperations = await IsPlaceBusyAsync(dbPlace, operationId, cancellationToken);
+        var hasAnyOperations = await IsPlaceBusyAsync(entity, operationId, cancellationToken);
 
         if (hasAnyOperations == false)
         {
-            dbPlace.IsDeleted = true;
+            entity.IsDeleted = true;
         }
     }
 
     public async Task CheckRestorePlaceAsync(int? placeId, CancellationToken cancellationToken)
     {
-        var dbPlace = await GetPlaceByIdAsync(placeId, cancellationToken);
+        var entity = await GetPlaceByIdAsync(placeId, cancellationToken);
 
-        if (dbPlace == null)
+        if (entity == null)
         {
             return;
         }
 
-        dbPlace.IsDeleted = false;
+        entity.IsDeleted = false;
+    }
+
+    private static Place GetBusinessModel(Data.Entities.Place model)
+    {
+        return new()
+        {
+            Id = model.Id,
+            Name = model.Name,
+        };
     }
 
     private Task<Data.Entities.Place?> GetPlaceByIdAsync(int? placeId, CancellationToken cancellationToken)
@@ -167,16 +175,16 @@ public class PlaceService(
         return Task.FromResult<Data.Entities.Place?>(null);
     }
 
-    private Task<bool> IsPlaceBusyAsync(Data.Entities.Place? place, int? operationId, CancellationToken cancellationToken)
+    private Task<bool> IsPlaceBusyAsync(Data.Entities.Place? model, int? operationId, CancellationToken cancellationToken)
     {
-        if (place == null)
+        if (model == null)
         {
             return Task.FromResult(false);
         }
 
         var operations = context.Operations
-            .IsUserEntity(place.UserId)
-            .Where(x => x.PlaceId == place.Id);
+            .IsUserEntity(model.UserId)
+            .Where(x => x.PlaceId == model.Id);
 
         if (operationId != null)
         {

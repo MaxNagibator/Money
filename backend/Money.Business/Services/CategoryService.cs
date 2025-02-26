@@ -1,4 +1,3 @@
-using Money.Business.Mappers;
 using Money.Data.Extensions;
 
 namespace Money.Business.Services;
@@ -8,115 +7,97 @@ public class CategoryService(
     ApplicationDbContext context,
     UserService userService)
 {
-    public async Task<IEnumerable<Category>> GetAsync(int? type = null, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Category>> GetAsync(CancellationToken cancellationToken, int? type = null)
     {
-        var query = context.Categories.IsUserEntity(environment.UserId);
+        var query = context.Categories
+            .IsUserEntity(environment.UserId);
 
         if (type != null)
         {
             query = query.Where(x => x.TypeId == type);
         }
 
-        var categories = await query
+        var models = await query
             .OrderBy(x => x.Order == null)
             .ThenBy(x => x.Order)
             .ThenBy(x => x.Name)
-            .Select(x => Adapt(x))
+            .Select(x => GetBusinessModel(x))
             .ToListAsync(cancellationToken);
 
-        return categories;
+        return models;
     }
 
     public async Task<Category> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
-        var dbCategory = await GetByIdInternal(id, cancellationToken);
-        return Adapt(dbCategory);
+        var entity = await GetByIdInternal(id, cancellationToken);
+        return GetBusinessModel(entity);
     }
 
-    private Category Adapt(Data.Entities.Category model)
+    public async Task<int> CreateAsync(Category model, CancellationToken cancellationToken)
     {
-        return new()
-        {
-            Id = model.Id,
-            Name = model.Name,
-            Description = model.Description,
-            Color = model.Color,
-            ParentId = model.ParentId,
-            Order = model.Order,
-            OperationType = (OperationTypes)model.TypeId,
-        };
-    }
-
-    public async Task<int> CreateAsync(Category category, CancellationToken cancellationToken = default)
-    {
-        if (environment.UserId == null)
-        {
-            throw new BusinessException("Извините, но идентификатор пользователя не указан.");
-        }
-
-        await ValidateParentCategoryAsync(category.ParentId, (int)category.OperationType, cancellationToken);
+        await ValidateParentCategoryAsync(model.ParentId, (int)model.OperationType, cancellationToken);
 
         var categoryId = await userService.GetNextCategoryIdAsync(cancellationToken);
 
-        var dbCategory = new Data.Entities.Category
+        var entity = new Data.Entities.Category
         {
             Id = categoryId,
-            UserId = environment.UserId.Value,
-            ParentId = category.ParentId,
-            Color = category.Color,
-            Description = category.Description,
-            Name = category.Name,
-            Order = category.Order,
-            TypeId = (int)category.OperationType,
+            UserId = environment.UserId,
+            ParentId = model.ParentId,
+            Color = model.Color,
+            Description = model.Description,
+            Name = model.Name,
+            Order = model.Order,
+            TypeId = (int)model.OperationType,
         };
 
-        await context.Categories.AddAsync(dbCategory, cancellationToken);
+        await context.Categories.AddAsync(entity, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
         return categoryId;
     }
 
-    public async Task UpdateAsync(Category category, CancellationToken cancellationToken)
+    public async Task UpdateAsync(Category model, CancellationToken cancellationToken)
     {
-        var dbCategory = await context.Categories.FirstOrDefaultAsync(environment.UserId, category.Id, cancellationToken)
-                         ?? throw new NotFoundException("категория", category.Id);
+        var entity = await context.Categories.FirstOrDefaultAsync(environment.UserId, model.Id, cancellationToken)
+                     ?? throw new NotFoundException("категория", model.Id);
 
-        await ValidateParentCategoryAsync(category.ParentId, dbCategory.TypeId, cancellationToken);
-        await ValidateRecursiveParentingAsync(category.Id, category.ParentId, dbCategory.TypeId, cancellationToken);
+        await ValidateParentCategoryAsync(model.ParentId, entity.TypeId, cancellationToken);
+        await ValidateRecursiveParentingAsync(model.Id, model.ParentId, entity.TypeId, cancellationToken);
 
-        dbCategory.ParentId = category.ParentId;
-        dbCategory.Color = category.Color;
-        dbCategory.Description = category.Description;
-        dbCategory.Name = category.Name;
-        dbCategory.Order = category.Order;
+        entity.ParentId = model.ParentId;
+        entity.Color = model.Color;
+        entity.Description = model.Description;
+        entity.Name = model.Name;
+        entity.Order = model.Order;
 
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
+    public async Task DeleteAsync(int id, CancellationToken cancellationToken)
     {
-        var dbCategory = await GetByIdInternal(id, cancellationToken);
+        var entity = await GetByIdInternal(id, cancellationToken);
 
         if (await context.Categories.AnyAsync(x => x.ParentId == id && x.UserId == environment.UserId, cancellationToken))
         {
             throw new BusinessException("Извините, но сначала необходимо удалить дочерние категории. Пожалуйста, выполните это действие и попробуйте снова.");
         }
 
-        dbCategory.IsDeleted = true;
+        entity.IsDeleted = true;
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task RestoreAsync(int id, CancellationToken cancellationToken = default)
+    public async Task RestoreAsync(int id, CancellationToken cancellationToken)
     {
-        var dbCategory = await GetCategory(id);
+        var entity = await GetCategory(id);
 
-        if (dbCategory.IsDeleted == false)
+        if (entity.IsDeleted == false)
         {
             throw new BusinessException("Извините, но невозможно восстановить неудаленную сущность");
         }
 
-        if (dbCategory.ParentId != null)
+        if (entity.ParentId != null)
         {
-            var dbParentCategory = await GetCategory(dbCategory.ParentId.Value);
+            var dbParentCategory = await GetCategory(entity.ParentId.Value);
 
             if (dbParentCategory.IsDeleted)
             {
@@ -124,7 +105,7 @@ public class CategoryService(
             }
         }
 
-        dbCategory.IsDeleted = false;
+        entity.IsDeleted = false;
         await context.SaveChangesAsync(cancellationToken);
         return;
 
@@ -144,18 +125,13 @@ public class CategoryService(
         }
     }
 
-    public async Task LoadDefaultAsync(bool isAdd = true, CancellationToken cancellationToken = default)
+    public async Task LoadDefaultAsync(CancellationToken cancellationToken, bool isAdd = true)
     {
-        if (environment.UserId == null)
-        {
-            throw new BusinessException("Извините, но идентификатор пользователя не указан");
-        }
-
-        var categoryId = 1;
+        var id = 1;
 
         if (isAdd)
         {
-            categoryId = await userService.GetNextCategoryIdAsync(cancellationToken);
+            id = await userService.GetNextCategoryIdAsync(cancellationToken);
         }
         else
         {
@@ -164,21 +140,35 @@ public class CategoryService(
             context.Categories.RemoveRange(context.Categories.IgnoreQueryFilters().IsUserEntity(environment.UserId));
         }
 
-        var categories = DatabaseSeeder.SeedCategories(environment.UserId.Value, out var lastIndex, categoryId);
+        var categories = DatabaseSeeder.SeedCategories(environment.UserId, out var lastIndex, id);
         await userService.SetNextCategoryIdAsync(lastIndex + 1, cancellationToken);
 
         await context.Categories.AddRangeAsync(categories, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
     }
 
+    private static Category GetBusinessModel(Data.Entities.Category model)
+    {
+        return new()
+        {
+            Id = model.Id,
+            Name = model.Name,
+            Description = model.Description,
+            Color = model.Color,
+            ParentId = model.ParentId,
+            Order = model.Order,
+            OperationType = (OperationTypes)model.TypeId,
+        };
+    }
+
     private async Task<Data.Entities.Category> GetByIdInternal(int id, CancellationToken cancellationToken)
     {
-        var dbCategory = await context.Categories
-                             .IsUserEntity(environment.UserId, id)
-                             .FirstOrDefaultAsync(cancellationToken)
-                         ?? throw new NotFoundException("категория", id);
+        var entity = await context.Categories
+                         .IsUserEntity(environment.UserId, id)
+                         .FirstOrDefaultAsync(cancellationToken)
+                     ?? throw new NotFoundException("категория", id);
 
-        return dbCategory;
+        return entity;
     }
 
     private async Task ValidateParentCategoryAsync(int? parentId, int operationType, CancellationToken cancellationToken)

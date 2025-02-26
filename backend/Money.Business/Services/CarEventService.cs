@@ -32,7 +32,7 @@ public class CarEventService(
         var entity = new Data.Entities.CarEvent
         {
             Id = id,
-            UserId = environment.UserId!.Value,
+            UserId = environment.UserId,
             TypeId = (int)model.Type,
             Title = model.Title,
             Date = model.Date,
@@ -102,6 +102,6 @@ public class CarEventService(
         }
 
         return await query.FirstOrDefaultAsync(cancellationToken)
-               ?? throw new NotFoundException("авто", id);
+               ?? throw new NotFoundException("авто-событие", id);
     }
 }
