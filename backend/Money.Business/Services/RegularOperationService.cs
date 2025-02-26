@@ -14,120 +14,113 @@ public class RegularOperationService(
 {
     public async Task<IEnumerable<RegularOperation>> GetAsync(CancellationToken cancellationToken)
     {
-        var dbOperations = context.RegularOperations
+        var entities = context.RegularOperations
             .IsUserEntity(environment.UserId);
 
-        var placeIds = await dbOperations
+        var placeIds = await entities
             .Where(x => x.PlaceId != null)
             .Select(x => x.PlaceId!.Value)
             .ToListAsync(cancellationToken);
 
         var places = await placeService.GetPlacesAsync(placeIds, cancellationToken);
 
-        var operations = await dbOperations
+        var models = await entities
             .OrderBy(x => x.CategoryId)
             .ToListAsync(cancellationToken);
 
-        return operations.Select(x => GetBusinessModel(x, places)).ToList();
+        return models.Select(x => GetBusinessModel(x, places)).ToList();
     }
 
     public async Task<RegularOperation> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
-        var dbOperation = await GetByIdInternal(id, cancellationToken);
+        var entity = await GetByIdInternal(id, cancellationToken);
 
         List<Place>? places = null;
 
-        if (dbOperation.PlaceId != null)
+        if (entity.PlaceId != null)
         {
-            places = await placeService.GetPlacesAsync([dbOperation.PlaceId.Value], cancellationToken);
+            places = await placeService.GetPlacesAsync([entity.PlaceId.Value], cancellationToken);
         }
 
-        return GetBusinessModel(dbOperation, places);
+        return GetBusinessModel(entity, places);
     }
 
-    public async Task<int> CreateAsync(RegularOperation operation, CancellationToken cancellationToken)
+    public async Task<int> CreateAsync(RegularOperation model, CancellationToken cancellationToken)
     {
-        if (environment.UserId == null)
-        {
-            throw new BusinessException("Извините, но идентификатор пользователя не указан.");
-        }
+        CheckTime(model.TimeType, model.TimeValue);
 
-        CheckTime(operation.TimeType, operation.TimeValue);
-
-        var category = await categoryService.GetByIdAsync(operation.CategoryId, cancellationToken);
-
+        var category = await categoryService.GetByIdAsync(model.CategoryId, cancellationToken);
         var operationId = await userService.GetNextRegularOperationIdAsync(cancellationToken);
+        var placeId = await placeService.GetPlaceIdAsync(model.Place, cancellationToken);
 
-        var placeId = await placeService.GetPlaceIdAsync(operation.Place, cancellationToken);
-
-        var dbOperation = new Data.Entities.RegularOperation
+        var entity = new Data.Entities.RegularOperation
         {
             Id = operationId,
-            Name = operation.Name,
-            UserId = environment.UserId.Value,
+            Name = model.Name,
+            UserId = environment.UserId,
             CategoryId = category.Id,
-            Sum = operation.Sum,
-            Comment = operation.Comment,
+            Sum = model.Sum,
+            Comment = model.Comment,
             PlaceId = placeId,
-            DateFrom = operation.DateFrom,
-            DateTo = operation.DateTo,
-            TimeTypeId = (int)operation.TimeType,
-            TimeValue = operation.TimeValue,
+            DateFrom = model.DateFrom,
+            DateTo = model.DateTo,
+            TimeTypeId = (int)model.TimeType,
+            TimeValue = model.TimeValue,
         };
 
-        SetRegularTaskRunTime(dbOperation, DateTime.Now.Date);
+        SetRegularTaskRunTime(entity, DateTime.Now.Date);
 
-        await context.RegularOperations.AddAsync(dbOperation, cancellationToken);
+        await context.RegularOperations.AddAsync(entity, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
         return operationId;
     }
 
-    public async Task UpdateAsync(RegularOperation operation, CancellationToken cancellationToken)
+    public async Task UpdateAsync(RegularOperation model, CancellationToken cancellationToken)
     {
-        CheckTime(operation.TimeType, operation.TimeValue);
+        CheckTime(model.TimeType, model.TimeValue);
 
-        var dbOperation = await context.RegularOperations
-                              .IsUserEntity(environment.UserId, operation.Id)
-                              .FirstOrDefaultAsync(cancellationToken)
-                          ?? throw new NotFoundException("Регулярная операция", operation.Id);
+        var entity = await context.RegularOperations
+                         .IsUserEntity(environment.UserId, model.Id)
+                         .FirstOrDefaultAsync(cancellationToken)
+                     ?? throw new NotFoundException("Регулярная операция", model.Id);
 
-        var category = await categoryService.GetByIdAsync(operation.CategoryId, cancellationToken);
-        var placeId = await placeService.GetPlaceIdAsync(operation.Place, dbOperation, cancellationToken);
+        var category = await categoryService.GetByIdAsync(model.CategoryId, cancellationToken);
+        var placeId = await placeService.GetPlaceIdAsync(model.Place, entity, cancellationToken);
 
-        dbOperation.Sum = operation.Sum;
-        dbOperation.Comment = operation.Comment;
-        dbOperation.CategoryId = category.Id;
-        dbOperation.PlaceId = placeId;
-        dbOperation.Name = operation.Name;
-        dbOperation.DateFrom = operation.DateFrom;
-        dbOperation.DateTo = operation.DateTo;
-        dbOperation.TimeTypeId = (int)operation.TimeType;
-        dbOperation.TimeValue = operation.TimeValue;
+        entity.Sum = model.Sum;
+        entity.Comment = model.Comment;
+        entity.CategoryId = category.Id;
+        entity.PlaceId = placeId;
+        entity.Name = model.Name;
+        entity.DateFrom = model.DateFrom;
+        entity.DateTo = model.DateTo;
+        entity.TimeTypeId = (int)model.TimeType;
+        entity.TimeValue = model.TimeValue;
 
-        SetRegularTaskRunTime(dbOperation, DateTime.Now.Date);
+        SetRegularTaskRunTime(entity, DateTime.Now.Date);
 
         await context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task DeleteAsync(int id, CancellationToken cancellationToken)
     {
-        var dbOperation = await GetByIdInternal(id, cancellationToken);
-        dbOperation.IsDeleted = true;
-        await placeService.CheckRemovePlaceAsync(dbOperation.PlaceId, dbOperation.Id, cancellationToken);
+        var entity = await GetByIdInternal(id, cancellationToken);
+        entity.IsDeleted = true;
+        await placeService.CheckRemovePlaceAsync(entity.PlaceId, entity.Id, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task RestoreAsync(int id, CancellationToken cancellationToken)
     {
-        var dbOperation = await context.RegularOperations
-                              .IgnoreQueryFilters()
-                              .Where(x => x.IsDeleted)
-                              .IsUserEntity(environment.UserId, id)
-                              .FirstOrDefaultAsync(cancellationToken)
-                          ?? throw new NotFoundException("Регулярная операция", id);
+        var entity = await context.RegularOperations
+                         .IgnoreQueryFilters()
+                         .Where(x => x.IsDeleted)
+                         .IsUserEntity(environment.UserId, id)
+                         .FirstOrDefaultAsync(cancellationToken)
+                     ?? throw new NotFoundException("Регулярная операция", id);
 
-        dbOperation.IsDeleted = false;
-        await placeService.CheckRestorePlaceAsync(dbOperation.PlaceId, cancellationToken);
+        entity.IsDeleted = false;
+        await placeService.CheckRestorePlaceAsync(entity.PlaceId, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
     }
 
@@ -143,7 +136,7 @@ public class RegularOperationService(
         {
             try
             {
-                var operation = new Operation
+                var model = new Operation
                 {
                     CategoryId = dbTask.CategoryId,
                     Comment = dbTask.Comment,
@@ -155,26 +148,26 @@ public class RegularOperationService(
 
                 // TODO: это гавнина
                 environment.UserId = dbTask.UserId;
-                await operationService.CreateAsync(operation, cancellationToken);
+                await operationService.CreateAsync(model, cancellationToken);
 
                 dbTask.RunTime = GetRegularTaskRunTime(dbTask.DateFrom, dbTask.DateTo, dbTask.RunTime!.Value, (RegularOperationTimeTypes)dbTask.TimeTypeId, dbTask.TimeValue);
                 await context.SaveChangesAsync(cancellationToken);
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Ошибка при запуске регулярой операции ({UserId},{Id})", dbTask.UserId, dbTask.Id);
+                logger.LogError(exception, "Ошибка при запуске регулярной операции ({UserId},{Id})", dbTask.UserId, dbTask.Id);
             }
         }
     }
 
     private async Task<Data.Entities.RegularOperation> GetByIdInternal(int id, CancellationToken cancellationToken)
     {
-        var dbOperation = await context.RegularOperations
-                              .IsUserEntity(environment.UserId, id)
-                              .FirstOrDefaultAsync(cancellationToken)
-                          ?? throw new NotFoundException("регулярная операция", id);
+        var entity = await context.RegularOperations
+                         .IsUserEntity(environment.UserId, id)
+                         .FirstOrDefaultAsync(cancellationToken)
+                     ?? throw new NotFoundException("регулярная операция", id);
 
-        return dbOperation;
+        return entity;
     }
 
     private RegularOperation GetBusinessModel(Data.Entities.RegularOperation model, IEnumerable<Place>? dbPlaces = null)

@@ -10,7 +10,7 @@ public class CarEvent
 
     public string? Comment { get; set; }
 
-    public decimal? Mileage { get; set; }
+    public int? Mileage { get; set; }
 
     public DateTime Date { get; set; }
 }

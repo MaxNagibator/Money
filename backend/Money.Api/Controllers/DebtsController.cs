@@ -20,7 +20,7 @@ public class DebtsController(DebtService debtService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Get(CancellationToken cancellationToken)
     {
-        var debts = await debtService.GetAsync(false, cancellationToken);
+        var debts = await debtService.GetAsync(cancellationToken);
         return Ok(debts.Select(DebtDto.FromBusinessModel));
     }
 

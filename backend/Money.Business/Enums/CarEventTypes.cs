@@ -1,5 +1,3 @@
-using System.ComponentModel;
-
 namespace Money.Business.Enums;
 
 public enum CarEventTypes

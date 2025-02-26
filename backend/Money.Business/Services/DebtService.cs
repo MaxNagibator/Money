@@ -9,7 +9,7 @@ public class DebtService(
     CategoryService categoryService,
     OperationService operationService)
 {
-    public async Task<IEnumerable<Debt>> GetAsync(bool withPaid = false, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Debt>> GetAsync(CancellationToken cancellationToken, bool withPaid = false)
     {
         var query = context.Debts.IsUserEntity(environment.UserId);
 
@@ -17,140 +17,105 @@ public class DebtService(
             ? query.Where(x => x.StatusId == (int)DebtStatus.Actual || x.StatusId == (int)DebtStatus.Paid)
             : query.Where(x => x.StatusId == (int)DebtStatus.Actual);
 
-        var dbDebts = await query.ToListAsync(cancellationToken);
+        var entities = await query.ToListAsync(cancellationToken);
 
         var dbDebtOwners = await context.DebtOwners
             .IsUserEntity(environment.UserId)
             .ToListAsync(cancellationToken);
 
-        var categories = dbDebts
+        var models = entities
             .Select(x => GetBusinessModel(x, dbDebtOwners))
             .ToList();
 
-        return categories;
+        return models;
     }
 
-    public async Task<Debt> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<Debt> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
-        var dbDebt = await GetByIdInternal(id, cancellationToken);
+        var entity = await GetByIdInternal(id, cancellationToken);
 
         var dbDebtOwners = await context.DebtOwners
             .IsUserEntity(environment.UserId)
-            .Where(x => x.Id == dbDebt.OwnerId)
+            .Where(x => x.Id == entity.OwnerId)
             .ToListAsync(cancellationToken);
 
-        return GetBusinessModel(dbDebt, dbDebtOwners);
+        return GetBusinessModel(entity, dbDebtOwners);
     }
 
-    public async Task<int> CreateAsync(Debt debt, CancellationToken cancellationToken = default)
+    public async Task<int> CreateAsync(Debt model, CancellationToken cancellationToken)
     {
-        if (environment.UserId == null)
+        Validate(model);
+
+        var id = await userService.GetNextDebtIdAsync(cancellationToken);
+        var debtOwner = await GetOwnerAsync(model, cancellationToken);
+
+        var entity = new Data.Entities.Debt
         {
-            throw new BusinessException("Извините, но идентификатор пользователя не указан.");
-        }
-
-        Validate(debt);
-
-        var debtId = await userService.GetNextDebtIdAsync(cancellationToken);
-
-        var debtOwner = await GetOwnerAsync(debt, cancellationToken);
-
-        var dbDebt = new Data.Entities.Debt
-        {
-            Id = debtId,
-            UserId = environment.UserId.Value,
-            Sum = debt.Sum,
-            TypeId = (int)debt.Type,
+            Id = id,
+            UserId = environment.UserId,
+            Sum = model.Sum,
+            TypeId = (int)model.Type,
             OwnerId = debtOwner.Id,
-            Comment = debt.Comment,
-            Date = debt.Date,
+            Comment = model.Comment,
+            Date = model.Date,
             PaySum = 0,
             StatusId = (int)DebtStatus.Actual,
         };
 
-        await context.Debts.AddAsync(dbDebt, cancellationToken);
+        await context.Debts.AddAsync(entity, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
-        return debtId;
+        return id;
     }
 
-    private async Task<Data.Entities.DebtOwner> GetOwnerAsync(Debt debt, CancellationToken cancellationToken = default)
+    public async Task UpdateAsync(Debt model, CancellationToken cancellationToken)
     {
-        var debtOwner = await context.DebtOwners
-            .IsUserEntity(environment.UserId)
-            .FirstOrDefaultAsync(x => x.Name == debt.OwnerName, cancellationToken);
+        Validate(model);
 
-        if (debtOwner == null)
-        {
-            debtOwner = new()
-            {
-                Name = debt.OwnerName,
-                UserId = environment.UserId!.Value,
-                Id = await userService.GetNextDebtOwnerIdAsync(cancellationToken),
-            };
+        var entity = await GetByIdInternal(model.Id, cancellationToken);
 
-            await context.DebtOwners.AddAsync(debtOwner, cancellationToken);
-        }
-
-        return debtOwner;
-    }
-
-    private void Validate(Debt debt)
-    {
-        if (debt.Sum < 0)
-        {
-            throw new BusinessException("Извините, но отрицательная сумма недопустима");
-        }
-    }
-
-    public async Task UpdateAsync(Debt debt, CancellationToken cancellationToken)
-    {
-        Validate(debt);
-
-        var dbDebt = await GetByIdInternal(debt.Id, cancellationToken);
-
-        if (dbDebt.StatusId != (int)DebtStatus.Actual)
+        if (entity.StatusId != (int)DebtStatus.Actual)
         {
             throw new BusinessException("Извините, но можно обновлять только непогашенные долги");
         }
 
-        if (dbDebt.PaySum > 0 && debt.Sum <= dbDebt.PaySum)
+        if (entity.PaySum > 0 && model.Sum <= entity.PaySum)
         {
             throw new BusinessException("Извините, но сумма долга не может быть меньше оплаченной части долга");
         }
 
-        var debtOwner = await GetOwnerAsync(debt, cancellationToken);
+        var debtOwner = await GetOwnerAsync(model, cancellationToken);
 
-        dbDebt.Sum = debt.Sum;
-        dbDebt.OwnerId = debtOwner.Id;
-        dbDebt.Comment = debt.Comment;
-        dbDebt.Date = debt.Date;
-        dbDebt.TypeId = (int)debt.Type;
+        entity.Sum = model.Sum;
+        entity.OwnerId = debtOwner.Id;
+        entity.Comment = model.Comment;
+        entity.Date = model.Date;
+        entity.TypeId = (int)model.Type;
 
         await context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task PayAsync(DebtPayment debtPayment, CancellationToken cancellationToken)
     {
-        var dbDebt = await GetByIdInternal(debtPayment.Id, cancellationToken);
+        var entity = await GetByIdInternal(debtPayment.Id, cancellationToken);
 
-        if (dbDebt.PaySum + debtPayment.Sum > dbDebt.Sum)
+        if (entity.PaySum + debtPayment.Sum > entity.Sum)
         {
             throw new BusinessException("Извините, но оплаченная часть долга не может превышать сумму долга");
         }
 
-        dbDebt.PaySum += debtPayment.Sum;
+        entity.PaySum += debtPayment.Sum;
 
-        if (dbDebt.PaySum == dbDebt.Sum)
+        if (entity.PaySum == entity.Sum)
         {
-            dbDebt.StatusId = (int)DebtStatus.Paid;
+            entity.StatusId = (int)DebtStatus.Paid;
         }
 
-        if (string.IsNullOrEmpty(dbDebt.PayComment) == false)
+        if (string.IsNullOrEmpty(entity.PayComment) == false)
         {
-            dbDebt.PayComment += Environment.NewLine;
+            entity.PayComment += Environment.NewLine;
         }
 
-        dbDebt.PayComment += $"{debtPayment.Date:yyyy.MM.dd} {debtPayment.Sum} {debtPayment.Comment}";
+        entity.PayComment += $"{debtPayment.Date:yyyy.MM.dd} {debtPayment.Sum} {debtPayment.Comment}";
         await context.SaveChangesAsync(cancellationToken);
     }
 
@@ -184,9 +149,9 @@ public class DebtService(
             .Where(x => x.OwnerId == dbFromUser.Id)
             .ToListAsync(cancellationToken);
 
-        foreach (var dbDebt in dbDebts)
+        foreach (var entity in dbDebts)
         {
-            dbDebt.OwnerId = toUserId;
+            entity.OwnerId = toUserId;
         }
 
         context.DebtOwners.Remove(dbFromUser);
@@ -214,17 +179,17 @@ public class DebtService(
 
     public async Task ForgiveAsync(int[] debtIds, int operationCategoryId, string? operationComment, CancellationToken cancellationToken)
     {
-        var dbDebts = await context.Debts
+        var entities = await context.Debts
             .IsUserEntity(environment.UserId)
             .Where(x => debtIds.Contains(x.Id) && x.StatusId == (int)DebtStatus.Actual)
             .ToListAsync(cancellationToken);
 
-        if (dbDebts.Count == 0)
+        if (entities.Count == 0)
         {
             throw new BusinessException("Ни один долг не найден или статус долга не соответствует");
         }
 
-        if (dbDebts.Any(x => x.TypeId == (int)DebtTypes.Minus))
+        if (entities.Any(x => x.TypeId == (int)DebtTypes.Minus))
         {
             throw new BusinessException("Перемещать можно только долги, которые должны вам");
         }
@@ -245,31 +210,31 @@ public class DebtService(
 
         try
         {
-            foreach (var dbDebt in dbDebts)
+            foreach (var entity in entities)
             {
-                var dbOwner = dbOwners[dbDebt.OwnerId];
-                var comment = $"{operationComment} {dbOwner.Name} сумма долга: {dbDebt.Sum} из них оплачено: {dbDebt.PaySum}";
+                var dbOwner = dbOwners[entity.OwnerId];
+                var comment = $"{operationComment} {dbOwner.Name} сумма долга: {entity.Sum} из них оплачено: {entity.PaySum}";
 
-                if (string.IsNullOrWhiteSpace(dbDebt.Comment) == false)
+                if (string.IsNullOrWhiteSpace(entity.Comment) == false)
                 {
-                    comment += Environment.NewLine + $"комментарий: {dbDebt.Comment}";
+                    comment += Environment.NewLine + $"комментарий: {entity.Comment}";
                 }
 
-                if (string.IsNullOrWhiteSpace(dbDebt.PayComment) == false)
+                if (string.IsNullOrWhiteSpace(entity.PayComment) == false)
                 {
-                    comment += Environment.NewLine + $"платёжный комментарий: {dbDebt.PayComment}";
+                    comment += Environment.NewLine + $"платёжный комментарий: {entity.PayComment}";
                 }
 
                 var operation = new Operation
                 {
                     CategoryId = category.Id,
                     Comment = comment,
-                    Date = dbDebt.Date,
-                    Sum = dbDebt.Sum - dbDebt.PaySum,
+                    Date = entity.Date,
+                    Sum = entity.Sum - entity.PaySum,
                 };
 
                 await operationService.CreateAsync(operation, cancellationToken);
-                context.Debts.Remove(dbDebt);
+                context.Debts.Remove(entity);
             }
 
             await context.SaveChangesAsync(cancellationToken);
@@ -282,14 +247,14 @@ public class DebtService(
         }
     }
 
-    public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
+    public async Task DeleteAsync(int id, CancellationToken cancellationToken)
     {
-        var dbDebt = await GetByIdInternal(id, cancellationToken);
-        dbDebt.IsDeleted = true;
+        var entity = await GetByIdInternal(id, cancellationToken);
+        entity.IsDeleted = true;
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task RestoreAsync(int id, CancellationToken cancellationToken = default)
+    public async Task RestoreAsync(int id, CancellationToken cancellationToken)
     {
         var dbOperation = await context.Debts
                               .IgnoreQueryFilters()
@@ -302,31 +267,60 @@ public class DebtService(
         await context.SaveChangesAsync(cancellationToken);
     }
 
+    private static Debt GetBusinessModel(Data.Entities.Debt entity, IEnumerable<Data.Entities.DebtOwner> dbOwners)
+    {
+        var dbOwner = dbOwners.First(x => x.Id == entity.OwnerId);
+
+        return new()
+        {
+            Type = (DebtTypes)entity.TypeId,
+            Sum = entity.Sum,
+            OwnerName = dbOwner.Name,
+            Comment = entity.Comment,
+            Id = entity.Id,
+            Date = entity.Date,
+            PaySum = entity.PaySum,
+            PayComment = entity.PayComment,
+            IsDeleted = entity.IsDeleted,
+        };
+    }
+
+    private async Task<Data.Entities.DebtOwner> GetOwnerAsync(Debt model, CancellationToken cancellationToken)
+    {
+        var debtOwner = await context.DebtOwners
+            .IsUserEntity(environment.UserId)
+            .FirstOrDefaultAsync(x => x.Name == model.OwnerName, cancellationToken);
+
+        if (debtOwner == null)
+        {
+            debtOwner = new()
+            {
+                Name = model.OwnerName,
+                UserId = environment.UserId,
+                Id = await userService.GetNextDebtOwnerIdAsync(cancellationToken),
+            };
+
+            await context.DebtOwners.AddAsync(debtOwner, cancellationToken);
+        }
+
+        return debtOwner;
+    }
+
+    private void Validate(Debt model)
+    {
+        if (model.Sum < 0)
+        {
+            throw new BusinessException("Извините, но отрицательная сумма недопустима");
+        }
+    }
+
     private async Task<Data.Entities.Debt> GetByIdInternal(int id, CancellationToken cancellationToken)
     {
-        var dbDebt = await context.Debts
+        var entity = await context.Debts
                          .IsUserEntity(environment.UserId, id)
                          .FirstOrDefaultAsync(cancellationToken)
                      ?? throw new NotFoundException("Долг", id);
 
-        return dbDebt;
-    }
-
-    private Debt GetBusinessModel(Data.Entities.Debt dbDebt, IEnumerable<Data.Entities.DebtOwner> dbOwners)
-    {
-        var dbOwner = dbOwners.First(x => x.Id == dbDebt.OwnerId);
-
-        return new()
-        {
-            Type = (DebtTypes)dbDebt.TypeId,
-            Sum = dbDebt.Sum,
-            OwnerName = dbOwner.Name,
-            Comment = dbDebt.Comment,
-            Id = dbDebt.Id,
-            Date = dbDebt.Date,
-            PaySum = dbDebt.PaySum,
-            PayComment = dbDebt.PayComment,
-            IsDeleted = dbDebt.IsDeleted,
-        };
+        return entity;
     }
 }

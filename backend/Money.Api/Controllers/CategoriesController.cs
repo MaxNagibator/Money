@@ -21,7 +21,7 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Get([FromQuery] int? type, CancellationToken cancellationToken)
     {
-        var categories = await categoryService.GetAsync(type, cancellationToken);
+        var categories = await categoryService.GetAsync(cancellationToken, type);
         return Ok(categories.Select(CategoryDto.FromBusinessModel));
     }
 
@@ -124,7 +124,7 @@ public class CategoriesController(CategoryService categoryService) : ControllerB
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> LoadDefault(bool? isAdd, CancellationToken cancellationToken)
     {
-        await categoryService.LoadDefaultAsync(isAdd ?? true, cancellationToken);
+        await categoryService.LoadDefaultAsync(cancellationToken, isAdd ?? true);
         return NoContent();
     }
 }

@@ -1,5 +1,4 @@
-﻿using Money.Business.Mappers;
-using Money.Data.Extensions;
+﻿using Money.Data.Extensions;
 
 namespace Money.Business.Services;
 
@@ -21,93 +20,86 @@ public class OperationService(
 
         var places = await placeService.GetPlacesAsync(placeIds, cancellationToken);
 
-        var operations = await filteredOperations
+        var models = await filteredOperations
             .OrderByDescending(x => x.Date)
             .ThenBy(x => x.CategoryId)
             .ToListAsync(cancellationToken);
 
-        return operations.Select(x => x.Adapt(places)).ToList();
+        return models.Select(x => GetBusinessModel(x, places)).ToList();
     }
 
     public async Task<Operation> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
-        var dbOperation = await GetByIdInternal(id, cancellationToken);
+        var entity = await GetByIdInternal(id, cancellationToken);
 
         List<Place>? places = null;
 
-        if (dbOperation.PlaceId != null)
+        if (entity.PlaceId != null)
         {
-            places = await placeService.GetPlacesAsync([dbOperation.PlaceId.Value], cancellationToken);
+            places = await placeService.GetPlacesAsync([entity.PlaceId.Value], cancellationToken);
         }
 
-        return dbOperation.Adapt(places);
+        return GetBusinessModel(entity, places);
     }
 
-    public async Task<int> CreateAsync(Operation operation, CancellationToken cancellationToken)
+    public async Task<int> CreateAsync(Operation model, CancellationToken cancellationToken)
     {
-        if (environment.UserId == null)
-        {
-            throw new BusinessException("Извините, но идентификатор пользователя не указан.");
-        }
-
-        var category = await categoryService.GetByIdAsync(operation.CategoryId, cancellationToken);
-
+        var category = await categoryService.GetByIdAsync(model.CategoryId, cancellationToken);
         var operationId = await userService.GetNextOperationIdAsync(cancellationToken);
+        var placeId = model.PlaceId ?? await placeService.GetPlaceIdAsync(model.Place, cancellationToken);
 
-        var placeId = operation.PlaceId ?? await placeService.GetPlaceIdAsync(operation.Place, cancellationToken);
-
-        var dbOperation = new Data.Entities.Operation
+        var entity = new Data.Entities.Operation
         {
             Id = operationId,
-            UserId = environment.UserId.Value,
+            UserId = environment.UserId,
             CategoryId = category.Id,
-            Sum = operation.Sum,
-            Comment = operation.Comment,
-            Date = operation.Date,
+            Sum = model.Sum,
+            Comment = model.Comment,
+            Date = model.Date,
             PlaceId = placeId,
-            CreatedTaskId = operation.CreatedTaskId,
+            CreatedTaskId = model.CreatedTaskId,
         };
 
-        await context.Operations.AddAsync(dbOperation, cancellationToken);
+        await context.Operations.AddAsync(entity, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
         return operationId;
     }
 
-    public async Task UpdateAsync(Operation operation, CancellationToken cancellationToken)
+    public async Task UpdateAsync(Operation model, CancellationToken cancellationToken)
     {
-        var dbOperation = await context.Operations.FirstOrDefaultAsync(environment.UserId, operation.Id, cancellationToken)
-                          ?? throw new NotFoundException("операция", operation.Id);
+        var entity = await context.Operations.FirstOrDefaultAsync(environment.UserId, model.Id, cancellationToken)
+                     ?? throw new NotFoundException("операция", model.Id);
 
-        var category = await categoryService.GetByIdAsync(operation.CategoryId, cancellationToken);
-        var placeId = await placeService.GetPlaceIdAsync(operation.Place, dbOperation, cancellationToken);
+        var category = await categoryService.GetByIdAsync(model.CategoryId, cancellationToken);
+        var placeId = await placeService.GetPlaceIdAsync(model.Place, entity, cancellationToken);
 
-        dbOperation.Sum = operation.Sum;
-        dbOperation.Comment = operation.Comment;
-        dbOperation.Date = operation.Date;
-        dbOperation.CategoryId = category.Id;
-        dbOperation.PlaceId = placeId;
+        entity.Sum = model.Sum;
+        entity.Comment = model.Comment;
+        entity.Date = model.Date;
+        entity.CategoryId = category.Id;
+        entity.PlaceId = placeId;
 
         await context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task DeleteAsync(int id, CancellationToken cancellationToken)
     {
-        var dbOperation = await GetByIdInternal(id, cancellationToken);
-        dbOperation.IsDeleted = true;
-        await placeService.CheckRemovePlaceAsync(dbOperation.PlaceId, dbOperation.Id, cancellationToken);
+        var entity = await GetByIdInternal(id, cancellationToken);
+        entity.IsDeleted = true;
+        await placeService.CheckRemovePlaceAsync(entity.PlaceId, entity.Id, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task RestoreAsync(int id, CancellationToken cancellationToken)
     {
-        var dbOperation = await context.Operations
-                              .IgnoreQueryFilters()
-                              .Where(x => x.IsDeleted)
-                              .FirstOrDefaultAsync(environment.UserId, id, cancellationToken)
-                          ?? throw new NotFoundException("операция", id);
+        var entity = await context.Operations
+                         .IgnoreQueryFilters()
+                         .Where(x => x.IsDeleted)
+                         .FirstOrDefaultAsync(environment.UserId, id, cancellationToken)
+                     ?? throw new NotFoundException("операция", id);
 
-        dbOperation.IsDeleted = false;
-        await placeService.CheckRestorePlaceAsync(dbOperation.PlaceId, cancellationToken);
+        entity.IsDeleted = false;
+        await placeService.CheckRestorePlaceAsync(entity.PlaceId, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
     }
 
@@ -115,30 +107,46 @@ public class OperationService(
     {
         var category = await categoryService.GetByIdAsync(categoryId, cancellationToken);
 
-        var dbOperations = await context.Operations
+        var entities = await context.Operations
             .IsUserEntity(environment.UserId)
             .Where(x => operationIds.Contains(x.Id))
             .Include(x => x.Category)
             .ToListAsync(cancellationToken);
 
-        if (dbOperations.Count != operationIds.Count)
+        if (entities.Count != operationIds.Count)
         {
             throw new BusinessException("Одна или несколько операций не найдены");
         }
 
-        foreach (var operation in dbOperations)
+        foreach (var model in entities)
         {
-            operation.CategoryId = category.Id;
+            model.CategoryId = category.Id;
 
-            if (operation.Category?.TypeId != (int)category.OperationType)
+            if (model.Category?.TypeId != (int)category.OperationType)
             {
-                operation.Sum = -operation.Sum;
+                model.Sum = -model.Sum;
             }
         }
 
         await context.SaveChangesAsync(cancellationToken);
 
-        return dbOperations.Select(x => x.Adapt()).ToList();
+        return entities.Select(x => GetBusinessModel(x)).ToList();
+    }
+
+    private static Operation GetBusinessModel(Data.Entities.Operation model, IEnumerable<Place>? dbPlaces = null)
+    {
+        return new()
+        {
+            CategoryId = model.CategoryId,
+            Sum = model.Sum,
+            Comment = model.Comment,
+            Place = model.PlaceId.HasValue
+                ? dbPlaces?.FirstOrDefault(x => x.Id == model.PlaceId)?.Name
+                : null,
+            Id = model.Id,
+            Date = model.Date,
+            CreatedTaskId = model.CreatedTaskId,
+        };
     }
 
     private async Task<Data.Entities.Operation> GetByIdInternal(int id, CancellationToken cancellationToken)
@@ -153,27 +161,27 @@ public class OperationService(
 
     private IQueryable<Data.Entities.Operation> FilterOperations(OperationFilter filter)
     {
-        var dbOperations = context.Operations
+        var entities = context.Operations
             .IsUserEntity(environment.UserId);
 
         if (filter.DateFrom.HasValue)
         {
-            dbOperations = dbOperations.Where(x => x.Date >= filter.DateFrom.Value);
+            entities = entities.Where(x => x.Date >= filter.DateFrom.Value);
         }
 
         if (filter.DateTo.HasValue)
         {
-            dbOperations = dbOperations.Where(x => x.Date < filter.DateTo.Value);
+            entities = entities.Where(x => x.Date < filter.DateTo.Value);
         }
 
         if (filter.CategoryIds is { Count: > 0 })
         {
-            dbOperations = dbOperations.Where(x => filter.CategoryIds.Contains(x.CategoryId));
+            entities = entities.Where(x => filter.CategoryIds.Contains(x.CategoryId));
         }
 
         if (string.IsNullOrEmpty(filter.Comment) == false)
         {
-            dbOperations = dbOperations.Where(x => x.Comment != null && x.Comment.Contains(filter.Comment)); // todo сделать регистронезависимый поиск
+            entities = entities.Where(x => x.Comment != null && x.Comment.Contains(filter.Comment)); // todo сделать регистронезависимый поиск
         }
 
         if (string.IsNullOrEmpty(filter.Place) == false)
@@ -182,9 +190,9 @@ public class OperationService(
                 .Where(x => x.UserId == environment.UserId && x.Name.Contains(filter.Place)) // todo сделать регистронезависимый поиск
                 .Select(x => x.Id);
 
-            dbOperations = dbOperations.Where(x => x.PlaceId != null && placesIds.Contains(x.PlaceId.Value));
+            entities = entities.Where(x => x.PlaceId != null && placesIds.Contains(x.PlaceId.Value));
         }
 
-        return dbOperations;
+        return entities;
     }
 }

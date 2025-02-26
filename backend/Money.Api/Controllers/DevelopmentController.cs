@@ -28,11 +28,6 @@ public class DevelopmentController(RequestEnvironment environment, ApplicationDb
     [Route("LoadTestData")]
     public async Task LoadTestData(CancellationToken cancellationToken = default)
     {
-        if (environment.UserId == null)
-        {
-            throw new BusinessException("Извините, но идентификатор пользователя не указан.");
-        }
-
         var dbUser = await context.DomainUsers.SingleOrDefaultAsync(x => x.Id == environment.UserId, cancellationToken)
                      ?? throw new BusinessException("Извините, но пользователь не найден.");
 
@@ -40,8 +35,8 @@ public class DevelopmentController(RequestEnvironment environment, ApplicationDb
         context.Operations.RemoveRange(context.Operations.IgnoreQueryFilters().IsUserEntity(environment.UserId));
         context.Places.RemoveRange(context.Places.IsUserEntity(environment.UserId));
 
-        var categories = DatabaseSeeder.SeedCategories(environment.UserId.Value, out var lastIndex);
-        (var operations, var places) = DatabaseSeeder.SeedOperations(environment.UserId.Value, categories);
+        var categories = DatabaseSeeder.SeedCategories(environment.UserId, out var lastIndex);
+        var (operations, places) = DatabaseSeeder.SeedOperations(environment.UserId, categories);
 
         dbUser.NextCategoryId = lastIndex + 1;
         dbUser.NextPlaceId = places[^1].Id + 1;
