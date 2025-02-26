@@ -89,6 +89,14 @@ public class DomainUserConfiguration : IEntityTypeConfiguration<DomainUser>
             .HasDefaultValue(1)
             .IsRequired();
 
+        builder.Property(x => x.NextCarId)
+            .HasDefaultValue(1)
+            .IsRequired();
+
+        builder.Property(x => x.NextCarEventId)
+            .HasDefaultValue(1)
+            .IsRequired();
+
         builder.Property(x => x.RowVersion)
             .IsRowVersion()
             .IsRequired();

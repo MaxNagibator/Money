@@ -12,6 +12,11 @@ public class AccountService(
 {
     public async Task RegisterAsync(RegisterModel model, CancellationToken cancellationToken = default)
     {
+        if (IsEmail(model.UserName))
+        {
+            throw new EntityExistsException("Извините, но имя пользователя не может быть email.");
+        }
+
         var user = await userManager.FindByNameAsync(model.UserName);
 
         if (user != null)
@@ -163,5 +168,14 @@ public class AccountService(
         await context.SaveChangesAsync(cancellationToken);
 
         return domainUser.Id;
+    }
+
+    private static bool IsEmail(string value)
+    {
+        var index = value.IndexOf('@', StringComparison.Ordinal);
+
+        return index > 0
+               && index != value.Length - 1
+               && index == value.LastIndexOf('@');
     }
 }

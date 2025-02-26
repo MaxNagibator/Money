@@ -1,6 +1,6 @@
 namespace Money.Data.Entities;
 
-public partial class Car : UserEntity
+public class Car : UserEntity
 {
     public required string Name { get; set; }
 
@@ -15,7 +15,10 @@ public class CarConfiguration : UserEntityConfiguration<Car>
             .HasMaxLength(1000)
             .IsRequired();
 
+        builder.Property(x => x.IsDeleted)
+            .HasDefaultValue(false)
+            .IsRequired();
+
         builder.HasQueryFilter(x => x.IsDeleted == false);
     }
 }
-
