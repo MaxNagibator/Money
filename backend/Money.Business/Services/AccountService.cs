@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Identity;
 using Money.Data.Entities;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Money.Business.Services;
 
-public class AccountService(
+public partial class AccountService(
     RequestEnvironment environment,
     UserManager<ApplicationUser> userManager,
     ApplicationDbContext context,
@@ -12,9 +13,9 @@ public class AccountService(
 {
     public async Task RegisterAsync(RegisterModel model, CancellationToken cancellationToken = default)
     {
-        if (IsEmail(model.UserName))
+        if (UserNameRegex().IsMatch(model.UserName) == false)
         {
-            throw new EntityExistsException("Извините, но имя пользователя не может быть email.");
+            throw new EntityExistsException("Извините, но имя пользователя не может содержать служебные символы.");
         }
 
         var user = await userManager.FindByNameAsync(model.UserName);
@@ -170,12 +171,6 @@ public class AccountService(
         return domainUser.Id;
     }
 
-    private static bool IsEmail(string value)
-    {
-        var index = value.IndexOf('@', StringComparison.Ordinal);
-
-        return index > 0
-               && index != value.Length - 1
-               && index == value.LastIndexOf('@');
-    }
+    [GeneratedRegex("^[a-zA-Z0-9_-]+$", RegexOptions.Compiled)]
+    private static partial Regex UserNameRegex();
 }

@@ -8,7 +8,7 @@ namespace Money.Api.Controllers;
 [ApiController]
 [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
 [Route("[controller]")]
-public class CarsController(CarService carService) : ControllerBase
+public class CarsController(CarService service) : ControllerBase
 {
     /// <summary>
     /// Получить список авто.
@@ -20,8 +20,8 @@ public class CarsController(CarService carService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Get(CancellationToken cancellationToken)
     {
-        var cars = await carService.GetAsync(cancellationToken);
-        return Ok(cars.Select(CarDto.FromBusinessModel));
+        var models = await service.GetAsync(cancellationToken);
+        return Ok(models.Select(CarDto.FromBusinessModel));
     }
 
     /// <summary>
@@ -36,8 +36,8 @@ public class CarsController(CarService carService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
     {
-        var car = await carService.GetByIdAsync(id, cancellationToken);
-        return Ok(CarDto.FromBusinessModel(car));
+        var model = await service.GetByIdAsync(id, cancellationToken);
+        return Ok(CarDto.FromBusinessModel(model));
     }
 
     /// <summary>
@@ -52,8 +52,8 @@ public class CarsController(CarService carService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create([FromBody] SaveRequest request, CancellationToken cancellationToken)
     {
-        var business = request.ToBusinessModel();
-        var result = await carService.CreateAsync(business, cancellationToken);
+        var model = request.ToBusinessModel();
+        var result = await service.CreateAsync(model, cancellationToken);
         return CreatedAtAction(nameof(GetById), new { id = result }, result);
     }
 
@@ -70,9 +70,9 @@ public class CarsController(CarService carService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(int id, [FromBody] SaveRequest request, CancellationToken cancellationToken)
     {
-        var business = request.ToBusinessModel();
-        business.Id = id;
-        await carService.UpdateAsync(business, cancellationToken);
+        var model = request.ToBusinessModel();
+        model.Id = id;
+        await service.UpdateAsync(model, cancellationToken);
         return NoContent();
     }
 
@@ -88,7 +88,7 @@ public class CarsController(CarService carService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
-        await carService.DeleteAsync(id, cancellationToken);
+        await service.DeleteAsync(id, cancellationToken);
         return NoContent();
     }
 
@@ -104,7 +104,7 @@ public class CarsController(CarService carService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Restore(int id, CancellationToken cancellationToken)
     {
-        await carService.RestoreAsync(id, cancellationToken);
+        await service.RestoreAsync(id, cancellationToken);
         return NoContent();
     }
 }

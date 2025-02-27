@@ -19,6 +19,22 @@ public class AccountsTests
     }
 
     [Test]
+    public void RegisterWithAvailableUserNameTest()
+    {
+        _dbClient.WithUser().SetUserName(TestRandom.GetString("test"));
+
+        Assert.DoesNotThrow(() => _dbClient.Save());
+    }
+
+    [Test]
+    public void RegisterWithUnavailableUserNameTest()
+    {
+        _dbClient.WithUser().SetUserName("bob217@");
+
+        Assert.Throws<AggregateException>(() => _dbClient.Save());
+    }
+
+    [Test]
     public async Task RegisterWithoutEmailTest()
     {
         var user = _dbClient.WithUser().SetEmail(null);
