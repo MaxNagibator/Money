@@ -1,19 +1,19 @@
 namespace Money.ApiClient;
 
-public class CarsClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
+public class CarEventsClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
 {
-    private const string BaseUri = "/Cars";
+    private const string BaseUri = "/CarEvents";
 
     protected override string ApiPrefix => "";
 
-    public Task<ApiClientResponse<Car[]>> Get()
+    public Task<ApiClientResponse<CarEvent[]>> Get(int carId)
     {
-        return GetAsync<Car[]>(BaseUri);
+        return GetAsync<CarEvent[]>($"{BaseUri}/Car/{carId}");
     }
 
-    public Task<ApiClientResponse<Car>> GetById(int id)
+    public Task<ApiClientResponse<CarEvent>> GetById(int id)
     {
-        return GetAsync<Car>($"{BaseUri}/{id}");
+        return GetAsync<CarEvent>($"{BaseUri}/{id}");
     }
 
     public Task<ApiClientResponse<int>> Create(SaveRequest request)
@@ -38,10 +38,18 @@ public class CarsClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
 
     public class SaveRequest
     {
-        public required string Name { get; set; }
+        public string? Title { get; init; }
+
+        public int TypeId { get; init; }
+
+        public string? Comment { get; init; }
+
+        public int? Mileage { get; init; }
+
+        public DateTime Date { get; init; }
     }
 
-    public class Car : SaveRequest
+    public class CarEvent : SaveRequest
     {
         public required int Id { get; set; }
     }
