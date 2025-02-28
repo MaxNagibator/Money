@@ -4,12 +4,12 @@ using Place = Money.Business.Models.Place;
 
 namespace Money.Business.Services;
 
-public class PlaceService(
+public class PlacesService(
     RequestEnvironment environment,
     ApplicationDbContext context,
-    UserService userService)
+    UsersService usersService)
 {
-    public Task<List<Place>> GetPlacesAsync(int offset, int count, string? name, CancellationToken cancellationToken)
+    public Task<List<Place>> GetPlacesAsync(int offset, int count, string? name, CancellationToken cancellationToken = default)
     {
         var entities = context.Places
             .IsUserEntity(environment.UserId)
@@ -29,7 +29,7 @@ public class PlaceService(
             .ToListAsync(cancellationToken);
     }
 
-    public Task<List<Place>> GetPlacesAsync(List<int> placeIds, CancellationToken cancellationToken)
+    public Task<List<Place>> GetPlacesAsync(List<int> placeIds, CancellationToken cancellationToken = default)
     {
         return context.Places
             .IsUserEntity(environment.UserId)
@@ -38,7 +38,7 @@ public class PlaceService(
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<int?> GetPlaceIdAsync(string? place, CancellationToken cancellationToken)
+    public async Task<int?> GetPlaceIdAsync(string? place, CancellationToken cancellationToken = default)
     {
         place = place?.Trim(' ');
 
@@ -53,11 +53,11 @@ public class PlaceService(
 
         if (entity == null)
         {
-            var newPlaceId = await userService.GetNextPlaceIdAsync(cancellationToken);
+            var newPlaceId = await usersService.GetNextPlaceIdAsync(cancellationToken);
 
             entity = new()
             {
-                UserId = await userService.GetIdAsync(cancellationToken),
+                UserId = await usersService.GetIdAsync(cancellationToken),
                 Id = newPlaceId,
                 Name = place,
             };
@@ -71,7 +71,7 @@ public class PlaceService(
         return entity.Id;
     }
 
-    public async Task<int?> GetPlaceIdAsync(string? place, OperationBase dbOperation, CancellationToken cancellationToken)
+    public async Task<int?> GetPlaceIdAsync(string? place, OperationBase dbOperation, CancellationToken cancellationToken = default)
     {
         var entity = await GetPlaceByIdAsync(dbOperation.PlaceId, cancellationToken);
         var hasAnyOperations = await IsPlaceBusyAsync(entity, dbOperation.Id, cancellationToken);
@@ -105,12 +105,12 @@ public class PlaceService(
             }
             else
             {
-                var newPlaceId = await userService.GetNextPlaceIdAsync(cancellationToken);
+                var newPlaceId = await usersService.GetNextPlaceIdAsync(cancellationToken);
 
                 dbNewPlace = new()
                 {
                     Name = "",
-                    UserId = await userService.GetIdAsync(cancellationToken),
+                    UserId = await usersService.GetIdAsync(cancellationToken),
                     Id = newPlaceId,
                 };
 
@@ -125,7 +125,7 @@ public class PlaceService(
         return dbNewPlace.Id;
     }
 
-    public async Task CheckRemovePlaceAsync(int? placeId, int? operationId, CancellationToken cancellationToken)
+    public async Task CheckRemovePlaceAsync(int? placeId, int? operationId, CancellationToken cancellationToken = default)
     {
         var entity = await GetPlaceByIdAsync(placeId, cancellationToken);
 
@@ -142,7 +142,7 @@ public class PlaceService(
         }
     }
 
-    public async Task CheckRestorePlaceAsync(int? placeId, CancellationToken cancellationToken)
+    public async Task CheckRestorePlaceAsync(int? placeId, CancellationToken cancellationToken = default)
     {
         var entity = await GetPlaceByIdAsync(placeId, cancellationToken);
 
@@ -163,7 +163,7 @@ public class PlaceService(
         };
     }
 
-    private Task<Data.Entities.Place?> GetPlaceByIdAsync(int? placeId, CancellationToken cancellationToken)
+    private Task<Data.Entities.Place?> GetPlaceByIdAsync(int? placeId, CancellationToken cancellationToken = default)
     {
         if (placeId != null)
         {
@@ -175,7 +175,7 @@ public class PlaceService(
         return Task.FromResult<Data.Entities.Place?>(null);
     }
 
-    private Task<bool> IsPlaceBusyAsync(Data.Entities.Place? model, int? operationId, CancellationToken cancellationToken)
+    private Task<bool> IsPlaceBusyAsync(Data.Entities.Place? model, int? operationId, CancellationToken cancellationToken = default)
     {
         if (model == null)
         {

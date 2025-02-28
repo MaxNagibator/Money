@@ -8,7 +8,7 @@ namespace Money.Api.Controllers;
 [ApiController]
 [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
 [Route("[controller]")]
-public class CarEventsController(CarEventService service) : ControllerBase
+public class CarEventsController(CarEventsService service) : ControllerBase
 {
     /// <summary>
     /// Получить список авто-событий.
@@ -54,8 +54,8 @@ public class CarEventsController(CarEventService service) : ControllerBase
     public async Task<IActionResult> Create([FromBody] SaveRequest request, CancellationToken cancellationToken)
     {
         var model = request.ToBusinessModel();
-        var result = await service.CreateAsync(model, cancellationToken);
-        return CreatedAtAction(nameof(GetById), new { id = result }, result);
+        var id = await service.CreateAsync(model, cancellationToken);
+        return CreatedAtAction(nameof(GetById), new { id }, id);
     }
 
     /// <summary>

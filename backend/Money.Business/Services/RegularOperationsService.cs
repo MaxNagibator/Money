@@ -3,16 +3,16 @@ using Money.Data.Extensions;
 
 namespace Money.Business.Services;
 
-public class RegularOperationService(
+public class RegularOperationsService(
     RequestEnvironment environment,
     ApplicationDbContext context,
-    UserService userService,
-    CategoryService categoryService,
-    PlaceService placeService,
-    OperationService operationService,
-    ILogger<RegularOperationService> logger)
+    UsersService usersService,
+    CategoriesService categoriesService,
+    PlacesService placesService,
+    OperationsService operationsService,
+    ILogger<RegularOperationsService> logger)
 {
-    public async Task<IEnumerable<RegularOperation>> GetAsync(CancellationToken cancellationToken)
+    public async Task<IEnumerable<RegularOperation>> GetAsync(CancellationToken cancellationToken = default)
     {
         var entities = context.RegularOperations
             .IsUserEntity(environment.UserId);
@@ -22,7 +22,7 @@ public class RegularOperationService(
             .Select(x => x.PlaceId!.Value)
             .ToListAsync(cancellationToken);
 
-        var places = await placeService.GetPlacesAsync(placeIds, cancellationToken);
+        var places = await placesService.GetPlacesAsync(placeIds, cancellationToken);
 
         var models = await entities
             .OrderBy(x => x.CategoryId)
@@ -31,7 +31,7 @@ public class RegularOperationService(
         return models.Select(x => GetBusinessModel(x, places)).ToList();
     }
 
-    public async Task<RegularOperation> GetByIdAsync(int id, CancellationToken cancellationToken)
+    public async Task<RegularOperation> GetByIdAsync(int id, CancellationToken cancellationToken = default)
     {
         var entity = await GetByIdInternal(id, cancellationToken);
 
@@ -39,19 +39,19 @@ public class RegularOperationService(
 
         if (entity.PlaceId != null)
         {
-            places = await placeService.GetPlacesAsync([entity.PlaceId.Value], cancellationToken);
+            places = await placesService.GetPlacesAsync([entity.PlaceId.Value], cancellationToken);
         }
 
         return GetBusinessModel(entity, places);
     }
 
-    public async Task<int> CreateAsync(RegularOperation model, CancellationToken cancellationToken)
+    public async Task<int> CreateAsync(RegularOperation model, CancellationToken cancellationToken = default)
     {
         CheckTime(model.TimeType, model.TimeValue);
 
-        var category = await categoryService.GetByIdAsync(model.CategoryId, cancellationToken);
-        var operationId = await userService.GetNextRegularOperationIdAsync(cancellationToken);
-        var placeId = await placeService.GetPlaceIdAsync(model.Place, cancellationToken);
+        var category = await categoriesService.GetByIdAsync(model.CategoryId, cancellationToken);
+        var operationId = await usersService.GetNextRegularOperationIdAsync(cancellationToken);
+        var placeId = await placesService.GetPlaceIdAsync(model.Place, cancellationToken);
 
         var entity = new Data.Entities.RegularOperation
         {
@@ -75,7 +75,7 @@ public class RegularOperationService(
         return operationId;
     }
 
-    public async Task UpdateAsync(RegularOperation model, CancellationToken cancellationToken)
+    public async Task UpdateAsync(RegularOperation model, CancellationToken cancellationToken = default)
     {
         CheckTime(model.TimeType, model.TimeValue);
 
@@ -84,8 +84,8 @@ public class RegularOperationService(
                          .FirstOrDefaultAsync(cancellationToken)
                      ?? throw new NotFoundException("Регулярная операция", model.Id);
 
-        var category = await categoryService.GetByIdAsync(model.CategoryId, cancellationToken);
-        var placeId = await placeService.GetPlaceIdAsync(model.Place, entity, cancellationToken);
+        var category = await categoriesService.GetByIdAsync(model.CategoryId, cancellationToken);
+        var placeId = await placesService.GetPlaceIdAsync(model.Place, entity, cancellationToken);
 
         entity.Sum = model.Sum;
         entity.Comment = model.Comment;
@@ -102,15 +102,15 @@ public class RegularOperationService(
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task DeleteAsync(int id, CancellationToken cancellationToken)
+    public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
         var entity = await GetByIdInternal(id, cancellationToken);
         entity.IsDeleted = true;
-        await placeService.CheckRemovePlaceAsync(entity.PlaceId, entity.Id, cancellationToken);
+        await placesService.CheckRemovePlaceAsync(entity.PlaceId, entity.Id, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task RestoreAsync(int id, CancellationToken cancellationToken)
+    public async Task RestoreAsync(int id, CancellationToken cancellationToken = default)
     {
         var entity = await context.RegularOperations
                          .IgnoreQueryFilters()
@@ -120,11 +120,11 @@ public class RegularOperationService(
                      ?? throw new NotFoundException("Регулярная операция", id);
 
         entity.IsDeleted = false;
-        await placeService.CheckRestorePlaceAsync(entity.PlaceId, cancellationToken);
+        await placesService.CheckRestorePlaceAsync(entity.PlaceId, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task RunRegularTaskAsync(CancellationToken cancellationToken)
+    public async Task RunRegularTaskAsync(CancellationToken cancellationToken = default)
     {
         var dateNow = DateTime.Now.Date;
 
@@ -148,7 +148,7 @@ public class RegularOperationService(
 
                 // TODO: это гавнина
                 environment.UserId = dbTask.UserId;
-                await operationService.CreateAsync(model, cancellationToken);
+                await operationsService.CreateAsync(model, cancellationToken);
 
                 dbTask.RunTime = GetRegularTaskRunTime(dbTask.DateFrom, dbTask.DateTo, dbTask.RunTime!.Value, (RegularOperationTimeTypes)dbTask.TimeTypeId, dbTask.TimeValue);
                 await context.SaveChangesAsync(cancellationToken);
@@ -160,7 +160,7 @@ public class RegularOperationService(
         }
     }
 
-    private async Task<Data.Entities.RegularOperation> GetByIdInternal(int id, CancellationToken cancellationToken)
+    private async Task<Data.Entities.RegularOperation> GetByIdInternal(int id, CancellationToken cancellationToken = default)
     {
         var entity = await context.RegularOperations
                          .IsUserEntity(environment.UserId, id)

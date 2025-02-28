@@ -5,13 +5,13 @@ using System.Text.RegularExpressions;
 
 namespace Money.Business.Services;
 
-public partial class AccountService(
+public partial class AccountsService(
     RequestEnvironment environment,
     UserManager<ApplicationUser> userManager,
     ApplicationDbContext context,
     QueueHolder queueHolder)
 {
-    public async Task RegisterAsync(RegisterModel model, CancellationToken cancellationToken = default)
+    public async Task RegisterAsync(RegisterAccount model, CancellationToken cancellationToken = default)
     {
         if (UserNameRegex().IsMatch(model.UserName) == false)
         {
@@ -33,7 +33,7 @@ public partial class AccountService(
             {
                 if (user.EmailConfirmed)
                 {
-                    throw new EntityExistsException("Извините, но пользователь с таким email уже зарегистрирован. Пожалуйста, попробуйте другое email.");
+                    throw new EntityExistsException("Извините, но пользователь с таким email уже зарегистрирован. Пожалуйста, попробуйте другоЙ email.");
                 }
 
                 user.Email = null;
@@ -80,7 +80,7 @@ public partial class AccountService(
         return await AddNewUser(authUserId, cancellationToken);
     }
 
-    public async Task ConfirmEmailAsync(string confirmCode, CancellationToken cancellationToken)
+    public async Task ConfirmEmailAsync(string confirmCode, CancellationToken cancellationToken = default)
     {
         var user = environment.AuthUser;
 
@@ -91,7 +91,7 @@ public partial class AccountService(
 
         if (user.EmailConfirmed)
         {
-            return;
+            throw new BusinessException("Извините, но у вас уже подтвержденный email.");
         }
 
         if (user.Email == null)
@@ -108,7 +108,7 @@ public partial class AccountService(
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task ResendConfirmCodeAsync(CancellationToken cancellationToken)
+    public async Task ResendConfirmCodeAsync(CancellationToken cancellationToken = default)
     {
         var user = environment.AuthUser;
 
@@ -119,7 +119,7 @@ public partial class AccountService(
 
         if (user.EmailConfirmed)
         {
-            return;
+            throw new BusinessException("Извините, но у вас уже подтвержденный email.");
         }
 
         if (user.Email == null)
@@ -158,7 +158,7 @@ public partial class AccountService(
     }
 
     // TODO Подумать над переносом в сервис
-    private async Task<int> AddNewUser(Guid authUserId, CancellationToken cancellationToken)
+    private async Task<int> AddNewUser(Guid authUserId, CancellationToken cancellationToken = default)
     {
         var domainUser = new DomainUser
         {

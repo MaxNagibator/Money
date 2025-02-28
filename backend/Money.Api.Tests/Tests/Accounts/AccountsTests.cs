@@ -47,7 +47,7 @@ public class AccountsTests
         Assert.That(dbUser, Is.Not.Null);
         Assert.That(dbUser.Email, Is.Null);
 
-        var isEmailWithUserNameExists = TestMailService.IsEmailWithUserNameExists(user.UserName);
+        var isEmailWithUserNameExists = TestMailsService.IsEmailWithUserNameExists(user.UserName);
         Assert.That(isEmailWithUserNameExists, Is.False);
     }
 
@@ -66,7 +66,7 @@ public class AccountsTests
 
         await Task.Delay(_emailServiceDelay); // ждём по максимум бэкграунд сервис
 
-        var isEmailWithUserNameExists = TestMailService.IsEmailWithUserNameExists(user.UserName);
+        var isEmailWithUserNameExists = TestMailsService.IsEmailWithUserNameExists(user.UserName);
         Assert.That(isEmailWithUserNameExists, Is.True);
     }
 
@@ -107,7 +107,7 @@ public class AccountsTests
         await Task.Delay(_emailServiceDelay); // ждём по максимум бэкграунд сервис // todo это шляпа
 
         _apiClient.SetUser(user);
-        var code = TestMailService.GetConfirmCode(user.UserName);
+        var code = TestMailsService.GetConfirmCode(user.UserName);
         Assert.That(code, Is.Not.Empty);
     }
 
@@ -119,7 +119,7 @@ public class AccountsTests
         await Task.Delay(_emailServiceDelay); // ждём по максимум бэкграунд сервис // todo это шляпа
 
         _apiClient.SetUser(user);
-        var code = TestMailService.GetConfirmCode(user.UserName)!;
+        var code = TestMailsService.GetConfirmCode(user.UserName)!;
         await _apiClient.Accounts.ConfirmEmailAsync(code);
 
         var dbUser = await _dbClient.CreateApplicationDbContext().Users.FirstAsync(x => x.UserName == user.UserName);
@@ -138,9 +138,9 @@ public class AccountsTests
         await _apiClient.Accounts.ResendConfirmCodeAsync();
         await Task.Delay(_emailServiceDelay); // ждём по максимум бэкграунд сервис // todo это шляпа
 
-        var codes = TestMailService
+        var codes = TestMailsService
             .GetEmailsByUserName(user.UserName)
-            .Select(TestMailService.GetConfirmCode)
+            .Select(TestMailsService.GetConfirmCode)
             .ToArray();
 
         Assert.That(codes, Is.Not.Empty);

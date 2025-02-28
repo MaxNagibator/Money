@@ -11,7 +11,7 @@ public interface IMailService
     Task SendAsync(MailMessage mailMessage, CancellationToken cancellationToken = default);
 }
 
-public class MailService(IOptions<SmtpSettings> options) : IMailService
+public class MailsService(IOptions<SmtpSettings> options) : IMailService
 {
     private readonly SmtpSettings _settings = options.Value;
 

@@ -10,7 +10,7 @@ public class FileUploadMiddleware(RequestDelegate next)
 
             foreach (var file in form.Files)
             {
-                FileService.CheckFileType(file.FileName);
+                FilesService.CheckFileType(file.FileName);
             }
         }
 

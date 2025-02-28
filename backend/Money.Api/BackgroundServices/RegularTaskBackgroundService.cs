@@ -39,7 +39,7 @@ public class RegularTaskBackgroundService(IServiceProvider serviceProvider, ILog
             {
                 await using (var scope = serviceProvider.CreateAsyncScope())
                 {
-                    var service = scope.ServiceProvider.GetRequiredService<RegularOperationService>();
+                    var service = scope.ServiceProvider.GetRequiredService<RegularOperationsService>();
                     await service.RunRegularTaskAsync(stoppingToken);
                 }
 

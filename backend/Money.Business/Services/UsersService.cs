@@ -1,6 +1,6 @@
 namespace Money.Business.Services;
 
-public class UserService(RequestEnvironment environment, ApplicationDbContext context)
+public class UsersService(RequestEnvironment environment, ApplicationDbContext context)
 {
     private Data.Entities.DomainUser? _currentUser;
 
@@ -61,7 +61,7 @@ public class UserService(RequestEnvironment environment, ApplicationDbContext co
         user.NextCategoryId = index;
     }
 
-    private async Task<Data.Entities.DomainUser> GetCurrentAsync(CancellationToken cancellationToken)
+    private async Task<Data.Entities.DomainUser> GetCurrentAsync(CancellationToken cancellationToken = default)
     {
         // TODO: контекст и так кэширует полученные данные, а он у нас один на реквест как и сервис
         return _currentUser ??= await context.DomainUsers.FirstOrDefaultAsync(x => x.Id == environment.UserId, cancellationToken)

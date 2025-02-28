@@ -8,7 +8,7 @@ namespace Money.Api.Controllers;
 [ApiController]
 [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
 [Route("[controller]")]
-public class FileController(FileService fileService) : ControllerBase
+public class FilesController(FilesService service) : ControllerBase
 {
     /// <summary>
     /// Загрузить файл.
@@ -19,7 +19,7 @@ public class FileController(FileService fileService) : ControllerBase
     [HttpPost]
     public async Task<FileDto> UploadFile(IFormFile file, CancellationToken cancellationToken)
     {
-        var uploadedFile = await fileService.Upload(file, cancellationToken);
+        var uploadedFile = await service.Upload(file, cancellationToken);
         return FileDto.FromBusinessModel(uploadedFile);
     }
 }

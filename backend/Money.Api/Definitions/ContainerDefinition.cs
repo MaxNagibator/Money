@@ -8,19 +8,19 @@ public class ContainerDefinition : AppDefinition
     {
         builder.Services.AddScoped<RequestEnvironment>();
 
-        builder.Services.AddScoped<AccountService>();
+        builder.Services.AddScoped<AccountsService>();
         builder.Services.AddScoped<AuthService>();
 
-        builder.Services.AddScoped<CategoryService>();
-        builder.Services.AddScoped<DebtService>();
-        builder.Services.AddScoped<OperationService>();
-        builder.Services.AddScoped<UserService>();
-        builder.Services.AddScoped<FastOperationService>();
-        builder.Services.AddScoped<PlaceService>();
-        builder.Services.AddScoped<RegularOperationService>();
-        builder.Services.AddScoped<FileService>();
-        builder.Services.AddScoped<CarService>();
-        builder.Services.AddScoped<CarEventService>();
+        builder.Services.AddScoped<CategoriesService>();
+        builder.Services.AddScoped<DebtsService>();
+        builder.Services.AddScoped<OperationsService>();
+        builder.Services.AddScoped<UsersService>();
+        builder.Services.AddScoped<FastOperationsService>();
+        builder.Services.AddScoped<PlacesService>();
+        builder.Services.AddScoped<RegularOperationsService>();
+        builder.Services.AddScoped<FilesService>();
+        builder.Services.AddScoped<CarsService>();
+        builder.Services.AddScoped<CarEventsService>();
         builder.Services.AddSingleton<QueueHolder>();
     }
 }

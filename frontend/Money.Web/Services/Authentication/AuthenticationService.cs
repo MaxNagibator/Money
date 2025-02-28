@@ -17,7 +17,7 @@ public class AuthenticationService(
 
     public async Task<Result> RegisterAsync(RegisterUserDto user)
     {
-        var response = await client.PostAsJsonAsync("Account/register", new { user.UserName, user.Email, user.Password });
+        var response = await client.PostAsJsonAsync("Accounts/register", new { user.UserName, user.Email, user.Password });
 
         if (response.IsSuccessStatusCode)
         {

@@ -2,7 +2,7 @@ namespace Money.ApiClient;
 
 public class AccountsClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
 {
-    private const string BaseUri = "/Account";
+    private const string BaseUri = "/Accounts";
 
     protected override string ApiPrefix => "";
 

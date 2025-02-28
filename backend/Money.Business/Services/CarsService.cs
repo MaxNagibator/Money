@@ -2,12 +2,12 @@ using Money.Data.Extensions;
 
 namespace Money.Business.Services;
 
-public class CarService(
+public class CarsService(
     RequestEnvironment environment,
     ApplicationDbContext context,
-    UserService userService)
+    UsersService usersService)
 {
-    public async Task<IEnumerable<Car>> GetAsync(CancellationToken cancellationToken)
+    public async Task<IEnumerable<Car>> GetAsync(CancellationToken cancellationToken = default)
     {
         var models = await context.Cars
             .IsUserEntity(environment.UserId)
@@ -18,15 +18,15 @@ public class CarService(
         return models;
     }
 
-    public async Task<Car> GetByIdAsync(int id, CancellationToken cancellationToken)
+    public async Task<Car> GetByIdAsync(int id, CancellationToken cancellationToken = default)
     {
-        var entity = await GetByIdInternal(id, cancellationToken);
+        var entity = await GetByIdInternal(id, cancellationToken: cancellationToken);
         return GetBusinessModel(entity);
     }
 
-    public async Task<int> CreateAsync(Car model, CancellationToken cancellationToken)
+    public async Task<int> CreateAsync(Car model, CancellationToken cancellationToken = default)
     {
-        var id = await userService.GetNextCarIdAsync(cancellationToken);
+        var id = await usersService.GetNextCarIdAsync(cancellationToken);
 
         var entity = new Data.Entities.Car
         {
@@ -40,25 +40,25 @@ public class CarService(
         return id;
     }
 
-    public async Task UpdateAsync(Car model, CancellationToken cancellationToken)
+    public async Task UpdateAsync(Car model, CancellationToken cancellationToken = default)
     {
-        var entity = await GetByIdInternal(model.Id, cancellationToken);
+        var entity = await GetByIdInternal(model.Id, cancellationToken: cancellationToken);
         entity.Name = model.Name;
 
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task DeleteAsync(int id, CancellationToken cancellationToken)
+    public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
-        var entity = await GetByIdInternal(id, cancellationToken);
+        var entity = await GetByIdInternal(id, cancellationToken: cancellationToken);
         entity.IsDeleted = true;
 
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task RestoreAsync(int id, CancellationToken cancellationToken)
+    public async Task RestoreAsync(int id, CancellationToken cancellationToken = default)
     {
-        var entity = await GetByIdInternal(id, cancellationToken, true);
+        var entity = await GetByIdInternal(id, true, cancellationToken);
 
         if (entity.IsDeleted == false)
         {
@@ -78,7 +78,7 @@ public class CarService(
         };
     }
 
-    private async Task<Data.Entities.Car> GetByIdInternal(int id, CancellationToken cancellationToken, bool ignoreQueryFilters = false)
+    private async Task<Data.Entities.Car> GetByIdInternal(int id, bool ignoreQueryFilters = false, CancellationToken cancellationToken = default)
     {
         var query = context.Cars
             .IsUserEntity(environment.UserId, id);
