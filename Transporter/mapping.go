@@ -14,6 +14,7 @@ type TransporterMapping struct {
 	FastOperation    FastOperation
 	Place            Place
 	RegularOperation RegularOperation
+	Car              Car
 }
 
 type TableMapping[O any, N any] interface {
@@ -75,6 +76,12 @@ func CreateTransporter() *TransporterMapping {
 			BaseTable: BaseTable[OldRegularOperation, NewRegularOperation]{
 				OldName: `"Money"."RegularTask"`,
 				NewName: "regular_operations",
+			},
+		},
+		Car: Car{
+			BaseTable: BaseTable[OldCar, NewCar]{
+				OldName: `"Money"."Car"`,
+				NewName: "cars",
 			},
 		},
 	}

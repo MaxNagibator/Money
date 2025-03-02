@@ -88,6 +88,7 @@ func main() {
 	processTable(newDatabase, oldDatabase, &transporter.FastOperation)
 	processTable(newDatabase, oldDatabase, &transporter.RegularOperation)
 	processTable(newDatabase, oldDatabase, &transporter.Place)
+	processTable(newDatabase, oldDatabase, &transporter.Car)
 
 	err = resetDatabase(oldDatabase)
 	if err != nil {
@@ -106,6 +107,7 @@ TRUNCATE "operations" CASCADE;
 TRUNCATE "fast_operations" CASCADE;
 TRUNCATE "places" CASCADE;
 TRUNCATE "regular_operations" CASCADE;
+TRUNCATE "cars" CASCADE;
 `)
 }
 
