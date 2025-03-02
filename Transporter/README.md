@@ -29,7 +29,7 @@ SET Sum        = p.Sum,
     Comment    = p.Comment,
     PlaceId    = p.PlaceId
     FROM Money.RegularTask r
-         JOIN Money.Payment p ON r.TaskId = p.TaskId;
+         JOIN Money.Payment p ON r.TaskId = p.TaskId and r.UserId = p.UserId;
 
 ALTER TABLE Money.RegularTask
 DROP COLUMN Sum, CategoryId, Comment, PlaceId;

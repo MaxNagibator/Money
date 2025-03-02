@@ -89,6 +89,7 @@ func main() {
 	processTable(newDatabase, oldDatabase, &transporter.RegularOperation)
 	processTable(newDatabase, oldDatabase, &transporter.Place)
 	processTable(newDatabase, oldDatabase, &transporter.Car)
+	processTable(newDatabase, oldDatabase, &transporter.CarEvent)
 
 	err = resetDatabase(oldDatabase)
 	if err != nil {
@@ -108,6 +109,7 @@ TRUNCATE "fast_operations" CASCADE;
 TRUNCATE "places" CASCADE;
 TRUNCATE "regular_operations" CASCADE;
 TRUNCATE "cars" CASCADE;
+TRUNCATE "car_events" CASCADE;
 `)
 }
 
@@ -158,7 +160,7 @@ SET Sum        = p.Sum,
     Comment    = p.Comment,
     PlaceId    = p.PlaceId
 FROM Money.RegularTask r
-         JOIN Money.Payment p ON r.TaskId = p.TaskId
+         JOIN Money.Payment p ON r.TaskId = p.TaskId and r.UserId = p.UserId
 `)
 	if err != nil {
 		if errT := tx.Rollback(); errT != nil {
