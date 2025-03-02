@@ -1,5 +1,8 @@
 ﻿namespace Money.Data.Entities.Base;
 
+/// <summary>
+/// Базовая операция.
+/// </summary>
 public abstract class OperationBase : UserEntity
 {
     /// <summary>
@@ -23,7 +26,7 @@ public abstract class OperationBase : UserEntity
     public int? PlaceId { get; set; }
 
     /// <summary>
-    /// Флаг, указывающий, что операция была удалена.
+    /// Удалена.
     /// </summary>
     public bool IsDeleted { get; set; }
 

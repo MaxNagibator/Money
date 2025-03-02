@@ -5,13 +5,14 @@ using Money.Data.Extensions;
 namespace Money.Api.Tests.TestTools.Entities;
 
 /// <summary>
-/// Авто.
+/// Авто-событие.
 /// </summary>
 public class TestCarEvent : TestObject
 {
-    public TestCarEvent(TestUser user)
+    public TestCarEvent(TestUser user, TestCar car)
     {
         User = user;
+        Car = car;
 
         Title = TestRandom.GetString("CarEvent");
         TypeId = (int)TestRandom.GetEnum<CarEventTypes>();
@@ -26,19 +27,34 @@ public class TestCarEvent : TestObject
     public int Id { get; private set; }
 
     /// <summary>
-    /// Родительская категория.
+    /// Связанный автомобиль.
     /// </summary>
-    public TestCar? Car { get; set; }
+    public TestCar Car { get; }
 
-    public string? Title { get; init; }
+    /// <summary>
+    /// Название.
+    /// </summary>
+    public string? Title { get; }
 
-    public int TypeId { get; init; }
+    /// <summary>
+    /// Идентификатор типа.
+    /// </summary>
+    public int TypeId { get; }
 
-    public string? Comment { get; init; }
+    /// <summary>
+    /// Дополнительные комментарии.
+    /// </summary>
+    public string? Comment { get; }
 
-    public int? Mileage { get; init; }
+    /// <summary>
+    /// Пробег автомобиля.
+    /// </summary>
+    public int? Mileage { get; }
 
-    public DateTime Date { get; init; }
+    /// <summary>
+    /// Дата.
+    /// </summary>
+    public DateTime Date { get; }
 
     /// <summary>
     /// Пользователь.
@@ -46,15 +62,9 @@ public class TestCarEvent : TestObject
     public TestUser User { get; }
 
     /// <summary>
-    /// Удалена.
+    /// Удалено.
     /// </summary>
     public bool IsDeleted { get; set; }
-
-    public TestCarEvent SetCar(TestCar model)
-    {
-        Car = model;
-        return this;
-    }
 
     public TestCarEvent SetIsDeleted()
     {

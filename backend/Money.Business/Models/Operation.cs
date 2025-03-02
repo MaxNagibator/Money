@@ -5,6 +5,9 @@
 /// </summary>
 public class Operation : OperationBase
 {
+    /// <summary>
+    /// Дата.
+    /// </summary>
     public DateTime Date { get; set; }
 
     /// <summary>

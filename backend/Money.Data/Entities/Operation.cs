@@ -1,5 +1,8 @@
 ﻿namespace Money.Data.Entities;
 
+/// <summary>
+/// Операция.
+/// </summary>
 public class Operation : OperationBase
 {
     /// <summary>

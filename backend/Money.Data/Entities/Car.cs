@@ -1,9 +1,18 @@
 namespace Money.Data.Entities;
 
+/// <summary>
+/// Авто.
+/// </summary>
 public class Car : UserEntity
 {
+    /// <summary>
+    /// Наименование.
+    /// </summary>
     public required string Name { get; set; }
 
+    /// <summary>
+    /// Удалена.
+    /// </summary>
     public bool IsDeleted { get; set; }
 }
 

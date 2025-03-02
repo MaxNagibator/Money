@@ -1,4 +1,3 @@
-using Money.Business.Enums;
 using Money.Data.Entities;
 using Money.Data.Extensions;
 
@@ -44,8 +43,7 @@ public class TestCar : TestObject
 
     public TestCarEvent WithEvent()
     {
-        var obj = new TestCarEvent(User);
-        obj.SetCar(this);
+        var obj = new TestCarEvent(User, this);
         obj.Attach(Environment);
         return obj;
     }

@@ -1,5 +1,8 @@
 ﻿namespace Money.Data.Entities;
 
+/// <summary>
+/// Долг.
+/// </summary>
 public class Debt : UserEntity
 {
     /// <summary>
