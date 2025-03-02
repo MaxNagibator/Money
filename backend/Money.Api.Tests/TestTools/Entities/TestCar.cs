@@ -42,12 +42,13 @@ public class TestCar : TestObject
         return this;
     }
 
-    //public TestCarEvent WithEvent()
-    //{
-    //    var obj = new TestCarEvent(this);
-    //    obj.Attach(Environment);
-    //    return obj;
-    //}
+    public TestCarEvent WithEvent()
+    {
+        var obj = new TestCarEvent(User);
+        obj.SetCar(this);
+        obj.Attach(Environment);
+        return obj;
+    }
 
     private void FillDbProperties(Car obj)
     {

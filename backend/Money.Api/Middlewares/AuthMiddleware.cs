@@ -11,7 +11,7 @@ public class AuthMiddleware(RequestDelegate next)
         HttpContext context,
         RequestEnvironment environment,
         UserManager<ApplicationUser> userManager,
-        AccountService accountService)
+        AccountsService accountsService)
     {
         var userId = context.User.GetClaim(OpenIddictConstants.Claims.Subject);
 
@@ -21,7 +21,7 @@ public class AuthMiddleware(RequestDelegate next)
 
             if (user != null)
             {
-                environment.UserId = await accountService.EnsureUserIdAsync(user.Id, context.RequestAborted);
+                environment.UserId = await accountsService.EnsureUserIdAsync(user.Id, context.RequestAborted);
                 environment.AuthUser = user;
             }
         }

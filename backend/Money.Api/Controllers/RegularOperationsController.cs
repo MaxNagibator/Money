@@ -8,7 +8,7 @@ namespace Money.Api.Controllers;
 [ApiController]
 [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
 [Route("[controller]")]
-public class RegularOperationsController(RegularOperationService regularOperationService) : ControllerBase
+public class RegularOperationsController(RegularOperationsService service) : ControllerBase
 {
     /// <summary>
     /// Получить список быстрых операций.
@@ -20,8 +20,8 @@ public class RegularOperationsController(RegularOperationService regularOperatio
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Get(CancellationToken cancellationToken)
     {
-        var operations = await regularOperationService.GetAsync(cancellationToken);
-        return Ok(operations.Select(RegularOperationDto.FromBusinessModel));
+        var models = await service.GetAsync(cancellationToken);
+        return Ok(models.Select(RegularOperationDto.FromBusinessModel));
     }
 
     /// <summary>
@@ -36,8 +36,8 @@ public class RegularOperationsController(RegularOperationService regularOperatio
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
     {
-        var operation = await regularOperationService.GetByIdAsync(id, cancellationToken);
-        return Ok(RegularOperationDto.FromBusinessModel(operation));
+        var model = await service.GetByIdAsync(id, cancellationToken);
+        return Ok(RegularOperationDto.FromBusinessModel(model));
     }
 
     /// <summary>
@@ -53,9 +53,9 @@ public class RegularOperationsController(RegularOperationService regularOperatio
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Create([FromBody] SaveRequest request, CancellationToken cancellationToken)
     {
-        var business = request.ToBusinessModel();
-        var result = await regularOperationService.CreateAsync(business, cancellationToken);
-        return CreatedAtAction(nameof(GetById), new { id = result }, result);
+        var model = request.ToBusinessModel();
+        var id = await service.CreateAsync(model, cancellationToken);
+        return CreatedAtAction(nameof(GetById), new { id }, id);
     }
 
     /// <summary>
@@ -70,9 +70,9 @@ public class RegularOperationsController(RegularOperationService regularOperatio
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(int id, [FromBody] SaveRequest request, CancellationToken cancellationToken)
     {
-        var business = request.ToBusinessModel();
-        business.Id = id;
-        await regularOperationService.UpdateAsync(business, cancellationToken);
+        var model = request.ToBusinessModel();
+        model.Id = id;
+        await service.UpdateAsync(model, cancellationToken);
         return NoContent();
     }
 
@@ -87,7 +87,7 @@ public class RegularOperationsController(RegularOperationService regularOperatio
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
-        await regularOperationService.DeleteAsync(id, cancellationToken);
+        await service.DeleteAsync(id, cancellationToken);
         return NoContent();
     }
 
@@ -103,7 +103,7 @@ public class RegularOperationsController(RegularOperationService regularOperatio
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Restore(int id, CancellationToken cancellationToken)
     {
-        await regularOperationService.RestoreAsync(id, cancellationToken);
+        await service.RestoreAsync(id, cancellationToken);
         return NoContent();
     }
 }

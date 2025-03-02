@@ -11,11 +11,9 @@ public class SaveRequest
     public required string Name { get; init; }
 
     /// <summary>
-    /// Преобразует текущую DTO-модель в бизнес-модель.
+    /// Фабричный метод для создания бизнес-модели на основе DTO.
     /// </summary>
-    /// <returns>
-    /// Экземпляр <see cref="Car" />, который представляет бизнес-модель.
-    /// </returns>
+    /// <returns>Новый объект <see cref="Car" />.</returns>
     public Car ToBusinessModel()
     {
         return new()

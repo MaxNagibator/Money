@@ -4,7 +4,7 @@ using System.Collections.Concurrent;
 
 namespace Money.Api.Tests;
 
-internal class TestMailService : IMailService
+internal class TestMailsService : IMailService
 {
     private static readonly ConcurrentDictionary<string, List<MailMessage>> Emails = new();
 

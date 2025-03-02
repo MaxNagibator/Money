@@ -1,20 +1,21 @@
 using Microsoft.AspNetCore.Identity;
 using Money.Data.Entities;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Money.Business.Services;
 
-public class AccountService(
+public partial class AccountsService(
     RequestEnvironment environment,
     UserManager<ApplicationUser> userManager,
     ApplicationDbContext context,
     QueueHolder queueHolder)
 {
-    public async Task RegisterAsync(RegisterModel model, CancellationToken cancellationToken = default)
+    public async Task RegisterAsync(RegisterAccount model, CancellationToken cancellationToken = default)
     {
-        if (IsEmail(model.UserName))
+        if (UserNameRegex().IsMatch(model.UserName) == false)
         {
-            throw new EntityExistsException("Извините, но имя пользователя не может быть email.");
+            throw new EntityExistsException("Извините, но имя пользователя не может содержать служебные символы.");
         }
 
         var user = await userManager.FindByNameAsync(model.UserName);
@@ -32,7 +33,7 @@ public class AccountService(
             {
                 if (user.EmailConfirmed)
                 {
-                    throw new EntityExistsException("Извините, но пользователь с таким email уже зарегистрирован. Пожалуйста, попробуйте другое email.");
+                    throw new EntityExistsException("Извините, но пользователь с таким email уже зарегистрирован. Пожалуйста, попробуйте другоЙ email.");
                 }
 
                 user.Email = null;
@@ -79,7 +80,7 @@ public class AccountService(
         return await AddNewUser(authUserId, cancellationToken);
     }
 
-    public async Task ConfirmEmailAsync(string confirmCode, CancellationToken cancellationToken)
+    public async Task ConfirmEmailAsync(string confirmCode, CancellationToken cancellationToken = default)
     {
         var user = environment.AuthUser;
 
@@ -90,7 +91,7 @@ public class AccountService(
 
         if (user.EmailConfirmed)
         {
-            return;
+            throw new BusinessException("Извините, но у вас уже подтвержденный email.");
         }
 
         if (user.Email == null)
@@ -107,7 +108,7 @@ public class AccountService(
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task ResendConfirmCodeAsync(CancellationToken cancellationToken)
+    public async Task ResendConfirmCodeAsync(CancellationToken cancellationToken = default)
     {
         var user = environment.AuthUser;
 
@@ -118,7 +119,7 @@ public class AccountService(
 
         if (user.EmailConfirmed)
         {
-            return;
+            throw new BusinessException("Извините, но у вас уже подтвержденный email.");
         }
 
         if (user.Email == null)
@@ -157,7 +158,7 @@ public class AccountService(
     }
 
     // TODO Подумать над переносом в сервис
-    private async Task<int> AddNewUser(Guid authUserId, CancellationToken cancellationToken)
+    private async Task<int> AddNewUser(Guid authUserId, CancellationToken cancellationToken = default)
     {
         var domainUser = new DomainUser
         {
@@ -170,12 +171,6 @@ public class AccountService(
         return domainUser.Id;
     }
 
-    private static bool IsEmail(string value)
-    {
-        var index = value.IndexOf('@', StringComparison.Ordinal);
-
-        return index > 0
-               && index != value.Length - 1
-               && index == value.LastIndexOf('@');
-    }
+    [GeneratedRegex("^[a-zA-Z0-9_-]+$", RegexOptions.Compiled)]
+    private static partial Regex UserNameRegex();
 }

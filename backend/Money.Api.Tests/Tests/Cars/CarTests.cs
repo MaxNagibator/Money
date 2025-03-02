@@ -22,7 +22,7 @@ public class CarTests
     [Test]
     public async Task GetTest()
     {
-        TestCar[] cars =
+        TestCar[] models =
         [
             _user.WithCar(),
             _user.WithCar(),
@@ -31,30 +31,30 @@ public class CarTests
 
         _dbClient.Save();
 
-        var apiCars = await _apiClient.Cars.Get().IsSuccessWithContent();
-        Assert.That(apiCars, Is.Not.Null);
-        Assert.That(apiCars.Count, Is.GreaterThanOrEqualTo(3));
-        Assert.That(apiCars[0].Id, Is.EqualTo(cars[0].Id));
+        var apiModels = await _apiClient.Cars.Get().IsSuccessWithContent();
+        Assert.That(apiModels, Is.Not.Null);
+        Assert.That(apiModels.Count, Is.GreaterThanOrEqualTo(3));
+        Assert.That(apiModels[0].Id, Is.EqualTo(models[0].Id));
 
-        var testCars = cars.ExceptBy(apiCars.Select(x => x.Id), category => category.Id).ToArray();
-        Assert.That(testCars, Is.Not.Null);
-        Assert.That(testCars, Is.Empty);
+        var exceptModels = models.ExceptBy(apiModels.Select(x => x.Id), model => model.Id).ToArray();
+        Assert.That(exceptModels, Is.Not.Null);
+        Assert.That(exceptModels, Is.Empty);
     }
 
     [Test]
     public async Task GetByIdTest()
     {
-        var category = _user.WithCar();
+        var model = _user.WithCar();
         _dbClient.Save();
 
-        var apiCar = await _apiClient.Cars.GetById(category.Id).IsSuccessWithContent();
+        var apiModel = await _apiClient.Cars.GetById(model.Id).IsSuccessWithContent();
 
-        Assert.That(apiCar, Is.Not.Null);
+        Assert.That(apiModel, Is.Not.Null);
 
         Assert.Multiple(() =>
         {
-            Assert.That(apiCar.Id, Is.EqualTo(category.Id));
-            Assert.That(apiCar.Name, Is.EqualTo(category.Name));
+            Assert.That(apiModel.Id, Is.EqualTo(model.Id));
+            Assert.That(apiModel.Name, Is.EqualTo(model.Name));
         });
     }
 
@@ -63,91 +63,92 @@ public class CarTests
     {
         _dbClient.Save();
 
-        var category = _user.WithCar();
+        var model = _user.WithCar();
 
         var request = new CarsClient.SaveRequest
         {
-            Name = category.Name,
+            Name = model.Name,
         };
 
-        var createdCarId = await _apiClient.Cars.Create(request).IsSuccessWithContent();
-        var dbCar = await _dbClient.CreateApplicationDbContext().Cars.FirstOrDefaultAsync(_user.Id, createdCarId);
+        var createdId = await _apiClient.Cars.Create(request).IsSuccessWithContent();
+        var entity = await _dbClient.CreateApplicationDbContext().Cars.FirstOrDefaultAsync(_user.Id, createdId);
 
-        Assert.That(dbCar, Is.Not.Null);
+        Assert.That(entity, Is.Not.Null);
 
         Assert.Multiple(() =>
         {
-            Assert.That(dbCar.Name, Is.EqualTo(request.Name));
+            Assert.That(entity.Name, Is.EqualTo(request.Name));
         });
     }
 
     [Test]
     public async Task UpdateTest()
     {
-        var category = _user.WithCar();
+        var model = _user.WithCar();
         _dbClient.Save();
 
         var request = new CarsClient.SaveRequest
         {
-            Name = category.Name,
+            Name = model.Name,
         };
 
-        await _apiClient.Cars.Update(category.Id, request).IsSuccess();
-        var dbCar = await _dbClient.CreateApplicationDbContext().Cars.FirstOrDefaultAsync(_user.Id, category.Id);
+        await _apiClient.Cars.Update(model.Id, request).IsSuccess();
+        var entity = await _dbClient.CreateApplicationDbContext().Cars.FirstOrDefaultAsync(_user.Id, model.Id);
 
-        Assert.That(dbCar, Is.Not.Null);
+        Assert.That(entity, Is.Not.Null);
 
         Assert.Multiple(() =>
         {
-            Assert.That(dbCar.Name, Is.EqualTo(request.Name));
+            Assert.That(entity.Name, Is.EqualTo(request.Name));
         });
     }
 
     [Test]
     public async Task DeleteTest()
     {
-        var category = _user.WithCar();
+        var model = _user.WithCar();
         _dbClient.Save();
 
-        await _apiClient.Cars.Delete(category.Id).IsSuccess();
+        await _apiClient.Cars.Delete(model.Id).IsSuccess();
 
         await using var context = _dbClient.CreateApplicationDbContext();
 
-        var dbCar = await context.Cars
-            .FirstOrDefaultAsync(_user.Id, category.Id);
+        var entity = await context.Cars
+            .FirstOrDefaultAsync(_user.Id, model.Id);
 
-        Assert.That(dbCar, Is.Null);
+        Assert.That(entity, Is.Null);
 
-        dbCar = await context.Cars
+        entity = await context.Cars
             .IgnoreQueryFilters()
-            .FirstOrDefaultAsync(_user.Id, category.Id);
+            .FirstOrDefaultAsync(_user.Id, model.Id);
 
-        Assert.That(dbCar, Is.Not.Null);
-        Assert.That(dbCar.IsDeleted, Is.EqualTo(true));
+        Assert.That(entity, Is.Not.Null);
+        Assert.That(entity.IsDeleted, Is.True);
     }
 
     [Test]
     public async Task RestoreTest()
     {
-        var category = _user.WithCar().SetIsDeleted();
+        var model = _user.WithCar().SetIsDeleted();
         _dbClient.Save();
 
-        await _apiClient.Cars.Restore(category.Id).IsSuccess();
+        await _apiClient.Cars.Restore(model.Id).IsSuccess();
 
-        await using var context = _dbClient.CreateApplicationDbContext();
+        var entity = await _dbClient.CreateApplicationDbContext()
+            .Cars
+            .FirstOrDefaultAsync(_user.Id, model.Id);
 
-        var dbCar = await context.Cars.FirstOrDefaultAsync(_user.Id, category.Id);
-        Assert.That(dbCar, Is.Not.Null);
-        Assert.That(dbCar.IsDeleted, Is.EqualTo(false));
+        Assert.That(entity, Is.Not.Null);
+        Assert.That(entity.IsDeleted, Is.False);
     }
 
     [Test]
     public async Task RestoreFailWhenNotDeletedTest()
     {
-        var category = _user.WithCar();
+        var model = _user.WithCar();
         _dbClient.Save();
 
-        await _apiClient.Cars.Restore(category.Id).IsBadRequest();
+        await _apiClient.Cars.Restore(model.Id).IsBadRequest();
     }
 
     [Test]

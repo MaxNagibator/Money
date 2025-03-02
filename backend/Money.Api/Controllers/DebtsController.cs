@@ -8,7 +8,7 @@ namespace Money.Api.Controllers;
 [ApiController]
 [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
 [Route("[controller]")]
-public class DebtsController(DebtService debtService) : ControllerBase
+public class DebtsController(DebtsService service) : ControllerBase
 {
     /// <summary>
     /// Получить список долгов.
@@ -20,8 +20,8 @@ public class DebtsController(DebtService debtService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Get(CancellationToken cancellationToken)
     {
-        var debts = await debtService.GetAsync(cancellationToken);
-        return Ok(debts.Select(DebtDto.FromBusinessModel));
+        var models = await service.GetAsync(cancellationToken: cancellationToken);
+        return Ok(models.Select(DebtDto.FromBusinessModel));
     }
 
     /// <summary>
@@ -36,8 +36,8 @@ public class DebtsController(DebtService debtService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
     {
-        var debt = await debtService.GetByIdAsync(id, cancellationToken);
-        return Ok(DebtDto.FromBusinessModel(debt));
+        var model = await service.GetByIdAsync(id, cancellationToken);
+        return Ok(DebtDto.FromBusinessModel(model));
     }
 
     /// <summary>
@@ -52,10 +52,9 @@ public class DebtsController(DebtService debtService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create([FromBody] SaveRequest request, CancellationToken cancellationToken)
     {
-        var business = request.ToBusinessModel();
-        var result = await debtService.CreateAsync(business, cancellationToken);
-
-        return CreatedAtAction(nameof(GetById), new { id = result }, result);
+        var model = request.ToBusinessModel();
+        var id = await service.CreateAsync(model, cancellationToken);
+        return CreatedAtAction(nameof(GetById), new { id }, id);
     }
 
     /// <summary>
@@ -70,9 +69,9 @@ public class DebtsController(DebtService debtService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(int id, [FromBody] SaveRequest request, CancellationToken cancellationToken)
     {
-        var business = request.ToBusinessModel();
-        business.Id = id;
-        await debtService.UpdateAsync(business, cancellationToken);
+        var model = request.ToBusinessModel();
+        model.Id = id;
+        await service.UpdateAsync(model, cancellationToken);
         return NoContent();
     }
 
@@ -87,7 +86,7 @@ public class DebtsController(DebtService debtService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
-        await debtService.DeleteAsync(id, cancellationToken);
+        await service.DeleteAsync(id, cancellationToken);
         return NoContent();
     }
 
@@ -103,7 +102,7 @@ public class DebtsController(DebtService debtService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Restore(int id, CancellationToken cancellationToken)
     {
-        await debtService.RestoreAsync(id, cancellationToken);
+        await service.RestoreAsync(id, cancellationToken);
         return NoContent();
     }
 
@@ -120,9 +119,9 @@ public class DebtsController(DebtService debtService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Pay(int id, [FromBody] PayRequest request, CancellationToken cancellationToken)
     {
-        var business = request.ToBusinessModel();
-        business.Id = id;
-        await debtService.PayAsync(business, cancellationToken);
+        var model = request.ToBusinessModel();
+        model.Id = id;
+        await service.PayAsync(model, cancellationToken);
         return NoContent();
     }
 
@@ -140,7 +139,7 @@ public class DebtsController(DebtService debtService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> MergeOwners(int fromUserId, int toUserId, CancellationToken cancellationToken)
     {
-        await debtService.MergeOwnersAsync(fromUserId, toUserId, cancellationToken);
+        await service.MergeOwnersAsync(fromUserId, toUserId, cancellationToken);
         return NoContent();
     }
 
@@ -154,7 +153,7 @@ public class DebtsController(DebtService debtService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetOwners(CancellationToken cancellationToken)
     {
-        var owners = await debtService.GetOwnersAsync(cancellationToken);
+        var owners = await service.GetOwnersAsync(cancellationToken);
         return Ok(owners.Select(DebtOwnerDto.FromBusinessModel));
     }
 
@@ -170,7 +169,7 @@ public class DebtsController(DebtService debtService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Forgive([FromBody] ForgiveRequest request, CancellationToken cancellationToken)
     {
-        await debtService.ForgiveAsync(request.DebtIds, request.OperationCategoryId, request.OperationComment, cancellationToken);
+        await service.ForgiveAsync(request.DebtIds, request.OperationCategoryId, request.OperationComment, cancellationToken);
         return NoContent();
     }
 }

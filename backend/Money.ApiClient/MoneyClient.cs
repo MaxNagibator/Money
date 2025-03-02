@@ -17,6 +17,7 @@ public class MoneyClient
         RegularOperations = new(this);
         Accounts = new(this);
         Cars = new(this);
+        CarEvents = new(this);
     }
 
     [ActivatorUtilitiesConstructor]
@@ -36,6 +37,7 @@ public class MoneyClient
     public RegularOperationsClient RegularOperations { get; }
     public AccountsClient Accounts { get; }
     public CarsClient Cars { get; }
+    public CarEventsClient CarEvents { get; }
 
     public void SetUser(string login, string password)
     {

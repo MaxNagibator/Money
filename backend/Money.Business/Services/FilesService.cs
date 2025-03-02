@@ -5,7 +5,7 @@ using File = Money.Business.Models.File;
 
 namespace Money.Business.Services;
 
-public class FileService(IOptionsSnapshot<FilesStorageConfig> config)
+public class FilesService(IOptionsSnapshot<FilesStorageConfig> config)
 {
     private static readonly Dictionary<FileTypes, List<string>> SupportedFilesExtensions = new()
     {

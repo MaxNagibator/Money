@@ -20,7 +20,7 @@ public class CustomWebApplicationFactory<TProgram> : WebApplicationFactory<TProg
         builder.ConfigureServices(services =>
         {
             services.AddSingleton(configRoot);
-            services.AddSingleton<IMailService, TestMailService>();
+            services.AddSingleton<IMailService, TestMailsService>();
         });
 
         builder.UseConfiguration(configRoot);
