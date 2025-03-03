@@ -33,6 +33,7 @@ public class CarEventsService(
         {
             Id = id,
             UserId = environment.UserId,
+            CarId = model.CarId,
             TypeId = (int)model.Type,
             Title = model.Title,
             Date = model.Date,
@@ -48,6 +49,7 @@ public class CarEventsService(
     public async Task UpdateAsync(CarEvent model, CancellationToken cancellationToken = default)
     {
         var entity = await GetByIdInternal(model.Id, cancellationToken: cancellationToken);
+        entity.CarId = model.CarId;
         entity.TypeId = (int)model.Type;
         entity.Title = model.Title;
         entity.Date = model.Date;
@@ -83,6 +85,7 @@ public class CarEventsService(
         return new()
         {
             Id = model.Id,
+            CarId = model.CarId,
             Type = (CarEventTypes)model.TypeId,
             Title = model.Title,
             Date = model.Date,

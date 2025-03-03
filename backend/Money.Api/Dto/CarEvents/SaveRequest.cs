@@ -18,6 +18,11 @@ public class SaveRequest
     public int TypeId { get; init; }
 
     /// <summary>
+    /// Идентификатор связанного автомобиля.
+    /// </summary>
+    public int CarId { get; init; }
+
+    /// <summary>
     /// Дополнительные комментарии.
     /// </summary>
     public string? Comment { get; init; }
@@ -40,6 +45,7 @@ public class SaveRequest
     {
         return new()
         {
+            CarId = CarId,
             Title = Title,
             Type = (CarEventTypes)TypeId,
             Comment = Comment,

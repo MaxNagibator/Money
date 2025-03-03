@@ -14,6 +14,11 @@ public class Car : UserEntity
     /// Удалена.
     /// </summary>
     public bool IsDeleted { get; set; }
+
+    /// <summary>
+    /// Список авто-событий.
+    /// </summary>
+    public List<CarEvent>? Events { get; set; }
 }
 
 public class CarConfiguration : UserEntityConfiguration<Car>
@@ -26,6 +31,11 @@ public class CarConfiguration : UserEntityConfiguration<Car>
 
         builder.Property(x => x.IsDeleted)
             .HasDefaultValue(false)
+            .IsRequired();
+
+        builder.HasMany(x => x.Events)
+            .WithOne(x => x.Car)
+            .HasForeignKey(x => new { x.UserId, x.CarId })
             .IsRequired();
 
         builder.HasQueryFilter(x => x.IsDeleted == false);

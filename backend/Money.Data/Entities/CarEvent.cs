@@ -39,6 +39,11 @@ public class CarEvent : UserEntity
     /// Удалено.
     /// </summary>
     public bool IsDeleted { get; set; }
+
+    /// <summary>
+    /// Связанный автомобиль.
+    /// </summary>
+    public Car? Car { get; set; }
 }
 
 public class CarEventConfiguration : UserEntityConfiguration<CarEvent>

@@ -11,6 +11,11 @@ public class CarEvent
     public int Id { get; set; }
 
     /// <summary>
+    /// Идентификатор связанного автомобиля.
+    /// </summary>
+    public int CarId { get; init; }
+
+    /// <summary>
     /// Название.
     /// </summary>
     public string? Title { get; set; }
