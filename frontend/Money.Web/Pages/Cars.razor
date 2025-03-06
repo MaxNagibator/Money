@@ -70,6 +70,12 @@
         @foreach (var car in _cars)
         {
             <MudTabPanel ShowCloseIcon="false" ID="@car.Id" Text="@car.Name">
+                <MudStack AlignItems="AlignItems.Center" Class="mb-2" Row Spacing="2">
+                    <MudText>События</MudText>
+                    <MudIconButton Icon="@Icons.Material.Rounded.Add"
+                                   OnClick="Create"
+                                   Variant="Variant.Outlined" />
+                </MudStack>
                 <MudGrid Spacing="2">
                     <Virtualize Context="model"
                                 Items="@(car.Events ?? [])">

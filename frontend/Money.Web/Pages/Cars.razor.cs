@@ -10,7 +10,7 @@ public partial class Cars
     private int _activeIndex;
     private bool _isAddCarOpen;
     private List<Car> _cars = [];
-    private string _addCarName;
+    private string _addCarName = string.Empty;
 
     [Inject]
     private MoneyClient MoneyClient { get; set; } = null!;
@@ -79,20 +79,20 @@ public partial class Cars
     {
         var model = new CarEvent
         {
-            Id = null,
-            Title = null,
-            Type = null,
-            Comment = null,
-            Mileage = null,
-            Date = default,
-            IsDeleted = false,
+            Type = CarEventTypes.None,
+            Date = DateTime.Now,
         };
 
-        var createdCarEvent = await ShowDialog("Создать", model);
+        var created = await ShowDialog("Создать", model);
 
-        if (createdCarEvent == null)
+        if (created == null)
         {
+            return;
         }
+
+        var car = _cars[_activeIndex];
+        car.Events ??= [];
+        car.Events.Insert(0, created);
     }
 
     private async Task Update(CarEvent model)
@@ -114,9 +114,8 @@ public partial class Cars
     {
         DialogParameters<CarEventDialog> parameters = new()
         {
-            /*
-            { dialog => dialog.model, model },
-        */
+            { dialog => dialog.Model, model },
+            { dialog => dialog.CarId, _cars[_activeIndex].Id!.Value },
         };
 
         var dialog = await DialogService.ShowAsync<CarEventDialog>(title, parameters);

@@ -1,5 +1,4 @@
-﻿@*
-<EditForm Model="@Input"
+﻿<EditForm Model="@Input"
           OnValidSubmit="SubmitAsync">
     <DataAnnotationsValidator />
     <MudDialog>
@@ -15,65 +14,65 @@
                     <MudTextField AdornmentColor="Color.Tertiary"
                                   AdornmentIcon="@Icons.Material.Rounded.Comment"
                                   AutoGrow
-                                  @bind-Value="Input.Name"
-                                  For="@(() => Input.Name)"
-                                  Label="Наименование" />
+                                  @bind-Value="Input.Title"
+                                  For="@(() => Input.Title)"
+                                  HelperText="Что произошло"
+                                  Label="Описание" />
+                </MudItem>
+                <MudItem md="12" xs="12">
+                    <MudText Typo="Typo.subtitle1" Class="mb-2">Тип события</MudText>
+                    <MudGrid Spacing="2">
+                        @foreach (var eventType in CarEventTypes.Values.Values)
+                        {
+                            <MudItem xs="3">
+                                <MudPaper Class="@($"pa-1 cursor-pointer {GetSelectedClass(eventType)}")"
+                                    @onclick="@(() => SelectEventType(eventType))">
+                                    <MudStack AlignItems="AlignItems.Center">
+                                        <MudImage Src="@eventType.GetIcon()"
+                                                  Height="64"
+                                                  Width="64" />
+                                        <MudText Align="Align.Center" Typo="Typo.body2">@eventType.Name</MudText>
+                                    </MudStack>
+                                </MudPaper>
+                            </MudItem>
+                        }
+                    </MudGrid>
+                    <ValidationMessage For="@(() => Input.Type)" />
                 </MudItem>
                 <MudItem md="6"
                          xs="12">
-                    <SmartSum @ref="_smartSum"
-                              GetInitialSum="() => Model.Sum" />
+                    <MudDatePicker Adornment="Adornment.Start"
+                                   AdornmentColor="Color.Tertiary"
+                                   AnchorOrigin="Origin.BottomLeft"
+                                   For="@(() => Input.Date)"
+                                   @bind-Date="@Input.Date"
+                                   Clearable
+                                   Color="Color.Tertiary"
+                                   DateFormat="dd.MM.yyyy"
+                                   Editable
+                                   Label="Дата"
+                                   HelperText="Когда"
+                                   Mask="@(new DateMask("dd.MM.yyyy"))" />
                 </MudItem>
                 <MudItem md="6"
                          xs="12">
                     <MudNumericField AdornmentColor="Color.Tertiary"
-                                     @bind-Value="Input.Order"
+                                     @bind-Value="Input.Mileage"
                                      Clearable
                                      Immediate
-                                     For="@(() => Input.Order)"
-                                     Label="Приоритет сортировки" />
+                                     For="@(() => Input.Mileage)"
+                                     HelperText="10000"
+                                     Label="Пробег (км)" />
                 </MudItem>
-                <MudItem md="6"
-                         xs="12">
-                    <MudAutocomplete AdornmentColor="Color.Tertiary"
-                                     AdornmentIcon="@Icons.Material.Rounded.Search"
-                                     @bind-Value="Input.Category"
-                                     Clearable
-                                     Counter="0"
-                                     For="@(() => Input.Category)"
-                                     Label="Категория"
-                                     ResetValueOnEmptyText
-                                     SearchFunc="SearchCategoryAsync"
-                                     SelectValueOnTab
-                                     ToStringFunc="@(arg => arg?.Name ?? string.Empty)" />
-                </MudItem>
-                <MudItem md="6"
-                         xs="12">
-                    <MudAutocomplete AdornmentColor="Color.Tertiary"
-                                     AdornmentIcon="@Icons.Material.Rounded.Place"
-                                     @bind-Value="Input.Place"
-                                     Clearable
-                                     CoerceText="false"
-                                     CoerceValue="true"
-                                     Counter="0"
-                                     DebounceInterval="350"
-                                     For="@(() => Input.Place)"
-                                     Immediate
-                                     Label="Место"
-                                     ResetValueOnEmptyText="false"
-                                     SearchFunc="SearchPlaceAsync"
-                                     SelectValueOnTab
-                                     ShowProgressIndicator />
-                </MudItem>
+
                 <MudItem md="12"
                          xs="12">
                     <MudTextField AdornmentColor="Color.Tertiary"
                                   AdornmentIcon="@Icons.Material.Rounded.Comment"
                                   AutoGrow
                                   @bind-Value="Input.Comment"
-                                  Counter="0"
                                   For="@(() => Input.Comment)"
-                                  Label="Комментарий" />
+                                  Label="Подробности" />
                 </MudItem>
             </MudGrid>
         </DialogContent>
@@ -96,4 +95,15 @@
         </DialogActions>
     </MudDialog>
 </EditForm>
-*@
+
+<style>
+    .selected-event-type {
+        border: 2px solid var(--mud-palette-primary);
+        border-radius: 4px;
+        background-color: var(--mud-palette-primary-lighten);
+    }
+
+    .cursor-pointer {
+        cursor: pointer;
+    }
+</style>

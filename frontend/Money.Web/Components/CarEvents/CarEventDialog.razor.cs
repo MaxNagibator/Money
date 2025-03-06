@@ -1,4 +1,3 @@
-/*
 using Microsoft.AspNetCore.Components;
 using Money.ApiClient;
 using System.ComponentModel.DataAnnotations;
@@ -13,8 +12,6 @@ public partial class CarEventDialog
         BackdropClick = false,
     };
 
-    private SmartSum _smartSum = null!;
-
     private bool _isProcessing;
 
     [CascadingParameter]
@@ -24,7 +21,7 @@ public partial class CarEventDialog
     public CarEvent Model { get; set; } = null!;
 
     [Parameter]
-    public OperationTypes.Value? RequiredType { get; set; }
+    public int CarId { get; set; }
 
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = InputModel.Empty;
@@ -33,39 +30,18 @@ public partial class CarEventDialog
     private MoneyClient MoneyClient { get; set; } = null!;
 
     [Inject]
-    private PlaceService PlaceService { get; set; } = null!;
-
-    [Inject]
-    private CategoryService CategoryService { get; set; } = null!;
-
-    [Inject]
     private ISnackbar SnackbarService { get; set; } = null!;
 
     protected override async Task OnParametersSetAsync()
     {
         Input = new()
         {
-            Category = Model.Category == Category.Empty ? null : Model.Category,
+            Title = Model.Title,
             Comment = Model.Comment,
-            Name = Model.Name,
-            Order = Model.Order,
-            Place = Model.Place,
+            Mileage = Model.Mileage,
+            Date = Model.Date,
+            Type = Model.Type == CarEventTypes.None ? null : Model.Type,
         };
-
-        var categories = await CategoryService.GetAllAsync();
-
-        if (RequiredType != null)
-        {
-            Input.CategoryList = [.. categories.Where(x => x.OperationType == RequiredType)];
-        }
-        else if (Input.Category != null)
-        {
-            Input.CategoryList = [.. categories.Where(x => x.OperationType == Model.Category.OperationType)];
-        }
-        else
-        {
-            Input.CategoryList = [.. categories];
-        }
 
         await MudDialog.SetOptionsAsync(_dialogOptions);
     }
@@ -76,24 +52,14 @@ public partial class CarEventDialog
 
         try
         {
-            var sum = await _smartSum.ValidateSumAsync();
-
-            if (sum == null)
-            {
-                _isProcessing = false;
-                SnackbarService.Add("Нераспознано значение в поле 'сумма'.", Severity.Warning);
-                return;
-            }
-
             await SaveAsync();
             SnackbarService.Add("Успех!", Severity.Success);
 
-            Model.Name = Input.Name!;
-            Model.Category = Input.Category ?? throw new MoneyException("Категория операции не может быть null");
-            Model.Sum = sum.Value;
+            Model.Title = Input.Title;
             Model.Comment = Input.Comment;
-            Model.Place = Input.Place;
-            Model.Order = Input.Order;
+            Model.Mileage = Input.Mileage;
+            Model.Date = Input.Date!.Value;
+            Model.Type = Input.Type!;
 
             MudDialog.Close(DialogResult.Ok(Model));
         }
@@ -125,27 +91,13 @@ public partial class CarEventDialog
     {
         return new()
         {
-            CategoryId = Input.Category?.Id ?? throw new MoneyException("Идентификатор отсутствует при сохранении операции"),
+            CarId = CarId,
+            Title = Input.Title,
+            TypeId = Input.Type!.Id,
             Comment = Input.Comment,
-            Name = Input.Name!,
-            Sum = _smartSum.Sum,
-            Place = Input.Place,
-            Order = Input.Order,
+            Mileage = Input.Mileage,
+            Date = Input.Date!.Value,
         };
-    }
-
-    private Task<IEnumerable<Category?>> SearchCategoryAsync(string? value, CancellationToken token)
-    {
-        var categories = string.IsNullOrWhiteSpace(value)
-            ? Input.CategoryList
-            : Input.CategoryList?.Where(x => x.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase));
-
-        return Task.FromResult(categories ?? [])!;
-    }
-
-    private Task<IEnumerable<string?>> SearchPlaceAsync(string? value, CancellationToken token)
-    {
-        return PlaceService.SearchPlace(value, token)!;
     }
 
     private void Cancel()
@@ -153,28 +105,35 @@ public partial class CarEventDialog
         MudDialog.Cancel();
     }
 
+    private string GetSelectedClass(CarEventTypes.Value eventType)
+    {
+        return Input.Type == eventType
+            ? "selected-event-type"
+            : "";
+    }
+
+    private void SelectEventType(CarEventTypes.Value eventType)
+    {
+        Input.Type = eventType;
+    }
+
     private sealed class InputModel
     {
         public static readonly InputModel Empty = new()
         {
-            Category = Category.Empty,
+            Type = CarEventTypes.None,
         };
 
-        [Required(ErrorMessage = "Заполни меня")]
-        public Category? Category { get; set; }
-
-        public List<Category>? CategoryList { get; set; }
+        public string? Title { get; set; }
 
         [Required(ErrorMessage = "Заполни меня")]
-        public string? Name { get; set; }
+        public required CarEventTypes.Value? Type { get; set; }
 
         public string? Comment { get; set; }
 
-        public string? Place { get; set; }
+        public int? Mileage { get; set; }
 
-        public int? Order { get; set; }
+        [Required(ErrorMessage = "Заполни меня")]
+        public DateTime? Date { get; set; }
     }
 }
-*/
-
-
