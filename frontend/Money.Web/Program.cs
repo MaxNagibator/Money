@@ -34,6 +34,8 @@ builder.Services.AddScoped<FastOperationService>();
 builder.Services.AddScoped<PlaceService>();
 builder.Services.AddScoped<RegularOperationService>();
 builder.Services.AddScoped<DebtService>();
+builder.Services.AddScoped<CarService>();
+builder.Services.AddScoped<CarEventService>();
 
 builder.Services.AddTransient<RefreshTokenHandler>();
 builder.Services.AddHttpClient<AuthenticationService>(client => client.BaseAddress = apiUri);

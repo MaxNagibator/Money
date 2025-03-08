@@ -4,7 +4,7 @@ namespace Money.Api.BackgroundServices;
 
 public class EmailSenderBackgroundService(
     QueueHolder queueHolder,
-    IMailService mailService,
+    IMailsService mailsService,
     ILogger<EmailSenderBackgroundService> logger) : BackgroundService
 {
     public static TimeSpan Delay { get; set; } = TimeSpan.FromSeconds(10);
@@ -45,7 +45,7 @@ public class EmailSenderBackgroundService(
 
             try
             {
-                await mailService.SendAsync(message, stoppingToken);
+                await mailsService.SendAsync(message, stoppingToken);
                 logger.LogInformation("Сообщение успешно отправлено");
             }
             catch (Exception exception)

@@ -10,14 +10,29 @@ public class CarEventDto
     /// </summary>
     public int Id { get; init; }
 
+    /// <summary>
+    /// Название.
+    /// </summary>
     public string? Title { get; init; }
 
+    /// <summary>
+    /// Идентификатор типа.
+    /// </summary>
     public int TypeId { get; init; }
 
+    /// <summary>
+    /// Дополнительные комментарии.
+    /// </summary>
     public string? Comment { get; init; }
 
+    /// <summary>
+    /// Пробег автомобиля.
+    /// </summary>
     public int? Mileage { get; init; }
 
+    /// <summary>
+    /// Дата.
+    /// </summary>
     public DateTime Date { get; init; }
 
     /// <summary>

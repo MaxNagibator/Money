@@ -47,6 +47,7 @@ public class RegularOperationsService(
 
     public async Task<int> CreateAsync(RegularOperation model, CancellationToken cancellationToken = default)
     {
+        Validate(model);
         CheckTime(model.TimeType, model.TimeValue);
 
         var category = await categoriesService.GetByIdAsync(model.CategoryId, cancellationToken);
@@ -77,6 +78,7 @@ public class RegularOperationsService(
 
     public async Task UpdateAsync(RegularOperation model, CancellationToken cancellationToken = default)
     {
+        Validate(model);
         CheckTime(model.TimeType, model.TimeValue);
 
         var entity = await context.RegularOperations
@@ -146,7 +148,6 @@ public class RegularOperationsService(
                     Date = dbTask.DateFrom,
                 };
 
-                // TODO: это гавнина
                 environment.UserId = dbTask.UserId;
                 await operationsService.CreateAsync(model, cancellationToken);
 
@@ -160,17 +161,7 @@ public class RegularOperationsService(
         }
     }
 
-    private async Task<Data.Entities.RegularOperation> GetByIdInternal(int id, CancellationToken cancellationToken = default)
-    {
-        var entity = await context.RegularOperations
-                         .IsUserEntity(environment.UserId, id)
-                         .FirstOrDefaultAsync(cancellationToken)
-                     ?? throw new NotFoundException("регулярная операция", id);
-
-        return entity;
-    }
-
-    private RegularOperation GetBusinessModel(Data.Entities.RegularOperation model, IEnumerable<Place>? dbPlaces = null)
+    private static RegularOperation GetBusinessModel(Data.Entities.RegularOperation model, IEnumerable<Place>? dbPlaces = null)
     {
         return new()
         {
@@ -188,6 +179,54 @@ public class RegularOperationsService(
             TimeType = (RegularOperationTimeTypes)model.TimeTypeId,
             TimeValue = model.TimeValue,
         };
+    }
+
+    private static void Validate(RegularOperation model)
+    {
+        if (model.Comment?.Length > 4000)
+        {
+            throw new BusinessException("Извините, но комментарий слишком длинный");
+        }
+
+        if (model.Place?.Length > 500)
+        {
+            throw new BusinessException("Извините, но название места слишком длинное");
+        }
+
+        if (string.IsNullOrWhiteSpace(model.Name))
+        {
+            throw new BusinessException("Извините, но имя обязательно");
+        }
+
+        if (model.Name.Length > 500)
+        {
+            throw new BusinessException("Извините, но имя слишком длинное");
+        }
+
+        if (Enum.IsDefined(model.TimeType) == false)
+        {
+            throw new BusinessException("Извините, неподдерживаемый тип временного шага");
+        }
+
+        if (model.DateFrom == default)
+        {
+            throw new BusinessException("Извините, дата начала обязательна");
+        }
+
+        if (model.DateTo != null && model.DateTo < model.DateFrom)
+        {
+            throw new BusinessException("Извините, дата окончания не может быть раньше даты начала");
+        }
+    }
+
+    private async Task<Data.Entities.RegularOperation> GetByIdInternal(int id, CancellationToken cancellationToken = default)
+    {
+        var entity = await context.RegularOperations
+                         .IsUserEntity(environment.UserId, id)
+                         .FirstOrDefaultAsync(cancellationToken)
+                     ?? throw new NotFoundException("регулярная операция", id);
+
+        return entity;
     }
 
     private void CheckTime(RegularOperationTimeTypes timeType, int? timeValue)

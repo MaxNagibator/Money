@@ -1,11 +1,23 @@
 namespace Money.Data.Entities;
 
+/// <summary>
+/// Место операции.
+/// </summary>
 public class Place : UserEntity
 {
+    /// <summary>
+    /// Наименование.
+    /// </summary>
     public required string Name { get; set; }
 
+    /// <summary>
+    /// Дата последнего использования.
+    /// </summary>
     public DateTime LastUsedDate { get; set; }
 
+    /// <summary>
+    /// Удалено.
+    /// </summary>
     public bool IsDeleted { get; set; }
 }
 

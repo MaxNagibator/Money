@@ -44,6 +44,8 @@ public class FastOperationsService(
 
     public async Task<int> CreateAsync(FastOperation model, CancellationToken cancellationToken = default)
     {
+        Validate(model);
+
         var category = await categoriesService.GetByIdAsync(model.CategoryId, cancellationToken);
         var operationId = await usersService.GetNextFastOperationIdAsync(cancellationToken);
         var placeId = await placesService.GetPlaceIdAsync(model.Place, cancellationToken);
@@ -67,6 +69,8 @@ public class FastOperationsService(
 
     public async Task UpdateAsync(FastOperation model, CancellationToken cancellationToken = default)
     {
+        Validate(model);
+
         var entity = await context.FastOperations
                          .IsUserEntity(environment.UserId, model.Id)
                          .FirstOrDefaultAsync(cancellationToken)
@@ -121,6 +125,29 @@ public class FastOperationsService(
             Name = entity.Name,
             Order = entity.Order,
         };
+    }
+
+    private static void Validate(FastOperation model)
+    {
+        if (model.Comment?.Length > 4000)
+        {
+            throw new BusinessException("Извините, но комментарий слишком длинный");
+        }
+
+        if (model.Place?.Length > 500)
+        {
+            throw new BusinessException("Извините, но название места слишком длинное");
+        }
+
+        if (string.IsNullOrWhiteSpace(model.Name))
+        {
+            throw new BusinessException("Извините, но имя обязательно");
+        }
+
+        if (model.Name.Length > 500)
+        {
+            throw new BusinessException("Извините, но имя слишком длинное");
+        }
     }
 
     private async Task<Data.Entities.FastOperation> GetByIdInternal(int id, CancellationToken cancellationToken = default)

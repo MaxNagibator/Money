@@ -1,7 +1,7 @@
 ﻿namespace Money.Api.Dto.FastOperations;
 
 /// <summary>
-/// Операция.
+/// Быстрая операция.
 /// </summary>
 public class FastOperationDto
 {

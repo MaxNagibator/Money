@@ -1,5 +1,8 @@
 ﻿namespace Money.Data.Entities;
 
+/// <summary>
+/// Регулярная операция.
+/// </summary>
 public class RegularOperation : OperationBase
 {
     /// <summary>
@@ -7,14 +10,29 @@ public class RegularOperation : OperationBase
     /// </summary>
     public required string Name { get; set; }
 
+    /// <summary>
+    /// Идентификатор типа временного шага.
+    /// </summary>
     public int TimeTypeId { get; set; }
 
+    /// <summary>
+    /// Значение временного шага.
+    /// </summary>
     public int? TimeValue { get; set; }
 
+    /// <summary>
+    /// Дата начала.
+    /// </summary>
     public DateTime DateFrom { get; set; }
 
+    /// <summary>
+    /// Дата окончания.
+    /// </summary>
     public DateTime? DateTo { get; set; }
 
+    /// <summary>
+    /// Время последнего запуска.
+    /// </summary>
     public DateTime? RunTime { get; set; }
 }
 

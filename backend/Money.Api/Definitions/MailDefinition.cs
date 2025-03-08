@@ -7,6 +7,6 @@ public class MailDefinition : AppDefinition
     public override void ConfigureServices(WebApplicationBuilder builder)
     {
         builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection(nameof(SmtpSettings)));
-        builder.Services.AddSingleton<IMailService, MailsService>();
+        builder.Services.AddSingleton<IMailsService, MailsService>();
     }
 }

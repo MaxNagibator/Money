@@ -1,7 +1,7 @@
 namespace Money.Api.Dto.Cars;
 
 /// <summary>
-/// Машина.
+/// Авто.
 /// </summary>
 public class CarDto
 {

@@ -1,22 +1,51 @@
 ﻿namespace Money.Data.Entities;
 
+/// <summary>
+/// Категория операции.
+/// </summary>
 public class Category : UserEntity
 {
+    /// <summary>
+    /// Наименование.
+    /// </summary>
     public required string Name { get; set; }
 
+    // TODO: Удалить на всех уровнях
     public string? Description { get; set; }
 
+    /// <summary>
+    /// Идентификатор родительской категории (если есть).
+    /// </summary>
     public int? ParentId { get; set; }
 
+    /// <summary>
+    /// Цвет.
+    /// </summary>
     public string? Color { get; set; }
 
+    /// <summary>
+    /// Идентификатор типа операции.
+    /// </summary>
     public int TypeId { get; set; }
 
+    /// <summary>
+    /// Порядок отображения.
+    /// </summary>
     public int? Order { get; set; }
 
+    /// <summary>
+    /// Удалена.
+    /// </summary>
     public bool IsDeleted { get; set; }
 
+    /// <summary>
+    /// Родительская категория (если есть).
+    /// </summary>
     public virtual Category? ParentCategory { get; set; }
+
+    /// <summary>
+    /// Дочерние категории.
+    /// </summary>
     public virtual List<Category>? SubCategories { get; set; }
 }
 

@@ -26,6 +26,8 @@ public class CarsService(
 
     public async Task<int> CreateAsync(Car model, CancellationToken cancellationToken = default)
     {
+        Validate(model);
+
         var id = await usersService.GetNextCarIdAsync(cancellationToken);
 
         var entity = new Data.Entities.Car
@@ -42,6 +44,8 @@ public class CarsService(
 
     public async Task UpdateAsync(Car model, CancellationToken cancellationToken = default)
     {
+        Validate(model);
+
         var entity = await GetByIdInternal(model.Id, cancellationToken: cancellationToken);
         entity.Name = model.Name;
 
@@ -76,6 +80,14 @@ public class CarsService(
             Id = model.Id,
             Name = model.Name,
         };
+    }
+
+    private static void Validate(Car model)
+    {
+        if (model.Name.Length > 1000)
+        {
+            throw new BusinessException("Извините, название авто слишком длинное");
+        }
     }
 
     private async Task<Data.Entities.Car> GetByIdInternal(int id, bool ignoreQueryFilters = false, CancellationToken cancellationToken = default)

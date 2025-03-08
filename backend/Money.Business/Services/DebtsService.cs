@@ -285,6 +285,34 @@ public class DebtsService(
         };
     }
 
+    private static void Validate(Debt model)
+    {
+        if (model.Date == default)
+        {
+            throw new BusinessException("Извините, но дата обязательна");
+        }
+
+        if (model.Sum <= 0)
+        {
+            throw new BusinessException("Извините, но сумма должна быть больше нуля");
+        }
+
+        if (Enum.IsDefined(model.Type) == false)
+        {
+            throw new BusinessException("Извините, неподдерживаемый тип долга");
+        }
+
+        if (model.Comment?.Length > 4000)
+        {
+            throw new BusinessException("Извините, но комментарий слишком длинный");
+        }
+
+        if (model.OwnerName.Length > 500)
+        {
+            throw new BusinessException("Извините, но имя держателя слишком длинное");
+        }
+    }
+
     private async Task<Data.Entities.DebtOwner> GetOwnerAsync(Debt model, CancellationToken cancellationToken = default)
     {
         var debtOwner = await context.DebtOwners
@@ -304,14 +332,6 @@ public class DebtsService(
         }
 
         return debtOwner;
-    }
-
-    private void Validate(Debt model)
-    {
-        if (model.Sum < 0)
-        {
-            throw new BusinessException("Извините, но отрицательная сумма недопустима");
-        }
     }
 
     private async Task<Data.Entities.Debt> GetByIdInternal(int id, CancellationToken cancellationToken = default)

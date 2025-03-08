@@ -1,5 +1,8 @@
 ﻿namespace Money.Data.Entities;
 
+/// <summary>
+/// Быстрая операция.
+/// </summary>
 public class FastOperation : OperationBase
 {
     /// <summary>

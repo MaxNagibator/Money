@@ -2,21 +2,27 @@
 
 namespace Money.Business.Models;
 
-public class MailMessage
+/// <summary>
+/// Электронное письмо.
+/// </summary>
+/// <param name="email">Адрес электронной почты получателя.</param>
+/// <param name="title">Заголовок письма.</param>
+/// <param name="body">Тело письма.</param>
+[method: SetsRequiredMembers]
+public class MailMessage(string email, string title, string body)
 {
-    public MailMessage()
-    {
-    }
+    /// <summary>
+    /// Адрес электронной почты получателя.
+    /// </summary>
+    public required string Email { get; init; } = email;
 
-    [SetsRequiredMembers]
-    public MailMessage(string email, string title, string body)
-    {
-        Email = email;
-        Title = title;
-        Body = body;
-    }
+    /// <summary>
+    /// Заголовок письма.
+    /// </summary>
+    public required string Title { get; init; } = title;
 
-    public required string Email { get; set; }
-    public required string Title { get; set; }
-    public required string Body { get; set; }
+    /// <summary>
+    /// Тело письма.
+    /// </summary>
+    public required string Body { get; init; } = body;
 }

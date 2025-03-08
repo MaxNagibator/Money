@@ -44,6 +44,8 @@ public class OperationsService(
 
     public async Task<int> CreateAsync(Operation model, CancellationToken cancellationToken = default)
     {
+        Validate(model);
+
         var category = await categoriesService.GetByIdAsync(model.CategoryId, cancellationToken);
         var operationId = await usersService.GetNextOperationIdAsync(cancellationToken);
         var placeId = model.PlaceId ?? await placesService.GetPlaceIdAsync(model.Place, cancellationToken);
@@ -67,6 +69,8 @@ public class OperationsService(
 
     public async Task UpdateAsync(Operation model, CancellationToken cancellationToken = default)
     {
+        Validate(model);
+
         var entity = await context.Operations.FirstOrDefaultAsync(environment.UserId, model.Id, cancellationToken)
                      ?? throw new NotFoundException("операция", model.Id);
 
@@ -147,6 +151,24 @@ public class OperationsService(
             Date = model.Date,
             CreatedTaskId = model.CreatedTaskId,
         };
+    }
+
+    private static void Validate(Operation model)
+    {
+        if (model.Comment?.Length > 4000)
+        {
+            throw new BusinessException("Извините, но комментарий слишком длинный");
+        }
+
+        if (model.Place?.Length > 500)
+        {
+            throw new BusinessException("Извините, но название места слишком длинное");
+        }
+
+        if (model.Date == default)
+        {
+            throw new BusinessException("Извините, дата обязательна");
+        }
     }
 
     private async Task<Data.Entities.Operation> GetByIdInternal(int id, CancellationToken cancellationToken = default)
