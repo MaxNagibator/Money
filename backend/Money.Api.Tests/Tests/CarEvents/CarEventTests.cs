@@ -67,12 +67,12 @@ public class CarEventTests
     [Test]
     public async Task CreateTest()
     {
-        _dbClient.Save();
-
         var model = _user.WithCar().WithEvent();
+        _dbClient.Save();
 
         var request = new CarEventsClient.SaveRequest
         {
+            CarId = model.Car.Id,
             Title = model.Title,
             TypeId = model.TypeId,
             Comment = model.Comment,
@@ -103,6 +103,7 @@ public class CarEventTests
 
         var request = new CarEventsClient.SaveRequest
         {
+            CarId = model.Car.Id,
             Title = model.Title,
             TypeId = model.TypeId,
             Comment = model.Comment,
@@ -179,5 +180,66 @@ public class CarEventTests
         _dbClient.Save();
 
         await _apiClient.CarEvents.Restore(-1).IsNotFound();
+    }
+
+    [Test]
+    [TestCaseSource(nameof(GetInvalidRequests))]
+    public async Task ValidationTestCreate(CarEventsClient.SaveRequest request)
+    {
+        _user.WithCar();
+        _dbClient.Save();
+
+        var result = await _apiClient.CarEvents.Create(request);
+        Assert.That(result.IsSuccessStatusCode, Is.False);
+    }
+
+    [Test]
+    [TestCaseSource(nameof(GetInvalidRequests))]
+    public async Task ValidationTestUpdate(CarEventsClient.SaveRequest request)
+    {
+        var car = _user.WithCar();
+        var existingEvent = car.WithEvent();
+        _dbClient.Save();
+
+        var result = await _apiClient.CarEvents.Update(existingEvent.Id, request);
+        Assert.That(result.IsSuccessStatusCode, Is.False);
+    }
+
+    private static IEnumerable<CarEventsClient.SaveRequest> GetInvalidRequests()
+    {
+        var baseRequest = new CarEventsClient.SaveRequest
+        {
+            Title = "Кибитка",
+            TypeId = 1,
+            Mileage = 1000,
+            Date = DateTime.Now,
+        };
+
+        yield return new()
+        {
+            CarId = baseRequest.CarId,
+            Title = baseRequest.Title,
+            TypeId = 999,
+            Mileage = baseRequest.Mileage,
+            Date = baseRequest.Date,
+        };
+
+        yield return new()
+        {
+            CarId = baseRequest.CarId,
+            Title = new('a', 1001),
+            TypeId = baseRequest.TypeId,
+            Mileage = baseRequest.Mileage,
+            Date = baseRequest.Date,
+        };
+
+        yield return new()
+        {
+            CarId = baseRequest.CarId,
+            Title = baseRequest.Title,
+            TypeId = baseRequest.TypeId,
+            Mileage = -1,
+            Date = baseRequest.Date,
+        };
     }
 }

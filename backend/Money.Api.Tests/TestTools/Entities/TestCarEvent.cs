@@ -74,7 +74,7 @@ public class TestCarEvent : TestObject
 
     private void FillDbProperties(CarEvent obj)
     {
-        obj.CarId = Car!.Id;
+        obj.CarId = Car.Id;
         obj.UserId = User.Id;
         obj.Title = Title;
         obj.TypeId = TypeId;

@@ -5,6 +5,7 @@ namespace Money.Business.Services;
 public class CarEventsService(
     RequestEnvironment environment,
     ApplicationDbContext context,
+    CarsService carsService,
     UsersService usersService)
 {
     public async Task<IEnumerable<CarEvent>> GetAsync(int carId, CancellationToken cancellationToken = default)
@@ -27,13 +28,16 @@ public class CarEventsService(
 
     public async Task<int> CreateAsync(CarEvent model, CancellationToken cancellationToken = default)
     {
+        Validate(model);
+
+        var car = await carsService.GetByIdAsync(model.CarId, cancellationToken);
         var id = await usersService.GetNextCarEventIdAsync(cancellationToken);
 
         var entity = new Data.Entities.CarEvent
         {
             Id = id,
             UserId = environment.UserId,
-            CarId = model.CarId,
+            CarId = car.Id,
             TypeId = (int)model.Type,
             Title = model.Title,
             Date = model.Date,
@@ -48,8 +52,12 @@ public class CarEventsService(
 
     public async Task UpdateAsync(CarEvent model, CancellationToken cancellationToken = default)
     {
+        Validate(model);
+
+        var car = await carsService.GetByIdAsync(model.CarId, cancellationToken);
         var entity = await GetByIdInternal(model.Id, cancellationToken: cancellationToken);
-        entity.CarId = model.CarId;
+
+        entity.CarId = car.Id;
         entity.TypeId = (int)model.Type;
         entity.Title = model.Title;
         entity.Date = model.Date;
@@ -92,6 +100,24 @@ public class CarEventsService(
             Mileage = model.Mileage,
             Comment = model.Comment,
         };
+    }
+
+    private static void Validate(CarEvent model)
+    {
+        if (Enum.IsDefined(model.Type) == false)
+        {
+            throw new BusinessException("Извините, неподдерживаемый тип события");
+        }
+
+        if (model.Title?.Length > 1000)
+        {
+            throw new BusinessException("Извините, заголовок слишком длинный");
+        }
+
+        if (model.Mileage < 0)
+        {
+            throw new BusinessException("Извините, пробег должен быть положительным");
+        }
     }
 
     private async Task<Data.Entities.CarEvent> GetByIdInternal(int id, bool ignoreQueryFilters = false, CancellationToken cancellationToken = default)
