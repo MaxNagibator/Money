@@ -21,8 +21,12 @@
     return;
 }
 
-<MudTabs ApplyEffectsToContainer ActivePanelIndexChanged="OnIndexChanged" Elevation="4"
-         HeaderPosition="TabHeaderPosition.Before" PanelClass="px-4 py-6" Rounded>
+<MudTabs ActivePanelIndexChanged="OnIndexChanged"
+         ApplyEffectsToContainer
+         Elevation="4"
+         HeaderPosition="TabHeaderPosition.Before"
+         PanelClass="px-4 py-6"
+         Rounded>
     <Header>
         <MudTooltip Text="Добавить авто">
             <MudIconButton Icon="@(_isAddCarOpen ? Icons.Material.Rounded.Close : Icons.Material.Rounded.Add)"
@@ -42,23 +46,24 @@
                                   AdornmentColor="Color.Tertiary"
                                   AdornmentIcon="@Icons.Material.Rounded.Comment"
                                   AutoGrow
-                                  Placeholder="Моя машинка"
                                   @bind-Value="_addCarName"
                                   Clearable
                                   Immediate
-                                  Label="Наименование" />
+                                  Label="Наименование"
+                                  Placeholder="Моя машинка" />
 
                     <MudStack AlignItems="AlignItems.Center"
                               Class="mt-3"
                               Row>
-                        <MudIconButton Color="Color.Error" Icon="@Icons.Material.Rounded.Close"
+                        <MudIconButton Color="Color.Error"
+                                       Icon="@Icons.Material.Rounded.Close"
                                        OnClick="() => _isAddCarOpen = false" />
                         <MudSpacer />
                         <MudButton ButtonType="ButtonType.Submit"
                                    Color="Color.Tertiary"
-                                   Variant="Variant.Filled"
                                    Disabled="@string.IsNullOrWhiteSpace(_addCarName)"
-                                   OnClick="AddCar">
+                                   OnClick="CreateCar"
+                                   Variant="Variant.Filled">
                             Создать
                         </MudButton>
                     </MudStack>
@@ -69,11 +74,16 @@
     <ChildContent>
         @foreach (var car in _cars)
         {
-            <MudTabPanel ShowCloseIcon="false" ID="@car.Id" Text="@car.Name">
-                <MudStack AlignItems="AlignItems.Center" Class="mb-2" Row Spacing="2">
+            <MudTabPanel ID="@car.Id"
+                         ShowCloseIcon="false"
+                         Text="@car.Name">
+                <MudStack AlignItems="AlignItems.Center"
+                          Class="mb-2"
+                          Row
+                          Spacing="2">
                     <MudText>События</MudText>
                     <MudIconButton Icon="@Icons.Material.Rounded.Add"
-                                   OnClick="Create"
+                                   OnClick="CreateEvent"
                                    Variant="Variant.Outlined" />
                 </MudStack>
                 <MudGrid Spacing="2">

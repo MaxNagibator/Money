@@ -1,16 +1,21 @@
-﻿<MudCard Class="@ClassName" Elevation="2" Style="height: 100%;">
+﻿<MudCard Class="@ClassName"
+         Elevation="2"
+         Style="height: 100%;">
     <MudCardContent Style="padding: 4px 6px">
-        <MudStack Row Spacing="2">
+        <MudStack Row
+                  Spacing="2">
             <MudTooltip Text="@Model.Type.Name">
                 <MudImage Alt="@Model.Type.Name"
+                          Height="64"
                           Src="@Model.Type.GetIcon()"
-                          Height="64" Width="64" />
+                          Width="64" />
             </MudTooltip>
 
             <MudStack Spacing="2">
-                @if (!string.IsNullOrEmpty(Model.Title))
+                @if (string.IsNullOrEmpty(Model.Title) == false)
                 {
-                    <MudTooltip Placement="Placement.Bottom" Text="Название">
+                    <MudTooltip Placement="Placement.Bottom"
+                                Text="Название">
                         <MudText Typo="Typo.subtitle2">
                             @Model.Title
                         </MudText>
@@ -19,22 +24,27 @@
 
                 @if (Model.Mileage.HasValue)
                 {
-                    <MudTooltip Placement="Placement.Bottom" Text="Пробег">
-                        <MudStack Row AlignItems="AlignItems.Center">
-                            <MudIcon Color="Color.Primary" Icon="@Icons.Material.Filled.DirectionsCar"
-                                     Class="mr-1"
+                    <MudTooltip Placement="Placement.Bottom"
+                                Text="Пробег">
+                        <MudStack AlignItems="AlignItems.Center"
+                                  Row>
+                            <MudIcon Color="Color.Primary"
+                                     Icon="@Icons.Material.Filled.DirectionsCar"
                                      Size="Size.Small" />
-                            <MudText> @Model.Mileage?.ToString("N0") км</MudText>
+                            <MudText>@Model.Mileage?.ToString("N0") км</MudText>
                         </MudStack>
                     </MudTooltip>
                 }
             </MudStack>
         </MudStack>
         <MudDivider FlexItem />
-        @if (!string.IsNullOrEmpty(Model.Comment))
+        @if (string.IsNullOrEmpty(Model.Comment) == false)
         {
-            <MudTooltip Placement="Placement.Bottom" Text="Комментарий">
-                <MudText Align="Align.Center" Class="mt-2" Typo="Typo.body2">
+            <MudTooltip Placement="Placement.Bottom"
+                        Text="Комментарий">
+                <MudText Align="Align.Center"
+                         Class="mt-2"
+                         Typo="Typo.body2">
                     @Model.Comment
                 </MudText>
             </MudTooltip>

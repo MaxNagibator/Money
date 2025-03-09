@@ -3,6 +3,7 @@
     <PropertyGroup>
         <ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
         <EmccMaximumHeapSize>268435456</EmccMaximumHeapSize>
+        <BlazorWebAssemblyLoadAllGlobalizationData>true</BlazorWebAssemblyLoadAllGlobalizationData>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)'!='DEBUG'">
@@ -24,6 +25,7 @@
         <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
         <PackageReference Include="Microsoft.Extensions.Http" />
         <PackageReference Include="MudBlazor" />
+        <PackageReference Include="MudBlazor.Translations" />
         <PackageReference Include="NCalc.DependencyInjection" />
     </ItemGroup>
 

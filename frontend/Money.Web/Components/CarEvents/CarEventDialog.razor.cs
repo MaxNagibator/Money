@@ -23,6 +23,9 @@ public partial class CarEventDialog
     [Parameter]
     public int CarId { get; set; }
 
+    [Parameter]
+    public int LastMillage { get; set; }
+
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = InputModel.Empty;
 
@@ -105,13 +108,6 @@ public partial class CarEventDialog
         MudDialog.Cancel();
     }
 
-    private string GetSelectedClass(CarEventTypes.Value eventType)
-    {
-        return Input.Type == eventType
-            ? "selected-event-type"
-            : "";
-    }
-
     private void SelectEventType(CarEventTypes.Value eventType)
     {
         Input.Type = eventType;
@@ -126,7 +122,7 @@ public partial class CarEventDialog
 
         public string? Title { get; set; }
 
-        [Required(ErrorMessage = "Заполни меня")]
+        [Required(ErrorMessage = "Выбери меня")]
         public required CarEventTypes.Value? Type { get; set; }
 
         public string? Comment { get; set; }

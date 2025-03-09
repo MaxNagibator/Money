@@ -1,4 +1,5 @@
-﻿<EditForm Model="@Input"
+﻿@using System.Globalization
+<EditForm Model="@Input"
           OnValidSubmit="SubmitAsync">
     <DataAnnotationsValidator />
     <MudDialog>
@@ -19,39 +20,47 @@
                                   HelperText="Что произошло"
                                   Label="Описание" />
                 </MudItem>
-                <MudItem md="12" xs="12">
-                    <MudText Typo="Typo.subtitle1" Class="mb-2">Тип события</MudText>
-                    <MudGrid Spacing="2">
-                        @foreach (var eventType in CarEventTypes.Values.Values)
-                        {
-                            <MudItem xs="3">
-                                <MudPaper Class="@($"pa-1 cursor-pointer {GetSelectedClass(eventType)}")"
-                                    @onclick="@(() => SelectEventType(eventType))">
-                                    <MudStack AlignItems="AlignItems.Center">
-                                        <MudImage Src="@eventType.GetIcon()"
-                                                  Height="64"
-                                                  Width="64" />
-                                        <MudText Align="Align.Center" Typo="Typo.body2">@eventType.Name</MudText>
-                                    </MudStack>
-                                </MudPaper>
-                            </MudItem>
-                        }
-                    </MudGrid>
+                <MudItem md="12"
+                         xs="12">
+                    <MudText Typo="Typo.subtitle1"
+                             Class="mb-2">
+                        Тип события
+                    </MudText>
                     <ValidationMessage For="@(() => Input.Type)" />
+                    <MudStack Justify="Justify.SpaceBetween"
+                              Row
+                              Spacing="1"
+                              Wrap="Wrap.Wrap">
+                        @foreach (var type in CarEventTypes.Values.Values)
+                        {
+                            <MudPaper Class="@("pa-1 cursor-pointer d-flex  flex-column align-center " + (Input.Type == type ? "selected-event-type" : string.Empty))"
+                                      @onclick="@(() => SelectEventType(type))"
+                                      Height="128px"
+                                      Width="128px">
+                                <MudImage Class="d-flex flex-grow-1 "
+                                          Src="@type.GetIcon()" />
+                                <MudText Class="d-flex "
+                                         Align="Align.Center"
+                                         Typo="Typo.body2">
+                                    @type.Name
+                                </MudText>
+                            </MudPaper>
+                        }
+                    </MudStack>
                 </MudItem>
                 <MudItem md="6"
                          xs="12">
                     <MudDatePicker Adornment="Adornment.Start"
                                    AdornmentColor="Color.Tertiary"
                                    AnchorOrigin="Origin.BottomLeft"
-                                   For="@(() => Input.Date)"
                                    @bind-Date="@Input.Date"
                                    Clearable
                                    Color="Color.Tertiary"
                                    DateFormat="dd.MM.yyyy"
                                    Editable
-                                   Label="Дата"
+                                   For="@(() => Input.Date)"
                                    HelperText="Когда"
+                                   Label="Дата"
                                    Mask="@(new DateMask("dd.MM.yyyy"))" />
                 </MudItem>
                 <MudItem md="6"
@@ -59,9 +68,11 @@
                     <MudNumericField AdornmentColor="Color.Tertiary"
                                      @bind-Value="Input.Mileage"
                                      Clearable
-                                     Immediate
                                      For="@(() => Input.Mileage)"
-                                     HelperText="10000"
+                                     Format="N0"
+                                     Culture="CultureInfo.CurrentCulture"
+                                     HelperText="@("Последнее значение: " + LastMillage.ToString("N0"))"
+                                     Immediate
                                      Label="Пробег (км)" />
                 </MudItem>
 
@@ -72,7 +83,8 @@
                                   AutoGrow
                                   @bind-Value="Input.Comment"
                                   For="@(() => Input.Comment)"
-                                  Label="Подробности" />
+                                  HelperText="Подробности"
+                                  Label="Комментарий" />
                 </MudItem>
             </MudGrid>
         </DialogContent>
@@ -98,12 +110,26 @@
 
 <style>
     .selected-event-type {
-        border: 2px solid var(--mud-palette-primary);
+        border: 4px solid var(--mud-palette-tertiary);
         border-radius: 4px;
-        background-color: var(--mud-palette-primary-lighten);
     }
 
-    .cursor-pointer {
-        cursor: pointer;
+    .validation-message {
+        font-size: 1rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        width: fit-content;
+        margin: 8px auto;
+        padding: 6px;
+        color: var(--mud-palette-error) !important;
+        border-radius: 4px;
+        background-color: var(--mud-palette-error-light);
+        gap: 6px;
+    }
+
+    .validation-message::before {
+        font-size: 1.2rem;
+        content: "⚠️";
     }
 </style>

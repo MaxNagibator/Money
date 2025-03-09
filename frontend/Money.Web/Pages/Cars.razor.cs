@@ -52,7 +52,7 @@ public partial class Cars
         _isAddCarOpen = !_isAddCarOpen;
     }
 
-    public async Task AddCar()
+    private async Task CreateCar()
     {
         var model = new Car
         {
@@ -75,7 +75,7 @@ public partial class Cars
         StateHasChanged();
     }
 
-    private async Task Create()
+    private async Task CreateEvent()
     {
         var model = new CarEvent
         {
@@ -100,42 +100,16 @@ public partial class Cars
         await ShowDialog("Обновить", model);
     }
 
-    private async Task Delete(CarEvent model)
-    {
-        await Modify(model, MoneyClient.Categories.Delete, true);
-    }
-
-    private async Task Restore(CarEvent model)
-    {
-        await Modify(model, MoneyClient.Categories.Restore, false);
-    }
-
     private async Task<CarEvent?> ShowDialog(string title, CarEvent model)
     {
         DialogParameters<CarEventDialog> parameters = new()
         {
             { dialog => dialog.Model, model },
             { dialog => dialog.CarId, _cars[_activeIndex].Id!.Value },
+            { dialog => dialog.LastMillage, _cars[_activeIndex].Events?.Max(x=>x.Mileage) ?? 0 },
         };
 
         var dialog = await DialogService.ShowAsync<CarEventDialog>(title, parameters);
         return await dialog.GetReturnValueAsync<CarEvent>();
-    }
-
-    private async Task Modify(CarEvent model, Func<int, Task<ApiClientResponse>> action, bool isDeleted)
-    {
-        if (model.Id == null)
-        {
-            return;
-        }
-
-        var response = await action(model.Id.Value);
-
-        if (response.GetError().ShowMessage(SnackbarService).HasError())
-        {
-            return;
-        }
-
-        model.IsDeleted = isDeleted;
     }
 }

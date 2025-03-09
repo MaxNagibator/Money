@@ -2,6 +2,7 @@
 using Money.CoreLib;
 using NLog;
 using NLog.Web;
+using System.Globalization;
 
 var logger = LogManager.Setup()
     .LoadConfigurationFromAppSettings()
@@ -23,6 +24,11 @@ try
     app.UseDefinitions();
     app.MapDefaultEndpoints();
     AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
+    var culture = new CultureInfo("ru-RU");
+    CultureInfo.DefaultThreadCurrentCulture = culture;
+    CultureInfo.DefaultThreadCurrentUICulture = culture;
+
     await app.RunAsync();
 }
 catch (Exception exception)
