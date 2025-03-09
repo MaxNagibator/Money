@@ -3,10 +3,14 @@
     @ChildContent
 }
 
+@if (IsOpen == false)
+{
+    return;
+}
+
 <MudPopover AnchorOrigin="Origin.BottomLeft"
-            Class="mt-4 mx-4 pa-4"
+            Class="mt-4 mx-4 pa-4 pop-over"
             Open="IsOpen"
-            Style="max-width: 600px"
             TransformOrigin="Origin.TopLeft">
     <EditForm Model="@Input"
               OnValidSubmit="SubmitAsync">
@@ -16,7 +20,7 @@
             <MudItem md="6"
                      xs="12">
                 <SmartSum @ref="_smartSum"
-                          IsAutoFocus="IsAutoFocus"
+                          IsAutoFocus="_isAutoFocus"
                           GetInitialSum="() => _sum" />
             </MudItem>
             <MudItem md="6"
@@ -36,7 +40,6 @@
                                  AdornmentIcon="@Icons.Material.Rounded.Search"
                                  @bind-Value="Input.Category"
                                  Clearable
-                                 Counter="0"
                                  For="@(() => Input.Category)"
                                  Label="Категория"
                                  ResetValueOnEmptyText
@@ -52,7 +55,6 @@
                                  Clearable
                                  CoerceText="false"
                                  CoerceValue="true"
-                                 Counter="0"
                                  DebounceInterval="350"
                                  For="@(() => Input.Place)"
                                  Immediate
@@ -79,7 +81,7 @@
                   Justify="Justify.SpaceBetween"
                   Row>
             <MudButton Color="Color.Error"
-                       OnClick="() => ToggleOpen()">
+                       OnClick=" () => ToggleOpen()">
                 Закрыть
             </MudButton>
             <MudButton ButtonType="ButtonType.Submit"
@@ -90,3 +92,9 @@
         </MudStack>
     </EditForm>
 </MudPopover>
+
+<style>
+    .pop-over {
+        max-width: 600px !important;
+    }
+</style>

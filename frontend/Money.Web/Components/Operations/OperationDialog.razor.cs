@@ -8,9 +8,7 @@ public partial class OperationDialog
 {
     private SmartSum _smartSum = null!;
     private decimal _sum;
-
-    [CascadingParameter]
-    public List<Category> Categories { get; set; } = null!;
+    private bool _isAutoFocus;
 
     [Parameter]
     public Operation Operation { get; set; } = null!;
@@ -33,53 +31,59 @@ public partial class OperationDialog
     private PlaceService PlaceService { get; set; } = null!;
 
     [Inject]
+    private CategoryService CategoryService { get; set; } = null!;
+
+    [Inject]
     private ISnackbar SnackbarService { get; set; } = null!;
 
-    private bool IsAutoFocus { get; set; }
-
-    public void ToggleOpen(OperationTypes.Value? type = null)
+    public async Task ToggleOpen(OperationTypes.Value? type = null)
     {
         _sum = Operation.Sum;
 
         IsOpen = !IsOpen;
 
-        if (IsOpen == false)
+        if (IsOpen)
         {
-            IsAutoFocus = false;
-            return;
+            Input = new()
+            {
+                Category = Operation.Category == Category.Empty ? null : Operation.Category,
+                Comment = Operation.Comment,
+                Date = Operation.Date,
+                Place = Operation.Place,
+            };
+
+            var categories = await CategoryService.GetAllAsync();
+
+            // TODO: обработать, если текущая категория удалена.
+            if (type == null)
+            {
+                Input.CategoryList = [.. categories.Where(x => x.OperationType == Operation.Category.OperationType)];
+                return;
+            }
+
+            Input.CategoryList = [.. categories.Where(x => x.OperationType == type)];
+        }
+        else
+        {
+            _isAutoFocus = false;
         }
 
-        Input = new()
-        {
-            Category = Operation.Category == Category.Empty ? null : Operation.Category,
-            Comment = Operation.Comment,
-            Date = Operation.Date,
-            Place = Operation.Place,
-        };
-
-        // TODO: обработать, если текущая категория удалена.
-        if (type == null)
-        {
-            Input.CategoryList = [.. Categories.Where(x => x.OperationType == Operation.Category.OperationType)];
-            return;
-        }
-
-        Input.CategoryList = [.. Categories.Where(x => x.OperationType == type)];
+        StateHasChanged();
     }
 
-    public void ToggleOpen(FastOperation fastOperation)
+    public Task ToggleOpen(FastOperation model)
     {
         Operation = new()
         {
-            Category = fastOperation.Category,
-            Sum = fastOperation.Sum,
-            Comment = fastOperation.Comment,
-            Place = fastOperation.Place,
+            Category = model.Category,
+            Sum = model.Sum,
+            Comment = model.Comment,
+            Place = model.Place,
             Date = Operation.Date,
         };
 
-        IsAutoFocus = true;
-        ToggleOpen();
+        _isAutoFocus = true;
+        return ToggleOpen();
     }
 
     private async Task SubmitAsync()
@@ -104,7 +108,7 @@ public partial class OperationDialog
             Operation.Sum = sum.Value;
 
             await OnSubmit.InvokeAsync(Operation);
-            ToggleOpen();
+            await ToggleOpen();
         }
         catch (Exception)
         {

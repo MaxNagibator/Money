@@ -4,68 +4,65 @@
 
 <PageTitle>Операции</PageTitle>
 
-<MudStack Spacing="2">
-    <CascadingValue IsFixed="true"
-                    Value="_categories">
-        <MudItem>
-            <OperationDialog OnSubmit="AddNewOperation"
-                             Operation="@(new Operation { Date = DateTime.Now, Category = Category.Empty })"
-                             @ref="_dialog">
-                <MudStack AlignItems="AlignItems.Start"
-                          Row>
-                    @foreach (var type in OperationTypes.Values)
-                    {
-                        <MudTooltip Text="@type.AddText">
-                            <MudButton Color="type.Color"
-                                       Disabled="_dialog.IsOpen"
-                                       EndIcon="@type.Icon"
-                                       OnClick="() => _dialog.ToggleOpen(type)"
-                                       Size="Size.Small"
-                                       Variant="Variant.Filled">
-                                @type.AddText
-                            </MudButton>
-                        </MudTooltip>
-                    }
-                    @if (_fastOperations != null)
-                    {
-                        <MudTooltip Text="Быстрое добавление">
-                            <MudMenu AnchorOrigin="Origin.BottomCenter"
-                                     Color="Color.Info"
-                                     Dense
-                                     Disabled="_dialog.IsOpen"
-                                     EndIcon="@Icons.Material.Rounded.Add"
-                                     FullWidth
-                                     Label="Быстрое добавление"
-                                     MaxHeight="500"
-                                     Size="Size.Small"
-                                     TransformOrigin="Origin.TopCenter"
-                                     Variant="Variant.Filled">
-                                @foreach (var fastOperation in _fastOperations)
-                                {
-                                    <MudMenuItem OnClick="() => _dialog.ToggleOpen(fastOperation)">@fastOperation.Name</MudMenuItem>
-                                }
-                            </MudMenu>
-                        </MudTooltip>
-                    }
-                </MudStack>
-            </OperationDialog>
-        </MudItem>
-        @if (_operationsDays != null && _operationsDays.Count != 0)
-        {
-            <Virtualize Context="operationsDay"
-                        Items="_operationsDays">
-                <OperationsDayCard FastOperations="_fastOperations"
-                                   @key="operationsDay"
-                                   OnAddOperation="operationsDay.AddAction"
-                                   OnCanDelete="DeleteDay"
-                                   OnDelete="Delete"
-                                   OnRestore="Restore"
-                                   OperationsDay="operationsDay"
-                                   OperationTypes="OperationTypes.Values" />
-            </Virtualize>
-        }
-    </CascadingValue>
-</MudStack>
+<div>
+    <OperationDialog OnSubmit="AddNewOperation"
+                     Operation="@(new Operation { Date = DateTime.Now, Category = Category.Empty })"
+                     @ref="_dialog">
+        <MudStack AlignItems="AlignItems.Start"
+                  Row>
+            @foreach (var type in OperationTypes.Values)
+            {
+                <MudTooltip Text="@type.AddText">
+                    <MudButton Color="type.Color"
+                               Disabled="_dialog.IsOpen"
+                               EndIcon="@type.Icon"
+                               OnClick="() => _dialog.ToggleOpen(type)"
+                               Size="Size.Small"
+                               Variant="Variant.Filled">
+                        @type.AddText
+                    </MudButton>
+                </MudTooltip>
+            }
+            @if (_fastOperations != null)
+            {
+                <MudTooltip Text="Быстрое добавление">
+                    <MudMenu AnchorOrigin="Origin.BottomCenter"
+                             Color="Color.Info"
+                             Dense
+                             Disabled="_dialog.IsOpen"
+                             EndIcon="@Icons.Material.Rounded.Add"
+                             FullWidth
+                             Label="Быстрое добавление"
+                             MaxHeight="500"
+                             Size="Size.Small"
+                             TransformOrigin="Origin.TopCenter"
+                             Variant="Variant.Filled">
+                        @foreach (var fastOperation in _fastOperations)
+                        {
+                            <MudMenuItem OnClick="() => _dialog.ToggleOpen(fastOperation)">@fastOperation.Name</MudMenuItem>
+                        }
+                    </MudMenu>
+                </MudTooltip>
+            }
+        </MudStack>
+    </OperationDialog>
+</div>
+
+@if (_operationsDays != null && _operationsDays.Count != 0)
+{
+    <Virtualize Context="operationsDay"
+                Items="_operationsDays">
+        <OperationsDayCard FastOperations="_fastOperations"
+                           @key="operationsDay"
+                           OnAddOperation="operationsDay.AddAction"
+                           OnCanDelete="DeleteDay"
+                           OnDelete="Delete"
+                           OnRestore="Restore"
+                           OperationsDay="operationsDay"
+                           OperationTypes="OperationTypes.Values" />
+    </Virtualize>
+}
+
 <MudScrollToTop>
     <MudFab Color="Color.Tertiary"
             Size="Size.Small"
