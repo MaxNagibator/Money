@@ -50,21 +50,20 @@ public partial class Register
     {
         [Required(ErrorMessage = "Логин обязателен.")]
         [Display(Name = "Логин")]
-        public string UserName { get; set; } = "";
+        public string UserName { get; set; } = string.Empty;
 
         [EmailAddress(ErrorMessage = "Некорректный email.")]
-        [Display(Name = "Электронная почта(Необязательна, но вдруг забудите пароль)")]
-        public string? Email { get; set; } = null;
+        [Display(Name = "Электронная почта")]
+        public string? Email { get; set; }
 
         [Required(ErrorMessage = "Пароль обязателен.")]
-        [StringLength(100, ErrorMessage = "Пароль должен быть длиной от {2} до {1} символов.", MinimumLength = 6)]
         [DataType(DataType.Password)]
         [Display(Name = "Пароль")]
-        public string Password { get; set; } = "";
+        public string Password { get; set; } = string.Empty;
 
         [DataType(DataType.Password)]
         [Display(Name = "Подтверждение пароля")]
-        public string ConfirmPassword { get; set; } = "";
+        public string ConfirmPassword { get; set; } = string.Empty;
 
         public bool UseConfirmPassword { get; set; } = true;
 

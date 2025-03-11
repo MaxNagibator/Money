@@ -96,7 +96,7 @@ public class AuthService(UserManager<ApplicationUser> userManager, SignInManager
 
                 yield break;
 
-            case OpenIddictConstants.Claims.Email:
+            case OpenIddictConstants.Claims.Email or OpenIddictConstants.Claims.EmailVerified:
                 yield return OpenIddictConstants.Destinations.AccessToken;
 
                 if (claim.Subject != null && claim.Subject.HasScope(OpenIddictConstants.Permissions.Scopes.Email))
@@ -133,12 +133,14 @@ public class AuthService(UserManager<ApplicationUser> userManager, SignInManager
         var emailTask = userManager.GetEmailAsync(user);
         var userNameTask = userManager.GetUserNameAsync(user);
         var rolesTask = userManager.GetRolesAsync(user);
+        var emailConfirmedTask = userManager.IsEmailConfirmedAsync(user);
 
         await Task.WhenAll(userIdTask, emailTask, userNameTask, rolesTask);
 
         identity.SetClaim(OpenIddictConstants.Claims.Subject, await userIdTask)
             .SetClaim(OpenIddictConstants.Claims.Email, await emailTask)
             .SetClaim(OpenIddictConstants.Claims.Name, await userNameTask)
+            .SetClaim(OpenIddictConstants.Claims.EmailVerified, await emailConfirmedTask)
             .SetClaim(OpenIddictConstants.Claims.PreferredUsername, await userNameTask)
             .SetClaims(OpenIddictConstants.Claims.Role, [.. await rolesTask]);
 

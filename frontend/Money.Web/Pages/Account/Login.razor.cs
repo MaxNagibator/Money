@@ -42,11 +42,11 @@ public partial class Login
     {
         [Required(ErrorMessage = "Login обязателен.")]
         [Display(Name = "Логин или Email")]
-        public string Login { get; set; } = "";
+        public string Login { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Пароль обязателен.")]
         [DataType(DataType.Password)]
         [Display(Name = "Пароль")]
-        public string Password { get; set; } = "";
+        public string Password { get; set; } = string.Empty;
     }
 }
