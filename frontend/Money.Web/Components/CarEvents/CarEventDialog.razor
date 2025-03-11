@@ -33,13 +33,14 @@
                               Wrap="Wrap.Wrap">
                         @foreach (var type in CarEventTypes.Values.Values)
                         {
-                            <MudPaper Class="@("pa-1 cursor-pointer d-flex  flex-column align-center " + (Input.Type == type ? "selected-event-type" : string.Empty))"
+                            <MudPaper Class="@("pa-1 cursor-pointer d-flex flex-column align-center " + (Input.Type == type ? "selected-event-type" : string.Empty))"
                                       @onclick="@(() => SelectEventType(type))"
                                       Height="128px"
-                                      Width="128px">
-                                <MudImage Class="d-flex flex-grow-1 "
+                                      Width="108px">
+                                <MudImage Class="d-flex flex-grow-1"
+                                          Fluid
                                           Src="@type.GetIcon()" />
-                                <MudText Class="d-flex "
+                                <MudText Class="d-flex"
                                          Align="Align.Center"
                                          Typo="Typo.body2">
                                     @type.Name
