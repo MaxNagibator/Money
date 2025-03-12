@@ -4,7 +4,11 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Money.Web.Components.Operations;
 
-public partial class OperationDialog
+public partial class OperationDialog(
+    MoneyClient moneyClient,
+    PlaceService placeService,
+    CategoryService categoryService,
+    ISnackbar snackbarService)
 {
     private SmartSum _smartSum = null!;
     private decimal _sum;
@@ -24,18 +28,6 @@ public partial class OperationDialog
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = InputModel.Empty;
 
-    [Inject]
-    private MoneyClient MoneyClient { get; set; } = null!;
-
-    [Inject]
-    private PlaceService PlaceService { get; set; } = null!;
-
-    [Inject]
-    private CategoryService CategoryService { get; set; } = null!;
-
-    [Inject]
-    private ISnackbar SnackbarService { get; set; } = null!;
-
     public async Task ToggleOpen(OperationTypes.Value? type = null)
     {
         _sum = Operation.Sum;
@@ -52,7 +44,7 @@ public partial class OperationDialog
                 Place = Operation.Place,
             };
 
-            var categories = await CategoryService.GetAllAsync();
+            var categories = await categoryService.GetAllAsync();
 
             // TODO: обработать, если текущая категория удалена.
             if (type == null)
@@ -94,12 +86,12 @@ public partial class OperationDialog
 
             if (sum == null)
             {
-                SnackbarService.Add("Нераспознано значение в поле 'сумма'.", Severity.Warning);
+                snackbarService.Add("Нераспознано значение в поле 'сумма'.", Severity.Warning);
                 return;
             }
 
             await SaveAsync();
-            SnackbarService.Add("Успех!", Severity.Success);
+            snackbarService.Add("Успех!", Severity.Success);
 
             Operation.Category = Input.Category ?? throw new MoneyException("Категория операции не может быть null");
             Operation.Comment = Input.Comment;
@@ -113,7 +105,7 @@ public partial class OperationDialog
         catch (Exception)
         {
             // TODO: добавить логирование ошибки
-            SnackbarService.Add("Ошибка. Пожалуйста, попробуйте еще раз.", Severity.Error);
+            snackbarService.Add("Ошибка. Пожалуйста, попробуйте еще раз.", Severity.Error);
         }
     }
 
@@ -123,12 +115,12 @@ public partial class OperationDialog
 
         if (Operation.Id == null)
         {
-            var result = await MoneyClient.Operations.Create(saveRequest);
+            var result = await moneyClient.Operations.Create(saveRequest);
             Operation.Id = result.Content;
         }
         else
         {
-            await MoneyClient.Operations.Update(Operation.Id.Value, saveRequest);
+            await moneyClient.Operations.Update(Operation.Id.Value, saveRequest);
         }
     }
 
@@ -155,7 +147,7 @@ public partial class OperationDialog
 
     private Task<IEnumerable<string?>> SearchPlaceAsync(string? value, CancellationToken token)
     {
-        return PlaceService.SearchPlace(value, token)!;
+        return placeService.SearchPlace(value, token)!;
     }
 
     private sealed class InputModel

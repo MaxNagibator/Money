@@ -23,7 +23,7 @@
                                  Operation="@(new Operation { Date = OperationsDay.Date, Category = Category.Empty })"
                                  @ref="_dialog">
                     <div class="align-center d-flex flex-row gap-4">
-                        @foreach (var type in OperationTypes)
+                        @foreach (var type in OperationTypes.Values)
                         {
                             @RenderOperationButton(type)
                         }
@@ -49,7 +49,7 @@
 
                 <MudSpacer />
 
-                @foreach (var operationType in OperationTypes)
+                @foreach (var operationType in OperationTypes.Values)
                 {
                     <div class="align-center d-flex flex-row gap-2">
                         <MudIcon Color="@operationType.Color"
@@ -69,33 +69,14 @@
             {
                 var operation = OperationsDay.Operations[i];
 
-                if (operation.IsDeleted)
-                {
-                    <MudStack AlignItems="AlignItems.Center"
-                              Row>
-                        <MudText Style="text-decoration: line-through;">
-                            @operation.Sum.ToString("N0") - @operation.Category.Name - @operation.Comment
-                        </MudText>
-                        <MudSpacer />
-                        <MudButton Color="Color.Info"
-                                   EndIcon="@Icons.Material.Rounded.Cancel"
-                                   OnClick="() => OnRestore.InvokeAsync(operation)">
-                            Восстановить
-                        </MudButton>
-                    </MudStack>
-                }
-                else
-                {
-                    <OperationItem @key="operation"
-                                   OnDelete="() => OnDelete.InvokeAsync(operation)"
-                                   OnEdit="OnEdit"
-                                   Operation="@operation" />
+                <OperationItem @key="operation"
+                               OnEdit="OnEdit"
+                               Operation="@operation" />
 
-                    if (Settings.ShowDividers && i != OperationsDay.Operations.Count - 1)
-                    {
-                        <MudDivider DividerType="DividerType.FullWidth"
-                                    FlexItem />
-                    }
+                if (Settings.ShowDividers && i != OperationsDay.Operations.Count - 1)
+                {
+                    <MudDivider DividerType="DividerType.FullWidth"
+                                FlexItem />
                 }
             }
         </MudStack>

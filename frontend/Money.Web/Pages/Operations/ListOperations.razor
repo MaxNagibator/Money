@@ -54,12 +54,8 @@
                 Items="_operationsDays">
         <OperationsDayCard FastOperations="_fastOperations"
                            @key="operationsDay"
-                           OnAddOperation="operationsDay.AddAction"
                            OnCanDelete="DeleteDay"
-                           OnDelete="Delete"
-                           OnRestore="Restore"
-                           OperationsDay="operationsDay"
-                           OperationTypes="OperationTypes.Values" />
+                           OperationsDay="operationsDay" />
     </Virtualize>
 }
 

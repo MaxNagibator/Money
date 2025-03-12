@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.Web;
 
 namespace Money.Web.Components.Operations;
 
+// TODO: ShouldRender()
 public partial class OperationsDayCard
 {
     private OperationDialog _dialog = null!;
@@ -14,19 +15,7 @@ public partial class OperationsDayCard
     public required OperationsDay OperationsDay { get; set; }
 
     [Parameter]
-    public required OperationTypes.Value[] OperationTypes { get; set; }
-
-    [Parameter]
     public required List<FastOperation> FastOperations { get; set; }
-
-    [Parameter]
-    public EventCallback<Operation> OnAddOperation { get; set; }
-
-    [Parameter]
-    public EventCallback<Operation> OnRestore { get; set; }
-
-    [Parameter]
-    public EventCallback<Operation> OnDelete { get; set; }
 
     [Parameter]
     public EventCallback<OperationsDay> OnCanDelete { get; set; }
@@ -43,22 +32,6 @@ public partial class OperationsDayCard
 
                 case nameof(OperationsDay):
                     OperationsDay = (OperationsDay)parameter.Value;
-                    break;
-
-                case nameof(OperationTypes):
-                    OperationTypes = (OperationTypes.Value[])parameter.Value;
-                    break;
-
-                case nameof(OnAddOperation):
-                    OnAddOperation = (EventCallback<Operation>)parameter.Value;
-                    break;
-
-                case nameof(OnRestore):
-                    OnRestore = (EventCallback<Operation>)parameter.Value;
-                    break;
-
-                case nameof(OnDelete):
-                    OnDelete = (EventCallback<Operation>)parameter.Value;
                     break;
 
                 case nameof(OnCanDelete):
@@ -91,7 +64,7 @@ public partial class OperationsDayCard
         };
     }
 
-    private async Task OnSubmit(Operation operation)
+    private void OnSubmit(Operation operation)
     {
         if (operation.Date == OperationsDay.Date)
         {
@@ -99,26 +72,26 @@ public partial class OperationsDayCard
         }
         else
         {
-            await OnAddOperation.InvokeAsync(operation);
+            OperationsDay.AddAction.Invoke(operation);
         }
+
+        StateHasChanged();
     }
 
     private async Task OnEdit(Operation operation)
     {
-        if (operation.Date == OperationsDay.Date)
+        if (operation.Date != OperationsDay.Date)
         {
-            StateHasChanged();
-            return;
+            OperationsDay.Operations.Remove(operation);
+
+            if (OperationsDay.Operations.Count == 0)
+            {
+                await OnCanDelete.InvokeAsync(OperationsDay);
+            }
+
+            OperationsDay.AddAction.Invoke(operation);
         }
 
-        OperationsDay.Operations.Remove(operation);
-
-        if (OperationsDay.Operations.Count == 0)
-        {
-            await OnCanDelete.InvokeAsync(OperationsDay);
-        }
-
-        await OnAddOperation.InvokeAsync(operation);
         StateHasChanged();
     }
 }
