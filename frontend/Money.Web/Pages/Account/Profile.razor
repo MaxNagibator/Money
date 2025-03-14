@@ -1,0 +1,78 @@
+﻿@page "/profile"
+@attribute [Authorize]
+
+<PageTitle>Личный кабинет</PageTitle>
+
+<MudCard Class="mb-6">
+    <MudCardHeader>
+        <CardHeaderAvatar>
+            <MudIcon Icon="@Icons.Material.Rounded.AccountCircle" />
+        </CardHeaderAvatar>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h6">Добро пожаловать, @_userName!</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        @if (_emailConfirmed)
+        {
+            <MudAlert Icon="@Icons.Material.Rounded.Verified"
+                      Severity="Severity.Success"
+                      Variant="Variant.Outlined">
+                Email подтверждён: @_email
+            </MudAlert>
+        }
+        else
+        {
+            <MudAlert Icon="@Icons.Material.Rounded.ClosedCaption"
+                      Severity="Severity.Warning"
+                      Variant="Variant.Outlined">
+                Email не подтверждён
+            </MudAlert>
+        }
+    </MudCardContent>
+</MudCard>
+
+@if (_emailConfirmed == false)
+{
+    <MudCard Class="mb-6">
+        <MudCardHeader>
+            <CardHeaderAvatar>
+                <MudIcon Icon="@Icons.Material.Rounded.MarkEmailUnread" />
+            </CardHeaderAvatar>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">Подтвердите почту</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <EditForm Model="@_confirmationModel"
+                      OnValidSubmit="@HandleConfirmation">
+                <MudTextField @bind-Value="_confirmationModel.Code"
+                              Label="Код подтверждения"
+                              InputMode="InputMode.numeric"
+                              Required
+                              RequiredError="Пожалуйста, введите код из письма"
+                              Class="mb-2"
+                              Variant="Variant.Outlined" />
+
+                <MudStack Row
+                          AlignItems="AlignItems.Center">
+                    <MudButton Color="Color.Secondary"
+                               Variant="Variant.Outlined"
+                               Disabled="@(!_canResend || _isProcessing)"
+                               OnClick="@ResendCode"
+                               EndIcon="@Icons.Material.Outlined.Refresh">
+                        Отправить код @(_remainingTime > 0 ? $"({_remainingTime} сек)" : "")
+                    </MudButton>
+                    <MudSpacer />
+                    <MudButton ButtonType="ButtonType.Submit"
+                               Color="Color.Primary"
+                               Variant="Variant.Filled"
+                               EndIcon="@Icons.Material.Outlined.VerifiedUser"
+                               Disabled="@_isProcessing">
+                        Подтвердить
+                    </MudButton>
+                </MudStack>
+            </EditForm>
+        </MudCardContent>
+    </MudCard>
+}

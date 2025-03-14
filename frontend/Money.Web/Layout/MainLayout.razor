@@ -1,4 +1,5 @@
-﻿@inherits LayoutComponentBase
+﻿@using Microsoft.AspNetCore.Components.WebAssembly.Hosting
+@inherits LayoutComponentBase
 
 <MudThemeProvider IsDarkMode="@_appSettings.IsDarkMode"
                   @ref="@_mudThemeProvider"
@@ -56,12 +57,14 @@
                         </CascadingValue>
                     </CascadingValue>
                 </ChildContent>
-                <ErrorContent Context="ex">
-                    @*TODO: Отладочный блок*@
-                    <p>@ex.Message</p>
-                    <br />
-                    <hr />
-                    <p>@ex.ToString()</p>
+                <ErrorContent Context="exception">
+                    @if (environment.IsDevelopment())
+                    {
+                        <p>@exception.Message</p>
+                        <br />
+                        <hr />
+                        <p>@exception.ToString()</p>
+                    }
 
                     <MudAlert Icon="@Icons.Material.Rounded.Error"
                               Severity="Severity.Error">

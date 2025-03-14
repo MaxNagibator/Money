@@ -1,9 +1,14 @@
 ﻿using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
 namespace Money.Web.Layout;
 
-public partial class MainLayout
+public partial class MainLayout(
+    IWebAssemblyHostEnvironment environment,
+    ILocalStorageService storageService,
+    NavigationManager navigationManager,
+    AuthenticationStateProvider authenticationStateProvider)
 {
     private readonly MudTheme _defaultTheme = new();
     private AppSettings _appSettings = new();
@@ -13,20 +18,11 @@ public partial class MainLayout
 
     private bool _drawerOpen = true;
 
-    [Inject]
-    private ILocalStorageService StorageService { get; set; } = null!;
-
-    [Inject]
-    private NavigationManager NavigationManager { get; set; } = null!;
-
-    [Inject]
-    private AuthenticationStateProvider AuthenticationStateProvider { get; set; } = null!;
-
-    private bool IsHomePage => string.Equals(NavigationManager.BaseUri, NavigationManager.Uri, StringComparison.OrdinalIgnoreCase);
+    private bool IsHomePage => string.Equals(navigationManager.BaseUri, navigationManager.Uri, StringComparison.OrdinalIgnoreCase);
 
     protected override async Task OnInitializedAsync()
     {
-        _appSettings = await StorageService.GetItemAsync<AppSettings>(nameof(AppSettings)) ?? new AppSettings();
+        _appSettings = await storageService.GetItemAsync<AppSettings>(nameof(AppSettings)) ?? new AppSettings();
 
         _appSettings.OnChange += async (_, _) =>
         {
@@ -49,19 +45,19 @@ public partial class MainLayout
 
         if (IsHomePage)
         {
-            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var authState = await authenticationStateProvider.GetAuthenticationStateAsync();
             var user = authState.User;
 
             if (user.Identity is { IsAuthenticated: true })
             {
-                NavigationManager.NavigateTo("operations");
+                navigationManager.NavigateTo("operations");
             }
         }
     }
 
     private async Task SaveSettings()
     {
-        await StorageService.SetItemAsync(nameof(AppSettings), _appSettings);
+        await storageService.SetItemAsync(nameof(AppSettings), _appSettings);
         StateHasChanged();
     }
 
@@ -85,6 +81,6 @@ public partial class MainLayout
             return;
         }
 
-        NavigationManager.NavigateTo("");
+        navigationManager.NavigateTo("");
     }
 }
