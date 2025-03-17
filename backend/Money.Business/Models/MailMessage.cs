@@ -12,6 +12,11 @@ namespace Money.Business.Models;
 public class MailMessage(string email, string title, string body)
 {
     /// <summary>
+    /// Идентификатор.
+    /// </summary>
+    public Guid Id { get; } = Guid.NewGuid();
+
+    /// <summary>
     /// Адрес электронной почты получателя.
     /// </summary>
     public required string Email { get; init; } = email;
@@ -25,4 +30,9 @@ public class MailMessage(string email, string title, string body)
     /// Тело письма.
     /// </summary>
     public required string Body { get; init; } = body;
+
+    /// <summary>
+    /// Количество попыток отправки письма.
+    /// </summary>
+    public int RetryCount { get; set; }
 }
