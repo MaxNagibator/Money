@@ -38,12 +38,18 @@
                 Долги
             </MudNavLink>
 
+            <MudNavLink Href="cars"
+                        Icon="@Icons.Material.Rounded.ElectricCar"
+                        Match="NavLinkMatch.Prefix">
+                Авто
+            </MudNavLink>
+
             <MudNavLink Href="settings"
                         Icon="@Icons.Material.Rounded.SettingsApplications">
                 Настройки
             </MudNavLink>
 
-            <MudNavLink Href="auth"
+            <MudNavLink Href="profile"
                         Icon="@Icons.Material.Rounded.Person"
                         Match="NavLinkMatch.Prefix">
                 @context.User.Identity?.Name

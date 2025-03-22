@@ -6,12 +6,12 @@ using MailMessage = Money.Business.Models.MailMessage;
 
 namespace Money.Business.Services;
 
-public interface IMailService
+public interface IMailsService
 {
     Task SendAsync(MailMessage mailMessage, CancellationToken cancellationToken = default);
 }
 
-public class MailsService(IOptions<SmtpSettings> options) : IMailService
+public class MailsService(IOptions<SmtpSettings> options) : IMailsService
 {
     private readonly SmtpSettings _settings = options.Value;
 

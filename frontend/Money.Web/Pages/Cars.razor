@@ -1,0 +1,104 @@
+﻿@page "/cars"
+@using Money.Web.Components.CarEvents
+
+@attribute [Authorize]
+
+<PageTitle>Машинки</PageTitle>
+
+<MudText GutterBottom
+         Typo="Typo.h3">
+    Авто
+</MudText>
+
+@if (_init == false)
+{
+    <MudStack AlignItems="AlignItems.Center"
+              Row>
+        <MudProgressCircular Indeterminate />
+        <MudText Typo="Typo.body1">Загрузка..</MudText>
+    </MudStack>
+
+    return;
+}
+
+<MudTabs ActivePanelIndexChanged="OnIndexChanged"
+         ApplyEffectsToContainer
+         Elevation="4"
+         HeaderPosition="TabHeaderPosition.Before"
+         PanelClass="px-4 py-6"
+         Rounded>
+    <Header>
+        <MudTooltip Text="Добавить авто">
+            <MudIconButton Icon="@(_isAddCarOpen ? Icons.Material.Rounded.Close : Icons.Material.Rounded.Add)"
+                           OnClick="OpenCarAdd" />
+        </MudTooltip>
+
+        <MudPopover AnchorOrigin="Origin.BottomLeft"
+                    MaxHeight="400"
+                    Open="@_isAddCarOpen"
+                    RelativeWidth="DropdownWidth.Adaptive"
+                    TransformOrigin="Origin.TopLeft">
+            <MudPaper Class="pa-3">
+                <MudStack Spacing="2">
+                    <MudText>Добавление авто</MudText>
+
+                    <MudTextField Adornment="Adornment.Start"
+                                  AdornmentColor="Color.Tertiary"
+                                  AdornmentIcon="@Icons.Material.Rounded.Comment"
+                                  AutoGrow
+                                  @bind-Value="_addCarName"
+                                  Clearable
+                                  Immediate
+                                  Label="Наименование"
+                                  Placeholder="Моя машинка" />
+
+                    <MudStack AlignItems="AlignItems.Center"
+                              Class="mt-3"
+                              Row>
+                        <MudIconButton Color="Color.Error"
+                                       Icon="@Icons.Material.Rounded.Close"
+                                       OnClick="() => _isAddCarOpen = false" />
+                        <MudSpacer />
+                        <MudButton ButtonType="ButtonType.Submit"
+                                   Color="Color.Tertiary"
+                                   Disabled="@string.IsNullOrWhiteSpace(_addCarName)"
+                                   OnClick="CreateCar"
+                                   Variant="Variant.Filled">
+                            Создать
+                        </MudButton>
+                    </MudStack>
+                </MudStack>
+            </MudPaper>
+        </MudPopover>
+    </Header>
+    <ChildContent>
+        @foreach (var car in _cars)
+        {
+            <MudTabPanel ID="@car.Id"
+                         ShowCloseIcon="false"
+                         Text="@car.Name">
+                <MudStack AlignItems="AlignItems.Center"
+                          Class="mb-2"
+                          Row
+                          Spacing="2">
+                    <MudText>События</MudText>
+                    <MudIconButton Icon="@Icons.Material.Rounded.Add"
+                                   OnClick="CreateEvent"
+                                   Variant="Variant.Outlined" />
+                </MudStack>
+                <MudGrid Spacing="2">
+                    <Virtualize Context="model"
+                                Items="@(car.Events ?? [])">
+                        <MudItem Class="mb-1"
+                                 lg="3"
+                                 md="4"
+                                 xs="12">
+                            <CarEventCard OnUpdate="Update"
+                                          Model="model" />
+                        </MudItem>
+                    </Virtualize>
+                </MudGrid>
+            </MudTabPanel>
+        }
+    </ChildContent>
+</MudTabs>

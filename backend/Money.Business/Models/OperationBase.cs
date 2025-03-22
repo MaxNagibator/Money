@@ -1,7 +1,13 @@
 ﻿namespace Money.Business.Models;
 
+/// <summary>
+/// Базовая операция.
+/// </summary>
 public class OperationBase
 {
+    /// <summary>
+    /// Идентификатор.
+    /// </summary>
     public int Id { get; set; }
 
     /// <summary>

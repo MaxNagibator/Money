@@ -1,0 +1,136 @@
+﻿@using System.Globalization
+<EditForm Model="@Input"
+          OnValidSubmit="SubmitAsync">
+    <DataAnnotationsValidator />
+    <MudDialog>
+        <TitleContent>
+            <MudText Typo="Typo.h6">
+                @MudDialog.Title
+            </MudText>
+        </TitleContent>
+        <DialogContent>
+            <MudGrid>
+                <MudItem md="12"
+                         xs="12">
+                    <MudTextField AdornmentColor="Color.Tertiary"
+                                  AdornmentIcon="@Icons.Material.Rounded.Comment"
+                                  AutoGrow
+                                  @bind-Value="Input.Title"
+                                  For="@(() => Input.Title)"
+                                  HelperText="Что произошло"
+                                  Label="Описание" />
+                </MudItem>
+                <MudItem md="12"
+                         xs="12">
+                    <MudText Typo="Typo.subtitle1"
+                             Class="mb-2">
+                        Тип события
+                    </MudText>
+                    <ValidationMessage For="@(() => Input.Type)" />
+                    <MudStack Justify="Justify.SpaceBetween"
+                              Row
+                              Spacing="1"
+                              Wrap="Wrap.Wrap">
+                        @foreach (var type in CarEventTypes.Values.Values)
+                        {
+                            <MudPaper Class="@("pa-1 cursor-pointer d-flex flex-column align-center " + (Input.Type == type ? "selected-event-type" : string.Empty))"
+                                      @onclick="@(() => SelectEventType(type))"
+                                      Height="128px"
+                                      Width="108px">
+                                <MudImage Class="d-flex flex-grow-1"
+                                          Fluid
+                                          Src="@type.GetIcon()" />
+                                <MudText Class="d-flex"
+                                         Align="Align.Center"
+                                         Typo="Typo.body2">
+                                    @type.Name
+                                </MudText>
+                            </MudPaper>
+                        }
+                    </MudStack>
+                </MudItem>
+                <MudItem md="6"
+                         xs="12">
+                    <MudDatePicker Adornment="Adornment.Start"
+                                   AdornmentColor="Color.Tertiary"
+                                   AnchorOrigin="Origin.BottomLeft"
+                                   @bind-Date="@Input.Date"
+                                   Clearable
+                                   Color="Color.Tertiary"
+                                   DateFormat="dd.MM.yyyy"
+                                   Editable
+                                   For="@(() => Input.Date)"
+                                   HelperText="Когда"
+                                   Label="Дата"
+                                   Mask="@(new DateMask("dd.MM.yyyy"))" />
+                </MudItem>
+                <MudItem md="6"
+                         xs="12">
+                    <MudNumericField AdornmentColor="Color.Tertiary"
+                                     @bind-Value="Input.Mileage"
+                                     Clearable
+                                     For="@(() => Input.Mileage)"
+                                     Format="N0"
+                                     Culture="CultureInfo.CurrentCulture"
+                                     HelperText="@("Последнее значение: " + LastMillage.ToString("N0"))"
+                                     Immediate
+                                     Label="Пробег (км)" />
+                </MudItem>
+
+                <MudItem md="12"
+                         xs="12">
+                    <MudTextField AdornmentColor="Color.Tertiary"
+                                  AdornmentIcon="@Icons.Material.Rounded.Comment"
+                                  AutoGrow
+                                  @bind-Value="Input.Comment"
+                                  For="@(() => Input.Comment)"
+                                  HelperText="Подробности"
+                                  Label="Комментарий" />
+                </MudItem>
+            </MudGrid>
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="Cancel">Отмена</MudButton>
+            <MudButton ButtonType="ButtonType.Submit"
+                       Color="Color.Success"
+                       Disabled="@_isProcessing">
+                @if (_isProcessing)
+                {
+                    <MudProgressCircular Class="ms-n1"
+                                         Indeterminate="true"
+                                         Size="Size.Small" />
+                }
+                else
+                {
+                    <MudText Typo="Typo.button">Сохранить</MudText>
+                }
+            </MudButton>
+        </DialogActions>
+    </MudDialog>
+</EditForm>
+
+<style>
+    .selected-event-type {
+        border: 4px solid var(--mud-palette-tertiary);
+        border-radius: 4px;
+    }
+
+    .validation-message {
+        font-size: 1rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        width: fit-content;
+        margin: 8px auto;
+        padding: 6px;
+        color: var(--mud-palette-error) !important;
+        border-radius: 4px;
+        background-color: var(--mud-palette-error-light);
+        gap: 6px;
+    }
+
+    .validation-message::before {
+        font-size: 1.2rem;
+        content: "⚠️";
+    }
+</style>

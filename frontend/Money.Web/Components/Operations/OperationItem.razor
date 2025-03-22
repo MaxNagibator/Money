@@ -1,60 +1,78 @@
-﻿<MudStack Row
-          Spacing="0"
-          Wrap="Wrap.Wrap">
-    <MudItem md="2"
-             xs="4">
-        <div class="align-center d-flex flex-row gap-0">
-            <MudIcon Color="@Category.OperationType.Color"
-                     Icon="@Category.OperationType.Icon"
-                     Size="Size.Small" />
-            <OperationDialog OnSubmit="OnEdit"
-                             Operation="@Operation"
-                             @ref="_dialog">
-                <MudIconButton Icon="@Icons.Material.Rounded.ModeEdit"
-                               OnClick="() => _dialog.ToggleOpen()"
-                               Size="Size.Small" />
-            </OperationDialog>
+﻿@if (Operation.IsDeleted)
+{
+    <MudStack AlignItems="AlignItems.Center"
+              Row>
+        <MudText Style="text-decoration: line-through;">
+            @Operation.Sum.ToString("N0") - @Operation.Category.Name - @Operation.Comment
+        </MudText>
+        <MudSpacer />
+        <MudButton Color="Color.Info"
+                   EndIcon="@Icons.Material.Rounded.Cancel"
+                   OnClick="Restore">
+            Восстановить
+        </MudButton>
+    </MudStack>
+}
+else
+{
+    <MudStack Row
+              Spacing="0"
+              Wrap="Wrap.Wrap">
+        <MudItem md="2"
+                 xs="4">
+            <div class="align-center d-flex flex-row gap-0">
+                <MudIcon Color="@Category.OperationType.Color"
+                         Icon="@Category.OperationType.Icon"
+                         Size="Size.Small" />
+                <OperationDialog OnSubmit="OnEdit"
+                                 Operation="Operation"
+                                 @ref="_dialog">
+                    <MudIconButton Icon="@Icons.Material.Rounded.ModeEdit"
+                                   OnClick="() => _dialog.ToggleOpen()"
+                                   Size="Size.Small" />
+                </OperationDialog>
+                <MudText Class="large-text"
+                         title="@Operation.Sum.ToString("N0")">
+                    @Operation.Sum.ToString("N0")
+                </MudText>
+            </div>
+        </MudItem>
+        <MudItem md="3"
+                 xs="4">
             <MudText Class="large-text"
-                     title="@Operation.Sum.ToString("N0")">
-                @Operation.Sum.ToString("N0")
+                     title="@Category.Name">
+                @Category.Name
             </MudText>
-        </div>
-    </MudItem>
-    <MudItem md="3"
-             xs="4">
-        <MudText Class="large-text"
-                 title="@Category.Name">
-            @Category.Name
-        </MudText>
-    </MudItem>
-    <MudItem md="3"
-             xs="4">
-        <MudText Class="large-text"
-                 title="@Operation.Place">
-            @Operation.Place
-        </MudText>
-    </MudItem>
-    <MudItem md="3"
-             xs="11">
-        <MudText Class="large-text"
-                 title="@Operation.Comment">
-            @Operation.Comment
-        </MudText>
-    </MudItem>
-    <MudItem md="1"
-             xs="1">
-        <div class="align-center d-flex flex-row gap-0">
-            <MudSpacer />
-            @if (Operation.CreatedTaskId != null)
-            {
-                <MudIcon Icon="@Icons.Material.Rounded.CalendarToday"
-                         Size="Size.Small"
-                         Color="Color.Tertiary"
-                         Title="Создано регулярной задачей" />
-            }
-            <MudIconButton Icon="@Icons.Material.Rounded.Delete"
-                           OnClick="() => OnDelete.InvokeAsync(Operation)"
-                           Size="Size.Small" />
-        </div>
-    </MudItem>
-</MudStack>
+        </MudItem>
+        <MudItem md="3"
+                 xs="4">
+            <MudText Class="large-text"
+                     title="@Operation.Place">
+                @Operation.Place
+            </MudText>
+        </MudItem>
+        <MudItem md="3"
+                 xs="11">
+            <MudText Class="large-text"
+                     title="@Operation.Comment">
+                @Operation.Comment
+            </MudText>
+        </MudItem>
+        <MudItem md="1"
+                 xs="1">
+            <div class="align-center d-flex flex-row gap-0">
+                <MudSpacer />
+                @if (Operation.CreatedTaskId != null)
+                {
+                    <MudIcon Icon="@Icons.Material.Rounded.CalendarToday"
+                             Size="Size.Small"
+                             Color="Color.Tertiary"
+                             Title="Создано регулярной задачей" />
+                }
+                <MudIconButton Icon="@Icons.Material.Rounded.Delete"
+                               OnClick="Delete"
+                               Size="Size.Small" />
+            </div>
+        </MudItem>
+    </MudStack>
+}

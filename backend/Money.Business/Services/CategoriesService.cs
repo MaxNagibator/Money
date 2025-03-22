@@ -35,6 +35,8 @@ public class CategoriesService(
 
     public async Task<int> CreateAsync(Category model, CancellationToken cancellationToken = default)
     {
+        Validate(model);
+
         await ValidateParentCategoryAsync(model.ParentId, (int)model.OperationType, cancellationToken);
 
         var id = await usersService.GetNextCategoryIdAsync(cancellationToken);
@@ -58,6 +60,8 @@ public class CategoriesService(
 
     public async Task UpdateAsync(Category model, CancellationToken cancellationToken = default)
     {
+        Validate(model);
+
         var entity = await context.Categories.FirstOrDefaultAsync(environment.UserId, model.Id, cancellationToken)
                      ?? throw new NotFoundException("категория", model.Id);
 
@@ -159,6 +163,29 @@ public class CategoriesService(
             Order = model.Order,
             OperationType = (OperationTypes)model.TypeId,
         };
+    }
+
+    private static void Validate(Category model)
+    {
+        if (model.Name.Length > 500)
+        {
+            throw new BusinessException("Извините, название слишком длинное");
+        }
+
+        if (Enum.IsDefined(model.OperationType) == false)
+        {
+            throw new BusinessException("Извините, неподдерживаемый тип категории");
+        }
+
+        if (model.Description?.Length > 4000)
+        {
+            throw new BusinessException("Извините, описание слишком длинное");
+        }
+
+        if (model.Color?.Length > 100)
+        {
+            throw new BusinessException("Извините, цвет слишком длинный");
+        }
     }
 
     private async Task<Data.Entities.Category> GetByIdInternal(int id, CancellationToken cancellationToken = default)

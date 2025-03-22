@@ -1,32 +1,15 @@
-using Microsoft.AspNetCore.Components;
-using Money.ApiClient;
-
 namespace Money.Web.Pages.Operations;
 
-public partial class ListOperations
+public partial class ListOperations(FastOperationService fastOperationService)
 {
     private OperationDialog _dialog = null!;
 
-    private List<Category>? _categories;
     private List<FastOperation>? _fastOperations;
     private List<OperationsDay>? _operationsDays;
 
-    [Inject]
-    private MoneyClient MoneyClient { get; set; } = null!;
-
-    [Inject]
-    private CategoryService CategoryService { get; set; } = null!;
-
-    [Inject]
-    private FastOperationService FastOperationService { get; set; } = null!;
-
-    [Inject]
-    private ISnackbar SnackbarService { get; set; } = null!;
-
     protected override async Task OnInitializedAsync()
     {
-        _categories = await CategoryService.GetAllAsync();
-        _fastOperations = await FastOperationService.GetAllAsync();
+        _fastOperations = await fastOperationService.GetAllAsync();
     }
 
     protected override void OnSearchChanged(object? sender, OperationSearchEventArgs args)
@@ -111,33 +94,6 @@ public partial class ListOperations
         }
     }
 
-    private async Task Delete(Operation operation)
-    {
-        await ModifyOperation(operation, MoneyClient.Operations.Delete, true);
-    }
-
-    private async Task Restore(Operation operation)
-    {
-        await ModifyOperation(operation, MoneyClient.Operations.Restore, false);
-    }
-
-    private async Task ModifyOperation(Operation operation, Func<int, Task<ApiClientResponse>> action, bool isDeleted)
-    {
-        if (operation.Id == null)
-        {
-            return;
-        }
-
-        var result = await action(operation.Id.Value);
-
-        if (result.GetError().ShowMessage(SnackbarService).HasError())
-        {
-            return;
-        }
-
-        operation.IsDeleted = isDeleted;
-    }
-
     private void AddNewOperation(Operation operation)
     {
         _operationsDays ??= [];
@@ -163,11 +119,11 @@ public partial class ListOperations
         StateHasChanged();
     }
 
-    private void AddOperation(Operation operation, OperationsDay operationsDay)
+    private void AddOperation(Operation operation, OperationsDay day)
     {
-        if (operation.Date == operationsDay.Date)
+        if (operation.Date == day.Date)
         {
-            operationsDay.Operations.Add(operation);
+            day.Operations.Add(operation);
         }
         else
         {

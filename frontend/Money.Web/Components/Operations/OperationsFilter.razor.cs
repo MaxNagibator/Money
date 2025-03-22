@@ -200,7 +200,7 @@ public partial class OperationsFilter
     {
         _showZeroDays = toggled;
 
-        OnSearch?.Invoke(this, new OperationSearchEventArgs
+        OnSearch?.Invoke(this, new()
         {
             Operations = _operations,
             AddZeroDays = _showZeroDays,

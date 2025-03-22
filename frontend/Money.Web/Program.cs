@@ -5,7 +5,9 @@ using Money.ApiClient;
 using Money.Web.Services.Authentication;
 using Money.WebAssembly.CoreLib;
 using MudBlazor.Services;
+using MudBlazor.Translations;
 using NCalc.DependencyInjection;
+using System.Globalization;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 var apiUri = new Uri("https+http://api/");
@@ -18,6 +20,7 @@ builder.Services.AddMudServices(configuration =>
 {
     configuration.SnackbarConfiguration.PreventDuplicates = false;
 });
+builder.Services.AddMudTranslations();
 
 builder.Services.AddMemoryCache();
 builder.Services.AddBlazoredLocalStorage();
@@ -34,6 +37,8 @@ builder.Services.AddScoped<FastOperationService>();
 builder.Services.AddScoped<PlaceService>();
 builder.Services.AddScoped<RegularOperationService>();
 builder.Services.AddScoped<DebtService>();
+builder.Services.AddScoped<CarService>();
+builder.Services.AddScoped<CarEventService>();
 
 builder.Services.AddTransient<RefreshTokenHandler>();
 builder.Services.AddHttpClient<AuthenticationService>(client => client.BaseAddress = apiUri);
@@ -41,5 +46,9 @@ builder.Services.AddHttpClient<JwtParser>(client => client.BaseAddress = apiUri)
 
 builder.Services.AddHttpClient<MoneyClient>(client => client.BaseAddress = apiUri)
     .AddHttpMessageHandler<RefreshTokenHandler>();
+
+var culture = new CultureInfo("ru-RU");
+CultureInfo.DefaultThreadCurrentCulture = culture;
+CultureInfo.DefaultThreadCurrentUICulture = culture;
 
 await builder.Build().RunAsync();

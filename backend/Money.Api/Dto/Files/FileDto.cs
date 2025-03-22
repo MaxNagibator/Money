@@ -13,6 +13,7 @@ public class FileDto
     /// </summary>
     public string FileName { get; set; } = null!;
 
+    // TODO: Бизнес-перечисление протекает наружу
     /// <summary>
     /// Тип файла.
     /// </summary>

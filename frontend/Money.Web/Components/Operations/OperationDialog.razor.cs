@@ -4,13 +4,15 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Money.Web.Components.Operations;
 
-public partial class OperationDialog
+public partial class OperationDialog(
+    MoneyClient moneyClient,
+    PlaceService placeService,
+    CategoryService categoryService,
+    ISnackbar snackbarService)
 {
     private SmartSum _smartSum = null!;
     private decimal _sum;
-
-    [CascadingParameter]
-    public List<Category> Categories { get; set; } = null!;
+    private bool _isAutoFocus;
 
     [Parameter]
     public Operation Operation { get; set; } = null!;
@@ -26,60 +28,54 @@ public partial class OperationDialog
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = InputModel.Empty;
 
-    [Inject]
-    private MoneyClient MoneyClient { get; set; } = null!;
-
-    [Inject]
-    private PlaceService PlaceService { get; set; } = null!;
-
-    [Inject]
-    private ISnackbar SnackbarService { get; set; } = null!;
-
-    private bool IsAutoFocus { get; set; }
-
-    public void ToggleOpen(OperationTypes.Value? type = null)
+    public async Task ToggleOpen(OperationTypes.Value? type = null)
     {
         _sum = Operation.Sum;
 
         IsOpen = !IsOpen;
 
-        if (IsOpen == false)
+        if (IsOpen)
         {
-            IsAutoFocus = false;
-            return;
+            Input = new()
+            {
+                Category = Operation.Category == Category.Empty ? null : Operation.Category,
+                Comment = Operation.Comment,
+                Date = Operation.Date,
+                Place = Operation.Place,
+            };
+
+            var categories = await categoryService.GetAllAsync();
+
+            // TODO: обработать, если текущая категория удалена.
+            if (type == null)
+            {
+                Input.CategoryList = [.. categories.Where(x => x.OperationType == Operation.Category.OperationType)];
+                return;
+            }
+
+            Input.CategoryList = [.. categories.Where(x => x.OperationType == type)];
+        }
+        else
+        {
+            _isAutoFocus = false;
         }
 
-        Input = new()
-        {
-            Category = Operation.Category == Category.Empty ? null : Operation.Category,
-            Comment = Operation.Comment,
-            Date = Operation.Date,
-            Place = Operation.Place,
-        };
-
-        // TODO: обработать, если текущая категория удалена.
-        if (type == null)
-        {
-            Input.CategoryList = [.. Categories.Where(x => x.OperationType == Operation.Category.OperationType)];
-            return;
-        }
-
-        Input.CategoryList = [.. Categories.Where(x => x.OperationType == type)];
+        StateHasChanged();
     }
 
-    public void ToggleOpen(FastOperation fastOperation)
+    public Task ToggleOpen(FastOperation model)
     {
         Operation = new()
         {
-            Category = fastOperation.Category,
-            Sum = fastOperation.Sum,
-            Comment = fastOperation.Comment,
-            Place = fastOperation.Place,
+            Category = model.Category,
+            Sum = model.Sum,
+            Comment = model.Comment,
+            Place = model.Place,
             Date = Operation.Date,
         };
 
-        IsAutoFocus = true;
-        ToggleOpen();
+        _isAutoFocus = true;
+        return ToggleOpen();
     }
 
     private async Task SubmitAsync()
@@ -90,12 +86,12 @@ public partial class OperationDialog
 
             if (sum == null)
             {
-                SnackbarService.Add("Нераспознано значение в поле 'сумма'.", Severity.Warning);
+                snackbarService.Add("Нераспознано значение в поле 'сумма'.", Severity.Warning);
                 return;
             }
 
             await SaveAsync();
-            SnackbarService.Add("Успех!", Severity.Success);
+            snackbarService.Add("Успех!", Severity.Success);
 
             Operation.Category = Input.Category ?? throw new MoneyException("Категория операции не может быть null");
             Operation.Comment = Input.Comment;
@@ -104,12 +100,12 @@ public partial class OperationDialog
             Operation.Sum = sum.Value;
 
             await OnSubmit.InvokeAsync(Operation);
-            ToggleOpen();
+            await ToggleOpen();
         }
         catch (Exception)
         {
             // TODO: добавить логирование ошибки
-            SnackbarService.Add("Ошибка. Пожалуйста, попробуйте еще раз.", Severity.Error);
+            snackbarService.Add("Ошибка. Пожалуйста, попробуйте еще раз.", Severity.Error);
         }
     }
 
@@ -119,12 +115,12 @@ public partial class OperationDialog
 
         if (Operation.Id == null)
         {
-            var result = await MoneyClient.Operations.Create(saveRequest);
+            var result = await moneyClient.Operations.Create(saveRequest);
             Operation.Id = result.Content;
         }
         else
         {
-            await MoneyClient.Operations.Update(Operation.Id.Value, saveRequest);
+            await moneyClient.Operations.Update(Operation.Id.Value, saveRequest);
         }
     }
 
@@ -151,7 +147,7 @@ public partial class OperationDialog
 
     private Task<IEnumerable<string?>> SearchPlaceAsync(string? value, CancellationToken token)
     {
-        return PlaceService.SearchPlace(value, token)!;
+        return placeService.SearchPlace(value, token)!;
     }
 
     private sealed class InputModel

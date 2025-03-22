@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Money.Api.BackgroundServices;
 using Money.ApiClient;
 
@@ -6,8 +8,6 @@ namespace Money.Api.Tests.Accounts;
 
 public class AccountsTests
 {
-    private readonly TimeSpan _emailServiceDelay = EmailSenderBackgroundService.Delay + TimeSpan.FromMilliseconds(100);
-
     private DatabaseClient _dbClient;
     private MoneyClient _apiClient;
 
@@ -47,6 +47,8 @@ public class AccountsTests
         Assert.That(dbUser, Is.Not.Null);
         Assert.That(dbUser.Email, Is.Null);
 
+        await ExecuteEmailService();
+
         var isEmailWithUserNameExists = TestMailsService.IsEmailWithUserNameExists(user.UserName);
         Assert.That(isEmailWithUserNameExists, Is.False);
     }
@@ -64,14 +66,14 @@ public class AccountsTests
         Assert.That(dbUser, Is.Not.Null);
         Assert.That(dbUser.Email, Is.EqualTo(user.Email));
 
-        await Task.Delay(_emailServiceDelay); // ждём по максимум бэкграунд сервис
+        await ExecuteEmailService();
 
         var isEmailWithUserNameExists = TestMailsService.IsEmailWithUserNameExists(user.UserName);
         Assert.That(isEmailWithUserNameExists, Is.True);
     }
 
     /// <summary>
-    /// После регистрации с уже занятым EMAIL, нужно занулить неподтверждённый email.
+    ///     После регистрации с уже занятым EMAIL, нужно занулить неподтверждённый email.
     /// </summary>
     /// <returns></returns>
     [Test]
@@ -104,7 +106,8 @@ public class AccountsTests
     {
         var user = _dbClient.WithUser();
         _dbClient.Save();
-        await Task.Delay(_emailServiceDelay); // ждём по максимум бэкграунд сервис // todo это шляпа
+
+        await ExecuteEmailService();
 
         _apiClient.SetUser(user);
         var code = TestMailsService.GetConfirmCode(user.UserName);
@@ -116,7 +119,8 @@ public class AccountsTests
     {
         var user = _dbClient.WithUser();
         _dbClient.Save();
-        await Task.Delay(_emailServiceDelay); // ждём по максимум бэкграунд сервис // todo это шляпа
+
+        ExecuteEmailService();
 
         _apiClient.SetUser(user);
         var code = TestMailsService.GetConfirmCode(user.UserName)!;
@@ -127,16 +131,17 @@ public class AccountsTests
     }
 
     [Test]
-    [Ignore("Нестабильное поведение")]
     public async Task ResendConfirmCodeTest()
     {
         var user = _dbClient.WithUser();
         _dbClient.Save();
-        await Task.Delay(_emailServiceDelay); // ждём по максимум бэкграунд сервис // todo это шляпа
+
+        await ExecuteEmailService();
 
         _apiClient.SetUser(user);
         await _apiClient.Accounts.ResendConfirmCodeAsync();
-        await Task.Delay(_emailServiceDelay); // ждём по максимум бэкграунд сервис // todo это шляпа
+
+        await ExecuteEmailService();
 
         var codes = TestMailsService
             .GetEmailsByUserName(user.UserName)
@@ -146,5 +151,16 @@ public class AccountsTests
         Assert.That(codes, Is.Not.Empty);
         Assert.That(codes, Has.Length.GreaterThanOrEqualTo(2));
         Assert.That(codes, Is.Unique);
+    }
+
+    private static Task ExecuteEmailService()
+    {
+        using var scope = Integration.ServiceProvider.CreateScope();
+
+        var sender = scope.ServiceProvider.GetServices<IHostedService>()
+            .OfType<EmailSenderBackgroundService>()
+            .Single();
+
+        return sender.ForceExecuteAsync(CancellationToken.None);
     }
 }

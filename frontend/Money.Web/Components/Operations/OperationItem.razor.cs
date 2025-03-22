@@ -1,19 +1,18 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Money.ApiClient;
 
 namespace Money.Web.Components.Operations;
 
-public partial class OperationItem
+public partial class OperationItem(MoneyClient moneyClient, ISnackbar snackbarService)
 {
     private OperationDialog _dialog = null!;
+    private bool _isStateChanged;
 
     [Parameter]
     public required Operation Operation { get; set; }
 
     [Parameter]
     public EventCallback<Operation> OnEdit { get; set; }
-
-    [Parameter]
-    public EventCallback<Operation> OnDelete { get; set; }
 
     private Category Category => Operation.Category;
 
@@ -31,10 +30,6 @@ public partial class OperationItem
                     OnEdit = (EventCallback<Operation>)parameter.Value;
                     break;
 
-                case nameof(OnDelete):
-                    OnDelete = (EventCallback<Operation>)parameter.Value;
-                    break;
-
                 default:
                     throw new ArgumentException($"Unknown parameter: {parameter.Name}");
             }
@@ -45,6 +40,40 @@ public partial class OperationItem
 
     protected override bool ShouldRender()
     {
+        if (_isStateChanged)
+        {
+            _isStateChanged = false;
+            return true;
+        }
+
         return _dialog.IsOpen;
+    }
+
+    private Task Delete()
+    {
+        return ModifyOperation(moneyClient.Operations.Delete, true);
+    }
+
+    private Task Restore()
+    {
+        return ModifyOperation(moneyClient.Operations.Restore, false);
+    }
+
+    private async Task ModifyOperation(Func<int, Task<ApiClientResponse>> action, bool isDeleted)
+    {
+        if (Operation.Id == null)
+        {
+            return;
+        }
+
+        var result = await action(Operation.Id.Value);
+
+        if (result.GetError().ShowMessage(snackbarService).HasError())
+        {
+            return;
+        }
+
+        Operation.IsDeleted = isDeleted;
+        _isStateChanged = true;
     }
 }

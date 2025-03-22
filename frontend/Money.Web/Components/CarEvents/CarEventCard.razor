@@ -1,0 +1,115 @@
+﻿<MudCard Class="@ClassName"
+         Elevation="2"
+         Style="height: 100%;">
+    <MudCardContent Style="padding: 4px 6px">
+        <MudStack Row
+                  Spacing="2">
+            <MudTooltip Text="@Model.Type.Name">
+                <MudImage Alt="@Model.Type.Name"
+                          Height="64"
+                          Src="@Model.Type.GetIcon()"
+                          Width="64" />
+            </MudTooltip>
+
+            <MudStack Spacing="2">
+                @if (string.IsNullOrEmpty(Model.Title) == false)
+                {
+                    <MudTooltip Placement="Placement.Bottom"
+                                Text="Название">
+                        <MudText Typo="Typo.subtitle2">
+                            @Model.Title
+                        </MudText>
+                    </MudTooltip>
+                }
+
+                @if (Model.Mileage.HasValue)
+                {
+                    <MudTooltip Placement="Placement.Bottom"
+                                Text="Пробег">
+                        <MudStack AlignItems="AlignItems.Center"
+                                  Row>
+                            <MudIcon Color="Color.Primary"
+                                     Icon="@Icons.Material.Filled.DirectionsCar"
+                                     Size="Size.Small" />
+                            <MudText>@Model.Mileage?.ToString("N0") км</MudText>
+                        </MudStack>
+                    </MudTooltip>
+                }
+            </MudStack>
+        </MudStack>
+        <MudDivider FlexItem />
+        @if (string.IsNullOrEmpty(Model.Comment) == false)
+        {
+            <MudTooltip Placement="Placement.Bottom"
+                        Text="Комментарий">
+                <MudText Align="Align.Center"
+                         Class="mt-2"
+                         Typo="Typo.body2">
+                    @Model.Comment
+                </MudText>
+            </MudTooltip>
+        }
+    </MudCardContent>
+
+    <MudCardActions Style="padding: 4px 2px">
+        <MudTooltip Text="Дата">
+            <MudChip Icon="@Icons.Material.Rounded.CalendarToday"
+                     Size="Size.Small"
+                     T="string"
+                     Text="@Model.Date.ToShortDateString()" />
+        </MudTooltip>
+
+        <MudSpacer />
+
+        @if (Model.IsDeleted)
+        {
+            <MudTooltip Text="Восстановить">
+                <MudIconButton Color="Color.Success"
+                               Icon="@Icons.Material.Filled.Restore"
+                               OnClick="() => Restore(Model)"
+                               Size="Size.Small" />
+            </MudTooltip>
+        }
+        else
+        {
+            <MudTooltip Text="Редактировать">
+                <MudIconButton Color="Color.Warning"
+                               Icon="@Icons.Material.Filled.Edit"
+                               OnClick="() => Update(Model)"
+                               Size="Size.Small" />
+            </MudTooltip>
+
+            <MudTooltip Text="Удалить">
+                <MudIconButton Color="Color.Default"
+                               Icon="@Icons.Material.Filled.Delete"
+                               OnClick="() => Delete(Model)"
+                               Size="Size.Small" />
+            </MudTooltip>
+        }
+    </MudCardActions>
+</MudCard>
+
+<style>
+    .card {
+        border-radius: 8px;
+        transition: all 0.2s ease-in-out;
+        background-color: var(--mud-palette-surface);
+        border: 1px solid var(--mud-palette-lines-default);
+    }
+
+    .card:hover {
+        background-color: var(--mud-palette-action-default-hover);
+    }
+
+    .deleted-card {
+        opacity: 0.7;
+        background-color: var(--mud-palette-background-grey);
+        border: 1px dashed var(--mud-palette-error);
+    }
+
+    .deleted-card:hover {
+        opacity: 0.9;
+        background-color: var(--mud-palette-background-grey-darken);
+    }
+
+</style>

@@ -13,6 +13,7 @@ public class Integration
 {
     private static readonly ConcurrentBag<HttpClient> HttpClients = [];
 
+    public static IServiceProvider ServiceProvider { get; private set; } = null!;
     public static TestServer TestServer { get; private set; } = null!;
 
     public static DatabaseClient GetDatabaseClient()
@@ -42,10 +43,11 @@ public class Integration
     [OneTimeSetUp]
     public void OneTimeSetUp()
     {
-        EmailSenderBackgroundService.Delay = TimeSpan.FromMilliseconds(217);
+        // EmailSenderBackgroundService.Delay = TimeSpan.FromMilliseconds(217);
         CustomWebApplicationFactory<Program> webHostBuilder = new();
         webHostBuilder.Server.PreserveExecutionContext = true;
 
+        ServiceProvider = webHostBuilder.Services;
         TestServer = webHostBuilder.Server;
     }
 

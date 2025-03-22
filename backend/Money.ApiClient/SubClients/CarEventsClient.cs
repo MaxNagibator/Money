@@ -38,6 +38,8 @@ public class CarEventsClient(MoneyClient apiClient) : ApiClientExecutor(apiClien
 
     public class SaveRequest
     {
+        public int CarId { get; init; }
+
         public string? Title { get; init; }
 
         public int TypeId { get; init; }

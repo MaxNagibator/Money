@@ -23,11 +23,6 @@ public partial class Login
     [Inject]
     private ISnackbar Snackbar { get; set; } = null!;
 
-    protected override void OnParametersSet()
-    {
-        Input = new();
-    }
-
     public Task LoginUserAsync(EditContext context)
     {
         var user = new UserDto(Input.Login, Input.Password);
@@ -38,16 +33,20 @@ public partial class Login
             .Tap(x => NavigationManager.ReturnTo(x));
     }
 
+    protected override void OnParametersSet()
+    {
+        Input = new();
+    }
+
     private sealed class InputModel
     {
         [Required(ErrorMessage = "Login обязателен.")]
         [Display(Name = "Логин или Email")]
-        public string Login { get; set; } = "";
+        public string Login { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Пароль обязателен.")]
-        [StringLength(100, ErrorMessage = "Пароль должен быть длиной от {2} до {1} символов.", MinimumLength = 6)]
         [DataType(DataType.Password)]
         [Display(Name = "Пароль")]
-        public string Password { get; set; } = "";
+        public string Password { get; set; } = string.Empty;
     }
 }
