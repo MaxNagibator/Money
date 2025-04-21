@@ -54,4 +54,13 @@ public class AccountsController(AccountsService service) : ControllerBase
         await service.ResendConfirmCodeAsync(cancellationToken);
         return NoContent();
     }
+
+    [HttpPost("ChangePassword")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ChangePasswordAsync([FromBody] ChangePasswordRequest request, CancellationToken cancellationToken)
+    {
+        await service.ChangePasswordAsync(request.CurrentPassword, request.NewPassword);
+        return NoContent();
+    }
 }

@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Money.Api.BackgroundServices;
 using Money.ApiClient;
+using System.Net;
 
 namespace Money.Api.Tests.Accounts;
 
@@ -151,6 +152,40 @@ public class AccountsTests
         Assert.That(codes, Is.Not.Empty);
         Assert.That(codes, Has.Length.GreaterThanOrEqualTo(2));
         Assert.That(codes, Is.Unique);
+    }
+
+    [Test]
+    public async Task ChangePasswordTest()
+    {
+        var user = _dbClient.WithUser();
+        _dbClient.Save();
+
+        _apiClient.SetUser(user);
+        var newPassword = user.Password + "_upd";
+        await _apiClient.Accounts.ChangePassword(user.Password, newPassword).IsSuccess();
+
+        _apiClient.User.AuthData = null;
+        var exFound = false;
+        try
+        {
+            await _apiClient.Cars.Get();
+        }
+        catch (HttpRequestException ex)
+        {
+            if (ex.Message.Contains("403"))
+            {
+                exFound = true;
+            }
+            else
+            {
+                throw;
+            }
+        }
+        Assert.That(exFound, Is.True);
+        user.SetPassword(newPassword);
+        _apiClient.SetUser(user);
+        var result = await _apiClient.Cars.Get();
+        Assert.That(result.Code, Is.EqualTo(HttpStatusCode.OK));
     }
 
     private static Task ExecuteEmailService()

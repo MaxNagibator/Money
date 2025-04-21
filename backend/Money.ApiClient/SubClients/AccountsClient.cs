@@ -21,6 +21,11 @@ public class AccountsClient(MoneyClient apiClient) : ApiClientExecutor(apiClient
         return PostAsync($"{BaseUri}/ResendConfirmCode");
     }
 
+    public Task<ApiClientResponse> ChangePassword(string currentPassword, string newPassword)
+    {
+        return PostAsync($"{BaseUri}/ChangePassword", new { CurrentPassword = currentPassword, NewPassword = newPassword });
+    }
+
     public class RegisterRequest
     {
         public required string UserName { get; set; }

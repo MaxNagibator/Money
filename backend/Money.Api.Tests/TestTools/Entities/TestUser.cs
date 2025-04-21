@@ -30,7 +30,13 @@ public class TestUser : TestObject
     /// <summary>
     /// Пароль.
     /// </summary>
-    public string Password { get; }
+    public string Password { get; private set; }
+
+    public TestUser SetPassword(string value)
+    {
+        Password = value;
+        return this;
+    }
 
     public TestUser SetUserName(string value)
     {

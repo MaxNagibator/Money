@@ -68,6 +68,20 @@ public partial class AccountsService(
         }
     }
 
+    public async Task ChangePasswordAsync(string currentPassword, string newPassword)
+    {
+        var user = environment.AuthUser;
+        if (user == null)
+        {
+            throw new BusinessException("Извините, но пользователь не указан.");
+        }
+        var result = await userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+        if (result.Succeeded == false)
+        {
+            throw new IncorrectDataException($"Ошибки: {string.Join("; ", result.Errors.Select(error => error.Description))}");
+        }
+    }
+
     public async Task<int> EnsureUserIdAsync(Guid authUserId, CancellationToken cancellationToken = default)
     {
         var domainUser = await context.DomainUsers.FirstOrDefaultAsync(x => x.AuthUserId == authUserId, cancellationToken);
