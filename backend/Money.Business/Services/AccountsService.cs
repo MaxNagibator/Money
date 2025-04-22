@@ -75,11 +75,28 @@ public partial class AccountsService(
         {
             throw new BusinessException("Извините, но пользователь не указан.");
         }
-        var result = await userManager.ChangePasswordAsync(user, currentPassword, newPassword);
-        if (result.Succeeded == false)
+
+        var domainUser = await context.DomainUsers.SingleAsync(x => x.AuthUserId == user.Id);
+        if (domainUser.TransporterPassword != null)
         {
-            throw new IncorrectDataException($"Ошибки: {string.Join("; ", result.Errors.Select(error => error.Description))}");
+            if (!LegacyAuth.Validate(user.UserName!, currentPassword, domainUser.TransporterPassword))
+            {
+                throw new PermissionException("Неверное имя пользователя или пароль.");
+            }
+
+            await userManager.AddPasswordAsync(user, newPassword);
+            domainUser.TransporterPassword = null;
+            await context.SaveChangesAsync();
         }
+        else
+        {
+            var result = await userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+            if (result.Succeeded == false)
+            {
+                throw new IncorrectDataException($"Ошибки: {string.Join("; ", result.Errors.Select(error => error.Description))}");
+            }
+        }
+
     }
 
     public async Task<int> EnsureUserIdAsync(Guid authUserId, CancellationToken cancellationToken = default)

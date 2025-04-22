@@ -1,4 +1,5 @@
-﻿using Money.ApiClient;
+using Money.ApiClient;
+using MudBlazor;
 using System.ComponentModel.DataAnnotations;
 using Timer = System.Timers.Timer;
 
@@ -10,6 +11,7 @@ public partial class Profile(
     ISnackbar snackbar)
 {
     private readonly InputModel _confirmationModel = new();
+    private readonly ChangePasswordInputModel _changePaswordModel = new();
 
     private string _userName = "Anonymous";
     private string? _email;
@@ -35,9 +37,11 @@ public partial class Profile(
     {
         _isProcessing = true;
 
-        // TODO: Обработать ошибку
-        await moneyClient.Accounts.ResendConfirmCodeAsync();
-        snackbar.Add("Новый код отправлен на вашу почту", Severity.Success);
+        var result = await moneyClient.Accounts.ResendConfirmCodeAsync();
+        if (!result.GetError().ShowMessage(snackbar).HasError())
+        {
+            snackbar.Add("Новый код отправлен на вашу почту", Severity.Success);
+        }
 
         _isProcessing = false;
     }
@@ -59,6 +63,25 @@ public partial class Profile(
 
         _isProcessing = false;
     }
+
+    private async Task HandleChangePassword()
+    {
+        _isProcessing = true;
+
+        // TODO: Обработать ошибку
+        var result = await moneyClient.Accounts.ChangePassword(_changePaswordModel.CurrentPassword, _changePaswordModel.NewPassword);
+
+        if (result.IsSuccessStatusCode)
+        {
+            _changePaswordModel.CurrentPassword = "";
+            _changePaswordModel.NewPassword = "";
+            snackbar.Add("Пароль успешно поменян!", Severity.Success);
+            StateHasChanged();
+        }
+
+        _isProcessing = false;
+    }
+
 
     private Task ResendCode()
     {
@@ -95,5 +118,14 @@ public partial class Profile(
         [Required(ErrorMessage = "Заполни меня")]
         [StringLength(6, MinimumLength = 6, ErrorMessage = "Код должен содержать 6 символов")]
         public string Code { get; set; } = string.Empty;
+    }
+
+    private sealed class ChangePasswordInputModel
+    {
+        [Required(ErrorMessage = "Заполни меня")]
+        public string CurrentPassword { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Заполни меня")]
+        public string NewPassword { get; set; } = string.Empty;
     }
 }

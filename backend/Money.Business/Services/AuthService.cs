@@ -7,7 +7,10 @@ using System.Security.Claims;
 
 namespace Money.Business.Services;
 
-public class AuthService(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+public class AuthService(
+    UserManager<ApplicationUser> userManager,
+    SignInManager<ApplicationUser> signInManager,
+    ApplicationDbContext context)
 {
     public async Task<ClaimsIdentity> HandlePasswordGrantAsync(OpenIddictRequest request)
     {
@@ -33,11 +36,21 @@ public class AuthService(UserManager<ApplicationUser> userManager, SignInManager
             }
         }
 
-        var result = await signInManager.CheckPasswordSignInAsync(user, request.Password, true);
-
-        if (result.Succeeded == false)
+        var domainUser = await context.DomainUsers.SingleAsync(x => x.AuthUserId == user.Id);
+        if (domainUser.TransporterPassword != null)
         {
-            throw new PermissionException("Неверное имя пользователя или пароль.");
+            if(!LegacyAuth.Validate(request.Username, request.Password, domainUser.TransporterPassword))
+            {
+                throw new PermissionException("Неверное имя пользователя или пароль.");
+            }
+        }
+        else
+        {
+            var result = await signInManager.CheckPasswordSignInAsync(user, request.Password, true);
+            if (result.Succeeded == false)
+            {
+                throw new PermissionException("Неверное имя пользователя или пароль.");
+            }
         }
 
         return await CreateClaimsIdentityAsync(user, request.GetScopes().Add(OpenIddictConstants.Scopes.OfflineAccess));

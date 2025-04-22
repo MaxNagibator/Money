@@ -30,17 +30,7 @@ public class DomainUser
     /// <summary>
     /// Данные перенесённые со старой БД.
     /// </summary>
-    public string? TransporterEmail { get; set; }
-
-    /// <summary>
-    /// Данные перенесённые со старой БД.
-    /// </summary>
     public string? TransporterPassword { get; set; }
-
-    /// <summary>
-    /// Данные перенесённые со старой БД.
-    /// </summary>
-    public string? TransporterLogin { get; set; }
 
     /// <summary>
     /// Данные перенесённые со старой БД.
