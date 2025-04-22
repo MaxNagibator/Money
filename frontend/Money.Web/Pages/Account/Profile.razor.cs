@@ -50,10 +50,8 @@ public partial class Profile(
     {
         _isProcessing = true;
 
-        // TODO: Обработать ошибку
         var result = await moneyClient.Accounts.ConfirmEmailAsync(_confirmationModel.Code);
-
-        if (result.IsSuccessStatusCode)
+        if (!result.GetError().ShowMessage(snackbar).HasError())
         {
             _emailConfirmed = true;
             _resendTimer?.Dispose();
@@ -68,10 +66,8 @@ public partial class Profile(
     {
         _isProcessing = true;
 
-        // TODO: Обработать ошибку
         var result = await moneyClient.Accounts.ChangePassword(_changePaswordModel.CurrentPassword, _changePaswordModel.NewPassword);
-
-        if (result.IsSuccessStatusCode)
+        if (!result.GetError().ShowMessage(snackbar).HasError())
         {
             _changePaswordModel.CurrentPassword = "";
             _changePaswordModel.NewPassword = "";

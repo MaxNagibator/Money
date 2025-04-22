@@ -91,6 +91,15 @@ func main() {
 	processTable(newDatabase, oldDatabase, &transporter.Car)
 	processTable(newDatabase, oldDatabase, &transporter.CarEvent)
 
+    //	DELETE FROM public."AspNetUsers"
+    //	WHERE user_name = 'System'
+    //		OR user_name = 'NoName'
+    //		OR user_name = 'Test'
+    //		OR user_name = 'DeletedUser'
+    //
+    //
+    //		DELETE FROM public.domain_users
+    //		WHERE auth_user_id NOT IN (SELECT id FROM public."AspNetUsers")
 	err = resetDatabase(oldDatabase)
 	if err != nil {
 		log.Fatalln("Reset error:\n", err)
