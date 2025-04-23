@@ -11,21 +11,39 @@ type DomainUser struct {
 
 func (table *DomainUser) Transform(old OldDomainUser) NewDomainUser {
 	return NewDomainUser{
-		Id:                    old.Id,
-		TransporterPassword:   old.Password,
-		TransporterCreateDate: old.CreateDate,
-		AuthUserId:            old.Guid.String(),
+		Id:                     old.Id,
+		TransporterPassword:    old.Password,
+		TransporterCreateDate:  old.CreateDate,
+		AuthUserId:             old.Guid.String(),
+		NextOperationID:        old.NextOperationID,
+		NextCategoryID:         old.NextCategoryID,
+		NextPlaceID:            old.NextPlaceID,
+		NextFastOperationID:    old.NextFastOperationID,
+		NextRegularOperationID: old.NextRegularOperationID,
+		NextDebtID:             old.NextDebtID,
+		NextDebtOwnerID:        old.NextDebtOwnerID,
+		NextCarEventID:         old.NextCarEventID,
+		NextCarID:              old.NextCarID,
 	}
 }
 
 type OldDomainUser struct {
-	Id           int                    `db:"Id"`
-	Guid         mssql.UniqueIdentifier `db:"Guid"`
-	Login        sql.NullString         `db:"Login"`
-	Password     sql.NullString         `db:"Password"`
-	Email        sql.NullString         `db:"Email"`
-	EmailConfirm bool                   `db:"EmailConfirm"`
-	CreateDate   sql.NullString         `db:"CreateDate"`
+	Id                     int                    `db:"Id"`
+	Guid                   mssql.UniqueIdentifier `db:"Guid"`
+	Login                  sql.NullString         `db:"Login"`
+	Password               sql.NullString         `db:"Password"`
+	Email                  sql.NullString         `db:"Email"`
+	EmailConfirm           bool                   `db:"EmailConfirm"`
+	CreateDate             sql.NullString         `db:"CreateDate"`
+	NextOperationID        int                    `db:"next_operation_id"`
+	NextCategoryID         int                    `db:"next_category_id"`
+	NextPlaceID            int                    `db:"next_place_id"`
+	NextFastOperationID    int                    `db:"next_fast_operation_id"`
+	NextRegularOperationID int                    `db:"next_regular_operation_id"`
+	NextDebtID             int                    `db:"next_debt_id"`
+	NextDebtOwnerID        int                    `db:"next_debt_owner_id"`
+	NextCarEventID         int                    `db:"next_car_event_id"`
+	NextCarID              int                    `db:"next_car_id"`
 }
 
 /*
@@ -44,12 +62,21 @@ create table [money-dev].System.[User]
 */
 
 type NewDomainUser struct {
-	Id                    int            `db:"id"`
-	AuthUserId            string         `db:"auth_user_id"`
-	TransporterCreateDate sql.NullString `db:"transporter_create_date"`
-	TransporterEmail      sql.NullString `db:"transporter_email"`
-	TransporterLogin      sql.NullString `db:"transporter_login"`
-	TransporterPassword   sql.NullString `db:"transporter_password"`
+	Id                     int            `db:"id"`
+	AuthUserId             string         `db:"auth_user_id"`
+	TransporterCreateDate  sql.NullString `db:"transporter_create_date"`
+	TransporterEmail       sql.NullString `db:"transporter_email"`
+	TransporterLogin       sql.NullString `db:"transporter_login"`
+	TransporterPassword    sql.NullString `db:"transporter_password"`
+	NextOperationID        int            `db:"next_operation_id"`
+	NextCategoryID         int            `db:"next_category_id"`
+	NextPlaceID            int            `db:"next_place_id"`
+	NextFastOperationID    int            `db:"next_fast_operation_id"`
+	NextRegularOperationID int            `db:"next_regular_operation_id"`
+	NextDebtID             int            `db:"next_debt_id"`
+	NextDebtOwnerID        int            `db:"next_debt_owner_id"`
+	NextCarEventID         int            `db:"next_car_event_id"`
+	NextCarID              int            `db:"next_car_id"`
 }
 
 /*

@@ -3,7 +3,7 @@
     <MudStack AlignItems="AlignItems.Center"
               Row>
         <MudText Style="text-decoration: line-through;">
-            @Operation.Sum.ToString("N0") - @Operation.Category.Name - @Operation.Comment
+            @Operation.Sum.ToMoneyString() - @Operation.Category.Name - @Operation.Comment
         </MudText>
         <MudSpacer />
         <MudButton Color="Color.Info"
@@ -32,8 +32,8 @@ else
                                    Size="Size.Small" />
                 </OperationDialog>
                 <MudText Class="large-text"
-                         title="@Operation.Sum.ToString("N0")">
-                    @Operation.Sum.ToString("N0")
+                         title="@Operation.Sum.ToMoneyString()">
+                    @Operation.Sum.ToMoneyString()
                 </MudText>
             </div>
         </MudItem>

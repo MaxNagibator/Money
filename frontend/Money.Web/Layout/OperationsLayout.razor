@@ -1,4 +1,4 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 @layout MainLayout
 
 <OperationsFilter @ref="_operationsFilter" />
@@ -27,7 +27,7 @@ else
                              Icon="@type.Icon"
                              Size="Size.Small" />
                     <MudText>
-                        @amount.ToString("N0")
+                        @amount.ToMoneyString()
                     </MudText>
                 </MudStack>
             }

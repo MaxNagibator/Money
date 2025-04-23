@@ -9,7 +9,7 @@
                       AlignItems="AlignItems.Center"
                       Spacing="1">
                 <MudText Typo="Typo.body1">
-                    @Model.Sum.ToString("N0")
+                    @Model.Sum.ToMoneyString()
                 </MudText>
                 <MudSpacer />
                 <MudText Typo="Typo.body2"
@@ -22,12 +22,12 @@
                       Spacing="1">
                 <MudText Color="Color.Secondary"
                          Typo="Typo.body1">
-                    @((Model.Sum - Model.PaySum).ToString("N0"))
+                    @((Model.Sum - Model.PaySum).ToMoneyString())
                 </MudText>
                 <MudSpacer />
                 <MudText Typo="Typo.body2"
                          Color="Color.Tertiary">
-                    @Model.PaySum.ToString("N0")
+                    @Model.PaySum.ToMoneyString()
                 </MudText>
             </MudStack>
         </MudCollapse>
@@ -47,12 +47,12 @@
                 <MudDivider Class="mt-1 mb-1" />
 
                 <MudText Typo="Typo.subtitle2">
-                    Сумма: @Model.Sum.ToString("N0")
+                    Сумма: @Model.Sum.ToMoneyString()
                 </MudText>
 
                 <MudText Color="Color.Secondary"
                          Typo="Typo.subtitle2">
-                    Остаток: @((Model.Sum - Model.PaySum).ToString("N0"))
+                    Остаток: @((Model.Sum - Model.PaySum).ToMoneyString())
                 </MudText>
 
                 <MudProgressLinear BufferValue="100"
@@ -75,7 +75,7 @@
                         {
                             <tr>
                                 <td>@context.Date?.ToShortDateString()</td>
-                                <td>@context.Sum.ToString("N0")</td>
+                                    <td>@context.Sum.ToMoneyString()</td>
                                 <td class="large-text">@context.Comment</td>
                             </tr>
                         }

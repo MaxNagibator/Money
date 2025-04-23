@@ -199,7 +199,7 @@
         <MudSpacer />
         <MudTooltip Text="Общая сумма">
             <MudText Typo="Typo.subtitle2">
-                @type.Owners.Sum(owner => owner.CalculateSum()).ToString("N0")
+                @type.Owners.Sum(owner => owner.CalculateSum()).ToMoneyString()
             </MudText>
         </MudTooltip>
         <MudIconButton Icon="@(type.Expanded ? Icons.Material.Rounded.ExpandLess : Icons.Material.Rounded.ExpandMore)"

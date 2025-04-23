@@ -56,7 +56,7 @@
                                  Icon="@operationType.Icon"
                                  Size="Size.Small" />
                         <MudText>
-                            @OperationsDay.CalculateSum(operationType).ToString("N0")
+                            @OperationsDay.CalculateSum(operationType).ToMoneyString()
                         </MudText>
                     </div>
                 }
