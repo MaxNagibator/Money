@@ -1,3 +1,5 @@
+using System.Linq.Expressions;
+
 namespace Money.Data.Entities;
 
 /// <summary>
@@ -23,14 +25,16 @@ public class Place : UserEntity
 
 public class PlaceConfiguration : UserEntityConfiguration<Place>
 {
+    private readonly Expression<Func<DateTime, DateTime>> convertToUtc = dateTime => dateTime.Kind == DateTimeKind.Utc
+        ? dateTime : DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
+
     protected override void AddBaseConfiguration(EntityTypeBuilder<Place> builder)
     {
         builder.Property(x => x.Name)
             .IsRequired()
             .HasMaxLength(500);
 
-        builder.Property(x => x.LastUsedDate)
-            .IsRequired();
+        builder.Property(x => x.LastUsedDate).HasConversion(convertToUtc, convertToUtc).IsRequired();
 
         builder.Property(x => x.IsDeleted)
             .IsRequired();

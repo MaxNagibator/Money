@@ -1,19 +1,45 @@
-﻿name: Main
+name: Main
 
 on:
   push:
-    branches: [ "master", "dev" ]
+    branches: [ "master" ]
   pull_request:
-    branches: [ "master", "dev" ]
-
+    branches: [ "master" ]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Select configuration'
+        required: true
+        type: string
+        default: 'production'
+      configuration:
+        description: 'release/debug'
+        required: true
+        type: choice
+        default: 'release'
+        options:
+          - debug
+          - release
+env:
+  API_PROJECT_FILE: 'backend\Money.Api\Money.Api.csproj'
+  API_PUBLISH_FOLDER: 'publish\api'
+  API_POOL_NAME: '!bob217moneyapi'
+  API_SITE_PATH: 'E:\publish\bob217money\production\api'
+  
+  WEB_PROJECT_FILE: 'frontend\Money.Web\Money.Web.csproj'
+  WEB_PUBLISH_FOLDER: 'publish\web'
+  WEB_POOL_NAME: '!bob217money'
+  WEB_SITE_PATH: 'E:\publish\bob217money\production\web'
+
 jobs:
   build:
+    if: ${{ github.event.inputs.tag != 'production' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
   integration:
+    if: ${{ github.event.inputs.tag != 'production' }}
     permissions:
       pull-requests: write
       contents: write
@@ -24,9 +50,94 @@ jobs:
     uses: ./.github/workflows/integration.yml
 
   backend:
-    if: ${{ always() }}
+    if: ${{ github.event.inputs.tag != 'production' }}
     uses: ./.github/workflows/backend.yml
 
   frontend:
-    if: ${{ always() }}
+    if: ${{ github.event.inputs.tag != 'production' }}
     uses: ./.github/workflows/frontend.yml
+
+  build-and-deploy:
+    runs-on:
+      labels: BobGroupWindowsServer
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag == 'production' }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET Core SDK ${{ env.DOTNET_VERSION }}
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: API Restore dependencies
+      run: dotnet restore ${{ env.API_PROJECT_FILE }}
+
+    - name: API Publish
+      run: dotnet publish ${{ env.API_PROJECT_FILE }} -c ${{ github.event.inputs.configuration }} -o ${{ env.API_PUBLISH_FOLDER }}
+
+    - name: API Stop IIS Pool 
+      run: |
+        Import-Module WebAdministration
+        $appPool = Get-WebAppPoolState -Name "${{ env.API_POOL_NAME }}"
+        if ($appPool.Value -ne "Stopped") {
+            Stop-WebAppPool -Name "${{ env.API_POOL_NAME }}"
+            Write-Host "AppPool stopped successfully"
+        } else {
+            Write-Host "AppPool already stopped, skipping..."
+        }
+      shell: pwsh
+
+    - name: API Copy new files
+      uses: nick-fields/retry@v3
+      with:
+        timeout_minutes: 5
+        max_attempts: 3
+        command: |
+          Write-Host "Copying files from ${{ env.API_PUBLISH_FOLDER }} to ${{ env.API_SITE_PATH }}"
+          Copy-Item -Path "${{ env.API_PUBLISH_FOLDER }}\*" -Destination "${{ env.API_SITE_PATH }}" -Recurse -Force -Exclude "web.config", "appsettings.json", "nlog.config"
+        shell: pwsh
+
+    - name: API Start IIS Website
+      run: |
+        Import-Module WebAdministration
+        Start-WebAppPool -Name "${{ env.API_POOL_NAME }}"
+      shell: pwsh
+      
+    - name: Restore workload
+      run: dotnet workload restore ${{ env.WEB_PROJECT_FILE }}
+
+    - name: WEB Restore dependencies
+      run: dotnet restore ${{ env.WEB_PROJECT_FILE }}
+
+    - name: WEB Publish
+      run: dotnet publish ${{ env.WEB_PROJECT_FILE }} -c ${{ github.event.inputs.configuration }} -o ${{ env.WEB_PUBLISH_FOLDER }}
+
+    - name: WEB Stop IIS Pool 
+      run: |
+        Import-Module WebAdministration
+        $appPool = Get-WebAppPoolState -Name "${{ env.WEB_POOL_NAME }}"
+        if ($appPool.Value -ne "Stopped") {
+            Stop-WebAppPool -Name "${{ env.WEB_POOL_NAME }}"
+            Write-Host "AppPool stopped successfully"
+        } else {
+            Write-Host "AppPool already stopped, skipping..."
+        }
+      shell: pwsh
+
+    - name: WEB Copy new files
+      uses: nick-fields/retry@v3
+      with:
+        timeout_minutes: 5
+        max_attempts: 3
+        command: |
+          Write-Host "Copying files from ${{ env.WEB_PUBLISH_FOLDER }} to ${{ env.WEB_SITE_PATH }}"
+          Copy-Item -Path "${{ env.WEB_PUBLISH_FOLDER }}\*" -Destination "${{ env.WEB_SITE_PATH }}" -Recurse -Force -Exclude "web.config", "appsettings.json", "nlog.config"
+        shell: pwsh
+
+    - name: WEB Start IIS Website
+      run: |
+        Import-Module WebAdministration
+        Start-WebAppPool -Name "${{ env.WEB_POOL_NAME }}"
+      shell: pwsh
+
