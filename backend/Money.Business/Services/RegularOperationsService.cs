@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using Money.Data.Extensions;
 
 namespace Money.Business.Services;
@@ -145,7 +145,7 @@ public class RegularOperationsService(
                     Sum = dbTask.Sum,
                     CreatedTaskId = dbTask.Id,
                     PlaceId = dbTask.PlaceId,
-                    Date = dbTask.DateFrom,
+                    Date = dbTask.RunTime!.Value,
                 };
 
                 environment.UserId = dbTask.UserId;

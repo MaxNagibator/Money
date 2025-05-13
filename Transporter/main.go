@@ -109,6 +109,12 @@ func main() {
     //
     //          DELETE FROM public.domain_users
     //          WHERE auth_user_id NOT IN (SELECT id FROM public."AspNetUsers")
+
+    // после переноса удалить ошибочноперенесённые, сгенерил скрипт для ПГ на БД mssql
+    // SELECT 'DELETE FROM operations WHERE id = ' + CONVERT(VARCHAR(100),p.PaymentId) + '  AND user_id = ' + CONVERT(VARCHAR(100),p.UserId)  + ';'
+    // FROM Money.RegularTask r
+    //     JOIN Money.Payment p ON r.TaskId = p.TaskId and r.UserId = p.UserId
+
     err = resetDatabase(oldDatabase)
     if err != nil {
         log.Fatalln("Reset error:\n", err)
