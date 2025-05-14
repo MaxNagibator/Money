@@ -9,7 +9,7 @@ indent_style = space
 tab_width = 4
 
 # Предпочтения для новых строк
-charset = utf-8
+charset = utf-8-bom
 end_of_line = crlf
 insert_final_newline = true
 

@@ -7,7 +7,7 @@
 # Получаем полный путь к корню репозитория
 $repoRoot = git rev-parse --show-toplevel
 if (-not $repoRoot) {
-    Write-Host "❌ Не удалось определить корень Git-репозитория" -ForegroundColor Red
+    Write-Host "❌ git not found" -ForegroundColor Red
     exit 1
 }
 
@@ -17,7 +17,7 @@ $stagedFiles = git diff --cached --name-only --diff-filter=AM | ForEach-Object {
 }
 
 if (-not $stagedFiles) {
-    Write-Host "ℹ️ Нет файлов в индексе Git (ничего не добавлено через git add)." -ForegroundColor Yellow
+    Write-Host "ℹ️ files empty." -ForegroundColor Yellow
     exit 0
 }
 
@@ -31,7 +31,7 @@ foreach ($file in $stagedFiles) {
 
     # Проверяем существование файла
     if (-not (Test-Path -LiteralPath $file -PathType Leaf)) {
-        Write-Host "⚠️ Файл не найден и будет проигнорирован: $file" -ForegroundColor Yellow
+        Write-Host "⚠️ not found and skip: $file" -ForegroundColor Yellow
         continue
     }
 
@@ -45,18 +45,35 @@ foreach ($file in $stagedFiles) {
         }
     }
     catch {
-        Write-Host "⚠️ Ошибка при проверке файла $file : $_" -ForegroundColor Yellow
+        Write-Host "⚠️ Error by check $file : $_" -ForegroundColor Yellow
         continue
     }
 }
 
 if ($nonBomFiles.Count -gt 0) {
-    Write-Host "❌ Ошибка: Эти файлы в индексе Git, но НЕ в UTF-8 with BOM:" -ForegroundColor Red
+    Write-Host "❌ Error: This files in index Git not in UTF-8 with BOM:" -ForegroundColor Red
     $nonBomFiles | ForEach-Object { Write-Host "  - $_" -ForegroundColor Red }
-    
+
+    foreach ($file in $nonBomFiles) {
+		try {
+			# Читаем содержимое файла как байты
+			$contentBytes = [System.IO.File]::ReadAllBytes($file)
+			
+			# Создаем новый поток с BOM в начале
+			$newContent = [System.Text.Encoding]::UTF8.GetPreamble() + $contentBytes
+			
+			# Записываем обратно
+			[System.IO.File]::WriteAllBytes($file, $newContent)
+			
+			Write-Host "✓ Success Add BOM to file: $file" -ForegroundColor Green
+		}
+		catch {
+			Write-Host "⚠️ Error Add BOM to $file : $_" -ForegroundColor Red
+		}
+    }
     exit 1  # Отменяем коммит
 }
 else {
-    Write-Host "✅ Все файлы в индексе Git — в UTF-8 with BOM. Коммит разрешён." -ForegroundColor Green
+    Write-Host "✓ Success: All files in index Git in UTF-8 with BOM" -ForegroundColor Green
     exit 0
 }
