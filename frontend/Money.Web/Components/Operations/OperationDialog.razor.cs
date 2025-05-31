@@ -11,7 +11,7 @@ public partial class OperationDialog(
     ISnackbar snackbarService)
 {
     private SmartSum _smartSum = null!;
-    private decimal _sum;
+    private decimal? _sum;
     private bool _isAutoFocus;
 
     [Parameter]
@@ -30,7 +30,7 @@ public partial class OperationDialog(
 
     public async Task ToggleOpen(OperationTypes.Value? type = null)
     {
-        _sum = Operation.Sum;
+        _sum = Operation.Sum == 0 ? null : Operation.Sum;
 
         IsOpen = !IsOpen;
 
@@ -82,7 +82,7 @@ public partial class OperationDialog(
     {
         try
         {
-            var sum = await _smartSum.ValidateSumAsync();
+            var sum = await _smartSum.GetSumAsync();
 
             if (sum == null)
             {
@@ -131,7 +131,7 @@ public partial class OperationDialog(
             CategoryId = Input.Category?.Id ?? throw new MoneyException("Идентификатор отсутствует при сохранении операции"),
             Comment = Input.Comment,
             Date = Input.Date!.Value,
-            Sum = _smartSum.Sum,
+            Sum = _smartSum.Sum ?? 0,
             Place = Input.Place,
         };
     }

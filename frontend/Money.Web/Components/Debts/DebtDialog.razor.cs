@@ -68,7 +68,7 @@ public partial class DebtDialog
 
         try
         {
-            var sum = await _smartSum.ValidateSumAsync();
+            var sum = await _smartSum.GetSumAsync();
 
             if (sum == null)
             {
@@ -81,7 +81,7 @@ public partial class DebtDialog
             SnackbarService.Add("Успех!", Severity.Success);
 
             Model.Type = Input.Type!;
-            Model.Sum = _smartSum.Sum;
+            Model.Sum = _smartSum.Sum ?? 0;
             Model.Comment = Input.Comment;
             Model.OwnerName = Input.OwnerName!;
             Model.Date = Input.Date!.Value;
@@ -117,7 +117,7 @@ public partial class DebtDialog
         return new()
         {
             TypeId = Input.Type!.Id,
-            Sum = _smartSum.Sum,
+            Sum = _smartSum.Sum ?? 0,
             Comment = Input.Comment,
             OwnerName = Input.OwnerName!,
             Date = Input.Date!.Value,

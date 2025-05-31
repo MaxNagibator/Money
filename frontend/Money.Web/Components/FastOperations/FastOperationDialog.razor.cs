@@ -75,7 +75,7 @@ public partial class FastOperationDialog
 
         try
         {
-            var sum = await _smartSum.ValidateSumAsync();
+            var sum = await _smartSum.GetSumAsync();
 
             if (sum == null)
             {
@@ -127,7 +127,7 @@ public partial class FastOperationDialog
             CategoryId = Input.Category?.Id ?? throw new MoneyException("Идентификатор отсутствует при сохранении операции"),
             Comment = Input.Comment,
             Name = Input.Name!,
-            Sum = _smartSum.Sum,
+            Sum = _smartSum.Sum ?? 0,
             Place = Input.Place,
             Order = Input.Order,
         };
