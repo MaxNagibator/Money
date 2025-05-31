@@ -139,11 +139,12 @@ public partial class Debts
 
         if (owner == null)
         {
-            owners.Add(new(created.OwnerName, [created]));
+            owners.Insert(0, new(created.OwnerName, [created]));
         }
         else
         {
-            owner.Debts.Add(created);
+            owner.Debts.Insert(0, created);
+            owners.Sort((x, y) => (y == owner).CompareTo(x == owner));
         }
 
         UpdateTypes();

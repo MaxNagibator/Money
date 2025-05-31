@@ -11,13 +11,13 @@ public partial class SmartSum : ComponentBase
     private static readonly HashSet<char> ValidSpecialCharacters = ['(', ')', '+', '-', '*', '/'];
 
     private bool _isNumericSumVisible = true;
-    private string _calculationSum = string.Empty;
+    private string? _calculationSum = string.Empty;
 
-    public decimal Sum { get; set; }
+    public decimal? Sum { get; set; }
 
     // TODO: Костыль для корректной работы Popover
     [Parameter]
-    public Func<decimal>? GetInitialSum { get; set; }
+    public Func<decimal?>? GetInitialSum { get; set; }
 
     [Parameter]
     public bool IsAutoFocus { get; set; }
@@ -28,25 +28,14 @@ public partial class SmartSum : ComponentBase
     [Inject]
     private ILogger<SmartSum> Logger { get; set; } = null!;
 
-    // TODO: Подумать над ребрендингом метода
-    public async Task<decimal?> ValidateSumAsync()
+    public async Task<decimal?> GetSumAsync()
     {
-        if (_isNumericSumVisible)
+        if (await TryUpdateSumAsync())
         {
             return Sum;
         }
 
-        var sum = await CalculateAsync();
-
-        if (sum == null)
-        {
-            return sum;
-        }
-
-        Sum = sum.Value;
-        _calculationSum = Sum.ToString(CultureInfo.CurrentCulture);
-
-        return sum;
+        return null;
     }
 
     protected override void OnInitialized()
@@ -57,19 +46,44 @@ public partial class SmartSum : ComponentBase
         }
     }
 
-    private void UpdateSum(decimal sum)
+    private async Task<bool> TryUpdateSumAsync()
+    {
+        if (_isNumericSumVisible)
+        {
+            return true;
+        }
+
+        decimal? sum = null;
+
+        if (_calculationSum != null)
+        {
+            sum = await CalculateAsync();
+
+            if (sum == null)
+            {
+                return false;
+            }
+        }
+
+        Sum = sum;
+        _calculationSum = Sum?.ToString(CultureInfo.CurrentCulture);
+
+        return true;
+    }
+
+    private void UpdateSum(decimal? sum)
     {
         Sum = sum;
-        _calculationSum = sum.ToString(CultureInfo.CurrentCulture);
+        _calculationSum = sum?.ToString(CultureInfo.CurrentCulture);
     }
 
     private async Task ToggleSumFieldAsync()
     {
         if (_isNumericSumVisible)
         {
-            _calculationSum = Sum.ToString(CultureInfo.CurrentCulture);
+            _calculationSum = Sum?.ToString(CultureInfo.CurrentCulture);
         }
-        else if (await ValidateSumAsync() == null)
+        else if (await TryUpdateSumAsync() == false)
         {
             return;
         }

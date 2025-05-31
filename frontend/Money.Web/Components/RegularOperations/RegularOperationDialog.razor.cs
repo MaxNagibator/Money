@@ -78,7 +78,7 @@ public partial class RegularOperationDialog
 
         try
         {
-            var sum = await _smartSum.ValidateSumAsync();
+            var sum = await _smartSum.GetSumAsync();
 
             if (sum == null)
             {
@@ -136,7 +136,7 @@ public partial class RegularOperationDialog
             CategoryId = Input.Category?.Id ?? throw new MoneyException("Идентификатор отсутствует при сохранении операции"),
             Comment = Input.Comment,
             Name = Input.Name,
-            Sum = _smartSum.Sum,
+            Sum = _smartSum.Sum ?? 0,
             Place = Input.Place,
             DateFrom = Input.DateFrom!.Value,
             DateTo = Input.DateTo,
