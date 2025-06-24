@@ -25,18 +25,22 @@ public class Place : UserEntity
 
 public class PlaceConfiguration : UserEntityConfiguration<Place>
 {
-    private readonly Expression<Func<DateTime, DateTime>> convertToUtc = dateTime => dateTime.Kind == DateTimeKind.Utc
-        ? dateTime : DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
+    private readonly Expression<Func<DateTime, DateTime>> _convertToUtc = dateTime => dateTime.Kind == DateTimeKind.Utc
+        ? dateTime
+        : DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
 
     protected override void AddBaseConfiguration(EntityTypeBuilder<Place> builder)
     {
         builder.Property(x => x.Name)
             .IsRequired()
-            .HasMaxLength(500);
+            .HasMaxLength(500)
+            .HasColumnType("citext");
 
-        builder.Property(x => x.LastUsedDate).HasConversion(convertToUtc, convertToUtc).IsRequired();
+        builder.Property(x => x.LastUsedDate).HasConversion(_convertToUtc, _convertToUtc).IsRequired();
 
         builder.Property(x => x.IsDeleted)
             .IsRequired();
+
+        builder.HasIndex(x => x.Name);
     }
 }

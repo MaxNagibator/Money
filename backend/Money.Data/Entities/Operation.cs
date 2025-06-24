@@ -30,5 +30,10 @@ public class OperationConfiguration : OperationBaseConfiguration<Operation>
 
         builder.Property(x => x.CreatedTaskId)
             .IsRequired(false);
+
+        builder.Property(x => x.Comment)
+            .HasColumnType("citext");
+
+        builder.HasIndex(x => x.Comment);
     }
 }
