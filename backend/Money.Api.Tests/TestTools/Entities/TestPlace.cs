@@ -14,7 +14,7 @@ public class TestPlace : TestObject
 
     public int Id { get; private set; }
 
-    public string Name { get; }
+    public string Name { get; private set; }
 
     public DateTime LastUsedDate { get; private set; }
 
@@ -26,6 +26,12 @@ public class TestPlace : TestObject
     public TestPlace SetLastUsedDate(DateTime value)
     {
         LastUsedDate = value;
+        return this;
+    }
+
+    public TestPlace SetName(string value)
+    {
+        Name = value;
         return this;
     }
 

@@ -203,13 +203,13 @@ public class OperationsService(
 
         if (string.IsNullOrEmpty(filter.Comment) == false)
         {
-            entities = entities.Where(x => x.Comment != null && x.Comment.Contains(filter.Comment)); // todo сделать регистронезависимый поиск
+            entities = entities.Where(x => x.Comment != null && x.Comment.Contains(filter.Comment));
         }
 
         if (string.IsNullOrEmpty(filter.Place) == false)
         {
             var placesIds = context.Places
-                .Where(x => x.UserId == environment.UserId && x.Name.Contains(filter.Place)) // todo сделать регистронезависимый поиск
+                .Where(x => x.UserId == environment.UserId && x.Name.Contains(filter.Place))
                 .Select(x => x.Id);
 
             entities = entities.Where(x => x.PlaceId != null && placesIds.Contains(x.PlaceId.Value));

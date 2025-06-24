@@ -17,7 +17,7 @@ public class PlacesService(
 
         if (string.IsNullOrWhiteSpace(name) == false)
         {
-            entities = entities.Where(x => x.Name.Contains(name)); // todo сделать регистронезависимый поиск
+            entities = entities.Where(x => x.Name.Contains(name));
         }
 
         return entities
