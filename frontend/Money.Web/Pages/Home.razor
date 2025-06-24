@@ -116,343 +116,101 @@
     Время взять под контроль свои деньги и перестать жить в долг!
 </MudText>
 
-<MudStack @onclick="() => ChangeHistoryVisible()">
-    v.1.2.3 История изменений
-    @if (_historyVisible)
-    {
-        <div id="changelog">
-            <div>
-                <label>
-                    2025.05.13 v.1.2.3
-                </label>
-                <div>
-                    <b>Исправлена ошибка создания регулярной операции не на ту дату.</b>
-                    <b>Удалены ошибочно перенесённые операции.</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2025.05.06 v.1.2.2
-                </label>
-                <div>
-                    <b>Исправление ошибки добавления операций.</b>
-                    <b>Исправление ошибки редактирования удаления всех сущностей.</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2025.05.03 v.1.2.1.7
-                </label>
-                <div>
-                    <b>Редизайн.</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2023.09.30 v.0.8.2
-                </label>
-                <div>
-                    <b>В шаблонах документов добавлена трансформация в PDF.</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2023.01.12 v.0.8.1
-                </label>
-                <div>
-                    <b>Добавлен раздел "Шаблоны документов".</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2022.07.19 v.0.7.3
-                </label>
-                <div>
-                    <b>Исправлена проблема с датой по умолчанию при добавлении платежей в часовом поясе отличном от часового пояса сервера.</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2022.07.07 v.0.7.2
-                </label>
-                <div>
-                    <b>В шаблоны операции добавлено поле сортировки.</b>
-                    <b>Выделение суммы операции после добавления из шаблона.</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2022.04.11 v.0.7.1
-                </label>
-                <div>
-                    <b>Добавлены шаблоны операций.</b>
-                    <b>Поиск в списке категорий теперь работает.</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2021.07.11 v.0.6.6
-                </label>
-                <div>
-                    <b>В регулярные платежи добавлено "место".</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2021.07.10 v.0.6.5.1
-                </label>
-                <div>
-                    <b>"Дни без операций" отображаются если включить опцию.</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2021.07.09 v.0.6.5
-                </label>
-                <div>
-                    <b>Исправлена ошибка null в заголовке суммарного значения по типу, при отсутствии операций с данным типом.</b>
-                    <b>Дни без операций отображаются, если они позже самой ранее операции и раньше самой последней операции в выборке.</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2021.02.22 v.0.6.4
-                </label>
-                <div>
-                    <b>Обновление категории для отображаемых на странице операций</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2020.05.06 v.0.6.3.3
-                </label>
-                <div>
-                    <b>Исправлена ошибка с редактированием операции</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2020.04.29 v.0.6.3.2
-                </label>
-                <div>
-                    <b>Исправлены ошибка отправки почты при регистрации</b>
-                    <b>Доработка умных подсказиков для места операции</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2020.04.19 v.0.6.3.1
-                </label>
-                <div>
-                    <b>Редактирование суммы операций теперь тоже поддерживает формат 3*2+2*2 (запишется 10)</b>
-                    <b>В операциях добавлено поле "Место" для заполнения и поиска (более менее умный подсказик к нему)</b>
-                    <b>Исправлен баг в выборе текущей недели(если воскресенье, показывалась следующая неделя)</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2019.12.21 v.0.5.9.5
-                </label>
-                <div>
-                    <b>Исправлена ошибка запуска регулярный ежемесячный задач в декабре</b>
-                    <b>Добавлена иконочка у операций созданных регулярной задачей</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2019.10.20 v.0.5.9.4
-                </label>
-                <div>
-                    <b>Диаграмки в операция учитывают начало месяца и начало недели. Чуть ифнормативнее стало</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2019.08.23 v.0.5.9.3
-                </label>
-                <div>
-                    <b>Поле для сортировки в категориях</b>
-                    <b>Режим просмотра операций "месяц" "год" с 1 числа месяца или года соответственно</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2019.07.14 v.0.5.9.2
-                </label>
-                <div>
-                    <b>График по датам улучшен</b>
-                    <b>Проблемы с отрицательной суммой в графиках исправлены</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2019.07.13 v.0.5.9
-                </label>
-                <div>
-                    <b>Улучшено юзабилити смены даты</b>
-                    <b>Графики статистики, юзерфрендли</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2019.06.16 v.0.5.5
-                </label>
-                <div>
-                    <b>Функционал: показывать оплаченные долги</b>
-                    <b>Функционал: перенос долгов в расходы</b>
-                    <b>Функционал: слияние держателей долга</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2019.04.09 v.0.5.1
-                </label>
-                <div>
-                    <b>Функционал: поиск по категориям с выбором вместо текста</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2019.04.08 v.0.5
-                </label>
-                <div>
-                    <b>Функционал:Добавлены регулярные операции</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2018.07.04 v.0.4.1
-                </label>
-                <div>
-                    <b>Андройд: удаление операций</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2018.06.28 v.0.4
-                </label>
-                <div>
-                    <b>Андройд: бюджетная версия</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2018.04.11 v.0.2.1
-                </label>
-                <div>
-                    <b>Операции: теперь можно заполнять свой доход</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2018.04.06 v.0.2
-                </label>
-                <div>
-                    <b>Юзабили: редактирование операций стало более комфортным</b>
-                    <b>Сервисная часть: измененение архитектуры приложения, могут быть ошибки</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2018.01.09 v.0.1.9.1
-                </label>
-                <div>
-                    <b>Юзабили: редирект на страницу логина при переходе по ссылке в запретные места</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2017.12.26 v.0.1.8.9
-                </label>
-                <div>
-                    <b>Операции: поиск по категории и комменатрию</b>
-                    <b>Юзабили: в разделе авто</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2017.10.06 v.0.1.8.8
-                </label>
-                <div>
-                    <b>Новый раздел: авто</b>
-                    <b>Юзабили: везде по чуть чуть</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2017.07.17 v.0.1.8.5
-                </label>
-                <div>
-                    <b>Прикручиваем андройд: произошло измененение сервисной части, возможны перебои в работе</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2017.07.16 v.0.1.8.4
-                </label>
-                <div>
-                    <b>Категории: изменена сортировка</b>
-                    <b>Категории: добавлен компонент для выбора цвета</b>
-                    <b>Категории: немного изменено редактирование</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2017.05.31 v.0.1.8.3
-                </label>
-                <div>
-                    <b>Аккаунт: добавление почты при регистрации</b>
-                    <b>Аккаунт: возможность смены пароля</b>
-                    <b>Отзывы: возможность оставлять, смотреть</b>
-                    <b>Чуток красоты в логине</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2017.05.30 v.0.1.8.2
-                </label>
-                <div>
-                    <b>Долги: датапикеры на поля типа "дата"</b>
-                    <b>Операции: датапикеры на поля типа "дата"</b>
-                    <b>Операции: плюс небольшой график</b>
-                </div>
-            </div>
-            <div>
-                <label>
-                    2017.05.27 v.0.1.8.1
-                </label>
-                <div>
-                    <b>Долги: группировка по имени</b>
-                    <b>Долги: удаление</b>
-                    <b>Долги: редактирование</b>
-                </div>
-            </div>
-            <div>
-                <label>2017.05.26 v.0.1.7</label>
-            </div>
-        </div>
-    }
-</MudStack>
+<MudCard Class="mt-6"
+         Elevation="2">
+    <MudCardContent>
+        <MudStack AlignItems="AlignItems.Center"
+                  Row
+                  Spacing="3">
+            <MudIcon Color="Color.Primary"
+                     Icon="@Icons.Material.Rounded.History"
+                     Size="Size.Medium" />
+            <MudText Typo="Typo.h6"
+                     Color="Color.Primary">
+                История изменений
+            </MudText>
+            <MudChip Color="Color.Primary"
+                     Size="Size.Small"
+                     T="string"
+                     Text="@($"v.{GetCurrentVersion()}")" />
+            <MudSpacer />
+            <MudButton Color="Color.Primary"
+                       EndIcon="@(_historyVisible ? Icons.Material.Rounded.ExpandLess : Icons.Material.Rounded.ExpandMore)"
+                       OnClick="ChangeHistoryVisible"
+                       Size="Size.Small"
+                       Variant="Variant.Text">
+                @(_historyVisible ? "Скрыть" : "Показать")
+            </MudButton>
+        </MudStack>
+    </MudCardContent>
+</MudCard>
 
-<style>
-    #changelog b {
-        margin-left: 30px;
-    }
+<MudCollapse Expanded="_historyVisible">
+    <MudCard Class="mt-3"
+             Elevation="1">
+        <MudCardContent>
+            <MudTimeline Reverse="false"
+                         TimelineOrientation="TimelineOrientation.Vertical"
+                         TimelinePosition="TimelinePosition.Start">
+                @foreach (var entry in _versionHistory)
+                {
+                    <MudTimelineItem Color="@GetVersionColor(entry)"
+                                     Icon="@GetVersionIcon(entry)"
+                                     Size="Size.Small">
+                        <ItemContent>
+                            <MudPaper Class="pa-4 mb-3"
+                                      Elevation="0"
+                                      Style="border-left: 3px solid var(--mud-palette-primary);">
+                                <MudStack Spacing="2">
+                                    <MudStack AlignItems="AlignItems.Center"
+                                              Row
+                                              Spacing="2"
+                                              Wrap="Wrap.Wrap">
+                                        <MudChip Color="@GetVersionChipColor(entry)"
+                                                 Size="Size.Small"
+                                                 T="string"
+                                                 Text="@($"v.{entry.Version}")" />
+                                        <MudText Color="Color.Secondary"
+                                                 Typo="Typo.body2">
+                                            @entry.Date.ToString("dd.MM.yyyy")
+                                        </MudText>
+                                        <MudSpacer />
+                                        @if (entry.Changes.Length > 0)
+                                        {
+                                            <MudChip Color="Color.Default"
+                                                     Icon="@Icons.Material.Rounded.ListAlt"
+                                                     Size="Size.Small"
+                                                     T="string"
+                                                     Text="@($"{entry.Changes.Length} изменений")" />
+                                        }
+                                    </MudStack>
 
-    #changelog > div {
-        margin-bottom: 10px;
-    }
-
-    #changelog b {
-        display: block;
-    }
-
-    #changelog b {
-        font-weight: normal;
-        font-size: 15px;
-    }
-
-    #changelog label {
-        font-weight: 800;
-    }
-</style>
+                                    @if (entry.Changes.Length > 0)
+                                    {
+                                        <MudStack Spacing="1">
+                                            @foreach (var change in entry.Changes)
+                                            {
+                                                <MudStack AlignItems="AlignItems.Center"
+                                                          Row
+                                                          Spacing="2">
+                                                    <MudIcon Color="@GetChangeTypeColor(change.Type)"
+                                                             Icon="@GetChangeTypeIcon(change.Type)"
+                                                             Size="Size.Small"
+                                                             Style="margin-top: 2px;" />
+                                                    <MudText Style="line-height: 1.4;"
+                                                             Typo="Typo.body2">
+                                                        @change.Description
+                                                    </MudText>
+                                                </MudStack>
+                                            }
+                                        </MudStack>
+                                    }
+                                </MudStack>
+                            </MudPaper>
+                        </ItemContent>
+                    </MudTimelineItem>
+                }
+            </MudTimeline>
+        </MudCardContent>
+    </MudCard>
+</MudCollapse>
