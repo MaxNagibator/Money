@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 using Money.ApiClient;
 using System.ComponentModel.DataAnnotations;
 
@@ -15,6 +16,7 @@ public partial class RegularOperationDialog
     private SmartSum _smartSum = null!;
 
     private bool _isProcessing;
+    private EditForm? _editForm;
 
     [CascadingParameter]
     public IMudDialogInstance MudDialog { get; set; } = null!;
@@ -74,6 +76,11 @@ public partial class RegularOperationDialog
 
     private async Task SubmitAsync()
     {
+        if (_editForm?.EditContext?.Validate() == false)
+        {
+            return;
+        }
+
         _isProcessing = true;
 
         try

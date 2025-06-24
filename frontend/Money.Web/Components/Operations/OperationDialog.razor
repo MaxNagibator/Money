@@ -13,6 +13,7 @@
             Open="IsOpen"
             TransformOrigin="Origin.TopLeft">
     <EditForm Model="@Input"
+              @ref="_editForm"
               OnValidSubmit="SubmitAsync">
         <DataAnnotationsValidator />
 
@@ -84,7 +85,7 @@
                        OnClick=" () => ToggleOpen()">
                 Закрыть
             </MudButton>
-            <MudButton ButtonType="ButtonType.Submit"
+            <MudButton OnClick="SubmitAsync"
                        Color="Color.Tertiary"
                        Variant="Variant.Filled">
                 Сохранить
