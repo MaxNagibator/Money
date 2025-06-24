@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 using Money.ApiClient;
 using System.ComponentModel.DataAnnotations;
 
@@ -13,6 +14,7 @@ public partial class OperationDialog(
     private SmartSum _smartSum = null!;
     private decimal? _sum;
     private bool _isAutoFocus;
+    private EditForm? _editForm;
 
     [Parameter]
     public Operation Operation { get; set; } = null!;
@@ -80,6 +82,11 @@ public partial class OperationDialog(
 
     private async Task SubmitAsync()
     {
+        if (_editForm?.EditContext?.Validate() == false)
+        {
+            return;
+        }
+
         try
         {
             var sum = await _smartSum.GetSumAsync();
@@ -102,10 +109,10 @@ public partial class OperationDialog(
             await OnSubmit.InvokeAsync(Operation);
             await ToggleOpen();
         }
-        catch (Exception)
+        catch (Exception exception)
         {
             // TODO: добавить логирование ошибки
-            snackbarService.Add("Ошибка. Пожалуйста, попробуйте еще раз.", Severity.Error);
+            snackbarService.Add("Ошибка. Пожалуйста, попробуйте еще раз. " + exception.Message, Severity.Error);
         }
     }
 

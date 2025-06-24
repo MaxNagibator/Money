@@ -1,5 +1,5 @@
 ﻿<EditForm Model="@Input"
-          OnValidSubmit="SubmitAsync">
+          @ref="_editForm">
     <DataAnnotationsValidator />
     <MudDialog>
         <TitleContent>
@@ -123,7 +123,7 @@
         </DialogContent>
         <DialogActions>
             <MudButton OnClick="Cancel">Отмена</MudButton>
-            <MudButton ButtonType="ButtonType.Submit"
+            <MudButton OnClick="SubmitAsync"
                        Color="Color.Success"
                        Disabled="@_isProcessing">
                 @if (_isProcessing)
