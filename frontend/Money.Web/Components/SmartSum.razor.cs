@@ -8,7 +8,7 @@ namespace Money.Web.Components;
 
 public partial class SmartSum : ComponentBase
 {
-    private static readonly HashSet<char> ValidSpecialCharacters = ['(', ')', '+', '-', '*', '/'];
+    private static readonly HashSet<char> ValidSpecialCharacters = ['(', ')', '+', '-', '*', '/', '.', ','];
 
     private bool _isNumericSumVisible = true;
     private string? _calculationSum = string.Empty;
@@ -89,6 +89,8 @@ public partial class SmartSum : ComponentBase
         }
 
         _isNumericSumVisible = !_isNumericSumVisible;
+        await Task.Delay(10);
+        StateHasChanged();
     }
 
     private async Task OnSumKeyDownAsync(KeyboardEventArgs args)
