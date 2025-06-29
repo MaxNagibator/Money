@@ -1,4 +1,4 @@
-using Money.Business.Models;
+﻿using Money.Business.Models;
 using Money.Business.Services;
 using System.Collections.Concurrent;
 
@@ -10,7 +10,7 @@ internal class TestMailsService : IMailsService
 
     public Task SendAsync(MailMessage mailMessage, CancellationToken cancellationToken = default)
     {
-        Emails.AddOrUpdate(mailMessage.Email, [mailMessage], (_, messages) =>
+        Emails.AddOrUpdate(mailMessage.ReceiverEmail, [mailMessage], (_, messages) =>
         {
             messages.Add(mailMessage);
             return messages;
