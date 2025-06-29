@@ -1,10 +1,10 @@
 ﻿### Обновить/создать БД
 
-dotnet ef database update -c Money.Api.Data.ApplicationDbContext --project Money.Api
+dotnet ef database update -c Money.Data.ApplicationDbContext --project Money.Api
 
 ### Добавить миграцию
 
-dotnet ef migrations add CreateCategoryTable -c Money.Api.Data.ApplicationDbContext --project Money.Api
+dotnet ef migrations add CreateCategoryTable -c Money.Data.ApplicationDbContext --project Money.Api
 
 ### Подсказки для автора, которые облегчат его жизнь (чтоб не лазить в powershell'e):
 

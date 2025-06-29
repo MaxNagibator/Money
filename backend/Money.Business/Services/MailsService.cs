@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Money.Business.Configs;
 using System.Net;
 using System.Net.Mail;
@@ -18,7 +18,7 @@ public class MailsService(IOptions<SmtpSettings> options) : IMailsService
     public async Task SendAsync(MailMessage mailMessage, CancellationToken cancellationToken = default)
     {
         using var client = Create();
-        using var message = new System.Net.Mail.MailMessage(_settings.SenderEmail, mailMessage.Email, mailMessage.Title, mailMessage.Body);
+        using var message = new System.Net.Mail.MailMessage(_settings.SenderEmail, mailMessage.ReceiverEmail, mailMessage.Title, mailMessage.Body);
         await client.SendMailAsync(message, cancellationToken);
     }
 

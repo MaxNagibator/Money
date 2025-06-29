@@ -19,7 +19,7 @@ public class MailMessage(string email, string title, string body)
     /// <summary>
     /// Адрес электронной почты получателя.
     /// </summary>
-    public required string Email { get; init; } = email;
+    public required string ReceiverEmail { get; init; } = email;
 
     /// <summary>
     /// Заголовок письма.
