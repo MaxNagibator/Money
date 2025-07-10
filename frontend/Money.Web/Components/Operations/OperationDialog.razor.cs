@@ -11,6 +11,7 @@ public partial class OperationDialog(
     ISnackbar snackbarService)
 {
     private SmartSum _smartSum = null!;
+    private SmartDatePicker _smartDatePicker = null!;
     private decimal? _sum;
     private bool _isAutoFocus;
     private EditForm? _editForm;
@@ -96,12 +97,20 @@ public partial class OperationDialog(
                 return;
             }
 
+            var date = await _smartDatePicker.GetDateAsync();
+
+            if (date == null)
+            {
+                snackbarService.Add("Нераспознано значение в поле 'дата'.", Severity.Warning);
+                return;
+            }
+
             await SaveAsync();
             snackbarService.Add("Успех!", Severity.Success);
 
             Operation.Category = Input.Category ?? throw new MoneyException("Категория операции не может быть null");
             Operation.Comment = Input.Comment;
-            Operation.Date = Input.Date!.Value;
+            Operation.Date = date.Value;
             Operation.Place = Input.Place;
             Operation.Sum = sum.Value;
 
@@ -136,7 +145,7 @@ public partial class OperationDialog(
         {
             CategoryId = Input.Category?.Id ?? throw new MoneyException("Идентификатор отсутствует при сохранении операции"),
             Comment = Input.Comment,
-            Date = Input.Date!.Value,
+            Date = _smartDatePicker.Date!.Value,
             Sum = _smartSum.Sum ?? 0,
             Place = Input.Place,
         };

@@ -1,0 +1,32 @@
+@if (_isDatePickerVisible)
+{
+    <div style="position: relative;">
+        <MudDatePicker @bind-Date="Date"
+                       Color="Color.Tertiary"
+                       DateFormat="dd.MM.yyyy"
+                       Editable
+                       For="@For"
+                       Label="Дата"
+                       Mask="@(new DateMask("dd.MM.yyyy"))" />
+        <MudIconButton Color="Color.Tertiary"
+                       Icon="@Icons.Material.Rounded.SmartToy"
+                       OnClick="ToggleDateFieldAsync"
+                       Size="Size.Small"
+                       Style="position: absolute; right: 24px; top: 65%; transform: translateY(-50%); z-index: 1000;" />
+    </div>
+}
+else
+{
+    <MudTextField Adornment="Adornment.Start"
+                  AdornmentColor="Color.Tertiary"
+                  AdornmentIcon="@Icons.Material.Rounded.CalendarMonth"
+                  AutoFocus
+                  @bind-Value="_dateText"
+                  Clearable
+                  HelperText="дд.мм.гггг или сегодня/завтра/вчера"
+                  Immediate
+                  Label="Дата"
+                  OnAdornmentClick="ToggleDateFieldAsync"
+                  OnBlur="ToggleDateFieldAsync"
+                  T="string" />
+}

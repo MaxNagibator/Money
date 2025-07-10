@@ -26,14 +26,10 @@
             </MudItem>
             <MudItem md="6"
                      xs="12">
-                <MudDatePicker AdornmentColor="Color.Tertiary"
-                               @bind-Date="Input.Date"
-                               Color="Color.Tertiary"
-                               DateFormat="dd.MM.yyyy"
-                               Editable
-                               For="@(() => Input.Date)"
-                               Label="Дата"
-                               Mask="@(new DateMask("dd.MM.yyyy"))" />
+                <SmartDatePicker @ref="_smartDatePicker"
+                                 @bind-Date="Input.Date"
+                                 For="@(() => Input.Date)"
+                                 GetInitialDate="() => Input.Date" />
             </MudItem>
             <MudItem md="6"
                      xs="12">
