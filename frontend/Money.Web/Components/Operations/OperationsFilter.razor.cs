@@ -35,9 +35,6 @@ public partial class OperationsFilter
     [Inject]
     private CategoryService CategoryService { get; set; } = null!;
 
-    [Inject]
-    private PlaceService PlaceService { get; set; } = null!;
-
     private string? Comment { get; set; }
     private string? Place { get; set; }
     private DateInterval? SelectedRange { get; set; }
@@ -92,11 +89,6 @@ public partial class OperationsFilter
         var interval = DateIntervals.FirstOrDefault(interval => interval.DisplayName == key);
         await OnDateIntervalChanged(interval);
         await SearchAsync();
-    }
-
-    private Task<IEnumerable<string?>> SearchPlaceAsync(string? value, CancellationToken token)
-    {
-        return PlaceService.SearchPlace(value, token)!;
     }
 
     private async Task OnDateIntervalChanged(DateInterval? value)

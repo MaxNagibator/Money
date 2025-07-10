@@ -1,0 +1,21 @@
+<MudAutocomplete Adornment="@Adornment"
+                 AdornmentColor="Color.Tertiary"
+                 AdornmentIcon="@Icons.Material.Rounded.Place"
+                 Clearable
+                 CoerceText="false"
+                 CoerceValue="true"
+                 DebounceInterval="@DebounceInterval"
+                 For="@For"
+                 Immediate
+                 Label="Место"
+                 OnKeyDown="@OnKeyDown"
+                 ResetValueOnEmptyText="false"
+                 SearchFunc="SearchPlaceAsync"
+                 SelectOnActivation="false"
+                 SelectValueOnTab
+                 ShowProgressIndicator
+                 T="string"
+                 Text="@_currentText"
+                 TextChanged="@OnTextChanged"
+                 Value="@Value"
+                 ValueChanged="@OnValueChanged"  />
