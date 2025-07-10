@@ -34,9 +34,6 @@ public partial class FastOperationDialog
     private MoneyClient MoneyClient { get; set; } = null!;
 
     [Inject]
-    private PlaceService PlaceService { get; set; } = null!;
-
-    [Inject]
     private CategoryService CategoryService { get; set; } = null!;
 
     [Inject]
@@ -147,11 +144,6 @@ public partial class FastOperationDialog
             : Input.CategoryList?.Where(x => x.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase));
 
         return Task.FromResult(categories ?? [])!;
-    }
-
-    private Task<IEnumerable<string?>> SearchPlaceAsync(string? value, CancellationToken token)
-    {
-        return PlaceService.SearchPlace(value, token)!;
     }
 
     private void Cancel()

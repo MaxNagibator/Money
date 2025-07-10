@@ -7,7 +7,6 @@ namespace Money.Web.Components.Operations;
 
 public partial class OperationDialog(
     MoneyClient moneyClient,
-    PlaceService placeService,
     CategoryService categoryService,
     ISnackbar snackbarService)
 {
@@ -150,11 +149,6 @@ public partial class OperationDialog(
             : Input.CategoryList?.Where(x => x.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase));
 
         return Task.FromResult(categories ?? [])!;
-    }
-
-    private Task<IEnumerable<string?>> SearchPlaceAsync(string? value, CancellationToken token)
-    {
-        return placeService.SearchPlace(value, token)!;
     }
 
     private sealed class InputModel

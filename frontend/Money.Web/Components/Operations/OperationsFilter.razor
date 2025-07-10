@@ -95,21 +95,8 @@
         </MudItem>
         <MudItem md="6"
                  xs="12">
-            <MudAutocomplete Adornment="Adornment.Start"
-                             AdornmentColor="Color.Tertiary"
-                             AdornmentIcon="@Icons.Material.Rounded.Place"
-                             @bind-Value="Place"
-                             Clearable
-                             CoerceText="false"
-                             CoerceValue
-                             Counter="0"
-                             DebounceInterval="350"
-                             Immediate
-                             Label="Место"
-                             ResetValueOnEmptyText="false"
-                             SearchFunc="SearchPlaceAsync"
-                             SelectValueOnTab
-                             ShowProgressIndicator />
+            <SmartPlace @bind-Value="Place"
+                        Adornment="Adornment.Start" />
         </MudItem>
         <MudItem md="6"
                  xs="12">
