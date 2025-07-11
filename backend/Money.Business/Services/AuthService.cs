@@ -37,9 +37,10 @@ public class AuthService(
         }
 
         var domainUser = await context.DomainUsers.SingleAsync(x => x.AuthUserId == user.Id);
+
         if (domainUser.TransporterPassword != null)
         {
-            if(!LegacyAuth.Validate(request.Username, request.Password, domainUser.TransporterPassword))
+            if (!LegacyAuth.Validate(request.Username, request.Password, domainUser.TransporterPassword))
             {
                 throw new PermissionException("Неверное имя пользователя или пароль.");
             }
@@ -47,6 +48,7 @@ public class AuthService(
         else
         {
             var result = await signInManager.CheckPasswordSignInAsync(user, request.Password, true);
+
             if (result.Succeeded == false)
             {
                 throw new PermissionException("Неверное имя пользователя или пароль.");
@@ -77,7 +79,13 @@ public class AuthService(
             throw new PermissionException("Вам больше не разрешено входить в систему.");
         }
 
-        return await CreateClaimsIdentityAsync(user, null);
+        var originalScopes = result.Principal?.GetScopes() ?? [];
+
+        var scopes = originalScopes.Contains(OpenIddictConstants.Scopes.OfflineAccess)
+            ? originalScopes
+            : originalScopes.Add(OpenIddictConstants.Scopes.OfflineAccess);
+
+        return await CreateClaimsIdentityAsync(user, scopes);
     }
 
     public async Task<Dictionary<string, string>> GetUserInfoAsync(ClaimsPrincipal principal)
