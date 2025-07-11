@@ -45,7 +45,8 @@ public class AuthController(AuthService authService) : ControllerBase
         }
         else
         {
-            throw new NotImplementedException("Указанный тип предоставления не реализован.");
+            var grantType = request.GrantType ?? "неизвестно";
+            throw new NotImplementedException($"Указанный тип предоставления {grantType} не реализован.");
         }
 
         return SignIn(new(identity), AuthenticationScheme);
@@ -63,6 +64,7 @@ public class AuthController(AuthService authService) : ControllerBase
     [HttpPost("~/connect/userinfo")]
     [Produces("application/json")]
     [ProducesResponseType(typeof(Dictionary<string, string>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Userinfo()
     {
         return Ok(await authService.GetUserInfoAsync(User));

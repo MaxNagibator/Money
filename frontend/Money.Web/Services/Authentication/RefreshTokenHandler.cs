@@ -11,23 +11,26 @@ public class RefreshTokenHandler(RefreshTokenService refreshTokenService, ILocal
         var absolutePath = request.RequestUri?.AbsolutePath;
 
         if (absolutePath != null
-            && (absolutePath.Contains("token", StringComparison.InvariantCultureIgnoreCase) || absolutePath.Contains("register", StringComparison.InvariantCultureIgnoreCase)))
+            && (absolutePath.Contains("token", StringComparison.InvariantCultureIgnoreCase)
+                || absolutePath.Contains("register", StringComparison.InvariantCultureIgnoreCase)))
         {
             return await base.SendAsync(request, cancellationToken);
         }
 
         var result = await refreshTokenService.TryRefreshToken();
 
-        if (result.IsSuccess == false)
+        if (result.IsSuccess && string.IsNullOrEmpty(result.Value) == false)
         {
-            return await base.SendAsync(request, cancellationToken);
+            request.Headers.Authorization = new("Bearer", result.Value);
         }
-
-        var token = await localStorage.GetItemAsync<string>("authToken", cancellationToken);
-
-        if (string.IsNullOrEmpty(token) == false)
+        else
         {
-            request.Headers.Authorization = new("bearer", token);
+            var existingToken = await localStorage.GetItemAsync<string>("authToken", cancellationToken);
+
+            if (string.IsNullOrEmpty(existingToken) == false)
+            {
+                request.Headers.Authorization = new("Bearer", existingToken);
+            }
         }
 
         return await base.SendAsync(request, cancellationToken);

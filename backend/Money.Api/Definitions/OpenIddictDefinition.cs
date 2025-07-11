@@ -1,4 +1,5 @@
-﻿using Money.Data;
+﻿using Money.Api.Configuration;
+using Money.Data;
 
 namespace Money.Api.Definitions;
 
@@ -6,6 +7,11 @@ public class OpenIddictDefinition : AppDefinition
 {
     public override void ConfigureServices(WebApplicationBuilder builder)
     {
+        builder.Services.Configure<TokenSettings>(builder.Configuration.GetSection(nameof(TokenSettings)));
+
+        var tokenSettings = builder.Configuration.GetSection(nameof(TokenSettings)).Get<TokenSettings>()
+                            ?? new TokenSettings();
+
         builder.Services.AddOpenIddict()
             .AddCore(options =>
             {
@@ -24,6 +30,9 @@ public class OpenIddictDefinition : AppDefinition
 
                 options.AllowPasswordFlow()
                     .AllowRefreshTokenFlow();
+
+                options.SetAccessTokenLifetime(tokenSettings.AccessTokenLifetime);
+                options.SetRefreshTokenLifetime(tokenSettings.RefreshTokenLifetime);
 
                 options.AcceptAnonymousClients();
 
