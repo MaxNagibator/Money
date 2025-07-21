@@ -7,6 +7,7 @@ namespace Money.Web.Pages;
 
 public partial class Debts
 {
+    private readonly HashSet<int> _selectedDebtIds = [];
     private Dictionary<DebtTypes.Value, List<DebtOwner>> _debts = [];
 
     private List<DeptType> _types = [];
@@ -20,6 +21,7 @@ public partial class Debts
     private CategorySelector? _categorySelector;
     private bool _isForgiveOpen;
     private string _forgiveComment = "Перенос из долгов:";
+    private bool _isForgiving;
 
     public DebtOwnerMerged? OwnerFrom { get; set; }
     public DebtOwnerMerged? OwnerTo { get; set; }
@@ -36,9 +38,9 @@ public partial class Debts
     [Inject]
     private ISnackbar SnackbarService { get; set; } = null!;
 
-    protected override async Task OnInitializedAsync()
+    protected override Task OnInitializedAsync()
     {
-        await LoadDebtsAsync();
+        return LoadDebtsAsync();
     }
 
     private static void ToggleType(DeptType type)
@@ -90,12 +92,138 @@ public partial class Debts
     private Task OpenForgiveAsync(bool state)
     {
         _isForgiveOpen = state;
+
+        if (state == false)
+        {
+            ClearDebtSelection();
+        }
+
         return Task.CompletedTask;
+    }
+
+    private void ToggleDebtSelection(int? debtId)
+    {
+        if (debtId == null)
+        {
+            return;
+        }
+
+        // TODO: Возможно избыточная проверка
+        var debt = _debts.Values
+            .SelectMany(x => x)
+            .SelectMany(x => x.Debts)
+            .FirstOrDefault(x => x.Id == debtId);
+
+        if (debt == null)
+        {
+            SnackbarService.Add("Долг не найден", Severity.Warning);
+            return;
+        }
+
+        if (CanDebtBeForgiven(debt) == false)
+        {
+            SnackbarService.Add("Нельзя простить этот долг", Severity.Warning);
+            return;
+        }
+
+        if (_selectedDebtIds.Add(debtId.Value) == false)
+        {
+            _selectedDebtIds.Remove(debtId.Value);
+        }
+    }
+
+    private bool IsDebtSelected(int? debtId)
+    {
+        return debtId != null && _selectedDebtIds.Contains(debtId.Value);
+    }
+
+    private void ClearDebtSelection()
+    {
+        _selectedDebtIds.Clear();
+    }
+
+    private void SelectAllVisibleDebts()
+    {
+        var visibleDebtIds = _filteredTypes
+            .SelectMany(x => x.Owners)
+            .SelectMany(x => x.Debts)
+            .Where(CanDebtBeForgiven)
+            .Select(debt => debt.Id!.Value);
+
+        foreach (var debtId in visibleDebtIds)
+        {
+            _selectedDebtIds.Add(debtId);
+        }
+    }
+
+    private bool CanDebtBeForgiven(Debt debt)
+    {
+        if (_isForgiveOpen == false)
+        {
+            return false;
+        }
+
+        if (debt.Type.Id != 1)
+        {
+            return false;
+        }
+
+        if (debt.IsDeleted)
+        {
+            return false;
+        }
+
+        if (debt.PaySum >= debt.Sum)
+        {
+            return false;
+        }
+
+        if (debt.Id == null)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private async Task ForgiveAsync()
     {
+        if (_selectedDebtIds.Count == 0)
+        {
+            SnackbarService.Add("Выберите долги для прощения", Severity.Warning);
+            return;
+        }
+
+        if (_categorySelector?.SelectedCategory == null)
+        {
+            SnackbarService.Add("Выберите категорию расходов", Severity.Warning);
+            return;
+        }
+
+        if (_categorySelector.SelectedCategory.OperationType.Id != 1)
+        {
+            SnackbarService.Add("Можно прощать долги только в категории расходов", Severity.Warning);
+            return;
+        }
+
+        _isForgiving = true;
+        StateHasChanged();
+
+        var categoryId = _categorySelector.SelectedCategory.Id!.Value;
+        var response = await MoneyClient.Debts.Forgive([.. _selectedDebtIds], categoryId, _forgiveComment);
+
+        if (response.IsBadRequest(SnackbarService))
+        {
+            return;
+        }
+
+        SnackbarService.Add($"Успешно прощено {_selectedDebtIds.Count} долгов", Severity.Success);
+        ClearDebtSelection();
+        _isForgiveOpen = false;
         await LoadDebtsAsync();
+
+        _isForgiving = false;
+        StateHasChanged();
     }
 
     private async Task LoadDebtsAsync()

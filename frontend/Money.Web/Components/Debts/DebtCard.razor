@@ -8,6 +8,13 @@
             <MudStack Row
                       AlignItems="AlignItems.Center"
                       Spacing="1">
+                @if (ShowSelection)
+                {
+                    <MudCheckBox @bind-Value="IsSelected"
+                                 Color="Color.Tertiary"
+                                 @onclick="ToggleSelection"
+                                 Size="Size.Small" />
+                }
                 <MudText Typo="Typo.body1">
                     @Model.Sum.ToMoneyString()
                 </MudText>

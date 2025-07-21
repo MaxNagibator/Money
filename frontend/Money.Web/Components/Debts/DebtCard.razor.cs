@@ -21,6 +21,15 @@ public sealed partial class DebtCard : ComponentBase, IDisposable
     [Parameter]
     public EventCallback<Debt> OnUpdate { get; set; }
 
+    [Parameter]
+    public bool IsSelected { get; set; }
+
+    [Parameter]
+    public EventCallback<int?> OnSelectionToggle { get; set; }
+
+    [Parameter]
+    public bool ShowSelection { get; set; }
+
     [Inject]
     private MoneyClient MoneyClient { get; set; } = null!;
 
@@ -115,6 +124,11 @@ public sealed partial class DebtCard : ComponentBase, IDisposable
     private Task Restore()
     {
         return Modify(MoneyClient.Debts.Restore, false);
+    }
+
+    private Task ToggleSelection()
+    {
+        return OnSelectionToggle.InvokeAsync(Model.Id);
     }
 
     private async Task Modify(Func<int, Task<ApiClientResponse>> action, bool isDeleted)
