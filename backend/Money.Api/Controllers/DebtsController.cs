@@ -13,14 +13,15 @@ public class DebtsController(DebtsService service) : ControllerBase
     /// <summary>
     /// Получить список долгов.
     /// </summary>
+    /// <param name="withPaid">Включить погашенные долги в результат.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     /// <returns>Массив долгов.</returns>
     [HttpGet("")]
     [ProducesResponseType(typeof(IEnumerable<DebtDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> Get(CancellationToken cancellationToken)
+    public async Task<IActionResult> Get(CancellationToken cancellationToken, bool withPaid = false)
     {
-        var models = await service.GetAsync(cancellationToken: cancellationToken);
+        var models = await service.GetAsync(withPaid, cancellationToken);
         return Ok(models.Select(DebtDto.FromBusinessModel));
     }
 

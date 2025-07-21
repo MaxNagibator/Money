@@ -11,11 +11,29 @@
         Долги
     </MudText>
     <MudSpacer />
+    <MudTooltip Text="@(_showPaidDebts ? "Скрыть погашенные долги" : "Показать погашенные долги")">
+        <MudToggleIconButton Color="Color.Tertiary"
+                             Icon="@(_showPaidDebts ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                             Toggled="_showPaidDebts"
+                             ToggledChanged="TogglePaidDebtsAsync"
+                             ToggledVariant="Variant.Outlined"
+                             Variant="Variant.Filled" />
+    </MudTooltip>
+
     <MudTooltip Text="Простить долги">
         <MudToggleIconButton Color="Color.Tertiary"
                              Icon="@Icons.Material.Rounded.Handshake"
                              Toggled="_isForgiveOpen"
                              ToggledChanged="OpenForgiveAsync"
+                             ToggledVariant="Variant.Outlined"
+                             Variant="Variant.Filled" />
+    </MudTooltip>
+
+    <MudTooltip Text="Слияние держателей">
+        <MudToggleIconButton Color="Color.Tertiary"
+                             Icon="@Icons.Material.Rounded.Merge"
+                             Toggled="_isMergeOpen"
+                             ToggledChanged="OpenMergeAsync"
                              ToggledVariant="Variant.Outlined"
                              Variant="Variant.Filled" />
     </MudTooltip>
@@ -28,10 +46,8 @@
                 <MudText>
                     Перенос долгов держателей в расходы
                 </MudText>
-
                 <CategorySelector @ref="_categorySelector"
                                   SelectionMode="SelectionMode.SingleSelection" />
-
                 <MudTextField Adornment="Adornment.Start"
                               AdornmentColor="Color.Tertiary"
                               AdornmentIcon="@Icons.Material.Rounded.Comment"
@@ -40,7 +56,6 @@
                               Clearable
                               Immediate
                               Label="Приписка" />
-
                 <MudStack AlignItems="AlignItems.Center"
                           Class="mt-3"
                           Row>
@@ -59,15 +74,6 @@
             </MudStack>
         </MudPaper>
     </MudPopover>
-
-    <MudTooltip Text="Слияние держателей">
-        <MudToggleIconButton Color="Color.Tertiary"
-                             Icon="@Icons.Material.Rounded.Merge"
-                             Toggled="_isMergeOpen"
-                             ToggledChanged="OpenMergeAsync"
-                             ToggledVariant="Variant.Outlined"
-                             Variant="Variant.Filled" />
-    </MudTooltip>
 
     <MudPopover AnchorOrigin="Origin.BottomRight"
                 Open="_isMergeOpen"

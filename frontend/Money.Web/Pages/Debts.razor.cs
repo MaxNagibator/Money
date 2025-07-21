@@ -15,6 +15,7 @@ public partial class Debts
 
     private string _searchQuery = string.Empty;
     private bool _isMergeOpen;
+    private bool _showPaidDebts;
 
     private CategorySelector? _categorySelector;
     private bool _isForgiveOpen;
@@ -99,7 +100,7 @@ public partial class Debts
 
     private async Task LoadDebtsAsync()
     {
-        var debts = await DebtService.GetAllAsync();
+        var debts = await DebtService.GetAllAsync(_showPaidDebts);
 
         var typedDebts = debts.OrderByDescending(x => x.Date)
             .GroupBy(x => x.Type)
@@ -234,6 +235,12 @@ public partial class Debts
     {
         _searchQuery = searchQuery;
         ApplySearchQuery();
+    }
+
+    private Task TogglePaidDebtsAsync(bool toggled)
+    {
+        _showPaidDebts = toggled;
+        return LoadDebtsAsync();
     }
 
     private async Task<Debt?> ShowDialogAsync(string title, Debt model, DebtTypes.Value? type = null)

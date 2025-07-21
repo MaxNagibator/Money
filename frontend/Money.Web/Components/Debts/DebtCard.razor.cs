@@ -51,6 +51,10 @@ public sealed partial class DebtCard : ComponentBase, IDisposable
         {
             className = "deleted-operation-card";
         }
+        else if (GetPaymentProgress() >= 100)
+        {
+            className = "paid-debt-card";
+        }
 
         if (_isExpanded == false)
         {

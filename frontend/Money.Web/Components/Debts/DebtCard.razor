@@ -75,7 +75,7 @@
                         {
                             <tr>
                                 <td>@context.Date?.ToShortDateString()</td>
-                                    <td>@context.Sum.ToMoneyString()</td>
+                                <td>@context.Sum.ToMoneyString()</td>
                                 <td class="large-text">@context.Comment</td>
                             </tr>
                         }
@@ -204,6 +204,21 @@
     .deleted-operation-card:hover {
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         background-color: rgba(128, 128, 128, 0.15);
+    }
+
+    .paid-debt-card {
+        opacity: 0.7;
+        transform: scale(0.98);
+        transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+        border: 1px solid rgba(76, 175, 80, 0.4);
+        background-color: rgba(76, 175, 80, 0.08);
+    }
+
+    .paid-debt-card:hover {
+        opacity: 0.85;
+        transform: scale(1.0);
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+        background-color: rgba(76, 175, 80, 0.12);
     }
 
 </style>
