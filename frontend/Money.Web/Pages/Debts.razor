@@ -11,11 +11,29 @@
         Долги
     </MudText>
     <MudSpacer />
+    <MudTooltip Text="@(_showPaidDebts ? "Скрыть погашенные долги" : "Показать погашенные долги")">
+        <MudToggleIconButton Color="Color.Tertiary"
+                             Icon="@(_showPaidDebts ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                             Toggled="_showPaidDebts"
+                             ToggledChanged="TogglePaidDebtsAsync"
+                             ToggledVariant="Variant.Outlined"
+                             Variant="Variant.Filled" />
+    </MudTooltip>
+
     <MudTooltip Text="Простить долги">
         <MudToggleIconButton Color="Color.Tertiary"
                              Icon="@Icons.Material.Rounded.Handshake"
                              Toggled="_isForgiveOpen"
                              ToggledChanged="OpenForgiveAsync"
+                             ToggledVariant="Variant.Outlined"
+                             Variant="Variant.Filled" />
+    </MudTooltip>
+
+    <MudTooltip Text="Слияние держателей">
+        <MudToggleIconButton Color="Color.Tertiary"
+                             Icon="@Icons.Material.Rounded.Merge"
+                             Toggled="_isMergeOpen"
+                             ToggledChanged="OpenMergeAsync"
                              ToggledVariant="Variant.Outlined"
                              Variant="Variant.Filled" />
     </MudTooltip>
@@ -29,9 +47,42 @@
                     Перенос долгов держателей в расходы
                 </MudText>
 
+                <MudAlert Dense
+                          Severity="@(_selectedDebtIds.Count > 0 ? Severity.Info : Severity.Warning)">
+                    <MudStack AlignItems="AlignItems.Center"
+                              Row
+                              Spacing="1">
+                        <MudText Typo="Typo.body2">
+                            @if (_selectedDebtIds.Count > 0)
+                            {
+                                @($"Выбрано долгов: {_selectedDebtIds.Count}")
+                            }
+                            else
+                            {
+                                @("Выберите долги для прощения, отметив их галочками")
+                            }
+                        </MudText>
+                        <MudSpacer />
+                        <MudButton Color="Color.Primary"
+                                   OnClick="SelectAllVisibleDebts"
+                                   Size="Size.Small"
+                                   Variant="Variant.Text">
+                            Выбрать все
+                        </MudButton>
+                        @if (_selectedDebtIds.Count > 0)
+                        {
+                            <MudButton Color="Color.Secondary"
+                                       OnClick="ClearDebtSelection"
+                                       Size="Size.Small"
+                                       Variant="Variant.Text">
+                                Очистить
+                            </MudButton>
+                        }
+                    </MudStack>
+                </MudAlert>
+
                 <CategorySelector @ref="_categorySelector"
                                   SelectionMode="SelectionMode.SingleSelection" />
-
                 <MudTextField Adornment="Adornment.Start"
                               AdornmentColor="Color.Tertiary"
                               AdornmentIcon="@Icons.Material.Rounded.Comment"
@@ -40,7 +91,6 @@
                               Clearable
                               Immediate
                               Label="Приписка" />
-
                 <MudStack AlignItems="AlignItems.Center"
                           Class="mt-3"
                           Row>
@@ -51,23 +101,26 @@
                     <MudSpacer />
                     <MudButton ButtonType="ButtonType.Submit"
                                Color="Color.Tertiary"
+                               Disabled="@(_selectedDebtIds.Count == 0 || _isForgiving)"
                                OnClick="ForgiveAsync"
                                Variant="Variant.Filled">
-                        Простить
+                        @if (_isForgiving)
+                        {
+                            <MudProgressCircular Class="ms-n1"
+                                                 Indeterminate="true"
+                                                 Size="Size.Small" />
+
+                            <MudText Class="ms-2">Прощаю...</MudText>
+                        }
+                        else
+                        {
+                            <MudText>Простить</MudText>
+                        }
                     </MudButton>
                 </MudStack>
             </MudStack>
         </MudPaper>
     </MudPopover>
-
-    <MudTooltip Text="Слияние держателей">
-        <MudToggleIconButton Color="Color.Tertiary"
-                             Icon="@Icons.Material.Rounded.Merge"
-                             Toggled="_isMergeOpen"
-                             ToggledChanged="OpenMergeAsync"
-                             ToggledVariant="Variant.Outlined"
-                             Variant="Variant.Filled" />
-    </MudTooltip>
 
     <MudPopover AnchorOrigin="Origin.BottomRight"
                 Open="_isMergeOpen"
@@ -259,8 +312,11 @@
                                      lg="3"
                                      md="4"
                                      xs="12">
-                                <DebtCard Model="model"
-                                          OnUpdate="UpdateAsync" />
+                                <DebtCard IsSelected="IsDebtSelected(model.Id)"
+                                          Model="model"
+                                          OnSelectionToggle="ToggleDebtSelection"
+                                          OnUpdate="UpdateAsync"
+                                          ShowSelection="CanDebtBeForgiven(model)" />
                             </MudItem>
                         </Virtualize>
                     </MudGrid>

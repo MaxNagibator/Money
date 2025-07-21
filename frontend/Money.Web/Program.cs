@@ -18,6 +18,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddMudServices(configuration =>
 {
+    configuration.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomRight;
     configuration.SnackbarConfiguration.PreventDuplicates = false;
 });
 builder.Services.AddMudTranslations();

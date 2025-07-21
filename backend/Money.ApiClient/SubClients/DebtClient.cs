@@ -6,9 +6,10 @@ public class DebtClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
 
     protected override string ApiPrefix => "";
 
-    public Task<ApiClientResponse<Debt[]>> Get()
+    public Task<ApiClientResponse<Debt[]>> Get(bool withPaid = false)
     {
-        return GetAsync<Debt[]>(BaseUri);
+        var paramUri = $"?withPaid={withPaid}";
+        return GetAsync<Debt[]>($"{BaseUri}{paramUri}");
     }
 
     public Task<ApiClientResponse<Debt>> GetById(int id)
