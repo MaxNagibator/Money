@@ -4,9 +4,9 @@ namespace Money.Web.Services;
 
 public class DebtService(MoneyClient moneyClient)
 {
-    public async Task<IEnumerable<Debt>> GetAllAsync()
+    public async Task<IEnumerable<Debt>> GetAllAsync(bool withPaid = false)
     {
-        var response = await moneyClient.Debts.Get();
+        var response = await moneyClient.Debts.Get(withPaid);
 
         return response.Content?
                    .Select(x => new Debt

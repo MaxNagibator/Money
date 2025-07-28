@@ -4,6 +4,30 @@ public partial class Home
 {
     private readonly List<VersionHistoryEntry> _versionHistory =
     [
+        new("1.2.7", new(2025, 7, 21), [
+            new("Добавлена возможность выбора долгов для прощения.", ChangeType.Feature),
+            new("Реализованы действия \"выбрать все\" и \"очистить\" для долгов.", ChangeType.Feature),
+            new("Добавлена проверка долгов перед прощением.", ChangeType.Improvement),
+            new("Обновлён интерфейс кнопки прощения долгов.", ChangeType.UiUx),
+        ]),
+
+        new("1.2.6", new(2025, 7, 21), [
+            new("Добавлена возможность отображения оплаченных долгов.", ChangeType.Feature),
+            new("Внесены изменения в стиль отображения карточек оплаченных долгов.", ChangeType.UiUx),
+        ]),
+
+        new("1.2.5", new(2025, 7, 11), [
+            new("Добавлена настройка времени жизни токенов.", ChangeType.Feature),
+            new("Исправлены возможные проблемы со скопами токенов.", ChangeType.BugFix),
+            new("Исправлены возможные проблемы с обновлением состояния аутентификации.", ChangeType.BugFix),
+            new("Выполнен рефакторинг системы аутентификации.", ChangeType.Improvement),
+        ]),
+
+        new("1.2.4", new(2025, 7, 11), [
+            new("Добавлен компонент SmartDatePicker для улучшения работы с датами.", ChangeType.Feature),
+            new("Реализовано ручное переключение месяцев в датах.", ChangeType.Improvement),
+        ]),
+
         new("1.2.3", new(2025, 5, 13), [
             new("Исправлена ошибка создания регулярной операции не на ту дату.", ChangeType.BugFix),
             new("Удалены ошибочно перенесённые операции.", ChangeType.BugFix),
@@ -182,7 +206,7 @@ public partial class Home
 
     private string GetCurrentVersion()
     {
-        return _versionHistory.FirstOrDefault()?.Version ?? "1.2.3";
+        return _versionHistory.FirstOrDefault()?.Version ?? "1.2.7";
     }
 
     private Color GetVersionColor(VersionHistoryEntry entry)
