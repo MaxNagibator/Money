@@ -38,6 +38,12 @@ public partial class Login
         Input = new();
     }
 
+    private void OnGitHubLogin()
+    {
+        var url = AuthenticationService.GetExternalAuthUrl("github", NavigationManager.BaseUri + "Account/Callback");
+        NavigationManager.NavigateTo(url, true);
+    }
+
     private sealed class InputModel
     {
         [Required(ErrorMessage = "Login обязателен.")]

@@ -10,7 +10,8 @@ public class AuthorizationDefinition : AppDefinition
                 policyBuilder => policyBuilder
                     .WithOrigins(builder.Configuration["CORS_ORIGIN"] ?? "https://localhost:7168")
                     .AllowAnyMethod()
-                    .AllowAnyHeader());
+                    .AllowAnyHeader()
+                    .AllowCredentials());
         });
     }
 

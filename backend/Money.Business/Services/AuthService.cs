@@ -88,6 +88,41 @@ public class AuthService(
         return await CreateClaimsIdentityAsync(user, scopes);
     }
 
+    public async Task<ClaimsIdentity> HandleExternalGrantAsync(AuthenticateResult result)
+    {
+        var nameId = result.Principal?.FindFirstValue(ClaimTypes.NameIdentifier)
+                     ?? result.Principal?.FindFirstValue(OpenIddictConstants.Claims.Subject);
+
+        if (nameId == null)
+        {
+            throw new PermissionException("Не удалось получить идентификатор пользователя.");
+        }
+
+        var user = await userManager.GetUserAsync(result.Principal!)
+                   ?? await userManager.FindByNameAsync(result.Principal!.Identity?.Name ?? string.Empty)
+                   ?? await userManager.FindByEmailAsync(result.Principal!.FindFirstValue(ClaimTypes.Email) ?? string.Empty);
+
+        if (user == null)
+        {
+            throw new PermissionException("Извините, но учетная запись пользователя не найдена.");
+        }
+
+        if (await signInManager.CanSignInAsync(user) == false)
+        {
+            throw new PermissionException("Вам больше не разрешено входить в систему.");
+        }
+
+        var scopes = new[]
+        {
+            OpenIddictConstants.Scopes.OfflineAccess,
+            OpenIddictConstants.Permissions.Scopes.Email,
+            OpenIddictConstants.Permissions.Scopes.Profile,
+            OpenIddictConstants.Permissions.Scopes.Roles,
+        };
+
+        return await CreateClaimsIdentityAsync(user, scopes);
+    }
+
     public async Task<Dictionary<string, string>> GetUserInfoAsync(ClaimsPrincipal principal)
     {
         var userId = principal.GetClaim(OpenIddictConstants.Claims.Subject)
@@ -100,7 +135,19 @@ public class AuthService(
             throw new PermissionException("Извините, но учетная запись, связанная с этим токеном доступа, больше не существует.");
         }
 
-        return principal.Claims.ToDictionary(claim => claim.Type, claim => claim.Value, StringComparer.Ordinal);
+        var result = new Dictionary<string, string>(StringComparer.Ordinal);
+
+        foreach (var group in principal.Claims.GroupBy(x => x.Type, StringComparer.Ordinal))
+        {
+            var uniqueValues = group.Select(x => x.Value)
+                .Where(x => x != null)
+                .Distinct(StringComparer.Ordinal);
+
+            var joined = string.Join(' ', uniqueValues);
+            result[group.Key] = joined;
+        }
+
+        return result;
     }
 
     private static IEnumerable<string> GetDestinations(Claim claim)

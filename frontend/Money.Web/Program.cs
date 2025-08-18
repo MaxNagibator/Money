@@ -10,7 +10,7 @@ using NCalc.DependencyInjection;
 using System.Globalization;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
-var apiUri = new Uri("https+http://api/");
+var apiUri = new Uri($"https://{builder.Configuration["Services:api:https:0"]}");
 
 builder.AddServiceDefaults();
 builder.RootComponents.Add<App>("#app");
@@ -21,6 +21,7 @@ builder.Services.AddMudServices(configuration =>
     configuration.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomRight;
     configuration.SnackbarConfiguration.PreventDuplicates = false;
 });
+
 builder.Services.AddMudTranslations();
 
 builder.Services.AddMemoryCache();
