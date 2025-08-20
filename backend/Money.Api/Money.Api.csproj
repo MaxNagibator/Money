@@ -10,6 +10,9 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="OpenIddict.Client" />
+        <PackageReference Include="OpenIddict.Client.AspNetCore" />
+        <PackageReference Include="OpenIddict.Client.WebIntegration" />
         <PackageReference Include="ClosedXML" />
         <PackageReference Include="EFCore.NamingConventions" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" NoWarn="NU1605" />

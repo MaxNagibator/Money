@@ -12,7 +12,7 @@ public class OpenIddictDefinition : AppDefinition
         var tokenSettings = builder.Configuration.GetSection(nameof(TokenSettings)).Get<TokenSettings>()
                             ?? new TokenSettings();
 
-        builder.Services.AddOpenIddict()
+        var openIddictBuilder = builder.Services.AddOpenIddict()
             .AddCore(options =>
             {
                 options.UseEntityFrameworkCore()
@@ -29,7 +29,10 @@ public class OpenIddictDefinition : AppDefinition
                     .SetCryptographyEndpointUris("connect/jwks");
 
                 options.AllowPasswordFlow()
-                    .AllowRefreshTokenFlow();
+                    .AllowRefreshTokenFlow()
+                    .AllowAuthorizationCodeFlow()
+                    .AllowCustomFlow("external")
+                    .RequireProofKeyForCodeExchange();
 
                 options.SetAccessTokenLifetime(tokenSettings.AccessTokenLifetime);
                 options.SetRefreshTokenLifetime(tokenSettings.RefreshTokenLifetime);
@@ -46,11 +49,36 @@ public class OpenIddictDefinition : AppDefinition
                     .EnableUserinfoEndpointPassthrough()
                     .EnableStatusCodePagesIntegration()
                     .DisableTransportSecurityRequirement();
-            })
-            .AddValidation(options =>
-            {
-                options.UseLocalServer();
-                options.UseAspNetCore();
             });
+
+        if (builder.Configuration["GITHUB_CLIENT_ID"] is not null && builder.Configuration["GITHUB_CLIENT_SECRET"] is not null)
+        {
+            openIddictBuilder
+                .AddClient(options =>
+                {
+                    options.AllowAuthorizationCodeFlow();
+
+                    options.UseAspNetCore()
+                        .EnableRedirectionEndpointPassthrough();
+
+                    options.AddDevelopmentEncryptionCertificate()
+                        .AddDevelopmentSigningCertificate();
+
+                    options.UseWebProviders()
+                        .AddGitHub(github =>
+                        {
+                            github.SetClientId(builder.Configuration["GITHUB_CLIENT_ID"] ?? string.Empty);
+                            github.SetClientSecret(builder.Configuration["GITHUB_CLIENT_SECRET"] ?? string.Empty);
+                            github.SetRedirectUri(new Uri("/connect/callback", UriKind.Relative));
+                            github.AddScopes("read:user", "user:email");
+                        });
+                });
+        }
+
+        openIddictBuilder.AddValidation(options =>
+        {
+            options.UseLocalServer();
+            options.UseAspNetCore();
+        });
     }
 }

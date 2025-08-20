@@ -27,5 +27,19 @@ public class IdentityDefinition : AppDefinition
             })
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
+
+        builder.Services.ConfigureApplicationCookie(options =>
+        {
+            options.LoginPath = "/external/login";
+            options.AccessDeniedPath = "/external/denied";
+            options.Cookie.SameSite = SameSiteMode.None;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        });
+
+        builder.Services.ConfigureExternalCookie(options =>
+        {
+            options.Cookie.SameSite = SameSiteMode.None;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        });
     }
 }

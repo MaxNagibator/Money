@@ -1,5 +1,6 @@
 using Blazored.LocalStorage;
 using CSharpFunctionalExtensions;
+using Microsoft.AspNetCore.Components.WebAssembly.Http;
 using Money.ApiClient;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -45,6 +46,22 @@ public class AuthenticationService(
         return Result.Success();
     }
 
+    public string GetExternalAuthUrl(string provider, string returnUrl)
+    {
+        var encoded = Uri.EscapeDataString(returnUrl);
+        return client.BaseAddress + $"external/login/{provider}?returnUrl={encoded}";
+    }
+
+    public async Task<Result> ExchangeExternalAsync()
+    {
+        using var requestContent = new FormUrlEncodedContent([new("grant_type", "external")]);
+        var result = await AuthenticateAsync(requestContent);
+
+        return await result.Tap(() => ((AuthStateProvider)authStateProvider).NotifyUserAuthentication())
+            .Map(_ => Result.Success())
+            .OnFailureCompensate(_ => Result.Failure("Не удалось завершить внешний вход."));
+    }
+
     public async Task<Result<string>> RefreshTokenAsync()
     {
         var token = await localStorage.GetItemAsync<string>(AccessTokenKey);
@@ -64,7 +81,12 @@ public class AuthenticationService(
 
     private async Task<Result<AuthData>> AuthenticateAsync(FormUrlEncodedContent requestContent)
     {
-        var response = await client.PostAsync(new Uri("connect/token", UriKind.Relative), requestContent);
+        using var request = new HttpRequestMessage(HttpMethod.Post, new Uri("connect/token", UriKind.Relative));
+
+        request.Content = requestContent;
+        request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+
+        var response = await client.SendAsync(request);
         client.DefaultRequestHeaders.Clear();
 
         if (response.IsSuccessStatusCode == false)

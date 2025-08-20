@@ -3,6 +3,7 @@
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
@@ -42,6 +43,11 @@ public class AuthController(AuthService authService) : ControllerBase
         {
             var result = await HttpContext.AuthenticateAsync(AuthenticationScheme);
             identity = await authService.HandleRefreshTokenGrantAsync(result);
+        }
+        else if (string.Equals(request.GrantType, "external", StringComparison.Ordinal))
+        {
+            var result = await HttpContext.AuthenticateAsync(IdentityConstants.ApplicationScheme);
+            identity = await authService.HandleExternalGrantAsync(result);
         }
         else
         {
