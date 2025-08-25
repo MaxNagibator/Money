@@ -51,7 +51,14 @@ public class OpenIddictDefinition : AppDefinition
                     .DisableTransportSecurityRequirement();
             });
 
-        if (builder.Configuration["GITHUB_CLIENT_ID"] is not null && builder.Configuration["GITHUB_CLIENT_SECRET"] is not null)
+        var authAuthority = builder.Configuration["AUTH_AUTHORITY"];
+        var authClientId = builder.Configuration["AUTH_CLIENT_ID"];
+
+        var githubClientId = builder.Configuration["GITHUB_CLIENT_ID"];
+        var githubClientSecret = builder.Configuration["GITHUB_CLIENT_SECRET"];
+
+        if (authAuthority is not null && authClientId is not null
+            || githubClientId is not null && githubClientSecret is not null)
         {
             openIddictBuilder
                 .AddClient(options =>
@@ -64,14 +71,32 @@ public class OpenIddictDefinition : AppDefinition
                     options.AddDevelopmentEncryptionCertificate()
                         .AddDevelopmentSigningCertificate();
 
-                    options.UseWebProviders()
-                        .AddGitHub(github =>
+                    if (authAuthority is not null && authClientId is not null)
+                    {
+                        options.AddRegistration(new()
                         {
-                            github.SetClientId(builder.Configuration["GITHUB_CLIENT_ID"] ?? string.Empty);
-                            github.SetClientSecret(builder.Configuration["GITHUB_CLIENT_SECRET"] ?? string.Empty);
-                            github.SetRedirectUri(new Uri("/connect/callback", UriKind.Relative));
-                            github.AddScopes("read:user", "user:email");
+                            Issuer = new(authAuthority, UriKind.Absolute),
+                            ProviderName = "Auth",
+                            ProviderDisplayName = "Auth",
+
+                            ClientId = authClientId,
+                            Scopes = { "email", "profile", "roles" },
+
+                            RedirectUri = new("/connect/callback", UriKind.Relative),
                         });
+                    }
+
+                    if (githubClientId is not null && githubClientSecret is not null)
+                    {
+                        options.UseWebProviders()
+                            .AddGitHub(github =>
+                            {
+                                github.SetClientId(githubClientId);
+                                github.SetClientSecret(githubClientSecret);
+                                github.SetRedirectUri(new Uri("/connect/callback", UriKind.Relative));
+                                github.AddScopes("read:user", "user:email");
+                            });
+                    }
                 });
         }
 
