@@ -4,6 +4,11 @@ public partial class Home
 {
     private readonly List<VersionHistoryEntry> _versionHistory =
     [
+        new("1.2.8", new(2025, 8, 20), [
+            new("Интегрированы внешние провайдеры аутентификации: Auth и GitHub.", ChangeType.Feature),
+            new("Добавлены кнопки входа для Auth и GitHub на странице входа.", ChangeType.UiUx),
+        ]),
+
         new("1.2.7", new(2025, 7, 21), [
             new("Добавлена возможность выбора долгов для прощения.", ChangeType.Feature),
             new("Реализованы действия \"выбрать все\" и \"очистить\" для долгов.", ChangeType.Feature),
@@ -206,7 +211,7 @@ public partial class Home
 
     private string GetCurrentVersion()
     {
-        return _versionHistory.FirstOrDefault()?.Version ?? "1.2.7";
+        return _versionHistory.FirstOrDefault()?.Version ?? "1.2.8";
     }
 
     private Color GetVersionColor(VersionHistoryEntry entry)

@@ -38,6 +38,12 @@ public partial class Login
         Input = new();
     }
 
+    private void OnAuthLogin()
+    {
+        var url = AuthenticationService.GetExternalAuthUrl("auth", NavigationManager.BaseUri + "Account/Callback");
+        NavigationManager.NavigateTo(url, true);
+    }
+
     private void OnGitHubLogin()
     {
         var url = AuthenticationService.GetExternalAuthUrl("github", NavigationManager.BaseUri + "Account/Callback");

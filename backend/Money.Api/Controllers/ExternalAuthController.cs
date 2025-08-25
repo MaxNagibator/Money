@@ -16,8 +16,30 @@ namespace Money.Api.Controllers;
 public class ExternalAuthController(
     SignInManager<ApplicationUser> signInManager,
     UserManager<ApplicationUser> userManager,
-    AccountsService accountsService) : ControllerBase
+    AccountsService accountsService,
+    IConfiguration configuration) : ControllerBase
 {
+    [HttpGet("login/auth")]
+    public IActionResult LoginWithAuth([FromQuery] string? returnUrl = null)
+    {
+        var properties = new AuthenticationProperties { RedirectUri = Url.Content("~/connect/callback") };
+        properties.SetString(OpenIddictClientAspNetCoreConstants.Properties.ProviderName, "Auth");
+
+        var issuer = configuration["AUTH_AUTHORITY"];
+
+        if (string.IsNullOrWhiteSpace(issuer) == false)
+        {
+            properties.SetString(OpenIddictClientAspNetCoreConstants.Properties.Issuer, issuer);
+        }
+
+        if (string.IsNullOrWhiteSpace(returnUrl) == false)
+        {
+            properties.Items["returnUrl"] = returnUrl;
+        }
+
+        return Challenge(properties, OpenIddictClientAspNetCoreDefaults.AuthenticationScheme);
+    }
+
     [HttpGet("login/github")]
     public IActionResult LoginWithGitHub([FromQuery] string? returnUrl = null)
     {
