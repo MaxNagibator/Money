@@ -68,10 +68,16 @@ public class ExternalAuthController(
         var userId = principal.FindFirst(OpenIddictConstants.Claims.Subject)?.Value
                      ?? principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-        // TODO: Не работает
-        var email = principal.FindFirst(ClaimTypes.Email)!.Value;
+        var email = principal.FindFirst(ClaimTypes.Email)?.Value
+                    ?? principal.FindFirst(OpenIddictConstants.Claims.Email)?.Value;
+
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return BadRequest("Email обязателен для внешней аутентификации.");
+        }
+
         var name = principal.FindFirst(ClaimTypes.Name)?.Value;
-        var userNameCandidate = name?? BuildValidUserName(email, userId);
+        var userNameCandidate = name ?? BuildValidUserName(email, userId);
 
         var providerName = result.Properties?.GetString(OpenIddictClientAspNetCoreConstants.Properties.ProviderName) ?? "GitHub";
 
@@ -96,7 +102,7 @@ public class ExternalAuthController(
             {
                 UserName = uniqueUserName,
                 Email = email,
-                EmailConfirmed = email != null
+                EmailConfirmed = true,
             };
 
             var createResult = await userManager.CreateAsync(user);
