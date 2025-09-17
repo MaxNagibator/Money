@@ -1,4 +1,4 @@
-@page "/Account/Login"
+﻿@page "/Account/Login"
 @attribute [AllowAnonymous]
 
 <PageTitle>Вход</PageTitle>
@@ -61,10 +61,9 @@
                    Variant="Variant.Filled"
                    StartIcon="@Icons.Material.Filled.Login"
                    OnClick="OnAuthLogin">
-            Войти через Auth
+            Войти через bob217.Auth
         </MudButton>
-        <MudButton Class="mt-2"
-                   Color="Color.Secondary"
+        <MudButton Color="Color.Secondary"
                    Variant="Variant.Outlined"
                    StartIcon="@Icons.Material.Filled.Login"
                    OnClick="OnGitHubLogin">

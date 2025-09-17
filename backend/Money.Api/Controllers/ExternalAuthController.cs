@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -69,14 +69,15 @@ public class ExternalAuthController(
                      ?? principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
         // TODO: Не работает
-        var email = principal.FindFirst(ClaimTypes.Email)?.Value;
-        var userNameCandidate = BuildValidUserName(email, userId);
+        var email = principal.FindFirst(ClaimTypes.Email)!.Value;
+        var name = principal.FindFirst(ClaimTypes.Name)?.Value;
+        var userNameCandidate = name?? BuildValidUserName(email, userId);
 
         var providerName = result.Properties?.GetString(OpenIddictClientAspNetCoreConstants.Properties.ProviderName) ?? "GitHub";
 
         var user = userId != null ? await userManager.FindByLoginAsync(providerName, userId) : null;
 
-        if (user == null && email != null)
+        if (user == null)
         {
             user = await userManager.FindByEmailAsync(email);
         }
