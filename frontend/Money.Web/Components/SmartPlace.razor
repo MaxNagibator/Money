@@ -1,21 +1,45 @@
-<MudAutocomplete Adornment="@Adornment"
-                 AdornmentColor="Color.Tertiary"
-                 AdornmentIcon="@Icons.Material.Rounded.Place"
-                 Clearable
-                 CoerceText="false"
-                 CoerceValue="true"
-                 DebounceInterval="@DebounceInterval"
-                 For="@For"
-                 Immediate
-                 Label="Место"
-                 OnKeyDown="@OnKeyDown"
-                 ResetValueOnEmptyText="false"
-                 SearchFunc="SearchPlaceAsync"
-                 SelectOnActivation="false"
-                 SelectValueOnTab
-                 ShowProgressIndicator
-                 T="string"
-                 Text="@_currentText"
-                 TextChanged="@OnTextChanged"
-                 Value="@Value"
-                 ValueChanged="@OnValueChanged"  />
+<div style="position: relative;">
+    <MudTextField Adornment="@Adornment"
+                  AdornmentColor="Color.Tertiary"
+                  AdornmentIcon="@Icons.Material.Rounded.Place"
+                  Clearable
+                  For="@For"
+                  Immediate
+                  Label="Место"
+                  @onfocus="OnFocusAsync"
+                  OnKeyDown="@OnKeyDownAsync"
+                  OnBlur="@OnBlurAsync"
+                  T="string"
+                  Value="@_currentText"
+                  ValueChanged="@OnTextChangedAsync" />
+
+    @if (_showSuggestions && _suggestions.Any())
+    {
+        <MudPaper Class="autocomplete-suggestions"
+                  Elevation="8"
+                  Style="position: absolute; top: 100%; left: 0; right: 0; max-height: 300px; overflow-y: auto; z-index: 1300; margin-top: 4px;">
+            <MudList Dense
+                     T="string">
+                @for (var i = 0; i < _suggestions.Count; i++)
+                {
+                    var index = i;
+                    var suggestion = _suggestions[i];
+                    var isSelected = index == _selectedIndex;
+                    var itemStyle = isSelected ? "background-color: var(--mud-palette-action-default-hover);" : string.Empty;
+                    <MudListItem OnClick="@(() => SelectSuggestionAsync(suggestion))"
+                                 Style="@itemStyle"
+                                 T="string">
+                        @suggestion
+                    </MudListItem>
+                }
+            </MudList>
+        </MudPaper>
+    }
+
+    @if (_isLoading)
+    {
+        <MudProgressLinear Color="Color.Tertiary"
+                           Indeterminate
+                           Style="position: absolute; bottom: 0; left: 0; right: 0;" />
+    }
+</div>
