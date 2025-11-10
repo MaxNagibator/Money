@@ -6,8 +6,9 @@ namespace Money.Web.Components;
 
 public partial class SmartDatePicker : ComponentBase
 {
-    private bool _isDatePickerVisible = true;
+    private bool _isDatePickerVisible;
     private string? _dateText = string.Empty;
+    private MudDatePicker? _datePicker;
 
     [Parameter]
     public DateTime? Date { get; set; }
@@ -34,12 +35,11 @@ public partial class SmartDatePicker : ComponentBase
         return null;
     }
 
-    protected override async Task OnInitializedAsync()
+    protected override Task OnInitializedAsync()
     {
-        if (GetInitialDate != null)
-        {
-            await UpdateDateAsync(GetInitialDate.Invoke());
-        }
+        return GetInitialDate != null
+            ? UpdateDateAsync(GetInitialDate.Invoke())
+            : Task.CompletedTask;
     }
 
     private async Task<bool> TryUpdateDateAsync()
@@ -68,27 +68,49 @@ public partial class SmartDatePicker : ComponentBase
         return true;
     }
 
-    private async Task UpdateDateAsync(DateTime? date)
+    private Task UpdateDateAsync(DateTime? date)
     {
         Date = date;
         _dateText = date?.ToString("dd.MM.yyyy", CultureInfo.CurrentCulture);
-        await DateChanged.InvokeAsync(Date);
+        return DateChanged.InvokeAsync(Date);
     }
 
-    private async Task ToggleDateFieldAsync()
+    private async Task OpenDatePickerAsync()
     {
-        if (_isDatePickerVisible)
+        if (!string.IsNullOrWhiteSpace(_dateText))
         {
-            _dateText = Date?.ToString("dd.MM.yyyy", CultureInfo.CurrentCulture);
-        }
-        else if (await TryUpdateDateAsync() == false)
-        {
-            return;
+            await TryUpdateDateAsync();
         }
 
-        _isDatePickerVisible = !_isDatePickerVisible;
-        await Task.Delay(10);
+        _isDatePickerVisible = true;
         StateHasChanged();
+
+        await Task.Delay(10);
+        if (_datePicker != null)
+        {
+            await _datePicker.OpenAsync();
+        }
+    }
+
+    private async Task OnPickerClosedAsync()
+    {
+        _dateText = Date?.ToString("dd.MM.yyyy", CultureInfo.CurrentCulture);
+        await DateChanged.InvokeAsync(Date);
+        _isDatePickerVisible = false;
+        StateHasChanged();
+    }
+
+    private Task SwitchToTextInputAsync()
+    {
+        _dateText = Date?.ToString("dd.MM.yyyy", CultureInfo.CurrentCulture);
+        _isDatePickerVisible = false;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private Task OnTextFieldBlurAsync()
+    {
+        return TryUpdateDateAsync();
     }
 
     private DateTime? ParseDate()
