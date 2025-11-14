@@ -181,7 +181,7 @@ public class DebtsService(
     {
         var entities = await context.Debts
             .IsUserEntity(environment.UserId)
-            .Where(x => debtIds.Contains(x.Id) && x.StatusId == (int)DebtStatus.Actual)
+            .Where(x => debtIds.AsEnumerable().Contains(x.Id) && x.StatusId == (int)DebtStatus.Actual)
             .ToListAsync(cancellationToken);
 
         if (entities.Count == 0)
