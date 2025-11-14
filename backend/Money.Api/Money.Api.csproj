@@ -10,6 +10,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.Http.Resilience" />
+        <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" />
         <PackageReference Include="OpenIddict.Client" />
         <PackageReference Include="OpenIddict.Client.AspNetCore" />
         <PackageReference Include="OpenIddict.Client.WebIntegration" />
@@ -35,7 +37,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\libs\Money.CoreLib\Money.CoreLib.csproj" />
         <ProjectReference Include="..\Money.Business\Money.Business.csproj" />
         <ProjectReference Include="..\Money.Common\Money.Common.csproj" />
         <ProjectReference Include="..\Money.Data\Money.Data.csproj" />

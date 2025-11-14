@@ -1,4 +1,4 @@
-﻿using Blazored.LocalStorage;
+using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
@@ -38,8 +38,8 @@ public partial class MainLayout(
             return;
         }
 
-        _appSettings.IsDarkModeSystem = await _mudThemeProvider.GetSystemPreference();
-        await _mudThemeProvider.WatchSystemPreference(OnSystemPreferenceChanged);
+        _appSettings.IsDarkModeSystem = await _mudThemeProvider.GetSystemDarkModeAsync();
+        await _mudThemeProvider.WatchSystemDarkModeAsync(OnSystemPreferenceChanged);
         _darkModeToggle.UpdateState();
         StateHasChanged();
 

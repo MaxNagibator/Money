@@ -57,20 +57,36 @@
         </EditForm>
 
         <MudDivider Class="my-4" />
-        <MudButton Color="Color.Primary"
-                   Variant="Variant.Filled"
-                   StartIcon="@Icons.Material.Filled.Login"
-                   OnClick="OnAuthLogin">
-            Войти через bob217.Auth
-        </MudButton>
-        <MudButton Color="Color.Secondary"
-                   Variant="Variant.Outlined"
-                   StartIcon="@Icons.Material.Filled.Login"
-                   OnClick="OnGitHubLogin">
-            Войти через GitHub
-        </MudButton>
 
-        <MudGrid Class="mt-4">
+        <MudStack Spacing="2">
+            <MudText Typo="Typo.h6">Вход через внешние сервисы</MudText>
+            <MudText Typo="Typo.caption"
+                     Color="Color.Info">
+                Используйте один из провайдеров ниже. Для входа требуется доступ к вашему email.
+            </MudText>
+
+            <MudStack AlignItems="AlignItems.Center">
+                <MudButton Color="Color.Secondary"
+                           FullWidth
+                           OnClick="OnAuthLogin"
+                           StartIcon="@Icons.Material.Filled.Login"
+                           Variant="Variant.Outlined">
+                    Войти через bob217.Auth
+                </MudButton>
+
+                <MudButton Color="Color.Secondary"
+                           FullWidth
+                           OnClick="OnGitHubLogin"
+                           StartIcon="@Icons.Custom.Brands.GitHub"
+                           Variant="Variant.Outlined">
+                    Войти через GitHub
+                </MudButton>
+            </MudStack>
+        </MudStack>
+
+        <MudDivider Class="my-4" />
+
+        <MudGrid>
             <MudItem md="12"
                      xs="12">
                 <MudLink Href="@(NavigationManager.GetUriWithReturnUrl("Account/Register", ReturnUrl).ToString())">
