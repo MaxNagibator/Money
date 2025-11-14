@@ -41,7 +41,7 @@ jobs:
           dotnet-quality: 'ga'
 
       - name: Install EF CLI
-        run: dotnet tool install --global dotnet-ef
+        run: dotnet tool install --global dotnet-ef --version 8.*
 
       - name: Restore backend dependencies
         run: dotnet restore
