@@ -1,31 +1,40 @@
-using ChartJs.Blazor.Common;
-using ChartJs.Blazor.PieChart;
-using Position = ChartJs.Blazor.Common.Enums.Position;
+﻿using Money.Web.Models.Charts.Config;
 
 namespace Money.Web.Models.Charts;
 
-public class PieChart : BaseChart<PieOptions>
+public sealed class PieChart : BaseChart
 {
     private ChartData Data => Config.Data;
 
-    public static PieChart Create(int operationTypeId)
+    public static PieChart Create(int operationTypeId, bool useThemeColors = true)
     {
+        var legend = new ChartLegend
+        {
+            Display = true,
+            Position = "right",
+            Labels = new()
+            {
+                BoxWidth = 50,
+            },
+        };
+
+        if (useThemeColors)
+        {
+            legend.Labels.Color = "var(--mud-palette-text-primary)";
+        }
+
         return new()
         {
-            Chart = new(),
-            Config = new PieConfig
+            Chart = null,
+            Config = new()
             {
+                Type = "pie",
                 Options = new()
                 {
                     Responsive = true,
-                    Legend = new()
+                    Plugins = new()
                     {
-                        Display = true,
-                        Position = Position.Right,
-                        Labels = new()
-                        {
-                            BoxWidth = 50,
-                        },
+                        Legend = legend,
                     },
                 },
             },
@@ -33,27 +42,53 @@ public class PieChart : BaseChart<PieOptions>
         };
     }
 
-    public Task UpdateAsync(List<OperationCategorySum> operations)
+    // TODO: Не работает + дублирование
+    public void UpdateTheme(bool useThemeColors)
+    {
+        var legend = Config.Options.Plugins?.Legend;
+
+        if (legend?.Labels == null)
+        {
+            return;
+        }
+
+        if (useThemeColors)
+        {
+            legend.Labels.Color = "var(--mud-palette-text-primary)";
+        }
+        else
+        {
+            legend.Labels.Color = null;
+        }
+    }
+
+    public ValueTask UpdateAsync(List<OperationCategorySum> operations)
     {
         Data.Datasets.Clear();
         Data.Labels.Clear();
 
         FillPieChart(operations);
 
-        return Chart.Update();
+        if (Chart != null)
+        {
+            return Chart.UpdateAsync();
+        }
+
+        return ValueTask.CompletedTask;
     }
 
     private void FillPieChart(List<OperationCategorySum> categorySums)
     {
-        PieDataset<decimal> dataset = [];
+        var dataset = new ChartDataset();
         Data.Datasets.Add(dataset);
 
         List<string> colors = [];
+        var index = 0;
 
         foreach (var category in categorySums.Where(x => x.ParentId == null && x.TotalSum != 0))
         {
             Data.Labels.Add(category.Name);
-            colors.Add(category.Color ?? Random.Shared.NextColor());
+            colors.Add(category.Color ?? ChartColors.GetColor(index++));
             dataset.Add(category.TotalSum);
         }
 

@@ -140,7 +140,7 @@
 
 <MudCard Class="mb-6">
     <MudCardHeader>
-        <MudText Typo="Typo.h6">Настройки отображения операций</MudText>
+        <MudText Typo="Typo.h6">Настройки отображения</MudText>
     </MudCardHeader>
     <MudCardContent>
         <MudText>
@@ -155,6 +155,20 @@
                                @onclick="() => AppSettings.ShowDividers = !AppSettings.ShowDividers" />
             </MudTooltip>
             <MudText Typo="Typo.body1">Показывать разделители в операциях</MudText>
+        </MudStack>
+        <MudDivider Class="my-4" />
+        <MudText>
+            Использовать цвета темы для графиков (адаптируются под темную/светлую тему). Если выключено, используются стандартные цвета Chart.js.
+        </MudText>
+        <MudStack AlignItems="AlignItems.Center"
+                  Row
+                  Spacing="2">
+            <MudTooltip Text="@(AppSettings.UseChartThemeColors ? "Включены" : "Выключены")">
+                <MudIconButton Color="@(AppSettings.UseChartThemeColors ? Color.Primary : Color.Default)"
+                               Icon="@(AppSettings.UseChartThemeColors ? Icons.Material.Rounded.Check : Icons.Material.Rounded.Close)"
+                               @onclick="() => AppSettings.UseChartThemeColors = !AppSettings.UseChartThemeColors" />
+            </MudTooltip>
+            <MudText Typo="Typo.body1">Использовать цвета темы на графиках</MudText>
         </MudStack>
     </MudCardContent>
 </MudCard>
