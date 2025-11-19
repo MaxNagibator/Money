@@ -1,10 +1,8 @@
-﻿using ChartJs.Blazor.BarChart;
-using ChartJs.Blazor.BarChart.Axes;
-using ChartJs.Blazor.Common;
+﻿using Money.Web.Models.Charts.Config;
 
 namespace Money.Web.Models.Charts;
 
-public class BarChart : BaseChart<BarOptions>
+public class BarChart : BaseChart
 {
     private static readonly Dictionary<TimeFrame.Mode, TimeFrame> TimeFrames = new()
     {
@@ -22,36 +20,66 @@ public class BarChart : BaseChart<BarOptions>
     private readonly int _daysBreakpoint = 31;
     private readonly int _weekBreakpoint = 140;
 
-    public static BarChart Create(int operationTypeId)
+    public static BarChart Create(int operationTypeId, bool useThemeColors = true)
     {
+        var scales = new Dictionary<string, ChartAxis>
+        {
+            ["x"] = new()
+            {
+                Stacked = true,
+            },
+            ["y"] = new()
+            {
+                Stacked = true,
+                BeginAtZero = true,
+            },
+        };
+
+        var legend = new ChartLegend
+        {
+            Display = true,
+            Position = "top",
+            Labels = new(),
+        };
+
+        if (useThemeColors)
+        {
+            scales["x"].Ticks = new()
+            {
+                Color = "var(--mud-palette-text-secondary)",
+            };
+
+            scales["x"].Grid = new()
+            {
+                Color = "var(--mud-palette-lines-default)",
+            };
+
+            scales["y"].Ticks = new()
+            {
+                Color = "var(--mud-palette-text-secondary)",
+            };
+
+            scales["y"].Grid = new()
+            {
+                Color = "var(--mud-palette-lines-default)",
+            };
+
+            legend.Labels.Color = "var(--mud-palette-text-primary)";
+        }
+
         return new()
         {
-            Chart = new(),
-            Config = new BarConfig
+            Chart = null,
+            Config = new()
             {
+                Type = "bar",
                 Options = new()
                 {
                     Responsive = true,
-                    Scales = new()
+                    Scales = scales,
+                    Plugins = new()
                     {
-                        XAxes =
-                        [
-                            new BarCategoryAxis
-                            {
-                                Stacked = true,
-                            },
-                        ],
-                        YAxes =
-                        [
-                            new BarLinearCartesianAxis
-                            {
-                                Stacked = true,
-                                Ticks = new()
-                                {
-                                    BeginAtZero = true,
-                                },
-                            },
-                        ],
+                        Legend = legend,
                     },
                 },
             },
@@ -59,7 +87,52 @@ public class BarChart : BaseChart<BarOptions>
         };
     }
 
-    public Task UpdateAsync(List<Operation>? operations, List<Category> categories, DateRange range)
+    // TODO: Не работает + дублирование
+    public void UpdateTheme(bool useThemeColors)
+    {
+        var scales = Config.Options.Scales;
+        var legend = Config.Options.Plugins?.Legend;
+
+        if (scales == null || legend?.Labels == null)
+        {
+            return;
+        }
+
+        if (useThemeColors)
+        {
+            if (scales.TryGetValue("x", out var xAxis))
+            {
+                xAxis.Ticks?.Color = "var(--mud-palette-text-secondary)";
+                xAxis.Grid?.Color = "var(--mud-palette-lines-default)";
+            }
+
+            if (scales.TryGetValue("y", out var yAxis))
+            {
+                yAxis.Ticks?.Color = "var(--mud-palette-text-secondary)";
+                yAxis.Grid?.Color = "var(--mud-palette-lines-default)";
+            }
+
+            legend.Labels.Color = "var(--mud-palette-text-primary)";
+        }
+        else
+        {
+            if (scales.TryGetValue("x", out var xAxis))
+            {
+                xAxis.Ticks?.Color = null;
+                xAxis.Grid?.Color = null;
+            }
+
+            if (scales.TryGetValue("y", out var yAxis))
+            {
+                yAxis.Ticks?.Color = null;
+                yAxis.Grid?.Color = null;
+            }
+
+            legend.Labels.Color = null;
+        }
+    }
+
+    public ValueTask UpdateAsync(List<Operation>? operations, List<Category> categories, DateRange range)
     {
         Config.Data.Datasets.Clear();
         Config.Data.Labels.Clear();
@@ -69,21 +142,26 @@ public class BarChart : BaseChart<BarOptions>
             FillBarChart(Config.Data, operations, categories, range);
         }
 
-        return Chart.Update();
+        if (Chart != null)
+        {
+            return Chart.UpdateAsync();
+        }
+
+        return ValueTask.CompletedTask;
     }
 
-    private static BarDataset<decimal?>[] CreateDatasets(ChartData configData, List<Category> categories)
+    private static ChartDataset[] CreateDatasets(ChartData configData, List<Category> categories)
     {
-        var datasets = new BarDataset<decimal?>[categories.Count];
+        var datasets = new ChartDataset[categories.Count];
 
         for (var i = 0; i < categories.Count; i++)
         {
             var category = categories[i];
 
-            var dataset = new BarDataset<decimal?>
+            var dataset = new ChartDataset
             {
                 Label = category.Name,
-                BackgroundColor = category.Color ?? Random.Shared.NextColor(),
+                BackgroundColor = category.Color ?? ChartColors.GetColor(i),
             };
 
             datasets[i] = dataset;

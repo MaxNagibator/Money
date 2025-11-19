@@ -1,38 +1,37 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
 
-    <PropertyGroup>
-        <ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
-        <EmccMaximumHeapSize>268435456</EmccMaximumHeapSize>
-        <BlazorWebAssemblyLoadAllGlobalizationData>true</BlazorWebAssemblyLoadAllGlobalizationData>
-    </PropertyGroup>
+  <PropertyGroup>
+    <ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
+    <EmccMaximumHeapSize>268435456</EmccMaximumHeapSize>
+    <BlazorWebAssemblyLoadAllGlobalizationData>true</BlazorWebAssemblyLoadAllGlobalizationData>
+  </PropertyGroup>
 
-    <PropertyGroup Condition="'$(Configuration)'!='DEBUG'">
-        <RunAOTCompilation>true</RunAOTCompilation>
-    </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'!='DEBUG'">
+    <RunAOTCompilation>true</RunAOTCompilation>
+  </PropertyGroup>
 
 
-    <ItemGroup>
-        <PackageReference Include="Blazored.LocalStorage" />
-        <PackageReference Include="ChartJs.Blazor.Fork" />
-        <PackageReference Include="CSharpFunctionalExtensions" />
-        <PackageReference Include="CSharpFunctionalExtensions.Analyzers">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" />
-        <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
-        <PackageReference Include="Microsoft.Extensions.Http" />
-        <PackageReference Include="Microsoft.Extensions.Http.Resilience" />
-        <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" />
-        <PackageReference Include="MudBlazor" />
-        <PackageReference Include="MudBlazor.Translations" />
-        <PackageReference Include="NCalc.DependencyInjection" />
-    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Blazored.LocalStorage" />
+    <PackageReference Include="CSharpFunctionalExtensions" />
+    <PackageReference Include="CSharpFunctionalExtensions.Analyzers">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
+    <PackageReference Include="Microsoft.Extensions.Http" />
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" />
+    <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" />
+    <PackageReference Include="MudBlazor" />
+    <PackageReference Include="MudBlazor.Translations" />
+    <PackageReference Include="NCalc.DependencyInjection" />
+  </ItemGroup>
 
-    <ItemGroup>
-        <ProjectReference Include="..\..\backend\Money.ApiClient\Money.ApiClient.csproj" />
-    </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\backend\Money.ApiClient\Money.ApiClient.csproj" />
+  </ItemGroup>
 
 </Project>

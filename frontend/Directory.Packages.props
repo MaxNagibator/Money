@@ -4,7 +4,6 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Blazored.LocalStorage" Version="4.5.0" />
-    <PackageVersion Include="ChartJs.Blazor.Fork" Version="2.0.2" />
     <PackageVersion Include="CSharpFunctionalExtensions" Version="3.6.0" />
     <PackageVersion Include="CSharpFunctionalExtensions.Analyzers" Version="1.4.1" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.10" />

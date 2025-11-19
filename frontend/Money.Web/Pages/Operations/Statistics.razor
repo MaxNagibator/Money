@@ -1,5 +1,5 @@
 ﻿@page "/statistics"
-@using ChartJs.Blazor
+@using Money.Web.Components.Charts
 @inherits OperationComponent
 @layout OperationsLayout
 
@@ -30,13 +30,13 @@
                               Row>
                         <MudButton EndIcon="@Icons.Material.Rounded.ExpandLess"
                                    FullWidth
-                                   OnClick="async () => await statistic.TreeView!.CollapseAllAsync()"
+                                   OnClick="() => statistic.TreeView?.CollapseAllAsync()"
                                    Variant="Variant.Outlined">
                             Свернуть
                         </MudButton>
                         <MudButton EndIcon="@Icons.Material.Rounded.ExpandMore"
                                    FullWidth
-                                   OnClick="async () => await statistic.TreeView!.ExpandAllAsync()"
+                                   OnClick="() => statistic.TreeView?.ExpandAllAsync()"
                                    Variant="Variant.Outlined">
                             Развернуть
                         </MudButton>

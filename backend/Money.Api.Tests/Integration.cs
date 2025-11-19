@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Money.Api.BackgroundServices;
 using Money.Data;
 using System.Collections.Concurrent;
 
@@ -28,6 +27,7 @@ public class Integration
             DbContextOptionsBuilder<ApplicationDbContext> optionsBuilder = new();
             optionsBuilder.UseNpgsql(connectionString);
             optionsBuilder.UseSnakeCaseNamingConvention();
+            optionsBuilder.EnableSensitiveDataLogging();
             var context = new ApplicationDbContext(optionsBuilder.Options);
             return context;
         }
