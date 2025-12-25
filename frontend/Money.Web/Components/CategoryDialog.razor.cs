@@ -32,6 +32,7 @@ public partial class CategoryDialog
     {
         Input = new()
         {
+            Id = Category.Id,
             Name = Category.Name,
             Order = Category.Order,
             Color = Category.Color,
@@ -46,6 +47,7 @@ public partial class CategoryDialog
 
         var saved = new Category
         {
+            Id = Input.Id,
             Name = Input.Name,
             Order = Input.Order,
             Color = Input.Color,
@@ -86,5 +88,7 @@ public partial class CategoryDialog
         public int? Order { get; set; }
 
         public string? Color { get; set; }
+
+        public int? Id { get; set; }
     }
 }
