@@ -3,21 +3,34 @@ using Money.Web.Models.Charts;
 
 namespace Money.Web.Pages.Operations;
 
-public partial class Statistics
+public sealed partial class Statistics : OperationComponent
 {
     private Dictionary<int, OperationTypeStatistics>? _typesStatistics;
     private List<Category>? _categories;
 
+    [CascadingParameter]
+    public AppSettings AppSettings { get; set; } = null!;
+
     [Inject]
     private CategoryService CategoryService { get; set; } = null!;
 
+    protected override void Dispose(bool disposing)
+    {
+        AppSettings.OnChange -= OnSettingsChanged;
+        base.Dispose(disposing);
+    }
+
     protected override async Task OnInitializedAsync()
     {
+        AppSettings.OnChange += OnSettingsChanged;
+
         Dictionary<int, OperationTypeStatistics> typesStatistics = [];
 
         foreach (var operationType in OperationTypes.Values.Select(x => x.Id))
         {
-            typesStatistics.Add(operationType, new(BarChart.Create(operationType), PieChart.Create(operationType)));
+            var barChart = BarChart.Create(operationType, AppSettings.UseChartThemeColors);
+            var pieChart = PieChart.Create(operationType, AppSettings.UseChartThemeColors);
+            typesStatistics.Add(operationType, new(barChart, pieChart));
         }
 
         _typesStatistics = typesStatistics;
@@ -41,7 +54,7 @@ public partial class Statistics
                                  .ToList()
                              ?? [];
 
-            tasks.Add(_typesStatistics![operationTypeId].BarChart.UpdateAsync(args.Operations, categories, OperationsFilter.DateRange));
+            tasks.Add(_typesStatistics![operationTypeId].BarChart.UpdateAsync(args.Operations, categories, OperationsFilter.DateRange).AsTask());
 
             if (_categories is not { Count: not 0 } || operationGroups == null)
             {
@@ -51,12 +64,12 @@ public partial class Statistics
             var cats = _categories.Where(x => x.OperationType.Id == operationTypeId).ToList();
             var categorySums = CalculateCategorySums(cats, operationGroups, null);
 
-            tasks.Add(_typesStatistics![operationTypeId].PieChart.UpdateAsync(categorySums));
+            tasks.Add(_typesStatistics![operationTypeId].PieChart.UpdateAsync(categorySums).AsTask());
             var sums = BuildChildren(categorySums);
 
             _typesStatistics[operationTypeId].Sums =
             [
-                new TreeItemData<OperationCategorySum>
+                new()
                 {
                     Value = new()
                     {
@@ -70,6 +83,32 @@ public partial class Statistics
 
         _ = Task.WhenAll(tasks);
         StateHasChanged();
+    }
+
+    private async void OnSettingsChanged(object? sender, EventArgs e)
+    {
+        if (_typesStatistics == null)
+        {
+            return;
+        }
+
+        foreach (var statistics in _typesStatistics.Values)
+        {
+            statistics.BarChart.UpdateTheme(AppSettings.UseChartThemeColors);
+            statistics.PieChart.UpdateTheme(AppSettings.UseChartThemeColors);
+
+            if (statistics.BarChart.Chart != null)
+            {
+                await statistics.BarChart.Chart.UpdateAsync();
+            }
+
+            if (statistics.PieChart.Chart != null)
+            {
+                await statistics.PieChart.Chart.UpdateAsync();
+            }
+        }
+
+        await InvokeAsync(StateHasChanged);
     }
 
     private List<TreeItemData<OperationCategorySum>> BuildChildren(List<OperationCategorySum> categories)
