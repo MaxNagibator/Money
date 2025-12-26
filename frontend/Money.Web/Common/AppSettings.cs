@@ -1,44 +1,44 @@
 ﻿namespace Money.Web.Common;
 
-public sealed class AppSettings
+public class AppSettings
 {
+    private bool _showDividers;
+    private bool _isDarkMode;
+    private bool _isDarkModeSystem;
+    private bool _isManualMode;
+    private bool _isSchedule;
+
     public event EventHandler? OnChange;
 
     public bool ShowDividers
     {
-        get;
-        set => SetValue(ref field, value);
+        get => _showDividers;
+        set => SetValue(ref _showDividers, value);
     }
-
-    public bool UseChartThemeColors
-    {
-        get;
-        set => SetValue(ref field, value);
-    } = true;
 
     // TODO: Переделать на состояния
     public bool IsDarkMode
     {
-        get;
-        set => SetValue(ref field, value);
+        get => _isDarkMode;
+        set => SetValue(ref _isDarkMode, value);
     }
 
     public bool IsDarkModeSystem
     {
-        get;
-        set => SetValue(ref field, value);
+        get => _isDarkModeSystem;
+        set => SetValue(ref _isDarkModeSystem, value);
     }
 
     public bool IsManualMode
     {
-        get;
-        set => SetValue(ref field, value);
+        get => _isManualMode;
+        set => SetValue(ref _isManualMode, value);
     }
 
     public bool IsSchedule
     {
-        get;
-        set => SetValue(ref field, value);
+        get => _isSchedule;
+        set => SetValue(ref _isSchedule, value);
     }
 
     private void SetValue(ref bool field, bool value)
