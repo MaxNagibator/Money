@@ -1,4 +1,4 @@
-using Money.Data.Extensions;
+﻿using Money.Data.Extensions;
 
 namespace Money.Business.Services;
 
@@ -9,6 +9,14 @@ public class CarsService(
 {
     public async Task<IEnumerable<Car>> GetAsync(CancellationToken cancellationToken = default)
     {
+
+        var car = await context.Cars.FirstAsync(cancellationToken);
+        car.Name = DateTime.Now + "machine";
+
+        var op = await context.Operations.FirstAsync(cancellationToken);
+        op.Sum = op.Sum + 1;
+        context.SaveChanges();
+
         var models = await context.Cars
             .IsUserEntity(environment.UserId)
             .OrderBy(x => x.Id)
