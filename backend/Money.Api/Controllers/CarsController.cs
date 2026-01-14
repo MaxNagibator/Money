@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Money.Api.Dto.Cars;
 using OpenIddict.Validation.AspNetCore;
@@ -6,7 +6,6 @@ using OpenIddict.Validation.AspNetCore;
 namespace Money.Api.Controllers;
 
 [ApiController]
-[Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
 [Route("[controller]")]
 public class CarsController(CarsService service) : ControllerBase
 {

@@ -8,7 +8,7 @@ public class AppSettings
     private bool _isManualMode;
     private bool _isSchedule;
 
-    public event EventHandler? OnChange;
+    public event EventHandler? OnChange;    
 
     public bool ShowDividers
     {

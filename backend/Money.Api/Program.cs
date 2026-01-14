@@ -1,4 +1,4 @@
-#pragma warning disable S2139
+﻿#pragma warning disable S2139
 using NLog;
 using NLog.Web;
 using System.Globalization;
@@ -19,7 +19,7 @@ try
     builder.AddDefinitions(typeof(Program));
 
     var app = builder.Build();
-
+    
     app.UseDefinitions();
 
     AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);

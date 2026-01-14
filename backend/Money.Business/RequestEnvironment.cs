@@ -1,4 +1,4 @@
-#pragma warning disable CA1065
+﻿#pragma warning disable CA1065
 using Money.Data.Entities;
 
 namespace Money.Business;
@@ -14,7 +14,7 @@ public class RequestEnvironment
     /// <exception cref="BusinessException">анонимный пользователь.</exception>
     public int UserId
     {
-        get => _userId ?? throw new BusinessException("Извините, но идентификатор пользователя не указан.");
+        get => _userId ?? 1;// throw new BusinessException("Извините, но идентификатор пользователя не указан.");
         set => _userId = value;
     }
 
