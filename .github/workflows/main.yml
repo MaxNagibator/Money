@@ -103,6 +103,9 @@ jobs:
         run: dotnet restore ${{ env.WEB_PROJECT_FILE }}
       
       - name: WEB Publish
+        env:
+          TMP: ${{ runner.temp }}
+          TEMP: ${{ runner.temp }}
         run: dotnet publish ${{ env.WEB_PROJECT_FILE }} -c ${{ github.event.inputs.configuration }} -o ${{ env.WEB_PUBLISH_FOLDER }}
       
       
