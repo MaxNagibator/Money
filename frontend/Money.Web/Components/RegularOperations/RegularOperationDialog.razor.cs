@@ -142,8 +142,10 @@ public partial class RegularOperationDialog
             Name = Input.Name,
             Sum = _smartSum.Sum ?? 0,
             Place = Input.Place,
-            DateFrom = Input.DateFrom!.Value,
-            DateTo = Input.DateTo,
+            DateFrom = DateTime.SpecifyKind(Input.DateFrom!.Value.Date, DateTimeKind.Unspecified),
+            DateTo = Input.DateTo.HasValue
+                ? DateTime.SpecifyKind(Input.DateTo.Value.Date, DateTimeKind.Unspecified)
+                : null,
             TimeTypeId = Input.TimeType.Id,
             TimeValue = Input.IsTimeValueAvailable ? Input.TimeValue : null,
         };

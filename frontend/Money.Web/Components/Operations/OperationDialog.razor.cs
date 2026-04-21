@@ -145,7 +145,7 @@ public partial class OperationDialog(
         {
             CategoryId = Input.Category?.Id ?? throw new MoneyException("Идентификатор отсутствует при сохранении операции"),
             Comment = Input.Comment,
-            Date = _smartDatePicker.Date!.Value,
+            Date = DateTime.SpecifyKind(_smartDatePicker.Date!.Value.Date, DateTimeKind.Unspecified),
             Sum = _smartSum.Sum ?? 0,
             Place = Input.Place,
         };

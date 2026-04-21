@@ -4,6 +4,33 @@ public partial class Home
 {
     private readonly List<VersionHistoryEntry> _versionHistory =
     [
+        new("1.3.0", new(2026, 4, 21), [
+            new("Исправлена ошибка со сдвигом даты операций, долгов и событий на предыдущий день в часовых поясах к востоку от UTC.", ChangeType.BugFix),
+            new("Переход на .NET 10.", ChangeType.Improvement),
+        ]),
+
+        new("1.2.12", new(2025, 12, 25), [
+            new("Исправлена ошибка редактирования категории: вместо сохранения изменений создавалась новая.", ChangeType.BugFix),
+        ]),
+
+        new("1.2.11", new(2025, 11, 19), [
+            new("Выполнен переход на Chart.js для отрисовки графиков.", ChangeType.Improvement),
+            new("Добавлена настройка использования цветов темы в графиках.", ChangeType.Feature),
+            new("Улучшена поддержка тем оформления в столбчатых и круговых диаграммах.", ChangeType.UiUx),
+        ]),
+
+        new("1.2.10", new(2025, 11, 11), [
+            new("Переделан компонент выбора места в операциях.", ChangeType.Improvement),
+            new("Приоритизирован текстовый ввод в компоненте выбора даты.", ChangeType.UiUx),
+            new("Удалена интеграция с Aspire.", ChangeType.General),
+            new("Исправлена плавающая проблема со StaticWebAssets.", ChangeType.BugFix),
+            new("Добавлена проверка наличия email при регистрации.", ChangeType.Improvement),
+        ]),
+
+        new("1.2.9", new(2025, 9, 17), [
+            new("Скорректировано выравнивание кнопок и сделан обязательным email при регистрации через внешние провайдеры.", ChangeType.UiUx),
+        ]),
+
         new("1.2.8", new(2025, 8, 20), [
             new("Интегрированы внешние провайдеры аутентификации: Auth и GitHub.", ChangeType.Feature),
             new("Добавлены кнопки входа для Auth и GitHub на странице входа.", ChangeType.UiUx),
@@ -211,7 +238,7 @@ public partial class Home
 
     private string GetCurrentVersion()
     {
-        return _versionHistory.FirstOrDefault()?.Version ?? "1.2.8";
+        return _versionHistory.FirstOrDefault()?.Version ?? "1.3.0";
     }
 
     private Color GetVersionColor(VersionHistoryEntry entry)

@@ -120,7 +120,7 @@ public partial class DebtDialog
             Sum = _smartSum.Sum ?? 0,
             Comment = Input.Comment,
             OwnerName = Input.OwnerName!,
-            Date = Input.Date!.Value,
+            Date = DateTime.SpecifyKind(Input.Date!.Value.Date, DateTimeKind.Unspecified),
         };
     }
 
