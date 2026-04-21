@@ -99,7 +99,7 @@ public partial class CarEventDialog
             TypeId = Input.Type!.Id,
             Comment = Input.Comment,
             Mileage = Input.Mileage,
-            Date = Input.Date!.Value,
+            Date = DateTime.SpecifyKind(Input.Date!.Value.Date, DateTimeKind.Unspecified),
         };
     }
 

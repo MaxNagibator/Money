@@ -153,7 +153,7 @@ public sealed partial class DebtCard : ComponentBase, IDisposable
         DebtClient.PayRequest request = new()
         {
             Comment = Payment.Comment,
-            Date = Payment.Date!.Value,
+            Date = DateTime.SpecifyKind(Payment.Date!.Value.Date, DateTimeKind.Unspecified),
             Sum = Payment.Sum,
         };
 
