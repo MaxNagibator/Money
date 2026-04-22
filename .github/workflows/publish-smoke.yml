@@ -134,13 +134,17 @@ jobs:
           echo "index.html not served"; exit 1
 
       - name: Check Blazor framework
+        working-directory: ${{ env.WEB_PUBLISH_FOLDER }}/wwwroot
         run: |
-          script_path=$(curl -fsS http://127.0.0.1:8080/index.html | grep -oE '_framework/blazor\.webassembly[^"]*\.js' | head -n 1)
-          if [ -z "$script_path" ]; then
-            echo "blazor.webassembly script not found in index.html"; exit 1
+          echo "Files in _framework/ (top 20):"
+          ls _framework/ | head -n 20
+          script=$(ls _framework/blazor.webassembly*.js 2>/dev/null | head -n 1)
+          if [ -z "$script" ]; then
+            echo "blazor.webassembly*.js not found in _framework/"; exit 1
           fi
-          echo "Checking /$script_path"
-          curl -fsS -o /dev/null "http://127.0.0.1:8080/$script_path"
+          script_name=$(basename "$script")
+          echo "Checking /_framework/$script_name"
+          curl -fsS -o /dev/null "http://127.0.0.1:8080/_framework/$script_name"
 
       - name: Stop server
         if: always()
