@@ -26,6 +26,8 @@ else
                   AdornmentIcon="@Icons.Material.Rounded.CalendarMonth"
                   @bind-Value="_dateText"
                   Clearable
+                  Error="@(_parseError != null)"
+                  ErrorText="@_parseError"
                   HelperText="дд.мм.гггг или сегодня/завтра/вчера"
                   Immediate
                   Label="Дата"

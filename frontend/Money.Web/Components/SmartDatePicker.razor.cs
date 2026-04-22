@@ -1,13 +1,17 @@
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using System.Globalization;
 using System.Linq.Expressions;
+using System.Text.RegularExpressions;
 
 namespace Money.Web.Components;
 
 public partial class SmartDatePicker : ComponentBase
 {
+    private static readonly string[] DateFormats = ["d.M.yyyy", "dd.MM.yyyy", "d.MM.yyyy", "dd.M.yyyy"];
+
     private bool _isDatePickerVisible;
     private string? _dateText = string.Empty;
+    private string? _parseError;
     private MudDatePicker? _datePicker;
 
     [Parameter]
@@ -42,6 +46,12 @@ public partial class SmartDatePicker : ComponentBase
             : Task.CompletedTask;
     }
 
+    [GeneratedRegex("^(после)*завтра$", RegexOptions.CultureInvariant)]
+    private static partial Regex FuturePattern();
+
+    [GeneratedRegex("^(поза)*вчера$", RegexOptions.CultureInvariant)]
+    private static partial Regex PastPattern();
+
     private async Task<bool> TryUpdateDateAsync()
     {
         if (_isDatePickerVisible)
@@ -57,10 +67,15 @@ public partial class SmartDatePicker : ComponentBase
 
             if (date == null)
             {
+                _parseError = string.IsNullOrWhiteSpace(_dateText)
+                    ? null
+                    : "Неверный формат даты. Используйте дд.мм.гггг или сегодня/завтра/вчера.";
+
                 return false;
             }
         }
 
+        _parseError = null;
         Date = date;
         _dateText = Date?.ToString("dd.MM.yyyy", CultureInfo.CurrentCulture);
         await DateChanged.InvokeAsync(Date);
@@ -77,9 +92,9 @@ public partial class SmartDatePicker : ComponentBase
 
     private async Task OpenDatePickerAsync()
     {
-        if (!string.IsNullOrWhiteSpace(_dateText))
+        if (!string.IsNullOrWhiteSpace(_dateText) && !await TryUpdateDateAsync())
         {
-            await TryUpdateDateAsync();
+            return;
         }
 
         _isDatePickerVisible = true;
@@ -125,16 +140,28 @@ public partial class SmartDatePicker : ComponentBase
         try
         {
             var normalizedText = _dateText.Trim().ToLowerInvariant();
+            var today = DateTime.Now.Date;
 
-            date = normalizedText switch
+            if (normalizedText == "сегодня")
             {
-                "сегодня" => DateTime.Now.Date,
-                "завтра" => DateTime.Now.Date.AddDays(1),
-                "вчера" => DateTime.Now.Date.AddDays(-1),
-                _ => null,
-            };
+                return today;
+            }
 
-            if (date == null && DateTime.TryParseExact(_dateText, "dd.MM.yyyy", CultureInfo.CurrentCulture, DateTimeStyles.None, out var parsedDate))
+            var futureMatch = FuturePattern().Match(normalizedText);
+
+            if (futureMatch.Success)
+            {
+                return today.AddDays(1 + futureMatch.Groups[1].Captures.Count);
+            }
+
+            var pastMatch = PastPattern().Match(normalizedText);
+
+            if (pastMatch.Success)
+            {
+                return today.AddDays(-(1 + pastMatch.Groups[1].Captures.Count));
+            }
+
+            if (DateTime.TryParseExact(normalizedText, DateFormats, CultureInfo.CurrentCulture, DateTimeStyles.None, out var parsedDate))
             {
                 date = parsedDate;
             }
