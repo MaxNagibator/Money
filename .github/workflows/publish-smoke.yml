@@ -1,0 +1,622 @@
+﻿name: Publish smoke
+
+on:
+  workflow_call:
+
+env:
+  API_PROJECT_FILE: backend/Money.Api/Money.Api.csproj
+  API_PUBLISH_FOLDER: publish/api
+  WEB_PROJECT_FILE: frontend/Money.Web/Money.Web.csproj
+  WEB_PUBLISH_FOLDER: publish/web
+
+jobs:
+  api-smoke:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: money
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore ${{ env.API_PROJECT_FILE }}
+
+      - name: Publish
+        run: dotnet publish ${{ env.API_PROJECT_FILE }} -c Release --no-restore -o ${{ env.API_PUBLISH_FOLDER }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-publish
+          path: ${{ env.API_PUBLISH_FOLDER }}
+          retention-days: 3
+
+      - name: Start API
+        working-directory: ${{ env.API_PUBLISH_FOLDER }}
+        env:
+          ASPNETCORE_ENVIRONMENT: Development
+          ASPNETCORE_URLS: http://127.0.0.1:5000
+          ConnectionStrings__ApplicationDbContext: Host=localhost;Port=5432;Username=postgres;Password=postgres;Database=money;Pooling=true;
+          AUTO_MIGRATE: "true"
+        run: |
+          nohup dotnet Money.Api.dll > api.log 2>&1 &
+          echo $! > api.pid
+
+      - name: Wait for /alive
+        run: |
+          for i in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:5000/alive; then
+              echo "alive OK"; exit 0
+            fi
+            sleep 2
+          done
+          echo "API did not become alive in 80s"; exit 1
+
+      - name: Check /health
+        run: curl -fsS http://127.0.0.1:5000/health
+
+      - name: Check /swagger
+        run: curl -fsS -o /dev/null -w "swagger=%{http_code}\n" http://127.0.0.1:5000/swagger/index.html
+
+      - name: Stop API
+        if: always()
+        run: |
+          if [ -f ${{ env.API_PUBLISH_FOLDER }}/api.pid ]; then
+            kill "$(cat ${{ env.API_PUBLISH_FOLDER }}/api.pid)" || true
+          fi
+
+      - name: Upload API log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-smoke-log
+          path: ${{ env.API_PUBLISH_FOLDER }}/api.log
+          retention-days: 3
+          if-no-files-found: ignore
+
+  web-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore workload
+        run: dotnet workload restore ${{ env.WEB_PROJECT_FILE }}
+
+      - name: Restore
+        run: dotnet restore ${{ env.WEB_PROJECT_FILE }}
+
+      - name: Publish
+        run: dotnet publish ${{ env.WEB_PROJECT_FILE }} -c Release --no-restore -o ${{ env.WEB_PUBLISH_FOLDER }} -p:RunAOTCompilation=false -p:BlazorEnableCompression=false
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-publish
+          path: ${{ env.WEB_PUBLISH_FOLDER }}/wwwroot
+          retention-days: 3
+
+      - name: Serve wwwroot
+        working-directory: ${{ env.WEB_PUBLISH_FOLDER }}/wwwroot
+        run: |
+          nohup python3 -m http.server 8080 > web.log 2>&1 &
+          echo $! > web.pid
+
+      - name: Check index.html
+        run: |
+          for i in $(seq 1 20); do
+            if curl -fsS -o /dev/null http://127.0.0.1:8080/index.html; then
+              echo "index.html OK"; exit 0
+            fi
+            sleep 1
+          done
+          echo "index.html not served"; exit 1
+
+      - name: Check Blazor framework
+        run: curl -fsS -o /dev/null http://127.0.0.1:8080/_framework/blazor.webassembly.js
+
+      - name: Stop server
+        if: always()
+        run: |
+          if [ -f ${{ env.WEB_PUBLISH_FOLDER }}/wwwroot/web.pid ]; then
+            kill "$(cat ${{ env.WEB_PUBLISH_FOLDER }}/wwwroot/web.pid)" || true
+          fi
+
+  integration-smoke:
+    needs: [api-smoke, web-smoke]
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: money
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      API_URL: http://127.0.0.1:5000
+      WEB_URL: http://127.0.0.1:8080
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Download API artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: api-publish
+          path: api-publish
+
+      - name: Download Web artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: web-publish
+          path: web-publish
+
+      - name: Patch Web appsettings.json to point at API
+        run: |
+          cat > web-publish/appsettings.json <<EOF
+          {
+            "Services": {
+              "api": { "https": [ "${{ env.API_URL }}" ] }
+            }
+          }
+          EOF
+          cat web-publish/appsettings.json
+
+      - name: Start API
+        working-directory: api-publish
+        env:
+          ASPNETCORE_ENVIRONMENT: Development
+          ASPNETCORE_URLS: http://127.0.0.1:5000
+          ConnectionStrings__ApplicationDbContext: Host=localhost;Port=5432;Username=postgres;Password=postgres;Database=money;Pooling=true;
+          AUTO_MIGRATE: "true"
+          CORS_ORIGIN: http://127.0.0.1:8080
+        run: |
+          nohup dotnet Money.Api.dll > api.log 2>&1 &
+          echo $! > api.pid
+
+      - name: Wait for API /alive
+        run: |
+          for i in $(seq 1 40); do
+            curl -fsS ${{ env.API_URL }}/alive && exit 0
+            sleep 2
+          done
+          echo "API did not become alive"; exit 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install static server (SPA-capable)
+        run: npm install -g serve@14
+
+      - name: Serve Web (SPA fallback to index.html)
+        working-directory: web-publish
+        run: |
+          nohup serve -s . -l tcp://127.0.0.1:8080 --no-request-logging > web.log 2>&1 &
+          echo $! > web.pid
+
+      - name: Wait for Web
+        run: |
+          for i in $(seq 1 40); do
+            curl -fsS -o /dev/null ${{ env.WEB_URL }}/index.html && exit 0
+            sleep 1
+          done
+          echo "Web not serving"; cat web-publish/web.log || true; exit 1
+
+      - name: Web serves patched appsettings.json
+        run: |
+          body=$(curl -fsS ${{ env.WEB_URL }}/appsettings.json)
+          echo "$body"
+          echo "$body" | grep -q "127.0.0.1:5000" || { echo "appsettings not patched"; exit 1; }
+
+      - name: CORS preflight from Web origin
+        run: |
+          resp=$(curl -sS -D - -o /dev/null -X OPTIONS \
+            -H "Origin: ${{ env.WEB_URL }}" \
+            -H "Access-Control-Request-Method: GET" \
+            -H "Access-Control-Request-Headers: authorization,content-type" \
+            ${{ env.API_URL }}/connect/authorize)
+          echo "$resp"
+          echo "$resp" | tr -d '\r' | grep -iq "^access-control-allow-origin: ${{ env.WEB_URL }}$" \
+            || { echo "CORS Allow-Origin mismatch"; exit 1; }
+
+      - name: OIDC discovery from Web origin
+        run: |
+          body=$(curl -fsS -H "Origin: ${{ env.WEB_URL }}" ${{ env.API_URL }}/.well-known/openid-configuration)
+          echo "$body" | head -c 500
+          echo "$body" | grep -q "authorization_endpoint" \
+            || { echo "OIDC discovery response invalid"; exit 1; }
+
+      - name: Install Playwright
+        run: |
+          npm init -y >/dev/null
+          npm i -D @playwright/test >/dev/null
+          npx playwright install chromium --with-deps
+
+      - name: Write Playwright smoke script
+        run: |
+          mkdir -p smoke
+          cat > smoke/smoke.mjs <<'JS'
+          import { chromium } from '@playwright/test';
+
+          const WEB = process.env.WEB_URL;
+          const API = process.env.API_URL;
+
+          const IGNORED_404 = [
+            '/_framework/aspnetcore-browser-refresh.js',
+          ];
+
+          const failures = [];
+          const browser = await chromium.launch();
+          const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+          const page = await context.newPage();
+
+          const consoleErrors = [];
+          page.on('console', (msg) => {
+            if (msg.type() === 'error') consoleErrors.push(msg.text());
+          });
+
+          const apiResponses = [];
+          const badResponses = [];
+          page.on('response', (resp) => {
+            const url = resp.url();
+            const status = resp.status();
+            if (url.startsWith(API)) apiResponses.push({ url, status });
+            if (status >= 400 && !IGNORED_404.some((s) => url.endsWith(s))) {
+              badResponses.push({ url, status });
+            }
+          });
+
+          console.log('[phase 1] Anonymous landing');
+          await page.goto(WEB, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+          await page.waitForFunction(
+            () => !document.querySelector('#app .loading-bg'),
+            null,
+            { timeout: 90_000 },
+          );
+          await page.waitForSelector('.mud-layout, .mud-container, form', { timeout: 30_000 });
+          await page.waitForTimeout(2000);
+
+          const corsProbe = await page.evaluate(async (api) => {
+            try {
+              const r = await fetch(`${api}/.well-known/openid-configuration`, { mode: 'cors' });
+              return { ok: r.ok, status: r.status };
+            } catch (e) {
+              return { ok: false, error: String(e) };
+            }
+          }, API);
+          console.log('CORS probe:', JSON.stringify(corsProbe));
+
+          const errorUiVisible = await page.evaluate(() => {
+            const el = document.getElementById('blazor-error-ui');
+            return el && getComputedStyle(el).display !== 'none';
+          });
+          if (errorUiVisible) failures.push('Blazor error UI visible after anonymous load');
+          if (!corsProbe.ok) failures.push(`CORS probe failed: ${JSON.stringify(corsProbe)}`);
+
+          await page.screenshot({ path: 'smoke/anonymous.png', fullPage: true });
+
+          console.log('[phase 2] Auth flow');
+          const creds = { username: `smoke${Date.now()}`, password: 'SmokePass123!' };
+
+          const register = await page.evaluate(async ({ api, u, p }) => {
+            const r = await fetch(`${api}/accounts/register`, {
+              method: 'POST',
+              headers: { 'content-type': 'application/json' },
+              body: JSON.stringify({ UserName: u, Password: p }),
+            });
+            return { status: r.status, body: await r.text() };
+          }, { api: API, u: creds.username, p: creds.password });
+          console.log('Register:', register.status, register.body?.slice?.(0, 200) ?? '');
+          if (register.status !== 204) failures.push(`Register failed: ${JSON.stringify(register)}`);
+
+          const token = await page.evaluate(async ({ api, u, p }) => {
+            const r = await fetch(`${api}/connect/token`, {
+              method: 'POST',
+              headers: { 'content-type': 'application/x-www-form-urlencoded' },
+              body: new URLSearchParams({ grant_type: 'password', username: u, password: p }).toString(),
+              credentials: 'include',
+            });
+            const text = await r.text();
+            let body;
+            try { body = JSON.parse(text); } catch { body = text; }
+            return { status: r.status, body };
+          }, { api: API, u: creds.username, p: creds.password });
+          console.log('Token status:', token.status);
+          if (token.status !== 200 || !token.body?.access_token) {
+            failures.push(`Token exchange failed: ${JSON.stringify(token).slice(0, 400)}`);
+          }
+
+          if (token.body?.access_token) {
+            // Blazored.LocalStorage serializes strings as JSON → must store JSON-encoded
+            await page.evaluate(({ a, r }) => {
+              localStorage.setItem('authToken', JSON.stringify(a));
+              localStorage.setItem('refreshToken', JSON.stringify(r));
+            }, { a: token.body.access_token, r: token.body.refresh_token ?? '' });
+
+            const authApiBefore = apiResponses.length;
+
+            await page.goto(`${WEB}/categories`, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+            await page.waitForFunction(
+              () => !document.querySelector('#app .loading-bg'),
+              null,
+              { timeout: 90_000 },
+            );
+            await page.waitForSelector('.mud-tabs, .mud-container, .mud-progress-circular', { timeout: 30_000 });
+            await page.waitForTimeout(3000);
+
+            await page.screenshot({ path: 'smoke/authenticated.png', fullPage: true });
+
+            const authApiCalls = apiResponses.slice(authApiBefore);
+            const categoriesOk = authApiCalls.some(
+              (c) => c.url.includes('/Categories') && c.status === 200,
+            );
+            if (!categoriesOk) {
+              failures.push(
+                `No successful GET /Categories after login. API calls after login: ${JSON.stringify(authApiCalls).slice(0, 500)}`,
+              );
+            }
+
+            const errorUiVisible2 = await page.evaluate(() => {
+              const el = document.getElementById('blazor-error-ui');
+              return el && getComputedStyle(el).display !== 'none';
+            });
+            if (errorUiVisible2) failures.push('Blazor error UI visible on /categories');
+          }
+
+          console.log('All API responses:', JSON.stringify(apiResponses, null, 2));
+          console.log('Non-ignored bad responses:', JSON.stringify(badResponses, null, 2));
+          console.log('Console errors:', consoleErrors);
+
+          if (badResponses.length) failures.push(`Unexpected bad responses: ${JSON.stringify(badResponses)}`);
+          const apiFailed = apiResponses.filter((c) => c.status >= 500);
+          if (apiFailed.length) failures.push(`API 5xx during run: ${JSON.stringify(apiFailed)}`);
+
+          await browser.close();
+
+          if (failures.length) {
+            console.error('SMOKE FAILED:\n - ' + failures.join('\n - '));
+            process.exit(1);
+          }
+          console.log('SMOKE OK');
+          JS
+
+      - name: Run Playwright smoke
+        run: node smoke/smoke.mjs
+
+      - name: Upload smoke screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-smoke-screenshots
+          path: |
+            smoke/anonymous.png
+            smoke/authenticated.png
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Stop processes
+        if: always()
+        run: |
+          [ -f api-publish/api.pid ] && kill "$(cat api-publish/api.pid)" || true
+          [ -f web-publish/web.pid ] && kill "$(cat web-publish/web.pid)" || true
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-smoke-logs
+          path: |
+            api-publish/api.log
+            web-publish/web.log
+          retention-days: 3
+          if-no-files-found: ignore
+
+  smoke-report:
+    needs: [api-smoke, web-smoke, integration-smoke]
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Download publish artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: '*-publish'
+
+      - name: Fetch job timings
+        id: timings
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          jobs_json=$(gh api --paginate \
+            "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs")
+
+          duration_secs() {
+            local suffix="$1"
+            echo "$jobs_json" | jq -r --arg s "$suffix" '
+              [.jobs[]
+                | select(.name | endswith($s))
+                | select(.started_at and .completed_at)
+                | ((.completed_at | fromdateiso8601) - (.started_at | fromdateiso8601))
+              ] | first // 0
+            ' | awk '{printf "%d\n", $1}'
+          }
+
+          fmt() {
+            local s=${1:-0}
+            if [ "$s" -ge 60 ]; then
+              printf '%dm %02ds' $((s/60)) $((s%60))
+            else
+              printf '%ds' "$s"
+            fi
+          }
+
+          api_s=$(duration_secs '/ api-smoke')
+          web_s=$(duration_secs '/ web-smoke')
+          int_s=$(duration_secs '/ integration-smoke')
+          total_s=$(( ${api_s:-0} + ${web_s:-0} + ${int_s:-0} ))
+
+          {
+            echo "api_dur=$(fmt "$api_s")"
+            echo "web_dur=$(fmt "$web_s")"
+            echo "int_dur=$(fmt "$int_s")"
+            echo "total_dur=$(fmt "$total_s")"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "api=$api_s web=$web_s int=$int_s total=$total_s"
+
+      - name: Compute metrics
+        id: metrics
+        run: |
+          api_bytes=$(du -sb artifacts/api-publish 2>/dev/null | awk '{print $1}')
+          web_bytes=$(du -sb artifacts/web-publish 2>/dev/null | awk '{print $1}')
+          api_mb=$(awk "BEGIN{printf \"%.2f\", ${api_bytes:-0}/1048576}")
+          web_mb=$(awk "BEGIN{printf \"%.2f\", ${web_bytes:-0}/1048576}")
+
+          top_wasm=$(du -b artifacts/web-publish/_framework/*.wasm 2>/dev/null \
+            | sort -rn | head -5 \
+            | awk '{ sub("artifacts/web-publish/", "", $2); printf "- `%s` — %.2f MB\n", $2, $1/1048576 }')
+          [ -z "$top_wasm" ] && top_wasm="_(нет .wasm файлов)_"
+
+          {
+            echo "api_mb=$api_mb"
+            echo "web_mb=$web_mb"
+            echo "top_wasm<<EOF"
+            echo "$top_wasm"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Build report
+        env:
+          API_RESULT: ${{ needs.api-smoke.result }}
+          WEB_RESULT: ${{ needs.web-smoke.result }}
+          INTEGRATION_RESULT: ${{ needs.integration-smoke.result }}
+          API_MB: ${{ steps.metrics.outputs.api_mb }}
+          WEB_MB: ${{ steps.metrics.outputs.web_mb }}
+          TOP_WASM: ${{ steps.metrics.outputs.top_wasm }}
+          API_DUR: ${{ steps.timings.outputs.api_dur }}
+          WEB_DUR: ${{ steps.timings.outputs.web_dur }}
+          INT_DUR: ${{ steps.timings.outputs.int_dur }}
+          TOTAL_DUR: ${{ steps.timings.outputs.total_dur }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          COMMIT_SHA: ${{ github.sha }}
+          COMMIT_SHORT: ${{ github.sha }}
+          REF_NAME: ${{ github.ref_name }}
+          EVENT_NAME: ${{ github.event_name }}
+          ACTOR: ${{ github.actor }}
+          REPO: ${{ github.repository }}
+          SERVER_URL: ${{ github.server_url }}
+        run: |
+          mark() {
+            case "$1" in
+              success) echo "passed";;
+              skipped) echo "skipped";;
+              cancelled) echo "cancelled";;
+              *) echo "failed";;
+            esac
+          }
+
+          short_sha="${COMMIT_SHA:0:7}"
+          overall="success"
+          for r in "$API_RESULT" "$WEB_RESULT" "$INTEGRATION_RESULT"; do
+            if [ "$r" != "success" ] && [ "$r" != "skipped" ]; then
+              overall="failure"
+              break
+            fi
+          done
+
+          {
+            echo '## Publish smoke'
+            echo ''
+            echo "Результат: **$(mark "$overall")**"
+            echo ''
+            echo '| | |'
+            echo '| --- | --- |'
+            echo "| Прогон | [#${{ github.run_number }}]($RUN_URL) |"
+            echo "| Коммит | [\`$short_sha\`]($SERVER_URL/$REPO/commit/$COMMIT_SHA) |"
+            echo "| Ветка | \`$REF_NAME\` |"
+            echo "| Триггер | \`$EVENT_NAME\` |"
+            echo "| Автор | @$ACTOR |"
+            echo "| Суммарное время | $TOTAL_DUR |"
+            echo ''
+            echo '### Проверки'
+            echo ''
+            echo '| Проверка | Статус | Время | Что проверяет |'
+            echo '| --- | --- | ---: | --- |'
+            echo "| \`api-smoke\` | $(mark "$API_RESULT") | $API_DUR | publish, запуск, \`/alive\`, \`/health\`, \`/swagger\` |"
+            echo "| \`web-smoke\` | $(mark "$WEB_RESULT") | $WEB_DUR | publish WASM, отдача \`index.html\`, \`blazor.webassembly.js\` |"
+            echo "| \`integration-smoke\` | $(mark "$INTEGRATION_RESULT") | $INT_DUR | CORS preflight, OIDC discovery, Playwright (anonymous + authenticated) |"
+            echo ''
+            echo '### Размеры публикации'
+            echo ''
+            echo '| Артефакт | Размер |'
+            echo '| --- | ---: |'
+            echo "| API (\`Money.Api\`, net8.0) | $API_MB MB |"
+            echo "| Web (\`wwwroot\`, WASM) | $WEB_MB MB |"
+            echo ''
+            echo '<details>'
+            echo '<summary>Крупнейшие модули</summary>'
+            echo ''
+            echo "$TOP_WASM"
+            echo ''
+            echo '</details>'
+            echo ''
+            echo '### Артефакты'
+            echo ''
+            echo "- [\`integration-smoke-screenshots\`]($RUN_URL#artifacts) — скриншоты anonymous + authenticated"
+            echo "- [\`integration-smoke-logs\`, \`api-smoke-log\`]($RUN_URL#artifacts) — логи API и веб-сервера"
+            echo "- [\`api-publish\`, \`web-publish\`]($RUN_URL#artifacts) — опубликованные бинарники"
+            echo ''
+            echo "[Полный лог прогона]($RUN_URL)"
+          } > report.md
+
+          echo '--- report.md ---'
+          cat report.md
+
+      - name: Job summary
+        run: cat report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Sticky PR comment
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: publish-smoke
+          path: report.md
