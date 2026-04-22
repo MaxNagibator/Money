@@ -16,6 +16,7 @@ public partial class OperationsFilter
 
     private CategorySelector? _categorySelector;
     private CategorySelector? _changeCategorySelector;
+    private MudDateRangePicker? _dateRangePicker;
     private List<Operation>? _operations;
 
     private bool _showZeroDays;
@@ -89,6 +90,16 @@ public partial class OperationsFilter
         var interval = DateIntervals.FirstOrDefault(interval => interval.DisplayName == key);
         await OnDateIntervalChanged(interval);
         await SearchAsync();
+    }
+
+    private void OnDateRangePickerChanged(DateRange? value)
+    {
+        if (value is null && _dateRangePicker is { Converter.GetError: true })
+        {
+            return;
+        }
+
+        DateRange = value ?? new();
     }
 
     private async Task OnDateIntervalChanged(DateInterval? value)
