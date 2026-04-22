@@ -2,6 +2,7 @@
          Outlined
          Style="transition: transform 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); height: 100%;"
          @onclick="OnMouseClicked"
+         @onmouseenter="OnMouseEnter"
          @onmouseleave="OnMouseLeave">
     <MudCardContent Style="padding: 8px 12px">
         <MudCollapse Expanded="_isExpandedSummary">
@@ -102,7 +103,7 @@
                 <MudIconButton Color="Color.Primary"
                                Icon="@Icons.Material.Rounded.Payment"
                                Size="Size.Small"
-                               OnClick="() => _idOpen = true"
+                               OnClick="ShowPaymentDialog"
                                Class="hover-scale" />
             </MudTooltip>
 

@@ -1,0 +1,17 @@
+﻿[
+  {
+    "Name": "Money",
+    "Projects": [
+      {
+        "Path": "backend\\Money.Api\\Money.Api.csproj",
+        "Action": "Start",
+        "DebugTarget": "https"
+      },
+      {
+        "Path": "frontend\\Money.Web\\Money.Web.csproj",
+        "Action": "Start",
+        "DebugTarget": "https"
+      }
+    ]
+  }
+]

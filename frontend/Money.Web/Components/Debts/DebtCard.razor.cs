@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Money.ApiClient;
 using System.ComponentModel.DataAnnotations;
@@ -83,15 +83,16 @@ public sealed partial class DebtCard : ComponentBase, IDisposable
         _isExpanded = !_isExpanded;
     }
 
+    private void OnMouseEnter()
+    {
+        StopCollapseTimer();
+    }
+
     private void OnMouseLeave()
     {
         if (_isExpanded == false)
         {
-            if (_isTimerRunning)
-            {
-                _debounceTimer?.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-            }
-
+            StopCollapseTimer();
             return;
         }
 
@@ -102,6 +103,24 @@ public sealed partial class DebtCard : ComponentBase, IDisposable
 
         _isTimerRunning = true;
         _debounceTimer?.Change(TimeSpan.FromMilliseconds(1000), Timeout.InfiniteTimeSpan);
+    }
+
+    private void StopCollapseTimer()
+    {
+        if (_isTimerRunning == false)
+        {
+            return;
+        }
+
+        _debounceTimer?.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        _isTimerRunning = false;
+    }
+
+    private void ShowPaymentDialog()
+    {
+        var remaining = Math.Max(0, Model.Sum - Model.PaySum);
+        Payment = new(DateTime.Now, remaining, string.Empty);
+        _idOpen = true;
     }
 
     private void OnTimerElapsed(object? state)

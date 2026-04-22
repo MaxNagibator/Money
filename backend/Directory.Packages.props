@@ -4,7 +4,6 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="8.10.0" />
-    <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="8.2.2" />
     <PackageVersion Include="OpenIddict.Client" Version="5.8.0" />
     <PackageVersion Include="OpenIddict.Client.AspNetCore" Version="5.8.0" />
     <PackageVersion Include="OpenIddict.Client.WebIntegration" Version="5.8.0" />

@@ -28,6 +28,9 @@
           rel="stylesheet" />
     <link href="_content/MudBlazor/MudBlazor.min.css"
           rel="stylesheet" />
+
+    <link id="webassembly" rel="preload" />
+    <script type="importmap"></script>
 </head>
 
 <body>
@@ -41,11 +44,11 @@
         Извините, произошла ошибка.
         Пожалуйста, попробуйте снова.
         <a class="reload"
-           href="">Перезагрузить</a>
+           href=".">Перезагрузить</a>
         <a class="dismiss">Закрыть</a>
     </div>
     <script src="_content/Microsoft.AspNetCore.Components.WebAssembly.Authentication/AuthenticationService.js"></script>
-    <script src="_framework/blazor.webassembly.js"></script>
+    <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
 
     <script src="js/chart.min.js"></script>

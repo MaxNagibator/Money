@@ -1,13 +1,53 @@
+﻿html, body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+h1:focus {
+    outline: none;
+}
+
+a, .btn-link {
+    color: #0071c1;
+}
+
+.btn-primary {
+    color: #fff;
+    border-color: #1861ac;
+    background-color: #1b6ec2;
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+.content {
+    padding-top: 1.1rem;
+}
+
+.valid.modified:not([type=checkbox]) {
+    outline: 1px solid #26b050;
+}
+
+.invalid {
+    outline: 1px solid red;
+}
+
+.validation-message {
+    color: red;
+}
+
 #blazor-error-ui {
     position: fixed;
     z-index: 1000;
     bottom: 0;
     left: 0;
     display: none;
+    box-sizing: border-box;
     width: 100%;
     padding: 0.6rem 1.25rem 0.7rem 1.25rem;
     background: lightyellow;
     box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    color-scheme: light only;
 }
 
 #blazor-error-ui .dismiss {
@@ -25,6 +65,29 @@
 
 .blazor-error-boundary::after {
     content: "An error has occurred."
+}
+
+.loading-progress {
+    position: absolute;
+    display: block;
+    width: 8rem;
+    height: 8rem;
+    margin: 0 auto 0 auto;
+    inset: 20vh 0 auto 0;
+}
+
+.loading-progress circle {
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+    fill: none;
+    stroke: #e0e0e0;
+    stroke-width: 0.6rem;
+}
+
+.loading-progress circle:last-child {
+    transition: stroke-dasharray 0.05s ease-in-out;
+    stroke: #1b6ec2;
+    stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
 }
 
 .loading-progress-text {
@@ -51,9 +114,22 @@
     background-size: cover;
 }
 
+code {
+    color: #c02d76;
+}
+
 .large-text {
     overflow: hidden;
     max-width: 100%;
     white-space: nowrap;
     text-overflow: ellipsis;
+}
+
+.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
+    text-align: end;
+    color: var(--bs-secondary-color);
+}
+
+.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
+    text-align: start;
 }

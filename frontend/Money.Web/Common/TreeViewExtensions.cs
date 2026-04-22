@@ -1,4 +1,4 @@
-namespace Money.Web.Common;
+﻿namespace Money.Web.Common;
 
 public static class TreeViewExtensions
 {
@@ -17,7 +17,7 @@ public static class TreeViewExtensions
             .ToList();
     }
 
-    public static void Filter<T>(this IEnumerable<TreeItemData<T>> treeItemData, string text)
+    public static void Filter<T>(this IEnumerable<ITreeItemData<T>> treeItemData, string text)
     {
         foreach (var itemData in treeItemData)
         {
@@ -30,7 +30,7 @@ public static class TreeViewExtensions
         }
     }
 
-    public static bool IsVisible<T>(this TreeItemData<T> treeItemData, string searchTerm)
+    public static bool IsVisible<T>(this ITreeItemData<T> treeItemData, string searchTerm)
     {
         if (treeItemData.HasChildren)
         {

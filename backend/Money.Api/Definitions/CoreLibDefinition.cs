@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Diagnostics.HealthChecks;
+﻿using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Money.Api.Definitions;
 
@@ -11,12 +11,9 @@ public class CoreLibDefinition : AppDefinition
         builder.Services.AddHealthChecks()
             .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
 
-        builder.Services.AddServiceDiscovery();
-
         builder.Services.ConfigureHttpClientDefaults(http =>
         {
             http.AddStandardResilienceHandler();
-            http.AddServiceDiscovery();
         });
     }
 

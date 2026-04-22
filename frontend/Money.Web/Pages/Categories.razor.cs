@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Money.ApiClient;
 
 namespace Money.Web.Pages;
@@ -124,8 +124,14 @@ public partial class Categories
             return;
         }
 
-        parentItem.Children ??= [];
-        parentItem.Children.Add(addedItem);
+        if (parentItem.Children is List<TreeItemData<Category>> children)
+        {
+            children.Add(addedItem);
+        }
+        else
+        {
+            parentItem.Children = new List<TreeItemData<Category>> { addedItem };
+        }
     }
 
     private void SortTree(int operationTypeId)
@@ -134,9 +140,10 @@ public partial class Categories
         StateHasChanged();
     }
 
-    private List<TreeItemData<Category>> SortChildren(IEnumerable<TreeItemData<Category>> categories)
+    private List<TreeItemData<Category>> SortChildren(IEnumerable<ITreeItemData<Category>> categories)
     {
         var sortedCategories = categories
+            .Cast<TreeItemData<Category>>()
             .OrderBy(item => item.Value?.Order == null)
             .ThenBy(item => item.Value?.Order)
             .ThenBy(item => item.Value?.Name)
@@ -153,14 +160,14 @@ public partial class Categories
         return sortedCategories;
     }
 
-    private TreeItemData<Category>? SearchParentTreeItem(List<TreeItemData<Category>>? list, int id)
+    private TreeItemData<Category>? SearchParentTreeItem(IReadOnlyCollection<ITreeItemData<Category>>? list, int id)
     {
         if (list == null)
         {
             return null;
         }
 
-        foreach (var item in list)
+        foreach (var item in list.OfType<TreeItemData<Category>>())
         {
             if (item.Value?.Id == id)
             {

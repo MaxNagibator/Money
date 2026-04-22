@@ -53,6 +53,13 @@ jobs:
     if: ${{ github.event.inputs.tag != 'production' }}
     uses: ./.github/workflows/frontend.yml
 
+  publish-smoke:
+    if: ${{ github.event.inputs.tag != 'production' }}
+    permissions:
+      contents: read
+      pull-requests: write
+    uses: ./.github/workflows/publish-smoke.yml
+
   build-and-deploy:
     runs-on:
       labels: BobGroupWindowsServer
@@ -61,15 +68,15 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup .NET Core SDK ${{ env.DOTNET_VERSION }}
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
-      
+
       - name: API Restore dependencies
         run: dotnet restore ${{ env.API_PROJECT_FILE }}
-      
+
       - name: API Publish
         run: dotnet publish ${{ env.API_PROJECT_FILE }} -c ${{ github.event.inputs.configuration }} -o ${{ env.API_PUBLISH_FOLDER }}
 
@@ -81,34 +88,33 @@ jobs:
           $SambaServer = "192.168.0.17"
           $SambaShare = "publish"
           $DestDir = "\\$SambaServer\$SambaShare\bob217money\production\api"
-      
+          
           # Подключаем SMB-шару с аутентификацией
           net use \\$SambaServer\$SambaShare /user:$env:SAMBA_USER $env:SAMBA_PASS /persistent:no
-      
+          
           # Создаем папку назначения (если её нет)
           if (-not (Test-Path -Path $DestDir)) {
             New-Item -ItemType Directory -Path $DestDir -Force | Out-Null
           }
-      
+          
           # Копируем всё содержимое (рекурсивно)
           Copy-Item -Path "${{ env.API_PUBLISH_FOLDER }}\*" -Destination $DestDir -Recurse -Force -Exclude "web.config", "appsettings.json", "nlog.config"
-      
+          
           # Отключаем шару
           net use \\$SambaServer\$SambaShare /delete /y
-      
+
       - name: Restore workload
         run: dotnet workload restore ${{ env.WEB_PROJECT_FILE }}
-      
+
       - name: WEB Restore dependencies
         run: dotnet restore ${{ env.WEB_PROJECT_FILE }}
-      
+
       - name: WEB Publish
         env:
           TMP: ${{ runner.temp }}
           TEMP: ${{ runner.temp }}
-        run: dotnet publish ${{ env.WEB_PROJECT_FILE }} -c ${{ github.event.inputs.configuration }} -o ${{ env.WEB_PUBLISH_FOLDER }}
-      
-      
+        run: dotnet publish ${{ env.WEB_PROJECT_FILE }} -c ${{ github.event.inputs.configuration }} -o ${{ env.WEB_PUBLISH_FOLDER }} ${{ github.event.inputs.configuration == 'debug' && '-p:RunAOTCompilation=false -p:BlazorEnableCompression=false' || '' }}
+
       - name: WEB Copy new files
         env:
           SAMBA_USER: ${{ vars.SAMBA_USER }}
@@ -117,17 +123,17 @@ jobs:
           $SambaServer = "192.168.0.17"
           $SambaShare = "publish"
           $DestDir = "\\$SambaServer\$SambaShare\bob217money\production\web"
-      
+          
           # Подключаем SMB-шару с аутентификацией
           net use \\$SambaServer\$SambaShare /user:$env:SAMBA_USER $env:SAMBA_PASS /persistent:no
-      
+          
           # Создаем папку назначения (если её нет)
           if (-not (Test-Path -Path $DestDir)) {
             New-Item -ItemType Directory -Path $DestDir -Force | Out-Null
           }
-      
+          
           # Копируем всё содержимое (рекурсивно)
           Copy-Item -Path "${{ env.WEB_PUBLISH_FOLDER }}\*" -Destination $DestDir -Recurse -Force -Exclude "web.config", "appsettings.json", "nlog.config"
-      
+          
           # Отключаем шару
           net use \\$SambaServer\$SambaShare /delete /y

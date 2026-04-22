@@ -1,5 +1,6 @@
-﻿<CascadingAuthenticationState>
-    <Router AppAssembly="@typeof(App).Assembly">
+﻿@using Money.Web.Pages
+<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(App).Assembly" NotFoundPage="typeof(NotFound)">
         <Found Context="routeData">
             <AuthorizeRouteView DefaultLayout="@typeof(MainLayout)"
                                 RouteData="@routeData">
@@ -20,14 +21,5 @@
             <FocusOnNavigate RouteData="@routeData"
                              Selector="h1" />
         </Found>
-        <NotFound>
-            <PageTitle>Страница не найдена</PageTitle>
-            <LayoutView Layout="@typeof(MainLayout)">
-                <MudAlert Severity="Severity.Warning">
-                    Извините, но мы не можем найти запрашиваемую страницу.
-                    Пожалуйста, проверьте адрес или вернитесь на главную страницу.
-                </MudAlert>
-            </LayoutView>
-        </NotFound>
     </Router>
 </CascadingAuthenticationState>

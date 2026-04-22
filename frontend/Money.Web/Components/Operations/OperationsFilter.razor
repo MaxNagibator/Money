@@ -49,14 +49,16 @@
                 {
                     <MudDateRangePicker Adornment="Adornment.Start"
                                         AdornmentColor="Color.Tertiary"
-                                        @bind-DateRange="@DateRange"
                                         Clearable
                                         Color="Color.Tertiary"
                                         DateFormat="dd.MM.yyyy"
+                                        DateRange="DateRange"
+                                        DateRangeChanged="OnDateRangePickerChanged"
                                         Editable
                                         Label="Диапазон дат"
                                         Mask="@(new DateMask("dd.MM.yyyy"))"
                                         PickerVariant="PickerVariant.Inline"
+                                        @ref="_dateRangePicker"
                                         Rounded
                                         ShowWeekNumbers />
                 }
@@ -65,7 +67,7 @@
                     <MudDatePicker Adornment="Adornment.Start"
                                    AdornmentColor="Color.Tertiary"
                                    AnchorOrigin="Origin.BottomLeft"
-                                   @bind-Date="@DateRange.Start"
+                                   @bind-Date="StartDate"
                                    Clearable
                                    Color="Color.Tertiary"
                                    DateFormat="dd.MM.yyyy"
@@ -77,7 +79,7 @@
                     <MudDatePicker Adornment="Adornment.Start"
                                    AdornmentColor="Color.Tertiary"
                                    AnchorOrigin="Origin.BottomRight"
-                                   @bind-Date="@DateRange.End"
+                                   @bind-Date="EndDate"
                                    Clearable
                                    Color="Color.Tertiary"
                                    DateFormat="dd.MM.yyyy"
@@ -107,7 +109,7 @@
             <MudTextField Adornment="Adornment.Start"
                           AdornmentColor="Color.Tertiary"
                           AdornmentIcon="@Icons.Material.Rounded.Comment"
-                          AutoGrow
+                          Sizing="InputSizing.Auto"
                           @bind-Value="Comment"
                           Clearable
                           Immediate
@@ -135,7 +137,8 @@
                                          Variant="Variant.Filled" />
                 </MudTooltip>
 
-                <MudTooltip Text="@(_showChangeCategorySelector ? "Отменить перенос" : "Перекинуть все отображённые на странице операции в выбранную категорию")">
+                <MudTooltip
+                    Text="@(_showChangeCategorySelector ? "Отменить перенос" : "Перекинуть все отображённые на странице операции в выбранную категорию")">
                     <MudToggleIconButton Color="Color.Tertiary"
                                          Icon="@Icons.Material.Rounded.MoveToInbox"
                                          Size="Size.Medium"
