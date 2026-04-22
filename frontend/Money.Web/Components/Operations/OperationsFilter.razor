@@ -67,7 +67,7 @@
                     <MudDatePicker Adornment="Adornment.Start"
                                    AdornmentColor="Color.Tertiary"
                                    AnchorOrigin="Origin.BottomLeft"
-                                   @bind-Date="@DateRange.Start"
+                                   @bind-Date="StartDate"
                                    Clearable
                                    Color="Color.Tertiary"
                                    DateFormat="dd.MM.yyyy"
@@ -79,7 +79,7 @@
                     <MudDatePicker Adornment="Adornment.Start"
                                    AdornmentColor="Color.Tertiary"
                                    AnchorOrigin="Origin.BottomRight"
-                                   @bind-Date="@DateRange.End"
+                                   @bind-Date="EndDate"
                                    Clearable
                                    Color="Color.Tertiary"
                                    DateFormat="dd.MM.yyyy"
@@ -109,7 +109,7 @@
             <MudTextField Adornment="Adornment.Start"
                           AdornmentColor="Color.Tertiary"
                           AdornmentIcon="@Icons.Material.Rounded.Comment"
-                          AutoGrow
+                          Sizing="InputSizing.Auto"
                           @bind-Value="Comment"
                           Clearable
                           Immediate

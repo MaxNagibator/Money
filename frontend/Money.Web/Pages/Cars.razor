@@ -25,7 +25,6 @@
          ApplyEffectsToContainer
          Elevation="4"
          HeaderPosition="TabHeaderPosition.Before"
-         PanelClass="px-4 py-6"
          Rounded>
     <Header>
         <MudTooltip Text="Добавить авто">
@@ -45,7 +44,7 @@
                     <MudTextField Adornment="Adornment.Start"
                                   AdornmentColor="Color.Tertiary"
                                   AdornmentIcon="@Icons.Material.Rounded.Comment"
-                                  AutoGrow
+                                  Sizing="InputSizing.Auto"
                                   @bind-Value="_addCarName"
                                   Clearable
                                   Immediate
@@ -75,6 +74,7 @@
         @foreach (var car in _cars)
         {
             <MudTabPanel ID="@car.Id"
+                         PanelClass="px-4 py-6"
                          ShowCloseIcon="false"
                          Text="@car.Name">
                 <MudStack AlignItems="AlignItems.Center"

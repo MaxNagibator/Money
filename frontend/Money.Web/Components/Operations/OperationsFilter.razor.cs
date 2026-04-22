@@ -1,4 +1,4 @@
-using Blazored.LocalStorage;
+﻿using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components;
 using Money.ApiClient;
 
@@ -6,6 +6,9 @@ namespace Money.Web.Components.Operations;
 
 public partial class OperationsFilter
 {
+    private const string DateRangeStartKey = nameof(DateRange) + ".Start";
+    private const string DateRangeEndKey = nameof(DateRange) + ".End";
+
     private static readonly List<DateInterval> DateIntervals =
     [
         new("День", "ий день", time => time, time => time, (time, direction) => time.AddDays(direction)),
@@ -39,6 +42,18 @@ public partial class OperationsFilter
     private string? Comment { get; set; }
     private string? Place { get; set; }
     private DateInterval? SelectedRange { get; set; }
+
+    private DateTime? StartDate
+    {
+        get => DateRange.Start;
+        set => _ = SetDateRangeAsync(new(value, DateRange.End));
+    }
+
+    private DateTime? EndDate
+    {
+        get => DateRange.End;
+        set => _ = SetDateRangeAsync(new(DateRange.Start, value));
+    }
 
     public async Task SearchAsync()
     {
@@ -86,20 +101,28 @@ public partial class OperationsFilter
 
     protected override async Task OnInitializedAsync()
     {
+        var savedStart = await StorageService.GetItemAsync<DateTime?>(DateRangeStartKey);
+        var savedEnd = await StorageService.GetItemAsync<DateTime?>(DateRangeEndKey);
+
+        if (savedStart.HasValue || savedEnd.HasValue)
+        {
+            DateRange = new(savedStart, savedEnd);
+        }
+
         var key = await StorageService.GetItemAsync<string?>(nameof(SelectedRange));
         var interval = DateIntervals.FirstOrDefault(interval => interval.DisplayName == key);
         await OnDateIntervalChanged(interval);
         await SearchAsync();
     }
 
-    private void OnDateRangePickerChanged(DateRange? value)
+    private async Task OnDateRangePickerChanged(DateRange? value)
     {
-        if (value is null && _dateRangePicker is { Converter.GetError: true })
+        if (value is null && _dateRangePicker is { ConversionError: true })
         {
             return;
         }
 
-        DateRange = value ?? new();
+        await SetDateRangeAsync(value ?? new DateRange());
     }
 
     private async Task OnDateIntervalChanged(DateInterval? value)
@@ -113,7 +136,14 @@ public partial class OperationsFilter
         }
     }
 
-    private Task UpdateDateRangeAsync(DateInterval value)
+    private async Task SetDateRangeAsync(DateRange value)
+    {
+        DateRange = value;
+        await StorageService.SetItemAsync(DateRangeStartKey, value.Start);
+        await StorageService.SetItemAsync(DateRangeEndKey, value.End);
+    }
+
+    private async Task UpdateDateRangeAsync(DateInterval value)
     {
         DateTime start;
 
@@ -130,19 +160,19 @@ public partial class OperationsFilter
             start = value.Start.Invoke(DateTime.Today);
         }
 
-        DateRange = new(start, value.End.Invoke(start));
-        return SearchAsync();
+        await SetDateRangeAsync(new(start, value.End.Invoke(start)));
+        await SearchAsync();
     }
 
-    private Task UpdateDateRangeAsync(Func<DateRange, DateRange> updateFunction)
+    private async Task UpdateDateRangeAsync(Func<DateRange, DateRange> updateFunction)
     {
         if (SelectedRange == null)
         {
-            return Task.CompletedTask;
+            return;
         }
 
-        DateRange = updateFunction.Invoke(DateRange);
-        return SearchAsync();
+        await SetDateRangeAsync(updateFunction.Invoke(DateRange));
+        await SearchAsync();
     }
 
     private Task ResetAsync()

@@ -1,4 +1,4 @@
-@if (_isDatePickerVisible)
+﻿@if (_isDatePickerVisible)
 {
     <div style="position: relative;">
         <MudDatePicker @ref="_datePicker"
@@ -15,7 +15,7 @@
                        OnClick="SwitchToTextInputAsync"
                        Size="Size.Small"
                        Style="position: absolute; right: 24px; top: 65%; transform: translateY(-50%); z-index: 1000;"
-                       Title="Текстовый ввод" />
+                       title="Текстовый ввод" />
         @* TODO: По идее Style и сама кнопка не нужна, т. к. всегда при закрытии переключится, но на всякий случай *@
     </div>
 }
