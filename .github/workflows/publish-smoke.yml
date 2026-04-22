@@ -134,7 +134,13 @@ jobs:
           echo "index.html not served"; exit 1
 
       - name: Check Blazor framework
-        run: curl -fsS -o /dev/null http://127.0.0.1:8080/_framework/blazor.webassembly.js
+        run: |
+          script_path=$(curl -fsS http://127.0.0.1:8080/index.html | grep -oE '_framework/blazor\.webassembly[^"]*\.js' | head -n 1)
+          if [ -z "$script_path" ]; then
+            echo "blazor.webassembly script not found in index.html"; exit 1
+          fi
+          echo "Checking /$script_path"
+          curl -fsS -o /dev/null "http://127.0.0.1:8080/$script_path"
 
       - name: Stop server
         if: always()
@@ -582,7 +588,7 @@ jobs:
             echo '| Проверка | Статус | Время | Что проверяет |'
             echo '| --- | --- | ---: | --- |'
             echo "| \`api-smoke\` | $(mark "$API_RESULT") | $API_DUR | publish, запуск, \`/alive\`, \`/health\`, \`/swagger\` |"
-            echo "| \`web-smoke\` | $(mark "$WEB_RESULT") | $WEB_DUR | publish WASM, отдача \`index.html\`, \`blazor.webassembly.js\` |"
+            echo "| \`web-smoke\` | $(mark "$WEB_RESULT") | $WEB_DUR | publish WASM, отдача \`index.html\`, \`blazor.webassembly*.js\` |"
             echo "| \`integration-smoke\` | $(mark "$INTEGRATION_RESULT") | $INT_DUR | CORS preflight, OIDC discovery, Playwright (anonymous + authenticated) |"
             echo ''
             echo '### Размеры публикации'
@@ -615,7 +621,7 @@ jobs:
         run: cat report.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Sticky PR comment
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: publish-smoke
