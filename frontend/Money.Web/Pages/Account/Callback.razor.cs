@@ -1,5 +1,4 @@
-﻿using CSharpFunctionalExtensions;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Money.Web.Services.Authentication;
 
 namespace Money.Web.Pages.Account;

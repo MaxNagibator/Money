@@ -23,11 +23,6 @@ else
     apiUri = new($"https://{apiEndpoint}");
 }
 
-builder.Services.ConfigureHttpClientDefaults(http =>
-{
-    http.AddStandardResilienceHandler();
-});
-
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 

@@ -1,5 +1,4 @@
 ﻿using Blazored.LocalStorage;
-using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Components.WebAssembly.Http;
 using Money.ApiClient;
 using System.Net.Http.Json;

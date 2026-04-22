@@ -1,5 +1,4 @@
 ﻿using Blazored.LocalStorage;
-using CSharpFunctionalExtensions;
 
 namespace Money.Web.Services.Authentication;
 

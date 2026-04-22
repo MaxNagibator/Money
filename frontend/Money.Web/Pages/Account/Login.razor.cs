@@ -1,5 +1,4 @@
-﻿using CSharpFunctionalExtensions;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Money.Web.Services.Authentication;
 using System.ComponentModel.DataAnnotations;
