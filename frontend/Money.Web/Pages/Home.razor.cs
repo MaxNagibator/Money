@@ -1,9 +1,15 @@
-namespace Money.Web.Pages;
+﻿namespace Money.Web.Pages;
 
 public partial class Home
 {
     private readonly List<VersionHistoryEntry> _versionHistory =
     [
+        new("1.3.1", new(2026, 4, 22), [
+            new("Добавлена подсказка ранее заполненных держателей при создании долга.", ChangeType.Feature),
+            new("Исправлено сворачивание окна оплаты долга при наведении курсора.", ChangeType.BugFix),
+            new("Сумма платежа предзаполняется остатком долга.", ChangeType.UiUx),
+        ]),
+
         new("1.3.0", new(2026, 4, 21), [
             new("Исправлена ошибка со сдвигом даты операций, долгов и событий на предыдущий день в часовых поясах к востоку от UTC.", ChangeType.BugFix),
             new("Переход на .NET 10.", ChangeType.Improvement),
