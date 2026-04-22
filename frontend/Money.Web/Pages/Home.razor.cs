@@ -4,6 +4,10 @@ public partial class Home
 {
     private readonly List<VersionHistoryEntry> _versionHistory =
     [
+        new("1.3.8", new(2026, 4, 22), [
+            new("Убрана поддержка PWA: приложение больше не устанавливается как отдельная программа и не работает в офлайне.", ChangeType.General),
+        ]),
+
         new("1.3.7", new(2026, 4, 22), [
             new("Цвета осей, сетки и легенды на графиках статистики теперь сразу принимают цвета новой темы при переключении светлой и тёмной.", ChangeType.BugFix),
         ]),
