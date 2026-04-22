@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Money.ApiClient;
 using System.ComponentModel.DataAnnotations;
@@ -8,6 +8,7 @@ namespace Money.Web.Components.Operations;
 public partial class OperationDialog(
     MoneyClient moneyClient,
     CategoryService categoryService,
+    PlaceService placeService,
     ISnackbar snackbarService)
 {
     private SmartSum _smartSum = null!;
@@ -107,6 +108,11 @@ public partial class OperationDialog(
 
             await SaveAsync();
             snackbarService.Add("Успех!", Severity.Success);
+
+            if (!string.IsNullOrWhiteSpace(Input.Place) && Input.Place != Operation.Place)
+            {
+                placeService.InvalidateCache();
+            }
 
             Operation.Category = Input.Category ?? throw new MoneyException("Категория операции не может быть null");
             Operation.Comment = Input.Comment;

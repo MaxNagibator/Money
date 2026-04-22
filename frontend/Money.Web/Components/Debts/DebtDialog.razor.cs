@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Money.ApiClient;
 using System.ComponentModel.DataAnnotations;
 
@@ -30,6 +30,9 @@ public partial class DebtDialog
 
     [Inject]
     private MoneyClient MoneyClient { get; set; } = null!;
+
+    [Inject]
+    private DebtOwnerService DebtOwnerService { get; set; } = null!;
 
     [Inject]
     private ISnackbar SnackbarService { get; set; } = null!;
@@ -79,6 +82,11 @@ public partial class DebtDialog
 
             await SaveAsync();
             SnackbarService.Add("Успех!", Severity.Success);
+
+            if (!string.IsNullOrWhiteSpace(Input.OwnerName) && Input.OwnerName != Model.OwnerName)
+            {
+                DebtOwnerService.InvalidateCache();
+            }
 
             Model.Type = Input.Type!;
             Model.Sum = _smartSum.Sum ?? 0;

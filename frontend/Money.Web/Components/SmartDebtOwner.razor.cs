@@ -124,12 +124,12 @@ public sealed partial class SmartDebtOwner(DebtOwnerService debtOwnerService) : 
         return Task.CompletedTask;
     }
 
-    private Task OnTextChangedAsync(string? value)
+    private async Task OnTextChangedAsync(string? value)
     {
         _currentText = value;
         _selectedIndex = -1;
+        await ValueChanged.InvokeAsync(_currentText);
         StartSearchDebounced();
-        return Task.CompletedTask;
     }
 
     private void StartSearchDebounced()

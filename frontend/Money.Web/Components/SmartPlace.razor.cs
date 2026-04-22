@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using System.Linq.Expressions;
 using Timer = System.Timers.Timer;
@@ -121,12 +121,12 @@ public sealed partial class SmartPlace(PlaceService placeService) : IDisposable
         return Task.CompletedTask;
     }
 
-    private Task OnTextChangedAsync(string? value)
+    private async Task OnTextChangedAsync(string? value)
     {
         _currentText = value;
         _selectedIndex = -1;
+        await ValueChanged.InvokeAsync(_currentText);
         StartSearchDebounced();
-        return Task.CompletedTask;
     }
 
     private void StartSearchDebounced()
