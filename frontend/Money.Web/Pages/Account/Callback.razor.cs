@@ -13,6 +13,9 @@ public partial class Callback
     private AuthenticationService AuthenticationService { get; set; } = null!;
 
     [Inject]
+    private AuthStateProvider AuthStateProvider { get; set; } = null!;
+
+    [Inject]
     private NavigationManager NavigationManager { get; set; } = null!;
 
     [Inject]
@@ -21,8 +24,9 @@ public partial class Callback
     protected override Task OnInitializedAsync()
     {
         return AuthenticationService.ExchangeExternalAsync()
+            .Tap(() => AuthStateProvider.NotifyUserAuthentication())
             .TapError(message => Snackbar.Add($"Ошибка во время входа {message}", Severity.Error))
             .Map(() => ReturnUrl ?? "operations")
-            .Tap(x => NavigationManager.ReturnTo(x));
+            .Tap(x => NavigationManager.ReturnToSafe(x));
     }
 }

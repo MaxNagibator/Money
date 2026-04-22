@@ -1,16 +1,47 @@
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 
 namespace Money.Web.Common;
 
 public static class NavigationManagerExtensions
 {
-    public static Uri GetUriWithReturnUrl(this NavigationManager navigationManager, string url, string? returnUrl)
+    private static string SanitizeReturnUrl(NavigationManager navigationManager, string? url)
     {
-        return new(navigationManager.GetUriWithQueryParameters(url, new Dictionary<string, object?> { ["ReturnUrl"] = returnUrl }), UriKind.Relative);
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            return navigationManager.BaseUri;
+        }
+
+        if (Uri.TryCreate(url, UriKind.Absolute, out var absolute))
+        {
+            var baseUri = new Uri(navigationManager.BaseUri);
+
+            if (Uri.Compare(absolute, baseUri, UriComponents.SchemeAndServer, UriFormat.SafeUnescaped, StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                return absolute.ToString();
+            }
+
+            return navigationManager.BaseUri;
+        }
+
+        if (url.StartsWith("//", StringComparison.Ordinal) || url.StartsWith('\\'))
+        {
+            return navigationManager.BaseUri;
+        }
+
+        return url;
     }
 
-    public static void ReturnTo(this NavigationManager navigationManager, string? url, bool forceLoad = false)
+    extension(NavigationManager navigationManager)
     {
-        navigationManager.NavigateTo(url ?? navigationManager.BaseUri, forceLoad);
+        public Uri GetUriWithReturnUrl(string url, string? returnUrl)
+        {
+            return new(navigationManager.GetUriWithQueryParameters(url, new Dictionary<string, object?> { ["ReturnUrl"] = returnUrl }), UriKind.Relative);
+        }
+
+        public void ReturnToSafe(string? url, bool forceLoad = false)
+        {
+            var target = SanitizeReturnUrl(navigationManager, url);
+            navigationManager.NavigateTo(target, forceLoad);
+        }
     }
 }

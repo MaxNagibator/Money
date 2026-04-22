@@ -1,4 +1,4 @@
-using Blazored.LocalStorage;
+﻿using Blazored.LocalStorage;
 using System.Security.Claims;
 
 namespace Money.Web.Services.Authentication;
@@ -20,9 +20,17 @@ public class AuthStateProvider(ILocalStorageService localStorage, JwtParser jwtP
 
     public async Task NotifyUserAuthentication()
     {
+        _userLastCheck = DateTimeOffset.FromUnixTimeSeconds(0L);
         var user = await GetUser();
         var state = new AuthenticationState(user);
         NotifyAuthenticationStateChanged(Task.FromResult(state));
+    }
+
+    public void MarkUserAsLoggedOut()
+    {
+        _cachedUser = _anonymous.User;
+        _userLastCheck = DateTimeOffset.UtcNow;
+        NotifyAuthenticationStateChanged(Task.FromResult(_anonymous));
     }
 
     private async Task<ClaimsPrincipal> GetUser(bool useCache = false)

@@ -1,4 +1,4 @@
-using Blazored.LocalStorage;
+﻿using Blazored.LocalStorage;
 
 namespace Money.Web.Services.Authentication;
 
@@ -19,15 +19,15 @@ public class RefreshTokenHandler(RefreshTokenService refreshTokenService, ILocal
 
         var result = await refreshTokenService.TryRefreshToken();
 
-        if (result.IsSuccess && string.IsNullOrEmpty(result.Value) == false)
+        if (result.IsSuccess && !string.IsNullOrEmpty(result.Value))
         {
             request.Headers.Authorization = new("Bearer", result.Value);
         }
         else
         {
-            var existingToken = await localStorage.GetItemAsync<string>("authToken", cancellationToken);
+            var existingToken = await localStorage.GetItemAsync<string>(AuthenticationService.AccessTokenKey, cancellationToken);
 
-            if (string.IsNullOrEmpty(existingToken) == false)
+            if (!string.IsNullOrEmpty(existingToken))
             {
                 request.Headers.Authorization = new("Bearer", existingToken);
             }

@@ -1,4 +1,4 @@
-using CSharpFunctionalExtensions;
+﻿using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Money.Web.Services.Authentication;
@@ -18,6 +18,9 @@ public partial class Login
     private AuthenticationService AuthenticationService { get; set; } = null!;
 
     [Inject]
+    private AuthStateProvider AuthStateProvider { get; set; } = null!;
+
+    [Inject]
     private NavigationManager NavigationManager { get; set; } = null!;
 
     [Inject]
@@ -28,9 +31,10 @@ public partial class Login
         var user = new UserDto(Input.Login, Input.Password);
 
         return AuthenticationService.LoginAsync(user)
+            .Tap(() => AuthStateProvider.NotifyUserAuthentication())
             .TapError(message => Snackbar.Add($"Ошибка во время входа {message}", Severity.Error))
             .Map(() => ReturnUrl ?? "operations")
-            .Tap(x => NavigationManager.ReturnTo(x));
+            .Tap(x => NavigationManager.ReturnToSafe(x));
     }
 
     protected override void OnParametersSet()
