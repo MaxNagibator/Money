@@ -47,7 +47,7 @@
     <MudMainContent Class="pt-3 px-8">
         <MudContainer Gutters
                       MaxWidth="MaxWidth.Large">
-            <ErrorBoundary>
+            <ErrorBoundary @ref="_errorBoundary">
                 <ChildContent>
                     <CascadingValue IsFixed="true"
                                     Value="_appSettings">
@@ -71,6 +71,13 @@
                         Извините, произошла ошибка.
                         Пожалуйста, попробуйте снова.
                     </MudAlert>
+                    <MudButton Class="mt-3"
+                               Color="Color.Primary"
+                               OnClick="RecoverFromError"
+                               StartIcon="@Icons.Material.Rounded.Refresh"
+                               Variant="Variant.Filled">
+                        Повторить
+                    </MudButton>
                 </ErrorContent>
             </ErrorBoundary>
         </MudContainer>
