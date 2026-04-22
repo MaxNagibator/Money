@@ -159,6 +159,25 @@ public class DebtsController(DebtsService service) : ControllerBase
     }
 
     /// <summary>
+    /// Получить список держателей долга с фильтрацией по имени.
+    /// </summary>
+    /// <param name="offset">Сдвиг.</param>
+    /// <param name="count">Количество.</param>
+    /// <param name="name">Необязательный фильтр по имени.</param>
+    /// <param name="cancellationToken">Токен отмены запроса.</param>
+    /// <returns>Имена держателей долга.</returns>
+    [HttpGet("Owners/{offset:int:min(0)}/{count:int:range(1,100)}")]
+    [HttpGet("Owners/{offset:int:min(0)}/{count:int:range(1,100)}/{name:maxlength(100)}")]
+    [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetOwners(int offset, int count, string? name = null, CancellationToken cancellationToken = default)
+    {
+        var owners = await service.GetOwnersAsync(offset, count, name, cancellationToken);
+        return Ok(owners.Select(x => x.Name));
+    }
+
+    /// <summary>
     /// Простить долг.
     /// </summary>
     /// <param name="request">Данные для прощения долга.</param>

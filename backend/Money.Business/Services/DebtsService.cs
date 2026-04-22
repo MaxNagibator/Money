@@ -177,6 +177,57 @@ public class DebtsService(
         return dbDebtUsers;
     }
 
+    public Task<List<DebtOwner>> GetOwnersAsync(int offset, int count, string? name, CancellationToken cancellationToken = default)
+    {
+        var dbOwnerIdsByDebts = context.Debts
+            .IsUserEntity(environment.UserId)
+            .Select(x => x.OwnerId);
+
+        var query = context.DebtOwners
+            .IsUserEntity(environment.UserId)
+            .Where(x => dbOwnerIdsByDebts.Contains(x.Id));
+
+        var hasFilter = string.IsNullOrWhiteSpace(name) == false;
+
+        if (hasFilter)
+        {
+            var containsPattern = $"%{EscapeLikePattern(name!)}%";
+            query = query.Where(x => EF.Functions.ILike(x.Name, containsPattern, "\\"));
+        }
+
+        IOrderedQueryable<Data.Entities.DebtOwner> ordered;
+
+        if (hasFilter)
+        {
+            var startsWithPattern = $"{EscapeLikePattern(name!)}%";
+            ordered = query
+                .OrderByDescending(x => EF.Functions.ILike(x.Name, startsWithPattern, "\\"))
+                .ThenBy(x => x.Name);
+        }
+        else
+        {
+            ordered = query.OrderBy(x => x.Name);
+        }
+
+        return ordered
+            .Skip(offset)
+            .Take(count)
+            .Select(x => new DebtOwner
+            {
+                Id = x.Id,
+                Name = x.Name,
+            })
+            .ToListAsync(cancellationToken);
+    }
+
+    private static string EscapeLikePattern(string value)
+    {
+        return value
+            .Replace("\\", "\\\\", StringComparison.Ordinal)
+            .Replace("%", "\\%", StringComparison.Ordinal)
+            .Replace("_", "\\_", StringComparison.Ordinal);
+    }
+
     public async Task ForgiveAsync(int[] debtIds, int operationCategoryId, string? operationComment, CancellationToken cancellationToken = default)
     {
         var entities = await context.Debts

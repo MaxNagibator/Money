@@ -10,12 +10,8 @@
         <DialogContent>
             <MudGrid>
                 <MudItem xs="12">
-                    <MudTextField AdornmentColor="Color.Tertiary"
-                                  AdornmentIcon="@Icons.Material.Rounded.Comment"
-                                  AutoGrow
-                                  @bind-Value="Input.OwnerName"
-                                  For="() => Input.OwnerName"
-                                  Label="Держатель" />
+                    <SmartDebtOwner @bind-Value="Input.OwnerName"
+                                    For="() => Input.OwnerName" />
                 </MudItem>
 
                 <MudItem xs="12">

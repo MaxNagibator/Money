@@ -52,6 +52,12 @@ public class DebtClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
         return GetAsync<DebtOwner[]>($"{BaseUri}/Owners");
     }
 
+    public Task<ApiClientResponse<string[]>> GetOwners(int offset, int count, string? name = null, CancellationToken token = default)
+    {
+        var postfixUri = string.IsNullOrWhiteSpace(name) ? string.Empty : $"/{Uri.EscapeDataString(name)}";
+        return GetAsync<string[]>($"{BaseUri}/Owners/{offset}/{count}{postfixUri}", token);
+    }
+
     public Task<ApiClientResponse> Forgive(int[] debtIds, int operationCategoryId, string? operationComment)
     {
         var request = new ForgiveRequest

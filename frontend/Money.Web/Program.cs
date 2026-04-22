@@ -54,6 +54,7 @@ builder.Services.AddScoped<FastOperationService>();
 builder.Services.AddScoped<PlaceService>();
 builder.Services.AddScoped<RegularOperationService>();
 builder.Services.AddScoped<DebtService>();
+builder.Services.AddScoped<DebtOwnerService>();
 builder.Services.AddScoped<CarService>();
 builder.Services.AddScoped<CarEventService>();
 
