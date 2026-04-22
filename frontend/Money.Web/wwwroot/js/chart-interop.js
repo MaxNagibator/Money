@@ -31,7 +31,9 @@
     },
     update: (elementId, config) => {
         const chart = window.moneyChart.instances[elementId];
-        if (chart) {
+        if (!chart) return;
+
+        requestAnimationFrame(() => {
             window.moneyChart.resolveCssVariables(config);
 
             chart.data = config.data;
@@ -41,7 +43,7 @@
             }
 
             chart.update();
-        }
+        });
     },
     destroy: elementId => {
         const chart = window.moneyChart.instances[elementId];
