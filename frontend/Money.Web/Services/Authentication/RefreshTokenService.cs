@@ -4,7 +4,6 @@ namespace Money.Web.Services.Authentication;
 
 public sealed class RefreshTokenService(
     AuthenticationService authService,
-    AuthStateProvider authStateProvider,
     ILocalStorageService localStorage) : IDisposable
 {
     private static readonly TimeSpan RefreshThreshold = TimeSpan.FromMinutes(2);
@@ -40,18 +39,7 @@ public sealed class RefreshTokenService(
                 return Result.Success(currentToken);
             }
 
-            var refreshResult = await authService.RefreshTokenAsync();
-
-            if (refreshResult.IsSuccess)
-            {
-                await authStateProvider.NotifyUserAuthentication();
-            }
-            else
-            {
-                authStateProvider.MarkUserAsLoggedOut();
-            }
-
-            return refreshResult;
+            return await authService.RefreshTokenAsync();
         }
         finally
         {

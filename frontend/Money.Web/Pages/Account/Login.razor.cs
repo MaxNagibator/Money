@@ -25,15 +25,20 @@ public partial class Login
     [Inject]
     private ISnackbar Snackbar { get; set; } = null!;
 
-    public Task LoginUserAsync(EditContext context)
+    public async Task LoginUserAsync(EditContext context)
     {
         var user = new UserDto(Input.Login, Input.Password);
 
-        return AuthenticationService.LoginAsync(user)
-            .Tap(() => AuthStateProvider.NotifyUserAuthentication())
-            .TapError(message => Snackbar.Add($"Ошибка во время входа {message}", Severity.Error))
-            .Map(() => ReturnUrl ?? "operations")
-            .Tap(x => NavigationManager.ReturnToSafe(x));
+        var loginResult = await AuthenticationService.LoginAsync(user);
+
+        if (loginResult.IsFailure)
+        {
+            Snackbar.Add($"Ошибка во время входа {loginResult.Error}", Severity.Error);
+            return;
+        }
+
+        await AuthStateProvider.NotifyUserAuthentication();
+        NavigationManager.ReturnToSafe(ReturnUrl ?? "operations");
     }
 
     protected override void OnParametersSet()

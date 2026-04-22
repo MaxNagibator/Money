@@ -20,12 +20,17 @@ public partial class Callback
     [Inject]
     private ISnackbar Snackbar { get; set; } = null!;
 
-    protected override Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
-        return AuthenticationService.ExchangeExternalAsync()
-            .Tap(() => AuthStateProvider.NotifyUserAuthentication())
-            .TapError(message => Snackbar.Add($"Ошибка во время входа {message}", Severity.Error))
-            .Map(() => ReturnUrl ?? "operations")
-            .Tap(x => NavigationManager.ReturnToSafe(x));
+        var result = await AuthenticationService.ExchangeExternalAsync();
+
+        if (result.IsFailure)
+        {
+            Snackbar.Add($"Ошибка во время входа {result.Error}", Severity.Error);
+            return;
+        }
+
+        await AuthStateProvider.NotifyUserAuthentication();
+        NavigationManager.ReturnToSafe(ReturnUrl ?? "operations");
     }
 }

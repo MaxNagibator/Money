@@ -2,7 +2,10 @@
 
 namespace Money.Web.Services.Authentication;
 
-public class RefreshTokenHandler(RefreshTokenService refreshTokenService, ILocalStorageService localStorage) : DelegatingHandler
+public class RefreshTokenHandler(
+    RefreshTokenService refreshTokenService,
+    AuthStateProvider authStateProvider,
+    ILocalStorageService localStorage) : DelegatingHandler
 {
     protected override async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request,
@@ -22,6 +25,11 @@ public class RefreshTokenHandler(RefreshTokenService refreshTokenService, ILocal
         if (result.IsSuccess && !string.IsNullOrEmpty(result.Value))
         {
             request.Headers.Authorization = new("Bearer", result.Value);
+            await authStateProvider.NotifyUserAuthentication();
+        }
+        else if (result.IsFailure)
+        {
+            authStateProvider.MarkUserAsLoggedOut();
         }
         else
         {
