@@ -43,6 +43,8 @@ public partial class OperationDialog(
 
         if (IsOpen)
         {
+            _isAutoFocus = true;
+
             Input = new()
             {
                 Category = Operation.Category == Category.Empty ? null : Operation.Category,
@@ -82,7 +84,6 @@ public partial class OperationDialog(
             Date = Operation.Date,
         };
 
-        _isAutoFocus = true;
         return ToggleOpen();
     }
 

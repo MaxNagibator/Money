@@ -1,6 +1,7 @@
 ﻿@if (_isNumericSumVisible)
 {
-    <MudNumericField Adornment="Adornment.Start"
+    <MudNumericField @ref="_numericField"
+                     Adornment="Adornment.Start"
                      AdornmentColor="Color.Tertiary"
                      AdornmentIcon="@Icons.Material.Rounded.Calculate"
                      AutoFocus="IsAutoFocus"
