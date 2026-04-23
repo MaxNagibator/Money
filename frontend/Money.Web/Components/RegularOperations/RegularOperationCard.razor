@@ -23,7 +23,7 @@
             <MudText Typo="Typo.body2">@Model.Sum</MudText>
         </MudTooltip>
 
-        @if (string.IsNullOrEmpty(Model.Place) == false)
+        @if (!string.IsNullOrEmpty(Model.Place))
         {
             <MudDivider Class="mb-1" />
 
@@ -34,7 +34,7 @@
             </MudTooltip>
         }
 
-        @if (string.IsNullOrEmpty(Model.Comment) == false)
+        @if (!string.IsNullOrEmpty(Model.Comment))
         {
             <MudDivider Class="mb-1" />
 
@@ -74,7 +74,8 @@
             </MudTooltip>
 
             <MudTooltip Text="Удалить">
-                <MudIconButton Color="Color.Default"
+                <MudIconButton Class="trash-btn"
+                               Color="Color.Default"
                                Icon="@Icons.Material.Filled.Delete"
                                OnClick="() => Delete(Model)"
                                Size="Size.Small" />

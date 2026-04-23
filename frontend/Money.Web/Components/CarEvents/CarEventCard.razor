@@ -12,7 +12,7 @@
             </MudTooltip>
 
             <MudStack Spacing="2">
-                @if (string.IsNullOrEmpty(Model.Title) == false)
+                @if (!string.IsNullOrEmpty(Model.Title))
                 {
                     <MudTooltip Placement="Placement.Bottom"
                                 Text="Название">
@@ -38,7 +38,7 @@
             </MudStack>
         </MudStack>
         <MudDivider FlexItem />
-        @if (string.IsNullOrEmpty(Model.Comment) == false)
+        @if (!string.IsNullOrEmpty(Model.Comment))
         {
             <MudTooltip Placement="Placement.Bottom"
                         Text="Комментарий">
@@ -80,7 +80,8 @@
             </MudTooltip>
 
             <MudTooltip Text="Удалить">
-                <MudIconButton Color="Color.Default"
+                <MudIconButton Class="trash-btn"
+                               Color="Color.Default"
                                Icon="@Icons.Material.Filled.Delete"
                                OnClick="() => Delete(Model)"
                                Size="Size.Small" />

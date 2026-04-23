@@ -20,7 +20,7 @@
 
                 @*TODO Требуется оптимизация. 140ms из 240ms *@
                 <OperationDialog OnSubmit="OnSubmit"
-                                 Operation="@(new Operation { Date = OperationsDay.Date, Category = Category.Empty })"
+                                 Operation="@(new() { Date = OperationsDay.Date, Category = Category.Empty })"
                                  @ref="_dialog">
                     <div class="align-center d-flex flex-row gap-4">
                         @foreach (var type in OperationTypes.Values)
@@ -63,15 +63,18 @@
             </MudStack>
         </MudItem>
     </MudCardHeader>
-    <MudCardContent Class="pa-2">
+    <MudCardContent Class="@GetContentCssClass()"
+                    Style="@GetContentCssStyle()">
         <MudStack Spacing="0">
             @for (var i = 0; i < OperationsDay.Operations.Count; i++)
             {
                 var operation = OperationsDay.Operations[i];
 
-                <OperationItem @key="operation"
-                               OnEdit="OnEdit"
-                               Operation="@operation" />
+                <div class="@GetRowCssClass(i)">
+                    <OperationItem @key="operation"
+                                   OnEdit="OnEdit"
+                                   Operation="@operation" />
+                </div>
 
                 if (Settings.ShowDividers && i != OperationsDay.Operations.Count - 1)
                 {
