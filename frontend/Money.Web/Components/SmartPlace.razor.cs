@@ -1,17 +1,20 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
 using System.Linq.Expressions;
 using Timer = System.Timers.Timer;
 
 namespace Money.Web.Components;
 
-public sealed partial class SmartPlace(PlaceService placeService) : IDisposable
+public sealed partial class SmartPlace(PlaceService placeService, IJSRuntime jsRuntime) : IDisposable
 {
+    private readonly string _id = "sp-" + Guid.NewGuid().ToString("N");
     private string? _currentText;
     private List<string> _suggestions = [];
     private bool _showSuggestions;
     private bool _isLoading;
     private int _selectedIndex = -1;
+    private int _scrollToIndex = -1;
     private bool _isFocused;
     private CancellationTokenSource? _searchCancellationTokenSource;
     private Timer? _debounceTimer;
@@ -46,6 +49,12 @@ public sealed partial class SmartPlace(PlaceService placeService) : IDisposable
     [Parameter]
     public int DebounceInterval { get; set; } = 300;
 
+    /// <summary>
+    /// Срабатывает, когда ввод места зафиксирован (blur, выбор из списка, Enter/Tab).
+    /// </summary>
+    [Parameter]
+    public EventCallback OnCommitted { get; set; }
+
     public void Dispose()
     {
         _searchCancellationTokenSource?.Dispose();
@@ -56,6 +65,21 @@ public sealed partial class SmartPlace(PlaceService placeService) : IDisposable
     protected override void OnParametersSet()
     {
         _currentText = Value;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_scrollToIndex >= 0)
+        {
+            var index = _scrollToIndex;
+            _scrollToIndex = -1;
+            await jsRuntime.InvokeVoidAsync("moneyUi.scrollIntoView", GetItemId(index));
+        }
+    }
+
+    private string GetItemId(int index)
+    {
+        return $"{_id}-item-{index}";
     }
 
     private Task OnFocusAsync(FocusEventArgs focusEventArgs)
@@ -81,6 +105,7 @@ public sealed partial class SmartPlace(PlaceService placeService) : IDisposable
             }
 
             _selectedIndex = Math.Min(_selectedIndex + 1, _suggestions.Count - 1);
+            _scrollToIndex = _selectedIndex;
             StateHasChanged();
         }
         else if (args.Key == "ArrowUp")
@@ -91,6 +116,7 @@ public sealed partial class SmartPlace(PlaceService placeService) : IDisposable
             }
 
             _selectedIndex = Math.Max(_selectedIndex - 1, -1);
+            _scrollToIndex = _selectedIndex;
             StateHasChanged();
         }
         else if (args.Key == "Enter")
@@ -193,6 +219,7 @@ public sealed partial class SmartPlace(PlaceService placeService) : IDisposable
         _showSuggestions = false;
         _selectedIndex = -1;
         await ValueChanged.InvokeAsync(_currentText);
+        await OnCommitted.InvokeAsync();
         StateHasChanged();
     }
 
@@ -201,6 +228,7 @@ public sealed partial class SmartPlace(PlaceService placeService) : IDisposable
         _showSuggestions = false;
         _selectedIndex = -1;
         await ValueChanged.InvokeAsync(_currentText);
+        await OnCommitted.InvokeAsync();
         StateHasChanged();
     }
 
@@ -215,6 +243,7 @@ public sealed partial class SmartPlace(PlaceService placeService) : IDisposable
         _showSuggestions = false;
         _selectedIndex = -1;
         await ValueChanged.InvokeAsync(_currentText);
+        await OnCommitted.InvokeAsync();
         StateHasChanged();
     }
 }

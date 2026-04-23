@@ -48,6 +48,7 @@ builder.Services.AddScoped<RefreshTokenService>();
 builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<FastOperationService>();
 builder.Services.AddScoped<PlaceService>();
+builder.Services.AddScoped<CategoryInferenceService>();
 builder.Services.AddScoped<RegularOperationService>();
 builder.Services.AddScoped<DebtService>();
 builder.Services.AddScoped<DebtOwnerService>();
