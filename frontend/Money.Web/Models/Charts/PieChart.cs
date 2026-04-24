@@ -1,4 +1,5 @@
 ﻿using Money.Web.Models.Charts.Config;
+using ChartOptions = Money.Web.Models.Charts.Config.ChartOptions;
 
 namespace Money.Web.Models.Charts;
 
@@ -7,6 +8,40 @@ public sealed class PieChart : BaseChart
     private ChartData Data => Config.Data;
 
     public static PieChart Create(int operationTypeId, bool useThemeColors = true)
+    {
+        return new()
+        {
+            Chart = null,
+            Config = new()
+            {
+                Type = "pie",
+                Options = BuildOptions(useThemeColors),
+            },
+            OperationTypeId = operationTypeId,
+        };
+    }
+
+    public void ApplyTheme(bool useThemeColors)
+    {
+        Config.Options = BuildOptions(useThemeColors);
+    }
+
+    public ValueTask UpdateAsync(List<OperationCategorySum> operations)
+    {
+        Data.Datasets.Clear();
+        Data.Labels.Clear();
+
+        FillPieChart(operations);
+
+        if (Chart != null)
+        {
+            return Chart.UpdateAsync();
+        }
+
+        return ValueTask.CompletedTask;
+    }
+
+    private static ChartOptions BuildOptions(bool useThemeColors)
     {
         var legend = new ChartLegend
         {
@@ -25,56 +60,12 @@ public sealed class PieChart : BaseChart
 
         return new()
         {
-            Chart = null,
-            Config = new()
+            Responsive = true,
+            Plugins = new()
             {
-                Type = "pie",
-                Options = new()
-                {
-                    Responsive = true,
-                    Plugins = new()
-                    {
-                        Legend = legend,
-                    },
-                },
+                Legend = legend,
             },
-            OperationTypeId = operationTypeId,
         };
-    }
-
-    // TODO: Не работает + дублирование
-    public void UpdateTheme(bool useThemeColors)
-    {
-        var legend = Config.Options.Plugins?.Legend;
-
-        if (legend?.Labels == null)
-        {
-            return;
-        }
-
-        if (useThemeColors)
-        {
-            legend.Labels.Color = "var(--mud-palette-text-primary)";
-        }
-        else
-        {
-            legend.Labels.Color = null;
-        }
-    }
-
-    public ValueTask UpdateAsync(List<OperationCategorySum> operations)
-    {
-        Data.Datasets.Clear();
-        Data.Labels.Clear();
-
-        FillPieChart(operations);
-
-        if (Chart != null)
-        {
-            return Chart.UpdateAsync();
-        }
-
-        return ValueTask.CompletedTask;
     }
 
     private void FillPieChart(List<OperationCategorySum> categorySums)

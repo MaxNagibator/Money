@@ -50,6 +50,12 @@ public class OperationsClient(MoneyClient apiClient) : ApiClientExecutor(apiClie
         return GetAsync<string[]>($"{BaseUri}/GetPlaces/{offset}/{count}{postfixUri}", token);
     }
 
+    public Task<ApiClientResponse<InferCategoryResponse>> InferCategoryByPlace(string place, int operationTypeId, int count = 5, CancellationToken token = default)
+    {
+        var escaped = Uri.EscapeDataString(place);
+        return GetAsync<InferCategoryResponse>($"{BaseUri}/InferCategory/{escaped}?operationType={operationTypeId}&count={count}", token);
+    }
+
     private static string ToUriParameters(OperationFilterDto? filter)
     {
         if (filter == null)
@@ -123,6 +129,11 @@ public class OperationsClient(MoneyClient apiClient) : ApiClientExecutor(apiClie
         /// Место.
         /// </summary>
         public string? Place { get; set; }
+    }
+
+    public class InferCategoryResponse
+    {
+        public int CategoryId { get; set; }
     }
 
     public class UpdateOperationsBatchRequest

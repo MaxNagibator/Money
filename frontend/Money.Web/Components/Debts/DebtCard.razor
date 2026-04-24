@@ -47,7 +47,7 @@
                     Дата: @Model.Date.ToString("dd.MM.yyyy")
                 </MudText>
 
-                @if (string.IsNullOrWhiteSpace(Model.Comment) == false)
+                @if (!string.IsNullOrWhiteSpace(Model.Comment))
                 {
                     <MudText Typo="Typo.body2">Комментарий: @Model.Comment</MudText>
                 }
@@ -68,7 +68,7 @@
                                    Color="Color.Secondary"
                                    Value="@GetPaymentProgress()" />
 
-                @if (Model.PaySum > 0 && string.IsNullOrWhiteSpace(Model.PayComment) == false)
+                @if (Model.PaySum > 0 && !string.IsNullOrWhiteSpace(Model.PayComment))
                 {
                     <MudText Color="Color.Tertiary"
                              Typo="Typo.subtitle2">
@@ -180,7 +180,7 @@
                 </MudTooltip>
 
                 <MudTooltip Text="Удалить">
-                    <MudIconButton Class="hover-scale"
+                    <MudIconButton Class="hover-scale trash-btn"
                                    Icon="@Icons.Material.Rounded.Delete"
                                    OnClick="Delete"
                                    Size="Size.Small" />

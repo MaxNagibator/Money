@@ -1,8 +1,11 @@
-using Blazored.LocalStorage;
+﻿using Blazored.LocalStorage;
 
 namespace Money.Web.Services.Authentication;
 
-public class RefreshTokenHandler(RefreshTokenService refreshTokenService, ILocalStorageService localStorage) : DelegatingHandler
+public class RefreshTokenHandler(
+    RefreshTokenService refreshTokenService,
+    AuthStateProvider authStateProvider,
+    ILocalStorageService localStorage) : DelegatingHandler
 {
     protected override async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request,
@@ -19,15 +22,20 @@ public class RefreshTokenHandler(RefreshTokenService refreshTokenService, ILocal
 
         var result = await refreshTokenService.TryRefreshToken();
 
-        if (result.IsSuccess && string.IsNullOrEmpty(result.Value) == false)
+        if (result.IsSuccess && !string.IsNullOrEmpty(result.Value))
         {
             request.Headers.Authorization = new("Bearer", result.Value);
+            await authStateProvider.NotifyUserAuthentication();
+        }
+        else if (result.IsFailure)
+        {
+            authStateProvider.MarkUserAsLoggedOut();
         }
         else
         {
-            var existingToken = await localStorage.GetItemAsync<string>("authToken", cancellationToken);
+            var existingToken = await localStorage.GetItemAsync<string>(AuthenticationService.AccessTokenKey, cancellationToken);
 
-            if (string.IsNullOrEmpty(existingToken) == false)
+            if (!string.IsNullOrEmpty(existingToken))
             {
                 request.Headers.Authorization = new("Bearer", existingToken);
             }

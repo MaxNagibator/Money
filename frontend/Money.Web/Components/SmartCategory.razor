@@ -1,11 +1,12 @@
 ﻿<div style="position: relative;">
     <MudTextField Adornment="@Adornment"
                   AdornmentColor="Color.Tertiary"
-                  AdornmentIcon="@Icons.Material.Rounded.Person"
+                  AdornmentIcon="@Icons.Material.Rounded.Search"
                   Clearable
-                  For="@For"
+                  Error="@_hasError"
+                  ErrorText="@_errorText"
                   Immediate
-                  Label="Держатель"
+                  Label="Категория"
                   @onfocus="OnFocusAsync"
                   OnKeyDown="@OnKeyDownAsync"
                   OnBlur="@OnBlurAsync"
@@ -13,13 +14,13 @@
                   Value="@_currentText"
                   ValueChanged="@OnTextChangedAsync" />
 
-    @if (_showSuggestions && _suggestions.Any())
+    @if (_showSuggestions && _suggestions.Count > 0)
     {
         <MudPaper Class="autocomplete-suggestions"
                   Elevation="8"
                   Style="position: absolute; top: 100%; left: 0; right: 0; max-height: 300px; overflow-y: auto; z-index: 1300; margin-top: 4px;">
             <MudList Dense
-                     T="string">
+                     T="Category">
                 @for (var i = 0; i < _suggestions.Count; i++)
                 {
                     var index = i;
@@ -29,20 +30,13 @@
                     <div id="@GetItemId(index)">
                         <MudListItem OnClick="@(() => SelectSuggestionAsync(suggestion))"
                                      Style="@itemStyle"
-                                     T="string"
+                                     T="Category"
                                      tabindex="-1">
-                            @suggestion
+                            @suggestion.Name
                         </MudListItem>
                     </div>
                 }
             </MudList>
         </MudPaper>
-    }
-
-    @if (_isLoading)
-    {
-        <MudProgressLinear Color="Color.Tertiary"
-                           Indeterminate
-                           Style="position: absolute; bottom: 0; left: 0; right: 0;" />
     }
 </div>

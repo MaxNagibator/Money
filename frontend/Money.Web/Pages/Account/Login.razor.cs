@@ -1,5 +1,4 @@
-using CSharpFunctionalExtensions;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Money.Web.Services.Authentication;
 using System.ComponentModel.DataAnnotations;
@@ -18,19 +17,28 @@ public partial class Login
     private AuthenticationService AuthenticationService { get; set; } = null!;
 
     [Inject]
+    private AuthStateProvider AuthStateProvider { get; set; } = null!;
+
+    [Inject]
     private NavigationManager NavigationManager { get; set; } = null!;
 
     [Inject]
     private ISnackbar Snackbar { get; set; } = null!;
 
-    public Task LoginUserAsync(EditContext context)
+    public async Task LoginUserAsync(EditContext context)
     {
         var user = new UserDto(Input.Login, Input.Password);
 
-        return AuthenticationService.LoginAsync(user)
-            .TapError(message => Snackbar.Add($"Ошибка во время входа {message}", Severity.Error))
-            .Map(() => ReturnUrl ?? "operations")
-            .Tap(x => NavigationManager.ReturnTo(x));
+        var loginResult = await AuthenticationService.LoginAsync(user);
+
+        if (loginResult.IsFailure)
+        {
+            Snackbar.Add($"Ошибка во время входа {loginResult.Error}", Severity.Error);
+            return;
+        }
+
+        await AuthStateProvider.NotifyUserAuthentication();
+        NavigationManager.ReturnToSafe(ReturnUrl ?? "operations");
     }
 
     protected override void OnParametersSet()

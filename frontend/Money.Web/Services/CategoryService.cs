@@ -1,5 +1,4 @@
-using CSharpFunctionalExtensions;
-using Microsoft.Extensions.Caching.Memory;
+﻿using Microsoft.Extensions.Caching.Memory;
 using Money.ApiClient;
 
 namespace Money.Web.Services;

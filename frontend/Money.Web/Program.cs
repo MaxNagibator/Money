@@ -23,11 +23,6 @@ else
     apiUri = new($"https://{apiEndpoint}");
 }
 
-builder.Services.ConfigureHttpClientDefaults(http =>
-{
-    http.AddStandardResilienceHandler();
-});
-
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
@@ -45,13 +40,15 @@ builder.Services.AddLocalization();
 builder.Services.AddAuthorizationCore();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddNCalc();
-builder.Services.AddScoped<AuthenticationStateProvider, AuthStateProvider>();
+builder.Services.AddScoped<AuthStateProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<AuthStateProvider>());
 builder.Services.AddScoped<AuthenticationService>();
 builder.Services.AddScoped<RefreshTokenService>();
 
 builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<FastOperationService>();
 builder.Services.AddScoped<PlaceService>();
+builder.Services.AddScoped<CategoryInferenceService>();
 builder.Services.AddScoped<RegularOperationService>();
 builder.Services.AddScoped<DebtService>();
 builder.Services.AddScoped<DebtOwnerService>();

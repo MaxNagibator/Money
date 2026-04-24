@@ -8,7 +8,7 @@
     Категории
 </MudText>
 
-@if (_init == false)
+@if (!_init)
 {
     <MudStack AlignItems="AlignItems.Center"
               Row>
@@ -68,7 +68,7 @@
                                         </div>
                                     }
 
-                                    @if (category.IsDeleted == false)
+                                    @if (!category.IsDeleted)
                                     {
                                         <MudIconButton Color="Color.Success"
                                                        Icon="@Icons.Material.Rounded.Add"
@@ -78,7 +78,8 @@
                                                        Icon="@Icons.Material.Rounded.Edit"
                                                        OnClick="() => Update(category)" />
 
-                                        <MudIconButton Icon="@Icons.Material.Rounded.Delete"
+                                        <MudIconButton Class="trash-btn"
+                                                       Icon="@Icons.Material.Rounded.Delete"
                                                        OnClick="() => Delete(category)" />
                                     }
                                 </Content>

@@ -1,14 +1,13 @@
-using Money.ApiClient;
-using MudBlazor;
+﻿using Money.ApiClient;
 using System.ComponentModel.DataAnnotations;
 using Timer = System.Timers.Timer;
 
 namespace Money.Web.Pages.Account;
 
-public partial class Profile(
+public sealed partial class Profile(
     AuthenticationStateProvider authenticationStateProvider,
     MoneyClient moneyClient,
-    ISnackbar snackbar)
+    ISnackbar snackbar) : IDisposable
 {
     private readonly InputModel _confirmationModel = new();
     private readonly ChangePasswordInputModel _changePaswordModel = new();
@@ -19,9 +18,19 @@ public partial class Profile(
 
     private bool _isProcessing;
     private bool _canResend = true;
+    private bool _showPassword;
 
     private Timer? _resendTimer;
     private int _remainingTime;
+
+    private InputType PasswordInputType => _showPassword ? InputType.Text : InputType.Password;
+    private string PasswordIcon => _showPassword ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff;
+
+    public void Dispose()
+    {
+        _resendTimer?.Dispose();
+        _resendTimer = null;
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -31,6 +40,11 @@ public partial class Profile(
         _userName = user.Identity!.Name!;
         _email = user.Identity.Name;
         _emailConfirmed = user.Claims.Any(x => x is { Type: "email_verified", Value: "true" });
+    }
+
+    private void TogglePasswordVisibility()
+    {
+        _showPassword = !_showPassword;
     }
 
     private async Task SendConfirmationCode()
@@ -55,6 +69,7 @@ public partial class Profile(
         {
             _emailConfirmed = true;
             _resendTimer?.Dispose();
+            _resendTimer = null;
             snackbar.Add("Почта успешно подтверждена!", Severity.Success);
             StateHasChanged();
         }
@@ -77,7 +92,6 @@ public partial class Profile(
 
         _isProcessing = false;
     }
-
 
     private Task ResendCode()
     {
@@ -102,7 +116,7 @@ public partial class Profile(
             else
             {
                 _canResend = true;
-                _resendTimer.Stop();
+                _resendTimer?.Stop();
             }
         };
 

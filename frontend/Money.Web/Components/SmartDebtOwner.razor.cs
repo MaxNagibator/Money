@@ -1,17 +1,20 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
 using System.Linq.Expressions;
 using Timer = System.Timers.Timer;
 
 namespace Money.Web.Components;
 
-public sealed partial class SmartDebtOwner(DebtOwnerService debtOwnerService) : IDisposable
+public sealed partial class SmartDebtOwner(DebtOwnerService debtOwnerService, IJSRuntime jsRuntime) : IDisposable
 {
+    private readonly string _id = "sdo-" + Guid.NewGuid().ToString("N");
     private string? _currentText;
     private List<string> _suggestions = [];
     private bool _showSuggestions;
     private bool _isLoading;
     private int _selectedIndex = -1;
+    private int _scrollToIndex = -1;
     private bool _isFocused;
     private CancellationTokenSource? _searchCancellationTokenSource;
     private Timer? _debounceTimer;
@@ -61,6 +64,21 @@ public sealed partial class SmartDebtOwner(DebtOwnerService debtOwnerService) : 
         _currentText = Value;
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_scrollToIndex >= 0)
+        {
+            var index = _scrollToIndex;
+            _scrollToIndex = -1;
+            await jsRuntime.InvokeVoidAsync("moneyUi.scrollIntoView", GetItemId(index));
+        }
+    }
+
+    private string GetItemId(int index)
+    {
+        return $"{_id}-item-{index}";
+    }
+
     private Task OnFocusAsync(FocusEventArgs focusEventArgs)
     {
         _ = focusEventArgs;
@@ -84,6 +102,7 @@ public sealed partial class SmartDebtOwner(DebtOwnerService debtOwnerService) : 
             }
 
             _selectedIndex = Math.Min(_selectedIndex + 1, _suggestions.Count - 1);
+            _scrollToIndex = _selectedIndex;
             StateHasChanged();
         }
         else if (args.Key == "ArrowUp")
@@ -94,6 +113,7 @@ public sealed partial class SmartDebtOwner(DebtOwnerService debtOwnerService) : 
             }
 
             _selectedIndex = Math.Max(_selectedIndex - 1, -1);
+            _scrollToIndex = _selectedIndex;
             StateHasChanged();
         }
         else if (args.Key == "Enter")
@@ -124,12 +144,12 @@ public sealed partial class SmartDebtOwner(DebtOwnerService debtOwnerService) : 
         return Task.CompletedTask;
     }
 
-    private Task OnTextChangedAsync(string? value)
+    private async Task OnTextChangedAsync(string? value)
     {
         _currentText = value;
         _selectedIndex = -1;
+        await ValueChanged.InvokeAsync(_currentText);
         StartSearchDebounced();
-        return Task.CompletedTask;
     }
 
     private void StartSearchDebounced()

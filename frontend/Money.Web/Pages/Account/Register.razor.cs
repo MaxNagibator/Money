@@ -1,5 +1,4 @@
-using CSharpFunctionalExtensions;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Money.Web.Services.Authentication;
 using System.ComponentModel.DataAnnotations;
@@ -18,6 +17,9 @@ public partial class Register
     private AuthenticationService AuthenticationService { get; set; } = null!;
 
     [Inject]
+    private AuthStateProvider AuthStateProvider { get; set; } = null!;
+
+    [Inject]
     private NavigationManager NavigationManager { get; set; } = null!;
 
     [Inject]
@@ -26,14 +28,28 @@ public partial class Register
     private InputType PasswordInputType => Input.UseConfirmPassword ? InputType.Password : InputType.Text;
     private string PasswordIcon => PasswordInputType == InputType.Password ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility;
 
-    public Task RegisterUserAsync(EditContext editContext)
+    public async Task RegisterUserAsync(EditContext editContext)
     {
         var user = new RegisterUserDto(Input.UserName, Input.Email, Input.Password);
 
-        return AuthenticationService.RegisterAsync(user)
-            .Map(() => AuthenticationService.LoginAsync(new UserDto(Input.UserName, Input.Password)))
-            .TapError(message => Snackbar.Add($"Ошибка во время регистрации {message}", Severity.Error))
-            .Tap(() => NavigationManager.ReturnTo(ReturnUrl));
+        var registerResult = await AuthenticationService.RegisterAsync(user);
+
+        if (registerResult.IsFailure)
+        {
+            Snackbar.Add($"Ошибка во время регистрации {registerResult.Error}", Severity.Error);
+            return;
+        }
+
+        var loginResult = await AuthenticationService.LoginAsync(new(Input.UserName, Input.Password));
+
+        if (loginResult.IsFailure)
+        {
+            Snackbar.Add($"Регистрация прошла успешно, но войти не удалось: {loginResult.Error}", Severity.Warning);
+            return;
+        }
+
+        await AuthStateProvider.NotifyUserAuthentication();
+        NavigationManager.ReturnToSafe(ReturnUrl);
     }
 
     protected override void OnParametersSet()

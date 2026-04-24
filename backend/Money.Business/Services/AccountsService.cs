@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Money.Data.Entities;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -53,6 +53,8 @@ public partial class AccountsService(
             user.EmailConfirmCode = GetCode(6);
         }
 
+        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+
         var result = await userManager.CreateAsync(user, model.Password);
 
         if (result.Succeeded == false)
@@ -61,6 +63,7 @@ public partial class AccountsService(
         }
 
         await AddNewUser(user.Id, cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         if (model.Email != null)
         {

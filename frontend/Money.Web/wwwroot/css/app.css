@@ -125,6 +125,69 @@ code {
     text-overflow: ellipsis;
 }
 
+.operation-row {
+    padding: 2px 4px;
+    transition: background-color 0.15s ease-in-out;
+    border-radius: 4px;
+}
+
+.operations-alt-bg .operation-row-alt {
+    background-color: var(--mud-palette-action-default-hover);
+}
+
+.operations-alt-border .operation-row {
+    border-left: 3px solid transparent;
+    border-radius: 0 4px 4px 0;
+}
+
+.operations-alt-border .operation-row-alt {
+    border-left-color: var(--mud-palette-primary);
+}
+
+.mud-icon-button.trash-btn {
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out;
+}
+
+.mud-icon-button.trash-btn:hover,
+.mud-icon-button.trash-btn:hover .mud-icon-root {
+    color: var(--mud-palette-error);
+}
+
+.mud-icon-button.restore-btn {
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out;
+}
+
+.mud-icon-button.restore-btn,
+.mud-icon-button.restore-btn .mud-icon-root {
+    color: var(--mud-palette-info);
+}
+
+.mud-icon-button.restore-btn:hover,
+.mud-icon-button.restore-btn:hover .mud-icon-root {
+    color: var(--mud-palette-success);
+}
+
+.operation-deleted {
+    transition: opacity 0.2s ease-in-out, filter 0.2s ease-in-out;
+    opacity: 0.55;
+    filter: grayscale(0.4);
+}
+
+.operation-deleted .large-text {
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+    text-decoration-color: var(--mud-palette-error);
+}
+
+.operations-money-align .operation-sum {
+    display: inline-block;
+    min-width: var(--money-col-width, 9ch);
+    padding-right: 8px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+}
+
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
     text-align: end;
     color: var(--bs-secondary-color);

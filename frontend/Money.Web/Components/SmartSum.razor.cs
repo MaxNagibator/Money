@@ -12,6 +12,7 @@ public partial class SmartSum : ComponentBase
 
     private bool _isNumericSumVisible = true;
     private string? _calculationSum = string.Empty;
+    private MudNumericField<decimal?>? _numericField;
 
     public decimal? Sum { get; set; }
 
@@ -44,6 +45,17 @@ public partial class SmartSum : ComponentBase
         {
             UpdateSum(GetInitialSum.Invoke());
         }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (!firstRender || !Sum.HasValue || _numericField == null)
+        {
+            return;
+        }
+
+        _numericField.ForceRender(true);
+        StateHasChanged();
     }
 
     private async Task<bool> TryUpdateSumAsync()
@@ -83,7 +95,7 @@ public partial class SmartSum : ComponentBase
         {
             _calculationSum = Sum?.ToString(CultureInfo.CurrentCulture);
         }
-        else if (await TryUpdateSumAsync() == false)
+        else if (!await TryUpdateSumAsync())
         {
             return;
         }

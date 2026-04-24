@@ -1,9 +1,12 @@
-using Blazored.LocalStorage;
+﻿using Blazored.LocalStorage;
 using System.Security.Claims;
 
 namespace Money.Web.Services.Authentication;
 
-public class AuthStateProvider(ILocalStorageService localStorage, JwtParser jwtParser)
+public class AuthStateProvider(
+    ILocalStorageService localStorage,
+    JwtParser jwtParser,
+    RefreshTokenService refreshTokenService)
     : AuthenticationStateProvider
 {
     private readonly AuthenticationState _anonymous = new(new(new ClaimsIdentity()));
@@ -20,9 +23,17 @@ public class AuthStateProvider(ILocalStorageService localStorage, JwtParser jwtP
 
     public async Task NotifyUserAuthentication()
     {
+        _userLastCheck = DateTimeOffset.FromUnixTimeSeconds(0L);
         var user = await GetUser();
         var state = new AuthenticationState(user);
         NotifyAuthenticationStateChanged(Task.FromResult(state));
+    }
+
+    public void MarkUserAsLoggedOut()
+    {
+        _cachedUser = _anonymous.User;
+        _userLastCheck = DateTimeOffset.UtcNow;
+        NotifyAuthenticationStateChanged(Task.FromResult(_anonymous));
     }
 
     private async Task<ClaimsPrincipal> GetUser(bool useCache = false)
@@ -41,6 +52,21 @@ public class AuthStateProvider(ILocalStorageService localStorage, JwtParser jwtP
             _cachedUser = _anonymous.User;
             _userLastCheck = now;
             return _cachedUser;
+        }
+
+        var refreshResult = await refreshTokenService.TryRefreshToken();
+
+        if (refreshResult.IsFailure)
+        {
+            await localStorage.RemoveItemsAsync([AuthenticationService.AccessTokenKey, AuthenticationService.RefreshTokenKey]);
+            _cachedUser = _anonymous.User;
+            _userLastCheck = now;
+            return _cachedUser;
+        }
+
+        if (!string.IsNullOrEmpty(refreshResult.Value))
+        {
+            token = refreshResult.Value;
         }
 
         var user = await jwtParser.ValidateJwt(token);

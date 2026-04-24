@@ -85,7 +85,7 @@ public sealed partial class Statistics : OperationComponent
         StateHasChanged();
     }
 
-    private async void OnSettingsChanged(object? sender, EventArgs e)
+    private void OnSettingsChanged(object? sender, EventArgs e)
     {
         if (_typesStatistics == null)
         {
@@ -94,21 +94,11 @@ public sealed partial class Statistics : OperationComponent
 
         foreach (var statistics in _typesStatistics.Values)
         {
-            statistics.BarChart.UpdateTheme(AppSettings.UseChartThemeColors);
-            statistics.PieChart.UpdateTheme(AppSettings.UseChartThemeColors);
-
-            if (statistics.BarChart.Chart != null)
-            {
-                await statistics.BarChart.Chart.UpdateAsync();
-            }
-
-            if (statistics.PieChart.Chart != null)
-            {
-                await statistics.PieChart.Chart.UpdateAsync();
-            }
+            statistics.BarChart.ApplyTheme(AppSettings.UseChartThemeColors);
+            statistics.PieChart.ApplyTheme(AppSettings.UseChartThemeColors);
         }
 
-        await InvokeAsync(StateHasChanged);
+        _ = InvokeAsync(StateHasChanged);
     }
 
     private List<TreeItemData<OperationCategorySum>> BuildChildren(List<OperationCategorySum> categories)

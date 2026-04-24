@@ -1,42 +1,63 @@
-using CSharpFunctionalExtensions;
+﻿using Blazored.LocalStorage;
 
 namespace Money.Web.Services.Authentication;
 
-public class RefreshTokenService(AuthenticationStateProvider authProvider, AuthenticationService authService)
+public sealed class RefreshTokenService(
+    AuthenticationService authService,
+    ILocalStorageService localStorage) : IDisposable
 {
+    private static readonly TimeSpan RefreshThreshold = TimeSpan.FromMinutes(2);
+    private readonly SemaphoreSlim _semaphore = new(1, 1);
+
+    public void Dispose()
+    {
+        _semaphore.Dispose();
+    }
+
     public async Task<Result<string>> TryRefreshToken()
     {
-        var authState = await authProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
+        var accessToken = await localStorage.GetItemAsync<string>(AuthenticationService.AccessTokenKey);
 
-        if (user.Identity?.IsAuthenticated == false)
+        if (string.IsNullOrWhiteSpace(accessToken) || !NeedsRefresh(accessToken))
         {
             return Result.Success(string.Empty);
         }
 
-        var exp = user.FindFirst(c => c.Type.Equals("exp", StringComparison.Ordinal))?.Value;
+        await _semaphore.WaitAsync();
 
-        if (string.IsNullOrWhiteSpace(exp))
+        try
         {
-            return Result.Success(string.Empty);
-        }
+            var currentToken = await localStorage.GetItemAsync<string>(AuthenticationService.AccessTokenKey);
 
-        var expTime = DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(exp));
-        var timeUtc = DateTime.UtcNow;
-        var diff = expTime - timeUtc;
-
-        if (diff.TotalMinutes <= 2)
-        {
-            var refreshResult = await authService.RefreshTokenAsync();
-
-            if (refreshResult.IsSuccess)
+            if (string.IsNullOrWhiteSpace(currentToken))
             {
-                await ((AuthStateProvider)authProvider).NotifyUserAuthentication();
+                return Result.Success(string.Empty);
             }
 
-            return refreshResult;
+            if (!NeedsRefresh(currentToken))
+            {
+                return Result.Success(currentToken);
+            }
+
+            return await authService.RefreshTokenAsync();
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    private static bool NeedsRefresh(string accessToken)
+    {
+        var exp = JwtParser.TryReadExp(accessToken);
+
+        if (exp == null)
+        {
+            return false;
         }
 
-        return Result.Success(string.Empty);
+        var expTime = DateTimeOffset.FromUnixTimeSeconds(exp.Value);
+        var remaining = expTime - DateTimeOffset.UtcNow;
+        return remaining <= RefreshThreshold;
     }
 }

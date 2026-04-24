@@ -1,6 +1,6 @@
 ﻿@page "/settings"
 
-@if (_isInit == false)
+@if (!_isInit)
 {
     <MudProgressLinear Indeterminate />
 
@@ -158,7 +158,94 @@
         </MudStack>
         <MudDivider Class="my-4" />
         <MudText>
-            Использовать цвета темы для графиков (адаптируются под темную/светлую тему). Если выключено, используются стандартные цвета Chart.js.
+            Чередование строк операций: подсветка фона или цветная полоса слева у каждой второй строки для более
+            удобного чтения списка.
+        </MudText>
+        <MudStack AlignItems="AlignItems.Center"
+                  Row
+                  Spacing="2">
+            <MudToggleGroup Color="Color.Primary"
+                            SelectionMode="SelectionMode.SingleSelection"
+                            T="AlternateRowStyle"
+                            Value="AppSettings.AlternateRowStyle"
+                            ValueChanged="@(value => AppSettings.AlternateRowStyle = value)">
+                <MudToggleItem Value="AlternateRowStyle.None">
+                    <MudStack AlignItems="AlignItems.Center"
+                              Row
+                              Spacing="1">
+                        <MudIcon Icon="@Icons.Material.Rounded.Close"
+                                 Size="Size.Small" />
+                        <MudText>Выкл</MudText>
+                    </MudStack>
+                </MudToggleItem>
+                <MudToggleItem Value="AlternateRowStyle.Background">
+                    <MudStack AlignItems="AlignItems.Center"
+                              Row
+                              Spacing="1">
+                        <MudIcon Icon="@Icons.Material.Rounded.FormatColorFill"
+                                 Size="Size.Small" />
+                        <MudText>Фон</MudText>
+                    </MudStack>
+                </MudToggleItem>
+                <MudToggleItem Value="AlternateRowStyle.Border">
+                    <MudStack AlignItems="AlignItems.Center"
+                              Row
+                              Spacing="1">
+                        <MudIcon Icon="@Icons.Material.Rounded.BorderLeft"
+                                 Size="Size.Small" />
+                        <MudText>Полоса</MudText>
+                    </MudStack>
+                </MudToggleItem>
+            </MudToggleGroup>
+        </MudStack>
+        <MudDivider Class="my-4" />
+        <MudText>
+            Выравнивание копеек: суммы в списке операций прижимаются к правому краю колонки, дробные части располагаются
+            строго одна под другой.
+        </MudText>
+        <MudStack AlignItems="AlignItems.Center"
+                  Row
+                  Spacing="2">
+            <MudTooltip Text="@(AppSettings.AlignMoneyDecimals ? "Включено" : "Выключено")">
+                <MudIconButton Color="@(AppSettings.AlignMoneyDecimals ? Color.Primary : Color.Default)"
+                               Icon="@(AppSettings.AlignMoneyDecimals ? Icons.Material.Rounded.Check : Icons.Material.Rounded.Close)"
+                               @onclick="() => AppSettings.AlignMoneyDecimals = !AppSettings.AlignMoneyDecimals" />
+            </MudTooltip>
+            <MudText Typo="Typo.body1">Выравнивать копейки в списке операций</MudText>
+        </MudStack>
+        <MudStack Class="mt-2"
+                  Spacing="1">
+            <MudStack AlignItems="AlignItems.Baseline"
+                      Row
+                      Spacing="2">
+                <MudText Color="@(AppSettings.AlignMoneyDecimals ? Color.Default : Color.Dark)"
+                         Typo="Typo.body2">
+                    Ширина колонки суммы
+                </MudText>
+                <MudChip Color="@(AppSettings.AlignMoneyDecimals ? Color.Primary : Color.Default)"
+                         Disabled="!AppSettings.AlignMoneyDecimals"
+                         Size="Size.Small"
+                         T="string"
+                         Variant="Variant.Text">
+                    @AppSettings.MoneyColumnWidth симв.
+                </MudChip>
+            </MudStack>
+            <MudSlider Color="Color.Primary"
+                       Disabled="!AppSettings.AlignMoneyDecimals"
+                       Max="14"
+                       Min="4"
+                       Size="Size.Medium"
+                       Step="1"
+                       T="int"
+                       TickMarks
+                       Value="AppSettings.MoneyColumnWidth"
+                       ValueChanged="@(value => AppSettings.MoneyColumnWidth = value)"
+                       ValueLabel />
+        </MudStack>
+        <MudDivider Class="my-4" />
+        <MudText>
+            Использовать цвета темы для графиков (адаптируются под темную/светлую тему). Если выключено, используются
+            стандартные цвета Chart.js.
         </MudText>
         <MudStack AlignItems="AlignItems.Center"
                   Row

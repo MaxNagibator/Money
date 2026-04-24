@@ -1,4 +1,5 @@
 ﻿using Money.Web.Models.Charts.Config;
+using ChartOptions = Money.Web.Models.Charts.Config.ChartOptions;
 
 namespace Money.Web.Models.Charts;
 
@@ -21,6 +22,43 @@ public class BarChart : BaseChart
     private readonly int _weekBreakpoint = 140;
 
     public static BarChart Create(int operationTypeId, bool useThemeColors = true)
+    {
+        return new()
+        {
+            Chart = null,
+            Config = new()
+            {
+                Type = "bar",
+                Options = BuildOptions(useThemeColors),
+            },
+            OperationTypeId = operationTypeId,
+        };
+    }
+
+    public void ApplyTheme(bool useThemeColors)
+    {
+        Config.Options = BuildOptions(useThemeColors);
+    }
+
+    public ValueTask UpdateAsync(List<Operation>? operations, List<Category> categories, DateRange range)
+    {
+        Config.Data.Datasets.Clear();
+        Config.Data.Labels.Clear();
+
+        if (operations != null)
+        {
+            FillBarChart(Config.Data, operations, categories, range);
+        }
+
+        if (Chart != null)
+        {
+            return Chart.UpdateAsync();
+        }
+
+        return ValueTask.CompletedTask;
+    }
+
+    private static ChartOptions BuildOptions(bool useThemeColors)
     {
         var scales = new Dictionary<string, ChartAxis>
         {
@@ -69,85 +107,13 @@ public class BarChart : BaseChart
 
         return new()
         {
-            Chart = null,
-            Config = new()
+            Responsive = true,
+            Scales = scales,
+            Plugins = new()
             {
-                Type = "bar",
-                Options = new()
-                {
-                    Responsive = true,
-                    Scales = scales,
-                    Plugins = new()
-                    {
-                        Legend = legend,
-                    },
-                },
+                Legend = legend,
             },
-            OperationTypeId = operationTypeId,
         };
-    }
-
-    // TODO: Не работает + дублирование
-    public void UpdateTheme(bool useThemeColors)
-    {
-        var scales = Config.Options.Scales;
-        var legend = Config.Options.Plugins?.Legend;
-
-        if (scales == null || legend?.Labels == null)
-        {
-            return;
-        }
-
-        if (useThemeColors)
-        {
-            if (scales.TryGetValue("x", out var xAxis))
-            {
-                xAxis.Ticks?.Color = "var(--mud-palette-text-secondary)";
-                xAxis.Grid?.Color = "var(--mud-palette-lines-default)";
-            }
-
-            if (scales.TryGetValue("y", out var yAxis))
-            {
-                yAxis.Ticks?.Color = "var(--mud-palette-text-secondary)";
-                yAxis.Grid?.Color = "var(--mud-palette-lines-default)";
-            }
-
-            legend.Labels.Color = "var(--mud-palette-text-primary)";
-        }
-        else
-        {
-            if (scales.TryGetValue("x", out var xAxis))
-            {
-                xAxis.Ticks?.Color = null;
-                xAxis.Grid?.Color = null;
-            }
-
-            if (scales.TryGetValue("y", out var yAxis))
-            {
-                yAxis.Ticks?.Color = null;
-                yAxis.Grid?.Color = null;
-            }
-
-            legend.Labels.Color = null;
-        }
-    }
-
-    public ValueTask UpdateAsync(List<Operation>? operations, List<Category> categories, DateRange range)
-    {
-        Config.Data.Datasets.Clear();
-        Config.Data.Labels.Clear();
-
-        if (operations != null)
-        {
-            FillBarChart(Config.Data, operations, categories, range);
-        }
-
-        if (Chart != null)
-        {
-            return Chart.UpdateAsync();
-        }
-
-        return ValueTask.CompletedTask;
     }
 
     private static ChartDataset[] CreateDatasets(ChartData configData, List<Category> categories)
