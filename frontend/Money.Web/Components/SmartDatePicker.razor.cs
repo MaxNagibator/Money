@@ -52,6 +52,12 @@ public partial class SmartDatePicker : ComponentBase
     [GeneratedRegex("^(поза)*вчера$", RegexOptions.CultureInvariant)]
     private static partial Regex PastPattern();
 
+    [GeneratedRegex("^(п)*з$", RegexOptions.CultureInvariant)]
+    private static partial Regex FutureAliasPattern();
+
+    [GeneratedRegex("^(п)*в$", RegexOptions.CultureInvariant)]
+    private static partial Regex PastAliasPattern();
+
     private async Task<bool> TryUpdateDateAsync()
     {
         if (_isDatePickerVisible)
@@ -69,7 +75,7 @@ public partial class SmartDatePicker : ComponentBase
             {
                 _parseError = string.IsNullOrWhiteSpace(_dateText)
                     ? null
-                    : "Неверный формат даты. Используйте дд.мм.гггг или сегодня/завтра/вчера.";
+                    : "Неверный формат даты. Используйте дд.мм.гггг, сегодня/завтра/вчера или с/з/в/пз/пв.";
 
                 return false;
             }
@@ -142,7 +148,7 @@ public partial class SmartDatePicker : ComponentBase
             var normalizedText = _dateText.Trim().ToLowerInvariant();
             var today = DateTime.Now.Date;
 
-            if (normalizedText == "сегодня")
+            if (normalizedText is "сегодня" or "с")
             {
                 return today;
             }
@@ -154,11 +160,25 @@ public partial class SmartDatePicker : ComponentBase
                 return today.AddDays(1 + futureMatch.Groups[1].Captures.Count);
             }
 
+            var futureAliasMatch = FutureAliasPattern().Match(normalizedText);
+
+            if (futureAliasMatch.Success)
+            {
+                return today.AddDays(1 + futureAliasMatch.Groups[1].Captures.Count);
+            }
+
             var pastMatch = PastPattern().Match(normalizedText);
 
             if (pastMatch.Success)
             {
                 return today.AddDays(-(1 + pastMatch.Groups[1].Captures.Count));
+            }
+
+            var pastAliasMatch = PastAliasPattern().Match(normalizedText);
+
+            if (pastAliasMatch.Success)
+            {
+                return today.AddDays(-(1 + pastAliasMatch.Groups[1].Captures.Count));
             }
 
             if (DateTime.TryParseExact(normalizedText, DateFormats, CultureInfo.CurrentCulture, DateTimeStyles.None, out var parsedDate))
