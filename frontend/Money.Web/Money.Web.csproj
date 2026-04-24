@@ -3,6 +3,7 @@
   <PropertyGroup>
     <EmccMaximumHeapSize>268435456</EmccMaximumHeapSize>
     <OverrideHtmlAssetPlaceholders>true</OverrideHtmlAssetPlaceholders>
+    <BlazorIcuDataFileName>icudt_no_CJK.dat</BlazorIcuDataFileName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'!='DEBUG'">
     <RunAOTCompilation>true</RunAOTCompilation>
