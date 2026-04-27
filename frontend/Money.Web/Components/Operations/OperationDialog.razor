@@ -81,12 +81,14 @@
                   Justify="Justify.SpaceBetween"
                   Row>
             <MudButton Color="Color.Error"
-                       OnClick=" () => ToggleOpen()">
+                       OnClick=" () => ToggleOpen()"
+                       tabindex="-1">
                 Закрыть
             </MudButton>
             <MudButton OnClick="SubmitAsync"
                        Color="Color.Tertiary"
-                       Variant="Variant.Filled">
+                       Variant="Variant.Filled"
+                       Class="save-button">
                 Сохранить
             </MudButton>
         </MudStack>
@@ -119,5 +121,11 @@
 
     .suggested-chip-close:hover {
         color: var(--mud-palette-error) !important;
+    }
+
+    .save-button:focus-visible {
+        outline: 2px solid var(--mud-palette-tertiary-darken);
+        outline-offset: 3px;
+        box-shadow: 0 0 0 4px rgba(var(--mud-palette-tertiary-rgb), 0.25);
     }
 </style>
