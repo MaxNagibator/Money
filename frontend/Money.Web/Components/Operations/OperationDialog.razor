@@ -43,9 +43,18 @@
                              Color="Color.Tertiary"
                              Variant="Variant.Outlined"
                              Icon="@Icons.Material.Rounded.AutoAwesome"
-                             OnClose="@(_ => ClearSuggestion())"
-                             Class="mt-1">
-                        Подставлено: @_suggestedCategory.Name
+                             Class="mt-1 suggested-chip">
+                        <MudTooltip Text="@($"Подставлено: {_suggestedCategory?.Name}")"
+                                    Placement="Placement.Top">
+                            <span class="suggested-chip-label">@_suggestedCategory?.Name</span>
+                        </MudTooltip>
+                        <MudTooltip Text="Убрать подстановку"
+                                    Placement="Placement.Top">
+                            <MudIconButton Icon="@Icons.Material.Rounded.Close"
+                                           Size="Size.Small"
+                                           OnClick="ClearSuggestion"
+                                           Class="suggested-chip-close" />
+                        </MudTooltip>
                     </MudChip>
                 }
             </MudItem>
@@ -72,12 +81,14 @@
                   Justify="Justify.SpaceBetween"
                   Row>
             <MudButton Color="Color.Error"
-                       OnClick=" () => ToggleOpen()">
+                       OnClick=" () => ToggleOpen()"
+                       tabindex="-1">
                 Закрыть
             </MudButton>
             <MudButton OnClick="SubmitAsync"
                        Color="Color.Tertiary"
-                       Variant="Variant.Filled">
+                       Variant="Variant.Filled"
+                       Class="save-button">
                 Сохранить
             </MudButton>
         </MudStack>
@@ -87,5 +98,34 @@
 <style>
     .pop-over {
         max-width: 600px !important;
+    }
+
+    .suggested-chip {
+        max-width: 100%;
+    }
+
+    .suggested-chip-label {
+        display: inline-block;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+
+    .suggested-chip-close {
+        margin-left: 4px;
+        padding: 2px !important;
+        transition: color 0.15s ease;
+    }
+
+    .suggested-chip-close:hover {
+        color: var(--mud-palette-error) !important;
+    }
+
+    .save-button:focus-visible {
+        outline: 2px solid var(--mud-palette-tertiary-darken);
+        outline-offset: 3px;
+        box-shadow: 0 0 0 4px rgba(var(--mud-palette-tertiary-rgb), 0.25);
     }
 </style>

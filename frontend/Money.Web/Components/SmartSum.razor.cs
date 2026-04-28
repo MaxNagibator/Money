@@ -29,6 +29,20 @@ public partial class SmartSum : ComponentBase
     [Inject]
     private ILogger<SmartSum> Logger { get; set; } = null!;
 
+    private bool HasExpression
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(_calculationSum))
+            {
+                return false;
+            }
+
+            var normalized = string.Concat(_calculationSum.Where(c => !char.IsWhiteSpace(c))).Replace(',', '.');
+            return !decimal.TryParse(normalized, NumberStyles.Number, CultureInfo.InvariantCulture, out _);
+        }
+    }
+
     public async Task<decimal?> GetSumAsync()
     {
         if (await TryUpdateSumAsync())
@@ -47,15 +61,23 @@ public partial class SmartSum : ComponentBase
         }
     }
 
-    protected override void OnAfterRender(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender || !Sum.HasValue || _numericField == null)
+        if (!firstRender || _numericField == null)
         {
             return;
         }
 
-        _numericField.ForceRender(true);
-        StateHasChanged();
+        if (Sum.HasValue)
+        {
+            _numericField.ForceRender(true);
+            StateHasChanged();
+        }
+
+        if (IsAutoFocus)
+        {
+            await _numericField.FocusAsync();
+        }
     }
 
     private async Task<bool> TryUpdateSumAsync()
@@ -65,21 +87,19 @@ public partial class SmartSum : ComponentBase
             return true;
         }
 
-        decimal? sum = null;
-
-        if (_calculationSum != null)
+        if (string.IsNullOrWhiteSpace(_calculationSum))
         {
-            sum = await CalculateAsync();
+            return true;
+        }
 
-            if (sum == null)
-            {
-                return false;
-            }
+        var sum = await CalculateAsync();
+
+        if (sum == null)
+        {
+            return false;
         }
 
         Sum = sum;
-        _calculationSum = Sum?.ToString(CultureInfo.CurrentCulture);
-
         return true;
     }
 
@@ -89,36 +109,65 @@ public partial class SmartSum : ComponentBase
         _calculationSum = sum?.ToString(CultureInfo.CurrentCulture);
     }
 
-    private async Task ToggleSumFieldAsync()
+    private async Task EnterTextModeAsync()
     {
-        if (_isNumericSumVisible)
-        {
-            _calculationSum = Sum?.ToString(CultureInfo.CurrentCulture);
-        }
-        else if (!await TryUpdateSumAsync())
+        if (!_isNumericSumVisible)
         {
             return;
         }
 
-        _isNumericSumVisible = !_isNumericSumVisible;
+        if (!HasExpression)
+        {
+            _calculationSum = Sum?.ToString(CultureInfo.CurrentCulture);
+        }
+
+        _isNumericSumVisible = false;
         await Task.Delay(10);
         StateHasChanged();
     }
 
-    private async Task OnSumKeyDownAsync(KeyboardEventArgs args)
+    private async Task ExitTextModeAsync()
     {
-        var key = args.Key.Length == 1 ? args.Key[0] : '\0';
-
-        if (key != '\0' && ValidSpecialCharacters.Contains(key))
+        if (_isNumericSumVisible)
         {
-            await ToggleSumFieldAsync();
             return;
         }
 
-        if (key != '-')
+        if (!await TryUpdateSumAsync())
         {
-            _calculationSum += key;
+            return;
         }
+
+        _isNumericSumVisible = true;
+        await Task.Delay(10);
+        StateHasChanged();
+    }
+
+    private Task OnNumericFocusInAsync()
+    {
+        if (!_isNumericSumVisible || !HasExpression)
+        {
+            return Task.CompletedTask;
+        }
+
+        return EnterTextModeAsync();
+    }
+
+    private Task OnSumKeyDownAsync(KeyboardEventArgs args)
+    {
+        if (!_isNumericSumVisible || HasExpression)
+        {
+            return Task.CompletedTask;
+        }
+
+        var key = args.Key.Length == 1 ? args.Key[0] : '\0';
+
+        if (key == '\0' || !ValidSpecialCharacters.Contains(key))
+        {
+            return Task.CompletedTask;
+        }
+
+        return EnterTextModeAsync();
     }
 
     private async Task<decimal?> CalculateAsync()
@@ -132,7 +181,7 @@ public partial class SmartSum : ComponentBase
 
         try
         {
-            var rawSum = _calculationSum.Replace(',', '.');
+            var rawSum = string.Concat(_calculationSum.Where(c => !char.IsWhiteSpace(c))).Replace(',', '.');
             var expression = Factory.Create(rawSum, ExpressionOptions.DecimalAsDefault);
 
             var rawResult = await expression.EvaluateAsync();
