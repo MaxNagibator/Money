@@ -1,11 +1,14 @@
-﻿@if (_isNumericSumVisible)
+﻿@using System.Globalization
+@if (_isNumericSumVisible)
 {
     <div @onfocusin="OnNumericFocusInAsync">
         <MudNumericField Adornment="Adornment.Start"
                          AdornmentColor="Color.Tertiary"
                          AdornmentIcon="@Icons.Material.Rounded.Calculate"
                          @bind-Value="Sum"
+                         Culture="@CultureInfo.CurrentCulture"
                          For="@(() => Sum)"
+                         Format="G"
                          Immediate
                          Label="Сумма"
                          OnAdornmentClick="EnterTextModeAsync"
