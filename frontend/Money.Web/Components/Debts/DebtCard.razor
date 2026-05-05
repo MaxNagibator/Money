@@ -99,15 +99,17 @@
         <MudDivider />
 
         <MudCardActions Style="padding: 8px 4px">
-            <MudTooltip Text="Оплатить">
-                <MudIconButton Color="Color.Primary"
-                               Icon="@Icons.Material.Rounded.Payment"
-                               Size="Size.Small"
-                               OnClick="ShowPaymentDialog"
-                               Class="hover-scale" />
-            </MudTooltip>
+            <MudIconButton aria-label="Оплатить"
+                           Color="Color.Primary"
+                           Icon="@Icons.Material.Rounded.Payment"
+                           Size="Size.Small"
+                           OnClick="ShowPaymentDialog"
+                           Class="hover-scale"
+                           title="Оплатить" />
 
-            <MudPopover Open="_idOpen">
+            <MudPopover AnchorOrigin="Origin.BottomLeft"
+                        Open="_idOpen"
+                        TransformOrigin="Origin.TopLeft">
                 <MudPaper Class="pa-3">
                     <EditForm Model="Payment"
                               OnValidSubmit="SubmitPayment">
@@ -149,84 +151,42 @@
 
             <MudSpacer />
 
-            <MudTooltip Text="Статус">
-                <MudChip Color="@GetStatusColor()"
-                         Icon="@GetStatusIcon()"
-                         Size="Size.Small"
-                         T="string"
-                         Text="@GetStatusText()" />
-            </MudTooltip>
+            <MudChip Color="@GetStatusColor()"
+                     Icon="@GetStatusIcon()"
+                     Size="Size.Small"
+                     T="string"
+                     Text="@GetStatusText()"
+                     title="Статус" />
 
             <MudSpacer />
 
             @if (Model.IsDeleted)
             {
-                <MudTooltip Text="Восстановить">
-                    <MudIconButton Class="hover-scale"
-                                   Color="Color.Success"
-                                   Icon="@Icons.Material.Rounded.Restore"
-                                   OnClick="Restore"
-                                   Size="Size.Small" />
-                </MudTooltip>
+                <MudIconButton aria-label="Восстановить"
+                               Class="hover-scale"
+                               Color="Color.Success"
+                               Icon="@Icons.Material.Rounded.Restore"
+                               OnClick="Restore"
+                               Size="Size.Small"
+                               title="Восстановить" />
             }
             else
             {
-                <MudTooltip Text="Редактировать">
-                    <MudIconButton Class="hover-scale"
-                                   Color="Color.Warning"
-                                   Icon="@Icons.Material.Rounded.Edit"
-                                   OnClick="Update"
-                                   Size="Size.Small" />
-                </MudTooltip>
+                <MudIconButton aria-label="Редактировать"
+                               Class="hover-scale"
+                               Color="Color.Warning"
+                               Icon="@Icons.Material.Rounded.ModeEdit"
+                               OnClick="Update"
+                               Size="Size.Small"
+                               title="Редактировать" />
 
-                <MudTooltip Text="Удалить">
-                    <MudIconButton Class="hover-scale trash-btn"
-                                   Icon="@Icons.Material.Rounded.Delete"
-                                   OnClick="Delete"
-                                   Size="Size.Small" />
-                </MudTooltip>
+                <MudIconButton aria-label="Удалить"
+                               Class="hover-scale trash-btn"
+                               Icon="@Icons.Material.Rounded.Delete"
+                               OnClick="Delete"
+                               Size="Size.Small"
+                               title="Удалить" />
             }
         </MudCardActions>
     }
 </MudCard>
-
-<style>
-
-    .hover-scale {
-        transition: transform 0.2s, color 0.2s;
-    }
-
-    .hover-scale:hover {
-        transform: scale(1.1);
-        color: #ff5722;
-    }
-
-    .deleted-operation-card {
-        opacity: 0.6;
-        transform: scale(0.95);
-        transition: transform 0.2s, box-shadow 0.2s;
-        border: 1px dashed rgba(128, 128, 128, 0.5);
-        background-color: rgba(128, 128, 128, 0.1);
-    }
-
-    .deleted-operation-card:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        background-color: rgba(128, 128, 128, 0.15);
-    }
-
-    .paid-debt-card {
-        opacity: 0.7;
-        transform: scale(0.98);
-        transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
-        border: 1px solid rgba(76, 175, 80, 0.4);
-        background-color: rgba(76, 175, 80, 0.08);
-    }
-
-    .paid-debt-card:hover {
-        opacity: 0.85;
-        transform: scale(1.0);
-        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
-        background-color: rgba(76, 175, 80, 0.12);
-    }
-
-</style>

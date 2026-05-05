@@ -33,7 +33,8 @@
                                   For="@(() => Input.Login)"
                                   Label="Электронная почта или имя пользователя"
                                   Placeholder="name@example.com"
-                                  UserAttributes="@(new Dictionary<string, object?> { { "autocomplete", "true" }, { "aria-required", "true" } })" />
+                                  UserAttributes="@(new()
+                                                      { { "autocomplete", "true" }, { "aria-required", "true" } })" />
                 </MudItem>
                 <MudItem md="12"
                          xs="12">
@@ -42,7 +43,8 @@
                                   InputType="InputType.Password"
                                   Label="Пароль"
                                   Placeholder="пароль"
-                                  UserAttributes="@(new Dictionary<string, object?> { { "autocomplete", "current-password" }, { "aria-required", "true" } })" />
+                                  UserAttributes="@(new()
+                                                      { { "autocomplete", "current-password" }, { "aria-required", "true" } })" />
                 </MudItem>
                 <MudItem md="12"
                          xs="12">
@@ -69,7 +71,7 @@
                 <MudButton Color="Color.Secondary"
                            FullWidth
                            OnClick="OnAuthLogin"
-                           StartIcon="@Icons.Material.Filled.Login"
+                           StartIcon="@Icons.Material.Rounded.Login"
                            Variant="Variant.Outlined">
                     Войти через bob217.Auth
                 </MudButton>

@@ -26,7 +26,7 @@ public partial class Register
     private ISnackbar Snackbar { get; set; } = null!;
 
     private InputType PasswordInputType => Input.UseConfirmPassword ? InputType.Password : InputType.Text;
-    private string PasswordIcon => PasswordInputType == InputType.Password ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility;
+    private string PasswordIcon => PasswordInputType == InputType.Password ? Icons.Material.Rounded.VisibilityOff : Icons.Material.Rounded.Visibility;
 
     public async Task RegisterUserAsync(EditContext editContext)
     {

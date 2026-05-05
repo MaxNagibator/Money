@@ -45,9 +45,10 @@ a, .btn-link {
     box-sizing: border-box;
     width: 100%;
     padding: 0.6rem 1.25rem 0.7rem 1.25rem;
-    background: lightyellow;
-    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
-    color-scheme: light only;
+    color: var(--mud-palette-warning-text);
+    border-top: 1px solid var(--mud-palette-warning);
+    background: var(--mud-palette-warning-lighten);
+    box-shadow: 0 -1px 2px color-mix(in srgb, var(--mud-palette-text-primary) 20%, transparent);
 }
 
 #blazor-error-ui .dismiss {
@@ -131,6 +132,15 @@ code {
     border-radius: 4px;
 }
 
+.operation-row .mud-grid-item {
+    min-width: 0;
+}
+
+.operation-sum-row {
+    overflow: hidden;
+    min-width: 0;
+}
+
 .operations-alt-bg .operation-row-alt {
     background-color: var(--mud-palette-action-default-hover);
 }
@@ -186,6 +196,84 @@ code {
     text-align: right;
     font-variant-numeric: tabular-nums;
     font-feature-settings: "tnum";
+}
+
+.income-operation-card,
+.expense-operation-card,
+.deleted-operation-card {
+    height: 100%;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-radius: 8px;
+}
+
+.income-operation-card,
+.expense-operation-card {
+    border: 1px solid color-mix(in srgb, var(--mud-palette-success) 50%, transparent);
+    background-color: color-mix(in srgb, var(--mud-palette-success) 12%, transparent);
+}
+
+.income-operation-card .mud-card-header,
+.expense-operation-card .mud-card-header {
+    border-bottom: 1px solid color-mix(in srgb, var(--mud-palette-success) 50%, transparent);
+    background-color: color-mix(in srgb, var(--mud-palette-success) 22%, transparent);
+}
+
+.expense-operation-card {
+    border-color: color-mix(in srgb, var(--mud-palette-warning) 50%, transparent);
+    background-color: color-mix(in srgb, var(--mud-palette-warning) 12%, transparent);
+}
+
+.expense-operation-card .mud-card-header {
+    border-bottom-color: color-mix(in srgb, var(--mud-palette-warning) 50%, transparent);
+    background-color: color-mix(in srgb, var(--mud-palette-warning) 22%, transparent);
+}
+
+.income-operation-card:hover,
+.expense-operation-card:hover {
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--mud-palette-text-primary) 20%, transparent);
+}
+
+.deleted-operation-card {
+    border: 1px solid var(--mud-palette-divider);
+    background-color: color-mix(in srgb, var(--mud-palette-action-disabled) 30%, transparent);
+}
+
+.deleted-operation-card .mud-card-header {
+    border-bottom: 1px solid var(--mud-palette-divider);
+    background-color: color-mix(in srgb, var(--mud-palette-action-disabled) 40%, transparent);
+}
+
+.deleted-operation-card:hover {
+    background-color: color-mix(in srgb, var(--mud-palette-action-disabled) 45%, transparent);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--mud-palette-text-primary) 12%, transparent);
+}
+
+.mud-card-header-text {
+    overflow: hidden;
+    max-width: 100%;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.paid-debt-card {
+    transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+    opacity: 0.7;
+    border: 1px solid color-mix(in srgb, var(--mud-palette-success) 40%, transparent);
+    background-color: color-mix(in srgb, var(--mud-palette-success) 8%, transparent);
+}
+
+.paid-debt-card:hover {
+    opacity: 0.85;
+    background-color: color-mix(in srgb, var(--mud-palette-success) 12%, transparent);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--mud-palette-success) 25%, transparent);
+}
+
+.hover-scale {
+    transition: transform 0.2s, color 0.2s;
+}
+
+.hover-scale:hover {
+    color: var(--mud-palette-error);
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {

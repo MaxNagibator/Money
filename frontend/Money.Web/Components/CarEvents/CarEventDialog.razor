@@ -28,6 +28,8 @@
                     </MudText>
                     <ValidationMessage For="@(() => Input.Type)" />
                     <MudStack Justify="Justify.SpaceBetween"
+                              role="radiogroup"
+                              aria-label="Тип события"
                               Row
                               Spacing="1"
                               Wrap="Wrap.Wrap">
@@ -35,6 +37,11 @@
                         {
                             <MudPaper Class="@("pa-1 cursor-pointer d-flex flex-column align-center " + (Input.Type == type ? "selected-event-type" : string.Empty))"
                                       @onclick="@(() => SelectEventType(type))"
+                                      @onkeydown="@(e => OnEventTypeKeyDown(e, type))"
+                                      role="radio"
+                                      aria-checked="@(Input.Type == type)"
+                                      aria-label="@type.Name"
+                                      tabindex="0"
                                       Height="128px"
                                       Width="108px">
                                 <MudImage Class="d-flex flex-grow-1"

@@ -12,18 +12,21 @@
         <MudText Typo="Typo.h6">Настройки темы</MudText>
     </MudCardHeader>
     <MudCardContent>
-        <MudIconButton Color="@(AppSettings.IsManualMode ? Color.Primary : Color.Secondary)"
+        <MudIconButton aria-label="@(AppSettings.IsManualMode ? "Переключить на автоматический режим" : "Переключить на ручной режим")"
+                       Color="@(AppSettings.IsManualMode ? Color.Primary : Color.Secondary)"
                        Icon="@(AppSettings.IsManualMode ? Icons.Material.Rounded.Check : Icons.Material.Rounded.SwapHoriz)"
                        OnClick="() => ModeToggle.ToggleManualMode()"
                        title="@(AppSettings.IsManualMode ? "Ручной" : "Авто")" />
 
-        <MudIconButton Color="@(AppSettings.IsSchedule ? Color.Primary : Color.Secondary)"
+        <MudIconButton aria-label="@(AppSettings.IsSchedule ? "Переключить на режим системы" : "Переключить на расписание")"
+                       Color="@(AppSettings.IsSchedule ? Color.Primary : Color.Secondary)"
                        Disabled="AppSettings.IsManualMode"
                        Icon="@(AppSettings.IsSchedule ? Icons.Material.Rounded.Schedule : Icons.Material.Rounded.Computer)"
                        OnClick="() => ModeToggle.ToggleScheduleMode()"
                        title="@(AppSettings.IsSchedule ? "По расписанию" : "Согласно настройкам системы")" />
 
-        <MudIconButton Color="Color.Inherit"
+        <MudIconButton aria-label="@(AppSettings.IsDarkMode ? "Переключить на светлую тему" : "Переключить на темную тему")"
+                       Color="Color.Inherit"
                        Icon="@Icons.Material.Rounded.Brightness4"
                        OnClick="() => ModeToggle.ToggleDarkMode()"
                        title="@(AppSettings.IsDarkMode ? "Темный" : "Светлый")" />
@@ -150,7 +153,8 @@
                   Row
                   Spacing="2">
             <MudTooltip Text="@(AppSettings.ShowDividers ? "Включены" : "Выключены")">
-                <MudIconButton Color="@(AppSettings.ShowDividers ? Color.Primary : Color.Default)"
+                <MudIconButton aria-label="Показывать разделители"
+                               Color="@(AppSettings.ShowDividers ? Color.Primary : Color.Default)"
                                Icon="@(AppSettings.ShowDividers ? Icons.Material.Rounded.Check : Icons.Material.Rounded.Close)"
                                @onclick="() => AppSettings.ShowDividers = !AppSettings.ShowDividers" />
             </MudTooltip>
@@ -207,7 +211,8 @@
                   Row
                   Spacing="2">
             <MudTooltip Text="@(AppSettings.AlignMoneyDecimals ? "Включено" : "Выключено")">
-                <MudIconButton Color="@(AppSettings.AlignMoneyDecimals ? Color.Primary : Color.Default)"
+                <MudIconButton aria-label="Выравнивать копейки"
+                               Color="@(AppSettings.AlignMoneyDecimals ? Color.Primary : Color.Default)"
                                Icon="@(AppSettings.AlignMoneyDecimals ? Icons.Material.Rounded.Check : Icons.Material.Rounded.Close)"
                                @onclick="() => AppSettings.AlignMoneyDecimals = !AppSettings.AlignMoneyDecimals" />
             </MudTooltip>
@@ -251,7 +256,8 @@
                   Row
                   Spacing="2">
             <MudTooltip Text="@(AppSettings.UseChartThemeColors ? "Включены" : "Выключены")">
-                <MudIconButton Color="@(AppSettings.UseChartThemeColors ? Color.Primary : Color.Default)"
+                <MudIconButton aria-label="Использовать цвета темы на графиках"
+                               Color="@(AppSettings.UseChartThemeColors ? Color.Primary : Color.Default)"
                                Icon="@(AppSettings.UseChartThemeColors ? Icons.Material.Rounded.Check : Icons.Material.Rounded.Close)"
                                @onclick="() => AppSettings.UseChartThemeColors = !AppSettings.UseChartThemeColors" />
             </MudTooltip>

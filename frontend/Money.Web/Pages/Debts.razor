@@ -13,7 +13,7 @@
     <MudSpacer />
     <MudTooltip Text="@(_showPaidDebts ? "Скрыть погашенные долги" : "Показать погашенные долги")">
         <MudToggleIconButton Color="Color.Tertiary"
-                             Icon="@(_showPaidDebts ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                             Icon="@(_showPaidDebts ? Icons.Material.Rounded.VisibilityOff : Icons.Material.Rounded.Visibility)"
                              Toggled="_showPaidDebts"
                              ToggledChanged="TogglePaidDebtsAsync"
                              ToggledVariant="Variant.Outlined"
@@ -195,10 +195,10 @@
         <MudItem lg="2"
                  md="3"
                  xs="12">
-            <MudButton EndIcon="@Icons.Material.Filled.Add"
+            <MudButton EndIcon="@Icons.Material.Rounded.Add"
                        OnClick="() => CreateAsync(type)"
                        FullWidth
-                       Variant="Variant.Outlined">
+                       Variant="Variant.Filled">
                 @type.AddText
             </MudButton>
         </MudItem>
@@ -206,10 +206,10 @@
     <MudItem lg="2"
              md="2"
              xs="12">
-        <MudButton EndIcon="@Icons.Material.Filled.Add"
+        <MudButton EndIcon="@Icons.Material.Rounded.Add"
                    OnClick="() => CreateAsync()"
                    FullWidth
-                   Variant="Variant.Outlined">
+                   Variant="Variant.Filled">
             Добавить
         </MudButton>
     </MudItem>
@@ -217,7 +217,7 @@
              md="4"
              xs="12">
         <MudTextField Adornment="Adornment.Start"
-                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      AdornmentIcon="@Icons.Material.Rounded.Search"
                       Clearable
                       FullWidth
                       Placeholder="Поиск..."
@@ -244,7 +244,7 @@
 {
     <MudStack AlignItems="AlignItems.Center"
               Row>
-        <MudIcon Icon="@Icons.Material.Filled.Label" />
+        <MudIcon Icon="@Icons.Material.Rounded.Label" />
         <MudText Class="mt-3 mb-2"
                  Typo="Typo.h5">
             @type.Type.Name
@@ -274,33 +274,29 @@
 
                             <MudSpacer />
 
-                            <MudTooltip Text="Количество долгов">
-                                <MudChip Icon="@Icons.Material.Rounded.ListAlt"
-                                         Size="Size.Small"
-                                         T="string"
-                                         Text="@owner.Debts.Count.ToString()" />
-                            </MudTooltip>
+                            <MudChip Icon="@Icons.Material.Rounded.ListAlt"
+                                     Size="Size.Small"
+                                     T="string"
+                                     title="Количество долгов"
+                                     Text="@owner.Debts.Count.ToString()" />
 
-                            <MudTooltip Text="Последний платеж">
-                                <MudChip Icon="@Icons.Material.Rounded.CalendarToday"
-                                         Size="Size.Small"
-                                         T="string"
-                                         Text="@(owner.GetLastPayDate()?.ToShortDateString() ?? "\u221e")" />
-                            </MudTooltip>
+                            <MudChip Icon="@Icons.Material.Rounded.CalendarToday"
+                                     Size="Size.Small"
+                                     T="string"
+                                     title="Последний платеж"
+                                     Text="@(owner.GetLastPayDate()?.ToShortDateString() ?? "\u221e")" />
 
-                            <MudTooltip Text="Всего/Остаток">
-                                <MudChip Icon="@Icons.Material.Rounded.AttachMoney"
-                                         Size="Size.Small"
-                                         T="string"
-                                         Text="@($"{owner.CalculateSum():N0}/{owner.CalculateRemainder():N0}")" />
-                            </MudTooltip>
+                            <MudChip Icon="@Icons.Material.Rounded.AttachMoney"
+                                     Size="Size.Small"
+                                     T="string"
+                                     title="Всего/Остаток"
+                                     Text="@($"{owner.CalculateSum():N0}/{owner.CalculateRemainder():N0}")" />
 
-                            <MudTooltip Text="Процент погашения">
-                                <MudChip Icon="@Icons.Material.Rounded.ArrowCircleUp"
-                                         Size="Size.Small"
-                                         T="string"
-                                         Text="@owner.CalculatePercent().ToString("P0")" />
-                            </MudTooltip>
+                            <MudChip Icon="@Icons.Material.Rounded.ArrowCircleUp"
+                                     Size="Size.Small"
+                                     T="string"
+                                     title="Процент погашения"
+                                     Text="@owner.CalculatePercent().ToString("P0")" />
                         </MudStack>
                     </MudPaper>
 

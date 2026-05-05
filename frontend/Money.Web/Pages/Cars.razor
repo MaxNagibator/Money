@@ -10,7 +10,7 @@
     Авто
 </MudText>
 
-@if (_init == false)
+@if (!_init)
 {
     <MudStack AlignItems="AlignItems.Center"
               Row>
@@ -44,6 +44,7 @@
                     <MudTextField Adornment="Adornment.Start"
                                   AdornmentColor="Color.Tertiary"
                                   AdornmentIcon="@Icons.Material.Rounded.Comment"
+                                  AutoFocus
                                   Sizing="InputSizing.Auto"
                                   @bind-Value="_addCarName"
                                   Clearable
@@ -71,6 +72,20 @@
         </MudPopover>
     </Header>
     <ChildContent>
+        @if (_cars.Count == 0)
+        {
+            <MudPaper Class="pa-6 d-flex flex-column align-center"
+                      Elevation="0">
+                <MudIcon Color="Color.Default"
+                         Icon="@Icons.Material.Rounded.ElectricCar"
+                         Size="Size.Large" />
+                <MudText Class="mt-2"
+                         Color="Color.Secondary"
+                         Typo="Typo.body1">
+                    Машинок пока нет. Нажмите «+» сверху, чтобы добавить первую.
+                </MudText>
+            </MudPaper>
+        }
         @foreach (var car in _cars)
         {
             <MudTabPanel ID="@car.Id"
