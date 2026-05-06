@@ -14,10 +14,10 @@
                  md="4"
                  xs="12">
             <MudButton Color="@type.Color"
-                       EndIcon="@Icons.Material.Filled.Add"
+                       EndIcon="@Icons.Material.Rounded.Add"
                        OnClick="() => Create(type)"
                        FullWidth
-                       Variant="Variant.Outlined">
+                       Variant="Variant.Filled">
                 @type.AddText
             </MudButton>
         </MudItem>
@@ -25,10 +25,10 @@
     <MudItem lg="3"
              md="4"
              xs="12">
-        <MudButton EndIcon="@Icons.Material.Filled.Add"
+        <MudButton EndIcon="@Icons.Material.Rounded.Add"
                    OnClick="() => Create()"
                    FullWidth
-                   Variant="Variant.Outlined">
+                   Variant="Variant.Filled">
             Добавить
         </MudButton>
     </MudItem>
@@ -36,15 +36,38 @@
 
 <MudDivider Class="my-4" />
 
-<MudGrid Spacing="2">
-    <Virtualize Context="operation"
-                Items="_operations">
-        <MudItem Class="mb-1"
-                 lg="3"
-                 md="4"
-                 xs="12">
-            <RegularOperationCard OnUpdate="Update"
-                                  Model="operation" />
-        </MudItem>
-    </Virtualize>
-</MudGrid>
+@if (_operations == null)
+{
+    <MudProgressLinear Class="my-4"
+                       Color="Color.Tertiary"
+                       Indeterminate />
+}
+else if (_operations.Count == 0)
+{
+    <MudPaper Class="pa-6 d-flex flex-column align-center"
+              Elevation="0">
+        <MudIcon Color="Color.Default"
+                 Icon="@Icons.Material.Rounded.Repeat"
+                 Size="Size.Large" />
+        <MudText Class="mt-2"
+                 Color="Color.Secondary"
+                 Typo="Typo.body1">
+            Регулярных операций пока нет. Добавьте первую.
+        </MudText>
+    </MudPaper>
+}
+else
+{
+    <MudGrid Spacing="2">
+        <Virtualize Context="operation"
+                    Items="_operations">
+            <MudItem Class="mb-1"
+                     lg="3"
+                     md="4"
+                     xs="12">
+                <RegularOperationCard OnUpdate="Update"
+                                      Model="operation" />
+            </MudItem>
+        </Virtualize>
+    </MudGrid>
+}

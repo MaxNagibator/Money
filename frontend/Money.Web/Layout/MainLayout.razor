@@ -14,12 +14,14 @@
                Style="pointer-events: none;">
         <MudStack Class="mt-3 ml-n4"
                   Spacing="1">
-            <MudIconButton Color="Color.Inherit"
+            <MudIconButton aria-label="Открыть меню"
+                           Color="Color.Inherit"
                            Edge="Edge.Start"
                            Icon="@Icons.Material.Rounded.Menu"
                            OnClick="ToggleDrawer"
                            Size="Size.Small"
-                           Style="pointer-events: all;" />
+                           Style="pointer-events: all;"
+                           title="Меню" />
             <DarkModeToggle AppSettings="_appSettings"
                             @ref="_darkModeToggle" />
         </MudStack>

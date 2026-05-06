@@ -24,7 +24,7 @@ public sealed partial class Profile(
     private int _remainingTime;
 
     private InputType PasswordInputType => _showPassword ? InputType.Text : InputType.Password;
-    private string PasswordIcon => _showPassword ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff;
+    private string PasswordIcon => _showPassword ? Icons.Material.Rounded.Visibility : Icons.Material.Rounded.VisibilityOff;
 
     public void Dispose()
     {

@@ -7,7 +7,8 @@
               Origin="Origin.BottomRight"
               Overlap>
         <MudTooltip Text="@(AppSettings.IsDarkMode ? "Темный" : "Светлый")">
-            <MudIconButton Color="Color.Inherit"
+            <MudIconButton aria-label="@(AppSettings.IsDarkMode ? "Переключить на светлую тему" : "Переключить на темную тему")"
+                           Color="Color.Inherit"
                            Icon="@Icons.Material.Rounded.Brightness4"
                            OnClick="ToggleDarkMode"
                            Size="Size.Small"

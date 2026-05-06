@@ -29,7 +29,7 @@
                         <MudStack AlignItems="AlignItems.Center"
                                   Row>
                             <MudIcon Color="Color.Primary"
-                                     Icon="@Icons.Material.Filled.DirectionsCar"
+                                     Icon="@Icons.Material.Rounded.DirectionsCar"
                                      Size="Size.Small" />
                             <MudText>@Model.Mileage?.ToString("N0") км</MudText>
                         </MudStack>
@@ -65,7 +65,7 @@
         {
             <MudTooltip Text="Восстановить">
                 <MudIconButton Color="Color.Success"
-                               Icon="@Icons.Material.Filled.Restore"
+                               Icon="@Icons.Material.Rounded.Restore"
                                OnClick="() => Restore(Model)"
                                Size="Size.Small" />
             </MudTooltip>
@@ -74,7 +74,7 @@
         {
             <MudTooltip Text="Редактировать">
                 <MudIconButton Color="Color.Warning"
-                               Icon="@Icons.Material.Filled.Edit"
+                               Icon="@Icons.Material.Rounded.Edit"
                                OnClick="() => Update(Model)"
                                Size="Size.Small" />
             </MudTooltip>
@@ -82,7 +82,7 @@
             <MudTooltip Text="Удалить">
                 <MudIconButton Class="trash-btn"
                                Color="Color.Default"
-                               Icon="@Icons.Material.Filled.Delete"
+                               Icon="@Icons.Material.Rounded.Delete"
                                OnClick="() => Delete(Model)"
                                Size="Size.Small" />
             </MudTooltip>

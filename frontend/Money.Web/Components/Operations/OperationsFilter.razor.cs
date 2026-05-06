@@ -11,10 +11,10 @@ public partial class OperationsFilter
 
     private static readonly List<DateInterval> DateIntervals =
     [
-        new("День", "ий день", time => time, time => time, (time, direction) => time.AddDays(direction)),
-        new("Неделя", "ая неделя", time => time.StartOfWeek(), time => time.EndOfWeek(), (time, direction) => time.AddDays(7 * direction)),
-        new("Месяц", "ий месяц", time => time.StartOfMonth(), time => time.EndOfMonth(), (time, direction) => time.AddMonths(direction)),
-        new("Год", "ий год", time => time.StartOfYear(), time => time.EndOfYear(), (time, direction) => time.AddYears(direction)),
+        new("День", "Д", "ий день", time => time, time => time, (time, direction) => time.AddDays(direction)),
+        new("Неделя", "Н", "ая неделя", time => time.StartOfWeek(), time => time.EndOfWeek(), (time, direction) => time.AddDays(7 * direction)),
+        new("Месяц", "М", "ий месяц", time => time.StartOfMonth(), time => time.EndOfMonth(), (time, direction) => time.AddMonths(direction)),
+        new("Год", "Г", "ий год", time => time.StartOfYear(), time => time.EndOfYear(), (time, direction) => time.AddYears(direction)),
     ];
 
     private CategorySelector? _categorySelector;
