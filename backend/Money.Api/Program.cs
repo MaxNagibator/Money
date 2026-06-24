@@ -1,4 +1,4 @@
-#pragma warning disable S2139
+﻿#pragma warning disable S2139
 using NLog;
 using NLog.Web;
 using System.Globalization;
@@ -11,7 +11,8 @@ logger.Debug("init main");
 
 try
 {
-    var builder = WebApplication.CreateBuilder(args);
+
+     var builder = WebApplication.CreateBuilder(args);
 
     builder.Logging.ClearProviders();
     builder.Host.UseNLog();
