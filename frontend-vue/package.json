@@ -7,7 +7,8 @@
     "**/*.css",
     "src/app/main.ts",
     "src/app/providers/styles.ts",
-    "src/shared/mud/vendor/MudBlazor.min.js"
+    "src/shared/mud/vendor/MudBlazor.min.js",
+    "src/shared/mud/vendor/MudTimePicker.min.js"
   ],
   "packageManager": "pnpm@11.22.0",
   "engines": {

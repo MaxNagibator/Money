@@ -1,0 +1,43 @@
+.record-card {
+  --record-card-line: rgba(var(--record-card-role), 0.5);
+  --record-card-header-fill: rgba(var(--record-card-role), 0.22);
+  --record-card-hover-fill: var(--mud-palette-surface);
+  --record-card-hover-shadow: 0 4px 16px rgba(var(--mud-palette-text-primary-rgb), 0.2);
+
+  height: 100%;
+  border: 1px solid var(--record-card-line);
+  transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, opacity 0.2s ease-in-out;
+}
+
+.record-card > .mud-card-header {
+  border-bottom: 1px solid var(--record-card-line);
+  background-color: var(--record-card-header-fill);
+}
+
+.record-card:hover {
+  background-color: var(--record-card-hover-fill);
+  box-shadow: var(--record-card-hover-shadow);
+}
+
+.record-card--tentative {
+  border-style: dashed;
+}
+
+.record-card--faded {
+  --record-card-line: rgba(var(--record-card-role), 0.4);
+  --record-card-hover-fill: rgba(var(--record-card-role), 0.12);
+  --record-card-hover-shadow: 0 4px 12px rgba(var(--record-card-role), 0.25);
+
+  opacity: 0.7;
+}
+
+.record-card--faded:hover {
+  opacity: 0.85;
+}
+
+.record-card--muted {
+  --record-card-line: var(--mud-palette-divider);
+  --record-card-header-fill: rgba(var(--mud-palette-text-primary-rgb), 0.11);
+  --record-card-hover-fill: rgba(var(--mud-palette-text-primary-rgb), 0.12);
+  --record-card-hover-shadow: 0 4px 12px rgba(var(--mud-palette-text-primary-rgb), 0.12);
+}
