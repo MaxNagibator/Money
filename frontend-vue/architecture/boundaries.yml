@@ -1,0 +1,41 @@
+layers:
+  domain:
+    path: src/domain
+    mayImport: [sharedIcons]
+  platform:
+    path: src/platform
+    mayImport: [domain]
+    owns:
+      - fetch
+      - localStorage
+      - sessionStorage
+      - Intl
+  apiGenerated:
+    path: src/api/generated
+    generated: true
+    mayImport: []
+  apiTransport:
+    path: src/api/transport
+    mayImport: [platform, apiGenerated]
+  apiAdapters:
+    path: src/api/adapters
+    mayImport: [domain, platform, apiTransport, apiGenerated]
+  features:
+    path: src/features
+    mayImport: [domain, platform, apiAdapters, shared]
+    publicEntry: index.ts
+  pages:
+    path: src/pages
+    mayImport: [features, shared, domain, platform]
+  sharedIcons:
+    path: src/shared/icons
+    mayImport: []
+  sharedMud:
+    path: src/shared/mud
+    mayImport: [sharedIcons]
+  shared:
+    path: src/shared
+    mayImport: [domain, platform]
+  app:
+    path: src/app
+    mayImport: [pages, features, shared, domain, platform]
