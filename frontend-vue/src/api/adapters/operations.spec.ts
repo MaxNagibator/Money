@@ -193,20 +193,13 @@ describe('toOperation', () => {
   })
 
   it.each([
-    [1234.56, 123_456],
-    [0.145, 15],
-    [12_345_678.91, 1_234_567_891],
-  ])('читает сумму %f как %i копеек без промежуточного округления', (sum, expected) => {
+    [1234.56, '1234.56'],
+    [0.145, '0.145'],
+    [12_345_678.91, '12345678.91'],
+  ])('читает сумму %f как %s без промежуточного округления', (sum, expected) => {
     const operations = toOperation({ id: 1, categoryId: food.id, sum, date: '2026-08-22T00:00:00' }, knownCategories)
 
-    expect(operations[0]?.sum.toMinorUnits()).toBe(expected)
-  })
-
-  it('не повторяет ошибку округления через число с плавающей точкой', () => {
-    const operations = toOperation({ id: 1, categoryId: food.id, sum: 0.145, date: '2026-08-22T00:00:00' }, knownCategories)
-
-    expect(Math.round(0.145 * 100)).toBe(14)
-    expect(operations[0]?.sum.toMinorUnits()).toBe(15)
+    expect(operations[0]?.sum.toDecimal().toString()).toBe(expected)
   })
 })
 
@@ -218,15 +211,6 @@ describe('toSaveRequest', () => {
     expect(request.date).not.toMatch(/Z$|[+-]\d{2}:\d{2}$/)
   })
 
-  it('отправляет сумму числом без потери копеек', () => {
-    expect(toSaveRequest(draft()).sum).toBe(1234.56)
-    expect(toSaveRequest(draft({ sum: Money.fromMinorUnits(15) })).sum).toBe(0.15)
-  })
-
-  it('округляет до копеек на отправке', () => {
-    expect(toSaveRequest(draft({ sum: Money.parseInput('0,145')! })).sum).toBe(0.15)
-    expect(toSaveRequest(draft({ sum: Money.parseInput('1234,564')! })).sum).toBe(1234.56)
-  })
 })
 
 describe('сохранение', () => {
@@ -245,6 +229,19 @@ describe('сохранение', () => {
       place: 'Кафе',
       date: '2026-08-22T00:00:00',
     })
+  })
+
+  it.each([
+    ['1234,56', '1234.56'],
+    ['0,145', '0.145'],
+    ['1234,564', '1234.564'],
+    ['3,3333333333333333333333333333', '3.3333333333333333333333333333'],
+  ])('сумма %j уходит числом %s без округления до копеек', async (input, expected) => {
+    respondJson(42, 201)
+
+    await createOperation(draft({ sum: Money.parseInput(input)! }))
+
+    expect(await lastRequest().text()).toContain(`"sum":${expected}`)
   })
 
   it('изменение отправляет PUT по маршруту с идентификатором', async () => {

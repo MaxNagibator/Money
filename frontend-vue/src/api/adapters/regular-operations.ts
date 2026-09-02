@@ -2,8 +2,9 @@ import type { components } from '@/api/generated/schema'
 import { apiClient } from '@/api/transport/client'
 import type { LocalDate } from '@/domain/local-date'
 import { parseLocalDate } from '@/domain/local-date'
-import { Money, MoneyDecimal } from '@/domain/money'
+import { Money } from '@/domain/money'
 import { trimToNull } from '@/domain/text'
+import { toWireSum } from './money-wire'
 import { ApiError, fail } from './problem'
 
 type RegularOperationDto = components['schemas']['Money.Api.Dto.RegularOperations.RegularOperationDto']
@@ -52,7 +53,7 @@ export function toRegularOperation(dto: RegularOperationDto): RegularOperation[]
     id: dto.id,
     name: dto.name ?? '',
     categoryId: dto.categoryId,
-    sum: Money.fromDecimal(new MoneyDecimal(dto.sum ?? 0)),
+    sum: Money.fromWire(dto.sum ?? 0),
     comment: trimToNull(dto.comment ?? null),
     place: trimToNull(dto.place ?? null),
     timeTypeId: dto.timeTypeId ?? 0,
@@ -67,7 +68,7 @@ export function toRegularOperation(dto: RegularOperationDto): RegularOperation[]
 export function toSaveRequest(draft: RegularOperationDraft): RegularOperationSaveRequest {
   return {
     categoryId: draft.categoryId,
-    sum: Money.fromMinorUnits(draft.sum.toMinorUnits()).toDecimal().toNumber(),
+    sum: toWireSum(draft.sum),
     name: draft.name,
     comment: draft.comment,
     place: draft.place,

@@ -55,8 +55,27 @@ describe('чтение списка', () => {
 
     expect(new URL(lastRequest().url).pathname).toBe('/api/FastOperations')
     expect(operations).toHaveLength(1)
-    expect(operations[0]!.sum.toMinorUnits()).toBe(123456)
+    expect(operations[0]!.sum.toDecimal().toString()).toBe('1234.56')
     expect(operations[0]!.isDeleted).toBe(false)
+  })
+
+  it.each([
+    ['через response.json()', true],
+    ['через разбор текста ответа', false],
+  ])('сохраняет масштаб и точность суммы %s', async (_path, withContentLength) => {
+    const body = '[{"id":1,"categoryId":3,"sum":100.00},{"id":2,"categoryId":3,"sum":9007199254740993.55}]'
+    const headers = new Headers({ 'Content-Type': 'application/json' })
+
+    if (withContentLength) {
+      headers.set('Content-Length', String(body.length))
+    }
+
+    vi.mocked(apiFetch).mockImplementation(() => Promise.resolve(new Response(body, { status: 200, headers })))
+
+    const operations = await fetchFastOperations()
+
+    expect(operations[0]!.sum.wireScale).toBe(2)
+    expect(operations[1]!.sum.toDecimal().toString()).toBe('9007199254740993.55')
   })
 
   it('подставляет пустое имя вместо отсутствующего и ноль вместо отсутствующей суммы', () => {
@@ -94,12 +113,12 @@ describe('сохранение', () => {
     expect(await lastBody()).not.toHaveProperty('id')
   })
 
-  it('в тело уходит распознанная сумма, а не ноль', async () => {
+  it('в тело уходит распознанная сумма, а не ноль, и доли копейки не срезаются', async () => {
     respondEmpty(204)
 
     await updateFastOperation(5, draft({ sum: Money.parseInput('0,015')! }))
 
-    expect(await lastBody()).toMatchObject({ sum: 0.02, name: 'Кофе', categoryId: 3, order: 2 })
+    expect(await lastBody()).toMatchObject({ sum: 0.015, name: 'Кофе', categoryId: 3, order: 2 })
   })
 })
 

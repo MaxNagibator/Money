@@ -15,6 +15,7 @@ interface TransferRequest {
 interface OperationsStub {
   queries: Record<string, string>[]
   created: SaveRequest[]
+  createdBodies: string[]
   transfers: TransferRequest[]
 }
 
@@ -73,7 +74,7 @@ async function stubApi(page: Page, initial: OperationDto[] = operations): Promis
   const state = initial.map(operation => ({ ...operation }))
   const deleted = new Set<number>()
   const deletedTemplates = new Set<number>()
-  const stub: OperationsStub = { queries: [], created: [], transfers: [] }
+  const stub: OperationsStub = { queries: [], created: [], createdBodies: [], transfers: [] }
   let lastId = 100
 
   await routeApi(page, {
@@ -130,6 +131,7 @@ async function stubApi(page: Page, initial: OperationDto[] = operations): Promis
 
         lastId += 1
         stub.created.push(body)
+        stub.createdBodies.push(route.request().postData() ?? '')
         state.push({ ...body, id: lastId, createdTaskId: null })
         await created(route, lastId)
         return
@@ -350,6 +352,27 @@ test.describe('операции', () => {
     await expect(day.getByTestId('operation-item-category')).toHaveText('Кафе')
     await expect(day.getByTestId('operation-item-sum')).toHaveText('150,00')
     await expect(page.getByTestId('operations-total-1')).toContainText('450,50')
+  })
+
+  test('сумма из выражения уходит на сервер всеми цифрами, а не округлённой до копеек', async ({ page }) => {
+    const stub = await stubApi(page)
+
+    await page.clock.setFixedTime(new Date(TODAY))
+    await openOperations(page)
+
+    await page.getByTestId('operations-add-1').click()
+
+    await page.locator(dialogSum).press('+')
+    await page.locator(dialogExpression).fill('10/3')
+    await page.locator(dialogExpression).press('Enter')
+    await expect(page.locator(dialogSum)).toHaveValue('3,333333333333333333333333333')
+
+    await selectDialogCategory(page, 'Кафе')
+    await page.getByTestId('operation-dialog-save').click()
+
+    await expect(page.getByTestId('operations-notice')).toContainText('Операция сохранена')
+    expect(stub.createdBodies).toHaveLength(1)
+    expect(stub.createdBodies[0]).toContain('"sum":3.333333333333333333333333333')
   })
 
   test('нераспознанная сумма не сохраняет операцию', async ({ page }) => {

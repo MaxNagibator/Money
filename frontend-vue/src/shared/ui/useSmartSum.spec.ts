@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { shallowRef } from 'vue'
+import { nextTick, shallowRef } from 'vue'
 import type { Money } from '@/domain/money'
 import type { SmartSumState } from '@/shared/ui/useSmartSum'
 import { useSmartSum } from '@/shared/ui/useSmartSum'
@@ -187,6 +187,28 @@ describe('useSmartSum, снятие суммы на сохранении', () =>
 
     expect(state.getSum()?.toMinorUnits()).toBe(123_456)
     expect(model.value?.toMinorUnits()).toBe(123_456)
+  })
+
+  it('масштаб набранной суммы переживает потерю фокуса', async () => {
+    const { model, state } = setup()
+
+    state.numericText.value = '250,50'
+    state.commitNumeric()
+
+    await nextTick()
+
+    expect(state.numericText.value).toBe('250,50')
+    expect(state.getSum()?.wireScale).toBe(2)
+    expect(model.value?.wireScale).toBe(2)
+  })
+
+  it('вычисленная из выражения сумма масштаба не получает', () => {
+    const { state } = setup()
+
+    state.enterTextMode()
+    state.calculationText.value = '250,50*1'
+
+    expect(state.getSum()?.wireScale).toBeNull()
   })
 
   it('вычисляет выражение, не переключая режим', () => {

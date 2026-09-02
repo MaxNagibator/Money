@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from './support/test'
-import { empty, json, optionalIdentifier, problem, routeApi } from './support/api'
+import { empty, json, optionalIdentifier, problem, routeApi, sentSum } from './support/api'
 import type { CategoryDto, RegularOperationDto } from './support/fixtures'
 import { FIXTURE_TODAY, regularOperations } from './support/fixtures'
 import { signInAsStub } from './support/session'
@@ -81,7 +81,7 @@ async function stubApi(page: Page, initial: RegularOperationDto[] = regularOpera
 
         lastId += 1
         stub.created.push(body)
-        state.push({ ...body, id: lastId, runTime: CREATED_RUN_TIME })
+        state.push({ ...body, id: lastId, runTime: CREATED_RUN_TIME, sum: sentSum(route.request().postData()) ?? body.sum })
         await json(route, lastId)
         return
       }
@@ -91,7 +91,7 @@ async function stubApi(page: Page, initial: RegularOperationDto[] = regularOpera
         const index = state.findIndex(operation => operation.id === id)
 
         stub.updated.push({ id, body })
-        state[index] = { ...body, id, runTime: UPDATED_RUN_TIME }
+        state[index] = { ...body, id, runTime: UPDATED_RUN_TIME, sum: sentSum(route.request().postData()) ?? body.sum }
         await empty(route)
         return
       }

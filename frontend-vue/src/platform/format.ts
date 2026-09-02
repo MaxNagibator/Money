@@ -57,9 +57,13 @@ export function formatMoney(value: Money): string {
   return moneyFormatter.format(value.toDecimal().toNumber())
 }
 
-// TODO: масштаб decimal теряется в JSON, поэтому целая сумма печатается без копеек, как «100»; вернуть точный масштаб, когда API начнёт отдавать сумму строкой
 export function formatMoneyPlain(value: Money): string {
   const amount = value.toDecimal()
+  const scale = value.wireScale
+
+  if (scale !== null) {
+    return amount.toFixed(scale).replace('.', ',')
+  }
 
   const text = amount.isInteger()
     ? amount.toString()
@@ -69,7 +73,10 @@ export function formatMoneyPlain(value: Money): string {
 }
 
 export function formatMoneyInput(value: Money): string {
-  return value.toDecimal().toString().replace('.', ',')
+  const amount = value.toDecimal()
+  const scale = value.wireScale
+
+  return (scale === null ? amount.toString() : amount.toFixed(scale)).replace('.', ',')
 }
 
 export function formatMoneyWhole(value: Money): string {

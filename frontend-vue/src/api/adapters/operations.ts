@@ -4,9 +4,10 @@ import { trimToNull } from '@/domain/text'
 import type { Category } from '@/domain/category'
 import type { LocalDate } from '@/domain/local-date'
 import { addDays, parseLocalDate } from '@/domain/local-date'
-import { Money, MoneyDecimal } from '@/domain/money'
+import { Money } from '@/domain/money'
 import type { Operation } from '@/domain/operation'
 import type { OperationTypeId } from '@/domain/operation-type'
+import { toWireSum } from './money-wire'
 import { ApiError, fail } from './problem'
 
 type OperationDto = components['schemas']['Money.Api.Dto.Operations.OperationDto']
@@ -75,7 +76,7 @@ export function toOperation(dto: OperationDto, categories: ReadonlyMap<number, C
     id: dto.id,
     categoryId: dto.categoryId,
     category: categories.get(dto.categoryId) ?? null,
-    sum: Money.fromDecimal(new MoneyDecimal(dto.sum)),
+    sum: Money.fromWire(dto.sum),
     comment: dto.comment ?? null,
     place: dto.place ?? null,
     date,
@@ -87,7 +88,7 @@ export function toOperation(dto: OperationDto, categories: ReadonlyMap<number, C
 export function toSaveRequest(draft: OperationDraft): OperationSaveRequest {
   return {
     categoryId: draft.categoryId,
-    sum: Money.fromMinorUnits(draft.sum.toMinorUnits()).toDecimal().toNumber(),
+    sum: toWireSum(draft.sum),
     comment: draft.comment,
     place: draft.place,
     date: toApiDate(draft.date),

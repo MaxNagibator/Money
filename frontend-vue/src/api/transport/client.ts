@@ -2,6 +2,7 @@ import createClient from 'openapi-fetch'
 import type { paths } from '@/api/generated/schema'
 import { API_BASE_URL } from '@/platform/http'
 import { transportFetch } from './fetch'
+import { serializeBody } from './raw-number'
 
 export type AccessTokenProvider = () => Promise<string | null>
 
@@ -30,6 +31,7 @@ export function setAccessTokenRefresher(refresher: AccessTokenRefresher): void {
 export const apiClient = createClient<paths>({
   baseUrl: API_BASE_URL,
   fetch: transportFetch,
+  bodySerializer: serializeBody,
 })
 
 apiClient.use({

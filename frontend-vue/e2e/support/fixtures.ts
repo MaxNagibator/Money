@@ -1,3 +1,5 @@
+import { wireNumber } from './api'
+
 export interface CategoryDto {
   id: number
   name: string
@@ -104,7 +106,7 @@ export const operations: OperationDto[] = [
 ]
 
 export const fastOperations: FastOperationDto[] = [
-  { id: 10, name: 'Кофе', order: 1, categoryId: 2, sum: 250.5, comment: 'утро', place: 'Пекарня' },
+  { id: 10, name: 'Кофе', order: 1, categoryId: 2, sum: wireNumber('250.50'), comment: 'утро', place: 'Пекарня' },
   { id: 11, name: 'Аванс', order: null, categoryId: 3, sum: 5000, comment: null, place: null },
 ]
 

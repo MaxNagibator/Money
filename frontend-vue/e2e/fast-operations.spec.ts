@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from './support/test'
-import { empty, identifier, json, problem, routeApi } from './support/api'
+import { empty, identifier, json, problem, routeApi, sentSum } from './support/api'
 import type { FastOperationDto } from './support/fixtures'
 import { categories, fastOperations, places } from './support/fixtures'
 import { signInAsStub } from './support/session'
@@ -47,7 +47,7 @@ async function stubApi(page: Page, initial: FastOperationDto[] = fastOperations)
 
           lastId += 1
           stub.created.push(body)
-          state.push({ ...body, id: lastId })
+          state.push({ ...body, id: lastId, sum: sentSum(route.request().postData()) ?? body.sum })
           await json(route, lastId)
           return
         }
@@ -85,7 +85,7 @@ async function stubApi(page: Page, initial: FastOperationDto[] = fastOperations)
         stub.updated.push({ id, body })
 
         if (stored !== undefined) {
-          Object.assign(stored, body)
+          Object.assign(stored, body, { sum: sentSum(route.request().postData()) ?? body.sum })
         }
 
         await empty(route)
@@ -123,7 +123,7 @@ test.describe('быстрые операции', () => {
     await page.getByTestId('fast-operations-add-1').click()
 
     await page.locator(dialogName).fill('Обед')
-    await page.locator(dialogSum).fill('250,5')
+    await page.locator(dialogSum).fill('250,50')
     await page.locator(dialogOrder).fill('2')
     await page.locator(dialogComment).fill('каждый день')
 
@@ -167,14 +167,14 @@ test.describe('быстрые операции', () => {
 
     await expect(dialog).toContainText('Обновить')
     await expect(page.locator(dialogName)).toHaveValue('Кофе')
-    await expect(page.locator(dialogSum)).toHaveValue('250,5')
+    await expect(page.locator(dialogSum)).toHaveValue('250,50')
     await expect(page.locator(dialogOrder)).toHaveValue('1')
     await expect(page.locator(dialogComment)).toHaveValue('утро')
     await expect(page.locator(dialogPlace)).toHaveValue('Пекарня')
     await expect(page.getByTestId('fast-operations-dialog-category')).toHaveValue('Кафе')
 
     await page.locator(dialogName).fill('Кофе большой')
-    await page.locator(dialogSum).fill('300')
+    await page.locator(dialogSum).fill('300,5')
 
     await page.getByTestId('fast-operations-dialog-save').click()
 
@@ -184,7 +184,7 @@ test.describe('быстрые операции', () => {
       id: 10,
       body: {
         categoryId: 2,
-        sum: 300,
+        sum: 300.5,
         name: 'Кофе большой',
         comment: 'утро',
         place: 'Пекарня',
@@ -193,7 +193,7 @@ test.describe('быстрые операции', () => {
     }])
 
     await expect(page.getByTestId('fast-operations-card-10')).toContainText('Кофе большой')
-    await expect(page.getByTestId('fast-operations-sum-10')).toHaveText('300')
+    await expect(page.getByTestId('fast-operations-sum-10')).toHaveText('300,5')
     expect(stub.created).toHaveLength(0)
   })
 

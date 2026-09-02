@@ -1,6 +1,7 @@
 import type { components } from '@/api/generated/schema'
 import { apiClient } from '@/api/transport/client'
-import { Money, MoneyDecimal } from '@/domain/money'
+import { Money } from '@/domain/money'
+import { toWireSum } from './money-wire'
 import { ApiError, fail } from './problem'
 
 type FastOperationDto = components['schemas']['Money.Api.Dto.FastOperations.FastOperationDto']
@@ -36,7 +37,7 @@ export function toFastOperation(dto: FastOperationDto): FastOperation[] {
     name: dto.name ?? '',
     order: dto.order ?? null,
     categoryId: dto.categoryId,
-    sum: Money.fromDecimal(new MoneyDecimal(dto.sum ?? 0)),
+    sum: Money.fromWire(dto.sum ?? 0),
     comment: dto.comment ?? null,
     place: dto.place ?? null,
     isDeleted: false,
@@ -46,7 +47,7 @@ export function toFastOperation(dto: FastOperationDto): FastOperation[] {
 export function toSaveRequest(draft: FastOperationDraft): FastOperationSaveRequest {
   return {
     categoryId: draft.categoryId,
-    sum: Money.fromMinorUnits(draft.sum.toMinorUnits()).toDecimal().toNumber(),
+    sum: toWireSum(draft.sum),
     name: draft.name,
     comment: draft.comment,
     place: draft.place,

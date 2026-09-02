@@ -12,6 +12,31 @@ export type ApiHandler = (call: ApiCall) => Promise<void> | void
 export type ApiHandlers = Record<string, ApiHandler>
 
 const API_PREFIX = '/api'
+const WIRE_LITERAL = Symbol('wireNumber')
+const PLACEHOLDER_PREFIX = 'wire-number:'
+const SENT_SUM_PATTERN = /"sum":(-?\d+(?:\.\d+)?)/
+
+function serialize(body: unknown): string {
+  const literals = new Map<string, string>()
+
+  let text = JSON.stringify(body, (_key, value: unknown) => {
+    if (typeof value !== 'object' || value === null || !(WIRE_LITERAL in value)) {
+      return value
+    }
+
+    const placeholder = `${PLACEHOLDER_PREFIX}${literals.size}`
+
+    literals.set(placeholder, (value as Record<symbol, string>)[WIRE_LITERAL]!)
+
+    return placeholder
+  })
+
+  for (const [placeholder, literal] of literals) {
+    text = text.replace(`"${placeholder}"`, literal)
+  }
+
+  return text
+}
 
 export function apiPath(url: URL): string {
   const path = url.pathname
@@ -47,8 +72,18 @@ export async function routeApi(page: Page, handlers: ApiHandlers): Promise<void>
   }
 }
 
+export function wireNumber(literal: string): number {
+  return { [WIRE_LITERAL]: literal } as unknown as number
+}
+
+export function sentSum(raw: string | null): number | null {
+  const literal = raw === null ? null : SENT_SUM_PATTERN.exec(raw)?.[1]
+
+  return literal === undefined || literal === null ? null : wireNumber(literal)
+}
+
 export function json(route: Route, body: unknown): Promise<void> {
-  return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) })
+  return route.fulfill({ status: 200, contentType: 'application/json', body: serialize(body) })
 }
 
 export function created(route: Route, id: number): Promise<void> {

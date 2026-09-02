@@ -42,11 +42,11 @@ describe('чтение ответа', () => {
   })
 
   it.each([
-    [1234.56, 123_456],
-    [0.145, 15],
-    [12_345_678.91, 1_234_567_891],
-  ])('читает сумму %f как %i копеек без промежуточного округления', (sum, expected) => {
-    expect(toRegularOperation(dto({ sum }))[0]?.sum.toMinorUnits()).toBe(expected)
+    [1234.56, '1234.56'],
+    [0.145, '0.145'],
+    [12_345_678.91, '12345678.91'],
+  ])('читает сумму %f как %s без промежуточного округления', (sum, expected) => {
+    expect(toRegularOperation(dto({ sum }))[0]?.sum.toDecimal().toString()).toBe(expected)
   })
 
   it.each([
@@ -97,12 +97,19 @@ describe('чтение ответа', () => {
 })
 
 describe('отправка запроса', () => {
-  it('даты уходят локальной полуночью без смещения, сумма числом', () => {
+  it('даты уходят локальной полуночью без смещения', () => {
     const request = toSaveRequest(draft())
 
     expect(request.dateFrom).toBe('2026-08-23T00:00:00')
     expect(request.dateTo).toBe('2026-12-31T00:00:00')
-    expect(request.sum).toBe(1234.56)
+  })
+
+  it('сумма уходит числом и доли копейки не срезаются', async () => {
+    respondJson(7, 201)
+
+    await createRegularOperation(draft({ sum: Money.parseInput('1234,564')! }))
+
+    expect(await vi.mocked(apiFetch).mock.calls.at(-1)![0].text()).toContain('"sum":1234.564')
   })
 
   it('пустая дата окончания и отсутствующий шаг уходят как null', () => {

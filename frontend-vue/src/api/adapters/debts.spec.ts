@@ -135,14 +135,14 @@ describe('toDebt', () => {
   })
 
   it.each([
-    [1234.56, 123_456],
-    [0.145, 15],
-    [12_345_678.91, 1_234_567_891],
-  ])('читает сумму %f как %i копеек без промежуточного округления', (sum, expected) => {
+    [1234.56, '1234.56'],
+    [0.145, '0.145'],
+    [12_345_678.91, '12345678.91'],
+  ])('читает сумму %f как %s без промежуточного округления', (sum, expected) => {
     const debts = toDebt({ id: 1, typeId: 1, sum, ownerName: 'Иван', date: '2026-08-22T00:00:00', paySum: sum })
 
-    expect(debts[0]?.sum.toMinorUnits()).toBe(expected)
-    expect(debts[0]?.paySum.toMinorUnits()).toBe(expected)
+    expect(debts[0]?.sum.toDecimal().toString()).toBe(expected)
+    expect(debts[0]?.paySum.toDecimal().toString()).toBe(expected)
   })
 
   it('держатель без имени приходит пустой строкой, а не null', () => {
@@ -190,14 +190,6 @@ describe('toSaveRequest', () => {
     expect(request.date).not.toMatch(/Z$|[+-]\d{2}:\d{2}$/)
   })
 
-  it('отправляет сумму числом с округлением до копеек', () => {
-    expect(toSaveRequest(draft()).sum).toBe(1234.56)
-    expect(toSaveRequest(draft({ sum: Money.parseInput('0,145')! })).sum).toBe(0.15)
-  })
-
-  it('нулевая сумма уходит нулём', () => {
-    expect(toSaveRequest(draft({ sum: Money.zero })).sum).toBe(0)
-  })
 })
 
 describe('toPayRequest', () => {
@@ -222,6 +214,25 @@ describe('сохранение долга', () => {
       ownerName: 'Иван',
       date: '2026-08-22T00:00:00',
     })
+  })
+
+  it.each([
+    ['1234,56', '1234.56'],
+    ['0,145', '0.145'],
+  ])('сумма %j уходит числом %s без округления до копеек', async (input, expected) => {
+    respondJson(42, 201)
+
+    await createDebt(draft({ sum: Money.parseInput(input)! }))
+
+    expect(await lastRequest().text()).toContain(`"sum":${expected}`)
+  })
+
+  it('нулевая сумма уходит нулём', async () => {
+    respondJson(42, 201)
+
+    await createDebt(draft({ sum: Money.zero }))
+
+    expect(await lastRequest().text()).toContain('"sum":0,')
   })
 
   it('изменение отправляет PUT по маршруту долга с тем же телом', async () => {
@@ -295,7 +306,7 @@ describe('оплата', () => {
 
     expect(paid).toBeUndefined()
     expect(requestLog()).toEqual(['POST /api/Debts/7/Pay', 'GET /api/Debts/7'])
-    expect(fresh?.paySum.toMinorUnits()).toBe(10_000)
+    expect(fresh?.paySum.toDecimal().toString()).toBe('100')
     expect(fresh?.payComment).toBe('2026.08.22 100 первый взнос')
   })
 

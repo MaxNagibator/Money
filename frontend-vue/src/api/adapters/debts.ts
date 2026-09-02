@@ -3,7 +3,8 @@ import { apiClient } from '@/api/transport/client'
 import type { Debt, DebtOwner } from '@/domain/debt'
 import type { LocalDate } from '@/domain/local-date'
 import { parseLocalDate } from '@/domain/local-date'
-import { Money, MoneyDecimal } from '@/domain/money'
+import { Money } from '@/domain/money'
+import { toWireSum } from './money-wire'
 import { ApiError, fail } from './problem'
 
 type DebtDto = components['schemas']['Money.Api.Dto.Debts.DebtDto']
@@ -156,8 +157,8 @@ export function toDebt(dto: DebtDto): Debt[] {
   return [{
     id: dto.id,
     typeId: dto.typeId,
-    sum: toMoney(dto.sum),
-    paySum: toMoney(dto.paySum),
+    sum: Money.fromWire(dto.sum),
+    paySum: Money.fromWire(dto.paySum),
     comment: dto.comment ?? null,
     ownerName: dto.ownerName ?? '',
     date,
@@ -192,14 +193,6 @@ export function toPayRequest(draft: DebtPaymentDraft): DebtPayRequest {
     comment: draft.comment,
     date: toApiDate(draft.date),
   }
-}
-
-function toMoney(value: number): Money {
-  return Money.fromDecimal(new MoneyDecimal(value))
-}
-
-function toWireSum(value: Money): number {
-  return Money.fromMinorUnits(value.toMinorUnits()).toDecimal().toNumber()
 }
 
 function toApiDate(value: LocalDate): string {
