@@ -18,6 +18,7 @@ import {
   MudStack,
   MudText,
 } from '@/shared/mud'
+import { pinLeavingItem, unpinItem } from '@/shared/ui/list-flow'
 import type { DebtOwnerGroup } from '../model/debt'
 import { lastPaymentDate, NO_PAYMENT_MARK, ownerPercent, ownerRemainder, ownerTotal } from '../model/debt'
 import type { PaymentFormValue } from '../model/payment-form'
@@ -109,33 +110,39 @@ const lastPayment = computed(() => lastPaymentDate(props.owner))
     </MudPaper>
 
     <MudGrid
-      class="my-1"
+      class="my-1 list-flow-host"
       :spacing="1"
     >
-      <MudItem
-        v-for="debt in owner.debts"
-        :key="debt.id"
-        class="mb-3"
-        :lg="3"
-        :md="4"
-        :xs="12"
+      <TransitionGroup
+        name="list-flow"
+        @before-enter="unpinItem"
+        @before-leave="pinLeavingItem"
       >
-        <DebtCard
-          :debt="debt"
-          :is-paying="isPaying"
-          :is-payment-open="paymentValue !== null && paymentValue.debtId === debt.id"
-          :is-selectable="isSelectable(debt)"
-          :is-selected="selectedIds.has(debt.id)"
-          :payment-value="paymentValue"
-          @cancel-payment="emit('cancel-payment', $event)"
-          @edit="emit('edit', $event)"
-          @open-payment="emit('open-payment', $event)"
-          @remove="emit('remove', $event)"
-          @restore="emit('restore', $event)"
-          @submit-payment="emit('submit-payment', $event)"
-          @toggle-selection="emit('toggle-selection', $event)"
-        />
-      </MudItem>
+        <MudItem
+          v-for="debt in owner.debts"
+          :key="debt.id"
+          class="mb-3"
+          :lg="3"
+          :md="4"
+          :xs="12"
+        >
+          <DebtCard
+            :debt="debt"
+            :is-paying="isPaying"
+            :is-payment-open="paymentValue !== null && paymentValue.debtId === debt.id"
+            :is-selectable="isSelectable(debt)"
+            :is-selected="selectedIds.has(debt.id)"
+            :payment-value="paymentValue"
+            @cancel-payment="emit('cancel-payment', $event)"
+            @edit="emit('edit', $event)"
+            @open-payment="emit('open-payment', $event)"
+            @remove="emit('remove', $event)"
+            @restore="emit('restore', $event)"
+            @submit-payment="emit('submit-payment', $event)"
+            @toggle-selection="emit('toggle-selection', $event)"
+          />
+        </MudItem>
+      </TransitionGroup>
     </MudGrid>
   </div>
 </template>

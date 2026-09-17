@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useWindowSize } from '@vueuse/core'
 import { computed } from 'vue'
 import type { FastOperation } from '@/api/adapters/fast-operations'
 import type { Category } from '@/domain/category'
@@ -9,10 +10,12 @@ import {
   MudFab,
   MudIcon,
   MudPaper,
-  MudProgressLinear,
   MudScrollToTop,
+  MudSkeleton,
+  MudStack,
   MudText,
 } from '@/shared/mud'
+import { resolveSkeletonCount } from '@/shared/ui/loading-skeletons'
 import VirtualList from '@/shared/ui/VirtualList.vue'
 import type { OperationFormValue } from '../model/operation-form'
 import OperationsDayCard from './OperationsDayCard.vue'
@@ -35,6 +38,10 @@ const emit = defineEmits<{
 
 const DAY_CARD_ESTIMATE = 220
 
+const { height: viewportHeight } = useWindowSize()
+
+const skeletonCount = computed(() => resolveSkeletonCount(viewportHeight.value, DAY_CARD_ESTIMATE))
+
 const items = computed(() => props.days)
 
 function dayKey(day: OperationsDay): string {
@@ -47,14 +54,22 @@ function dayKey(day: OperationsDay): string {
     class="operations-list"
     data-testid="operations-list"
   >
-    <MudProgressLinear
+    <MudStack
       v-if="isLoading"
+      aria-busy="true"
       aria-label="Загрузка операций"
-      class="my-4"
-      color="tertiary"
+      class="mt-2"
       data-testid="operations-list-loading"
-      indeterminate
-    />
+      role="status"
+      :spacing="2"
+    >
+      <MudSkeleton
+        v-for="index in skeletonCount"
+        :key="index"
+        :height="`${DAY_CARD_ESTIMATE}px`"
+        skeleton-type="rectangle"
+      />
+    </MudStack>
 
     <MudAlert
       v-else-if="errorMessage !== null"

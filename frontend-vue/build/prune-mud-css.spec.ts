@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { isPruned, pruneMudCss } from './prune-mud-css'
+import { collectUtilityClasses, isPruned, pruneMudCss } from './prune-mud-css'
 
 const vendorCss = readFileSync(join(import.meta.dirname, '..', 'src', 'shared', 'mud', 'vendor', 'MudBlazor.min.css'), 'utf8')
 
@@ -41,8 +41,32 @@ describe('обрезка вендорённого CSS', () => {
     expect(pruneMudCss('@font-face{font-family:Roboto}@charset "utf-8";')).toBe('@font-face{font-family:Roboto}@charset "utf-8";')
   })
 
-  it('не удаляет селектор с отрицанием', () => {
+  it('не считает класс внутри отрицания за использование', () => {
     expect(isPruned('.mud-button:not(.mud-chart)')).toBe(false)
+    expect(isPruned('.mud-chart-legend:not(.mud-paper)')).toBe(true)
+    expect(isPruned('.mud-button-group-horizontal:not(.mud-button-group-rtl)>.mud-button-root:not(:last-child)')).toBe(true)
+  })
+
+  it('удаляет утилиту отступа, которой нет в исходниках', () => {
+    const used = new Set(['ma-2', 'gap-md-6', 'me-n1'])
+
+    expect(pruneMudCss('.ma-2{margin:8px}.ma-3{margin:12px}', used)).toBe('.ma-2{margin:8px}')
+    expect(pruneMudCss('.gap-md-6{gap:24px}.gap-md-8{gap:32px}', used)).toBe('.gap-md-6{gap:24px}')
+    expect(pruneMudCss('.me-n1{margin-inline-end:-4px}.me-n2{margin-inline-end:-8px}', used)).toBe('.me-n1{margin-inline-end:-4px}')
+  })
+
+  it('оставляет утилиту, попавшую в составной селектор', () => {
+    expect(pruneMudCss('.mud-paper .ma-3{margin:12px}', new Set(['ma-2']))).toBe('.mud-paper .ma-3{margin:12px}')
+  })
+
+  it('не трогает утилиты без списка использованных', () => {
+    expect(pruneMudCss('.ma-3{margin:12px}')).toBe('.ma-3{margin:12px}')
+  })
+
+  it('собирает утилиты из исходников по литералам', () => {
+    const used = collectUtilityClasses(['<div class="ma-2 gap-md-6 me-n1">', 'const x = "pa-4"'])
+
+    expect([...used].sort()).toEqual(['gap-md-6', 'ma-2', 'me-n1', 'pa-4'])
   })
 
   it('удаляет селектор, которому нужен неиспользуемый предок', () => {
@@ -90,17 +114,9 @@ describe('обрезка вендорённого CSS на реальном фа
     }
   })
 
-  it('вычищает неиспользуемые компоненты целиком', () => {
-    for (const name of ['.mud-carousel', '.mud-drop-zone']) {
+  it('вычищает неиспользуемые компоненты целиком, включая правила с отрицанием', () => {
+    for (const name of ['.mud-carousel', '.mud-drop-zone', '.mud-chart', '.mud-data-grid', '.mud-fab-menu', '.mud-button-group']) {
       expect(pruned).not.toContain(name)
-    }
-  })
-
-  it('оставляет неиспользуемому компоненту только правила с отрицанием', () => {
-    for (const name of ['.mud-chart', '.mud-data-grid', '.mud-fab-menu']) {
-      const survivors = pruned.split(name).length - 1
-
-      expect(survivors).toBeLessThan((vendorCss.split(name).length - 1) / 2)
     }
   })
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { EmailConfirmCard, PasswordChangeCard, ProfileGreetingCard, useProfileScreen } from '@/features/profile'
-import { MudAlert, MudProgressCircular, MudSnackbar, MudText } from '@/shared/mud'
+import { MudAlert, MudSkeleton, MudSnackbar, MudStack } from '@/shared/mud'
 
 const screen = useProfileScreen()
 
@@ -19,15 +19,20 @@ const noticeSeverity = computed(() => screen.notice.value?.type ?? 'normal')
 </script>
 
 <template>
-  <div
+  <MudStack
     v-if="screen.profile.isLoading.value"
-    class="d-flex align-center gap-3"
+    data-testid="profile-loading"
+    :spacing="6"
   >
-    <MudProgressCircular indeterminate />
-    <MudText html-tag="span">
-      Загрузка..
-    </MudText>
-  </div>
+    <MudSkeleton
+      height="150px"
+      skeleton-type="rectangle"
+    />
+    <MudSkeleton
+      height="270px"
+      skeleton-type="rectangle"
+    />
+  </MudStack>
 
   <MudAlert
     v-else-if="screen.profile.loadError.value !== null"

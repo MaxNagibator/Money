@@ -26,7 +26,8 @@
     "test:e2e": "playwright test --project=specs",
     "api:gen": "node scripts/api-gen.mjs",
     "api:check": "node scripts/api-check.mjs",
-    "verify": "pnpm lint && pnpm typecheck && pnpm test:unit && pnpm build",
+    "size:check": "node scripts/size-budget.mjs",
+    "verify": "pnpm lint && pnpm typecheck && pnpm test:unit && pnpm build && pnpm size:check",
     "verify:full": "pnpm api:check && pnpm verify"
   },
   "dependencies": {

@@ -12,6 +12,7 @@ import {
   MudText,
   MudTooltip,
 } from '@/shared/mud'
+import { pinLeavingItem, unpinItem } from '@/shared/ui/list-flow'
 import type { DebtTypeGroup } from '../model/debt'
 import { typeTotal } from '../model/debt'
 import type { PaymentFormValue } from '../model/payment-form'
@@ -80,24 +81,31 @@ const total = computed(() => typeTotal(props.group))
     <MudCollapse :expanded="isExpanded">
       <MudStack
         v-if="isExpanded"
+        class="list-flow-host"
         :spacing="2"
       >
-        <DebtOwnerPanel
-          v-for="owner in group.owners"
-          :key="owner.name"
-          :is-paying="isPaying"
-          :is-selectable="isSelectable"
-          :owner="owner"
-          :payment-value="paymentValue"
-          :selected-ids="selectedIds"
-          @cancel-payment="emit('cancel-payment', $event)"
-          @edit="emit('edit', $event)"
-          @open-payment="emit('open-payment', $event)"
-          @remove="emit('remove', $event)"
-          @restore="emit('restore', $event)"
-          @submit-payment="emit('submit-payment', $event)"
-          @toggle-selection="emit('toggle-selection', $event)"
-        />
+        <TransitionGroup
+          name="list-flow"
+          @before-enter="unpinItem"
+          @before-leave="pinLeavingItem"
+        >
+          <DebtOwnerPanel
+            v-for="owner in group.owners"
+            :key="owner.name"
+            :is-paying="isPaying"
+            :is-selectable="isSelectable"
+            :owner="owner"
+            :payment-value="paymentValue"
+            :selected-ids="selectedIds"
+            @cancel-payment="emit('cancel-payment', $event)"
+            @edit="emit('edit', $event)"
+            @open-payment="emit('open-payment', $event)"
+            @remove="emit('remove', $event)"
+            @restore="emit('restore', $event)"
+            @submit-payment="emit('submit-payment', $event)"
+            @toggle-selection="emit('toggle-selection', $event)"
+          />
+        </TransitionGroup>
       </MudStack>
     </MudCollapse>
   </section>

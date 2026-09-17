@@ -1,4 +1,14 @@
+import { readdirSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import type { Plugin } from 'vite'
+
+const UTILITY_CLASS = String.raw`(?:ma|mt|mb|ml|mr|mx|my|ms|me|pa|pt|pb|pl|pr|px|py|ps|pe|gap)-(?:xs-|sm-|md-|lg-|xl-)?n?\d+`
+
+const UTILITY_IN_SOURCE = new RegExp(String.raw`\b${UTILITY_CLASS}\b`, 'g')
+
+const UTILITY_SELECTOR = new RegExp(String.raw`^\.(${UTILITY_CLASS})$`)
+
+const SOURCE_EXTENSIONS = ['.vue', '.ts']
 
 export const PRUNED_PREFIXES: readonly string[] = [
   'mud-avatar',
@@ -6,6 +16,7 @@ export const PRUNED_PREFIXES: readonly string[] = [
   'mud-button-group',
   'mud-carousel',
   'mud-chart',
+  'mud-charts',
   'mud-data-grid',
   'mud-datagrid',
   'mud-drop-container',
@@ -29,35 +40,64 @@ const NESTING_AT_RULES = new Set(['media', 'supports', 'layer', 'container', 'sc
 
 const BACKSLASH = '\\'
 
-export function pruneMudCss(css: string): string {
-  return pruneBlock(css)
+export function collectUtilityClasses(sources: Iterable<string>): Set<string> {
+  const used = new Set<string>()
+
+  for (const source of sources) {
+    for (const match of source.matchAll(UTILITY_IN_SOURCE)) {
+      used.add(match[0])
+    }
+  }
+
+  return used
+}
+
+export function readSourceFiles(root: string): string[] {
+  const entries = readdirSync(root, { recursive: true, withFileTypes: true })
+
+  return entries
+    .filter(entry => entry.isFile() && SOURCE_EXTENSIONS.some(extension => entry.name.endsWith(extension)))
+    .map(entry => readFileSync(join(entry.parentPath, entry.name), 'utf8'))
+}
+
+export function pruneMudCss(css: string, usedUtilities: ReadonlySet<string> | null = null): string {
+  return pruneBlock(css, usedUtilities)
 }
 
 export function mudCssPrunePlugin(): Plugin {
+  let usedUtilities: ReadonlySet<string> | null = null
+  let root = 'src'
+
   return {
     name: 'money-prune-mud-css',
     enforce: 'pre',
+    configResolved(config) {
+      root = join(config.root, 'src')
+    },
+    buildStart() {
+      usedUtilities = collectUtilityClasses(readSourceFiles(root))
+    },
     transform(code, id) {
       if (!id.replaceAll('\\', '/').split('?')[0]?.endsWith(VENDOR_CSS_SUFFIX)) {
         return null
       }
 
-      return { code: pruneMudCss(code), map: null }
+      return { code: pruneMudCss(code, usedUtilities), map: null }
     },
   }
 }
 
-function pruneBlock(css: string): string {
+function pruneBlock(css: string, usedUtilities: ReadonlySet<string> | null): string {
   let result = ''
 
   for (const rule of splitRules(css)) {
-    result += rule.body === null ? rule.prelude : pruneRule(rule.prelude, rule.body)
+    result += rule.body === null ? rule.prelude : pruneRule(rule.prelude, rule.body, usedUtilities)
   }
 
   return result
 }
 
-function pruneRule(prelude: string, body: string): string {
+function pruneRule(prelude: string, body: string, usedUtilities: ReadonlySet<string> | null): string {
   const name = atRuleName(prelude)
 
   if (name !== null) {
@@ -65,14 +105,24 @@ function pruneRule(prelude: string, body: string): string {
       return `${prelude}{${body}}`
     }
 
-    const pruned = pruneBlock(body)
+    const pruned = pruneBlock(body, usedUtilities)
 
     return pruned.trim() === '' ? '' : `${prelude}{${pruned}}`
   }
 
-  const kept = splitSelectors(prelude).filter(selector => !isPruned(selector))
+  const kept = splitSelectors(prelude).filter(selector => !isPruned(selector) && !isUnusedUtility(selector, usedUtilities))
 
   return kept.length === 0 ? '' : `${kept.join(',')}{${body}}`
+}
+
+export function isUnusedUtility(selector: string, usedUtilities: ReadonlySet<string> | null): boolean {
+  if (usedUtilities === null) {
+    return false
+  }
+
+  const match = UTILITY_SELECTOR.exec(selector.trim())
+
+  return match !== null && !usedUtilities.has(match[1] ?? '')
 }
 
 function atRuleName(prelude: string): string | null {
@@ -82,13 +132,49 @@ function atRuleName(prelude: string): string | null {
 }
 
 export function isPruned(selector: string): boolean {
-  if (selector.includes(':not(')) {
-    return false
-  }
-
-  const classes = [...selector.matchAll(/\.(mud-[a-z0-9-]+)/gi)].map(match => match[1] ?? '')
+  const classes = [...stripNegations(selector).matchAll(/\.(mud-[a-z0-9-]+)/gi)].map(match => match[1] ?? '')
 
   return classes.some(name => PRUNED_PREFIXES.some(prefix => isInGroup(name, prefix)))
+}
+
+function stripNegations(selector: string): string {
+  let result = ''
+  let index = 0
+
+  while (index < selector.length) {
+    const start = selector.indexOf(':not(', index)
+
+    if (start === -1) {
+      return result + selector.slice(index)
+    }
+
+    result += selector.slice(index, start)
+    index = skipParens(selector, start + ':not('.length - 1)
+  }
+
+  return result
+}
+
+function skipParens(selector: string, open: number): number {
+  let depth = 0
+
+  for (let index = open; index < selector.length; index += 1) {
+    const character = selector[index]
+
+    if (character === '(') {
+      depth += 1
+    }
+
+    if (character === ')') {
+      depth -= 1
+
+      if (depth === 0) {
+        return index + 1
+      }
+    }
+  }
+
+  return selector.length
 }
 
 function isInGroup(name: string, prefix: string): boolean {

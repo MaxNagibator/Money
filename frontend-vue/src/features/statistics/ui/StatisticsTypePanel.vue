@@ -9,6 +9,7 @@ import {
   MudStack,
   MudText,
 } from '@/shared/mud'
+import { useTransitionsAfterMount } from '@/shared/ui/useTransitionsAfterMount'
 import { collectSumKeys } from '../model/category-sums'
 import type { StatisticsPanel } from '../model/useStatistics'
 import CategoryBarChart from './CategoryBarChart.vue'
@@ -19,6 +20,7 @@ const props = defineProps<{ panel: StatisticsPanel }>()
 
 const opened = ref<string[]>([])
 const expanded = ref(true)
+const areTransitionsEnabled = useTransitionsAfterMount()
 
 interface ExpansionPanelInstance {
   $el?: HTMLElement
@@ -44,6 +46,7 @@ function collapseAll(): void {
   <MudExpansionPanel
     ref="expansionPanelReference"
     v-model:expanded="expanded"
+    :class="{ 'statistics-panel-static': !areTransitionsEnabled }"
     :data-testid="`statistics-panel-${panel.type.id}`"
     :text="panel.type.name"
   >
@@ -120,3 +123,9 @@ function collapseAll(): void {
     </template>
   </MudExpansionPanel>
 </template>
+
+<style scoped>
+.statistics-panel-static :deep(.mud-collapse-container) {
+  transition: none;
+}
+</style>

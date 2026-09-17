@@ -1,10 +1,11 @@
 import { fileURLToPath, URL } from 'node:url'
 import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vitest/config'
+import { preloadFontsPlugin } from './build/preload-fonts.ts'
 import { mudCssPrunePlugin } from './build/prune-mud-css.ts'
 
 export default defineConfig({
-  plugins: [vue(), mudCssPrunePlugin()],
+  plugins: [vue(), mudCssPrunePlugin(), preloadFontsPlugin()],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),

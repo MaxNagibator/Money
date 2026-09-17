@@ -29,6 +29,7 @@ import {
   MudText,
 } from '@/shared/mud'
 import { roleVariables } from '@/shared/ui/record-card'
+import { useTransitionsAfterMount } from '@/shared/ui/useTransitionsAfterMount'
 import type { DebtStatus } from '../model/debt'
 import { DEBT_STATUS_TEXT, debtStatus, hasPaymentHistory, parsePaymentHistory, paymentProgress } from '../model/debt'
 import type { PaymentFormValue } from '../model/payment-form'
@@ -69,6 +70,7 @@ const emit = defineEmits<{
 
 const isExpanded = ref(false)
 const isSummaryExpanded = ref(true)
+const areTransitionsEnabled = useTransitionsAfterMount()
 
 let collapseTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -168,8 +170,11 @@ function togglePayment(): void {
     @mouseenter="stopCollapse"
     @mouseleave="scheduleCollapse"
   >
-    <MudCardContent class="px-3 py-2">
-      <MudCollapse :expanded="isSummaryExpanded">
+  <MudCardContent class="px-3 py-2">
+      <MudCollapse
+        :class="{ 'debt-card__summary-static': !areTransitionsEnabled }"
+        :expanded="isSummaryExpanded"
+      >
         <MudStack
           align-items="center"
           row
@@ -393,6 +398,10 @@ function togglePayment(): void {
   height: 100%;
   box-shadow: 0 2px 4px rgb(0 0 0 / 10%);
   transition: transform 0.2s;
+}
+
+.debt-card__summary-static {
+  transition: none;
 }
 
 .debt-card[role='button'] {

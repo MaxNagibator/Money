@@ -2,6 +2,7 @@
 import type { CarEvent } from '@/domain/car'
 import { mdAdd } from '@/shared/icons'
 import { MudGrid, MudIconButton, MudItem, MudProgressCircular, MudText } from '@/shared/mud'
+import { pinLeavingItem, unpinItem } from '@/shared/ui/list-flow'
 import CarEventCard from './CarEventCard.vue'
 
 defineProps<{
@@ -59,23 +60,30 @@ const emit = defineEmits<{
 
     <MudGrid
       v-else
+      class="list-flow-host"
       :spacing="2"
     >
-      <MudItem
-        v-for="event in events"
-        :key="event.id"
-        class="mb-1"
-        :lg="3"
-        :md="4"
-        :xs="12"
+      <TransitionGroup
+        name="list-flow"
+        @before-enter="unpinItem"
+        @before-leave="pinLeavingItem"
       >
-        <CarEventCard
-          :event="event"
-          @edit="emit('edit', $event)"
-          @remove="emit('remove', $event)"
-          @restore="emit('restore', $event)"
-        />
-      </MudItem>
+        <MudItem
+          v-for="event in events"
+          :key="event.id"
+          class="mb-1"
+          :lg="3"
+          :md="4"
+          :xs="12"
+        >
+          <CarEventCard
+            :event="event"
+            @edit="emit('edit', $event)"
+            @remove="emit('remove', $event)"
+            @restore="emit('restore', $event)"
+          />
+        </MudItem>
+      </TransitionGroup>
     </MudGrid>
   </section>
 </template>
