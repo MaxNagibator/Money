@@ -19,6 +19,7 @@ import type { Operation, OperationsDay } from '@/domain/operation'
 import { calculateDayTotal } from '@/domain/operation'
 import type { OperationTypeId } from '@/domain/operation-type'
 import type { OperationFilters } from './filters'
+import { clearPinnedOperations } from './operation-pins'
 import type { OperationsState } from './useOperations'
 import { useOperations } from './useOperations'
 
@@ -52,6 +53,27 @@ const ROWS: readonly { id: number, categoryId: number, date: string, minorUnits:
   { id: 103, categoryId: 1, date: '2026-03-07', minorUnits: 2_500 },
 ]
 
+const NARROW_FILTER: Partial<OperationFilters> = {
+  from: date('2026-03-01'),
+  to: date('2026-03-31'),
+  categoryIds: [1],
+  comment: 'кофе',
+  place: 'Пятёрочка',
+}
+
+const CUT_BY_FILTER: readonly [string, Partial<OperationFilters>, Partial<OperationDraft>][] = [
+  ['по категории', { categoryIds: [1] }, { categoryId: 2 }],
+  ['по месту', { place: 'Пятёрочка' }, { place: 'Ашан' }],
+  ['по комментарию', { comment: 'кофе' }, { comment: 'бензин' }],
+  ['по периоду', { from: date('2026-03-01'), to: date('2026-03-31') }, { date: date('2026-02-20') }],
+]
+
+const OPEN_FILTERS: readonly [string, Partial<OperationFilters>][] = [
+  ['пустые поля и пустой список категорий', { comment: '', place: '', categoryIds: [] }],
+  ['пробелы вместо текста', { comment: '   ', place: '  ' }],
+  ['период без границ', { from: null, to: null }],
+]
+
 const DRAFT: OperationDraft = {
   categoryId: 1,
   sum: Money.fromMinorUnits(1_000),
@@ -62,6 +84,7 @@ const DRAFT: OperationDraft = {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  clearPinnedOperations()
 
   showAllOperations()
   createOperationMock.mockResolvedValue(999)
@@ -297,6 +320,46 @@ describe('данные экрана операций', () => {
     expect(findOperation(state, 101)?.category?.name).toBe('Продукты')
     expect(state.totals.value[1].toMinorUnits()).toBe(17_500)
     expect(fetchOperationsMock).toHaveBeenCalledTimes(1)
+  })
+
+  it.each(CUT_BY_FILTER)('не удерживает запись, отсечённую %s', async (_reason, applied, changed) => {
+    const { state } = setup(applied)
+
+    await settle(state)
+
+    createOperationMock.mockResolvedValue(777)
+    await state.create({ ...DRAFT, ...changed })
+    await vi.waitFor(() => expect(fetchOperationsMock).toHaveBeenCalledTimes(2))
+
+    expect(findOperation(state, 777)).toBeUndefined()
+    expect(state.totals.value[1].toMinorUnits()).toBe(17_500)
+    expect(state.totals.value[2].toMinorUnits()).toBe(50_000)
+  })
+
+  it('удерживает запись, прошедшую применённый фильтр целиком', async () => {
+    const { state } = setup(NARROW_FILTER)
+
+    await settle(state)
+
+    createOperationMock.mockResolvedValue(777)
+    await state.create({ ...DRAFT, comment: 'Утренний КОФЕ', place: 'ПЯТЁРОЧКА на углу' })
+    await vi.waitFor(() => expect(fetchOperationsMock).toHaveBeenCalledTimes(2))
+
+    expect(findOperation(state, 777)?.sum.toMinorUnits()).toBe(1_000)
+    expect(state.totals.value[1].toMinorUnits()).toBe(18_500)
+  })
+
+  it.each(OPEN_FILTERS)('удерживает запись, когда фильтр не ограничивает: %s', async (_reason, applied) => {
+    const { state } = setup(applied)
+
+    await settle(state)
+
+    createOperationMock.mockResolvedValue(777)
+    await state.create({ ...DRAFT, comment: null, place: null, date: date('2024-01-05') })
+    await vi.waitFor(() => expect(fetchOperationsMock).toHaveBeenCalledTimes(2))
+
+    expect(findOperation(state, 777)?.sum.toMinorUnits()).toBe(1_000)
+    expect(state.totals.value[1].toMinorUnits()).toBe(18_500)
   })
 
   it('перечитывает список после создания и изменения операции', async () => {

@@ -5,6 +5,7 @@ import type { LocalDate } from '@/domain/local-date'
 import type { Money } from '@/domain/money'
 import {
   mdComment,
+  mdDelete,
   mdSearch,
 } from '@/shared/icons'
 import {
@@ -12,6 +13,7 @@ import {
   MudButton,
   MudDialog,
   MudGrid,
+  MudIconButton,
   MudItem,
   MudNumericField,
   MudProgressCircular,
@@ -23,6 +25,7 @@ import {
 import SmartDatePicker from '@/shared/ui/SmartDatePicker.vue'
 import SmartPlace from '@/shared/ui/SmartPlace.vue'
 import SmartSum from '@/shared/ui/SmartSum.vue'
+import { useNarrowViewport } from '@/shared/ui/useNarrowViewport'
 import type { RegularOperationFormErrors, RegularOperationFormValue } from '../model/regular-operation-form'
 import {
   DATE_UNPARSED,
@@ -32,16 +35,20 @@ import {
 } from '../model/regular-operation-form'
 import { REGULAR_TIME_TYPES, timeValueHint, timeValueRules } from '../model/time-type'
 
+const UNSIGNED_INTEGER_PATTERN = '[0-9]*'
+
 const props = defineProps<{
   value: RegularOperationFormValue | null
   categories: readonly Category[]
   title: string
   isSaving: boolean
+  removable?: boolean
 }>()
 
 const emit = defineEmits<{
   submit: [value: RegularOperationFormValue]
   cancel: []
+  remove: []
 }>()
 
 const name = ref('')
@@ -68,6 +75,8 @@ const selectedCategory = computed<Category | null>({
 })
 const valueRules = computed(() => timeValueRules(timeTypeId.value))
 const valueHint = computed(() => timeValueHint(timeTypeId.value, timeValue.value) ?? '')
+const isNarrow = useNarrowViewport()
+const canRemove = computed(() => props.removable === true && isNarrow.value && (props.value?.id ?? null) !== null)
 const dialogVisible = computed({
   get: () => props.value !== null,
   set: (visible: boolean) => {
@@ -117,6 +126,14 @@ function clearError(field: keyof RegularOperationFormErrors): void {
 
   delete next[field]
   errors.value = next
+}
+
+function remove(): void {
+  if (props.isSaving || !canRemove.value) {
+    return
+  }
+
+  emit('remove')
 }
 
 function submit(): void {
@@ -276,6 +293,7 @@ function submit(): void {
               :helper-text="valueHint"
               :label="valueRules.label"
               :min="valueRules.min"
+              :pattern="isNarrow ? UNSIGNED_INTEGER_PATTERN : undefined"
               data-testid="regular-operations-dialog-time-value"
               immediate
               @update:model-value="clearError('timeValue')"
@@ -359,6 +377,18 @@ function submit(): void {
         Отмена
       </MudButton>
 
+      <MudIconButton
+        v-if="canRemove"
+        :disabled="isSaving"
+        :icon="mdDelete"
+        aria-label="Удалить регулярную операцию"
+        color="error"
+        data-testid="regular-operations-dialog-remove"
+        size="small"
+        title="Удалить"
+        @click="remove"
+      />
+
       <MudButton
         :disabled="isSaving"
         color="success"
@@ -382,4 +412,16 @@ function submit(): void {
     </template>
   </MudDialog>
 </template>
+
+<style>
+@media (max-width: 599.98px) {
+  .mud-dialog.regular-operation-dialog {
+    width: 100%;
+    max-width: none;
+    max-height: calc(var(--viewport-height, 100dvh) * 0.85);
+    margin: auto 0 var(--keyboard-inset, 0px);
+    border-radius: 12px 12px 0 0;
+  }
+}
+</style>
 

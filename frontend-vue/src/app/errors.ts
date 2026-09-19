@@ -8,8 +8,12 @@ const captured = ref<Error | null>(null)
 export const renderError: ComputedRef<Error | null> = computed(() => captured.value)
 
 export function handleAppError(reason: unknown, info: string): void {
-  console.error(info, reason)
+  logAppError(reason, info)
   captureRenderError(reason)
+}
+
+export function logAppError(reason: unknown, info: string): void {
+  console.error(info, reason)
 }
 
 export function captureRenderError(reason: unknown): void {

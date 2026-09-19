@@ -30,31 +30,31 @@ const appRoutes: RouteRecordRaw[] = [
   {
     path: '/categories',
     name: 'categories',
-    meta: { title: 'Категории' },
+    meta: { ownHeading: true, title: 'Категории' },
     component: () => import('@/pages/CategoriesPage.vue'),
   },
   {
     path: '/fast-operations',
     name: 'fast-operations',
-    meta: { title: 'Быстрые операции' },
+    meta: { ownHeading: true, title: 'Быстрые операции' },
     component: () => import('@/pages/FastOperationsPage.vue'),
   },
   {
     path: '/regular-operations',
     name: 'regular-operations',
-    meta: { title: 'Регулярные операции' },
+    meta: { ownHeading: true, title: 'Регулярные операции' },
     component: () => import('@/pages/RegularOperationsPage.vue'),
   },
   {
     path: '/debts',
     name: 'debts',
-    meta: { title: 'Долги' },
+    meta: { ownHeading: true, title: 'Долги' },
     component: () => import('@/pages/DebtsPage.vue'),
   },
   {
     path: '/cars',
     name: 'cars',
-    meta: { title: 'Машинки' },
+    meta: { ownHeading: true, title: 'Машинки' },
     component: () => import('@/pages/CarsPage.vue'),
   },
   {
@@ -72,13 +72,13 @@ const appRoutes: RouteRecordRaw[] = [
   {
     path: '/login',
     name: 'login',
-    meta: { isPublic: true, title: 'Вход' },
+    meta: { isPublic: true, ownHeading: true, title: 'Вход' },
     component: () => import('@/pages/LoginPage.vue'),
   },
   {
     path: '/register',
     name: 'register',
-    meta: { isPublic: true, title: 'Регистрация' },
+    meta: { isPublic: true, ownHeading: true, title: 'Регистрация' },
     component: () => import('@/pages/RegisterPage.vue'),
   },
   {

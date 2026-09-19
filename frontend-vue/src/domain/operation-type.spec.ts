@@ -14,6 +14,17 @@ describe('вид типа операции', () => {
     expect(type.icon).toBe(icon)
   })
 
+  it.each<[OperationTypeId, string, string, string]>([
+    [1, 'Расход', 'Новый расход', 'Правка расхода'],
+    [2, 'Доход', 'Новый доход', 'Правка дохода'],
+  ])('тип %i несёт короткую подпись и заголовки формы', (id, shortAddLabel, newTitle, editTitle) => {
+    const type = operationTypeById(id)
+
+    expect(type.shortAddLabel).toBe(shortAddLabel)
+    expect(type.newTitle).toBe(newTitle)
+    expect(type.editTitle).toBe(editTitle)
+  })
+
   it('каждый тип из справочника находится по идентификатору', () => {
     expect(OPERATION_TYPES.map(type => operationTypeById(type.id))).toEqual([...OPERATION_TYPES])
   })

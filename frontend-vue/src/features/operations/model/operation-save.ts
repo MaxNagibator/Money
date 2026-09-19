@@ -1,3 +1,4 @@
+import type { QueryClient } from '@tanstack/vue-query'
 import type { InjectionKey } from 'vue'
 import { inject, provide } from 'vue'
 import type { OperationFormValue } from './operation-form'
@@ -12,11 +13,19 @@ export function provideOperationSave(save: OperationSave): void {
   provide(OPERATION_SAVE, serialized(save))
 }
 
+export function provideOperationWriter(queryClient: QueryClient): void {
+  provideOperationSave(async value => {
+    const { saveOperation } = await import('./operation-writer')
+
+    await saveOperation(queryClient, value)
+  })
+}
+
 export function useOperationSave(): OperationSave {
   const save = inject(OPERATION_SAVE, null)
 
   if (save === null) {
-    throw new Error('Диалог операции открыт вне страницы операций: сохранять его нечем')
+    throw new Error('Диалог операции открыт вне оболочки приложения: сохранять его нечем')
   }
 
   return save

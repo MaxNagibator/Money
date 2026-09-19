@@ -22,9 +22,16 @@ import {
 import { systemClock } from '@/platform/clock'
 import type { MudColor } from '@/shared/mud'
 import { MudAlert, MudButton, MudSnackbar, MudStack } from '@/shared/mud'
+import { useNarrowViewport } from '@/shared/ui/useNarrowViewport'
+
+const QUICK_LABEL = 'Быстрое добавление'
+const QUICK_SHORT_LABEL = 'Быстро'
 
 const categoriesState = useCategories()
 const filtersState = useOperationFiltersStore()
+const isNarrow = useNarrowViewport()
+
+const quickLabel = computed(() => isNarrow.value ? QUICK_SHORT_LABEL : QUICK_LABEL)
 
 filtersState.apply()
 
@@ -132,6 +139,7 @@ function operationColor(color: string): MudColor {
         <template #default="{ isOpen, open }">
           <MudStack
             align-items="start"
+            class="operations-add-row"
             row
           >
             <MudButton
@@ -141,19 +149,21 @@ function operationColor(color: string): MudColor {
               :data-testid="`operations-add-${type.id}`"
               :disabled="isOpen"
               :end-icon="type.icon"
+              class="operations-add-item"
               size="small"
               variant="filled"
               @click="open(newOperationForm(type.id, systemClock.today()))"
             >
-              {{ type.addLabel }}
+              {{ isNarrow ? type.shortAddLabel : type.addLabel }}
             </MudButton>
 
             <QuickOperationMenu
+              :action-label="QUICK_LABEL"
               :disabled="isOpen"
+              :label="quickLabel"
               :operations="fastOperations.operations.value"
-              action-label="Быстрое добавление"
+              class="operations-add-item"
               color="info"
-              label="Быстрое добавление"
               test-id="operations-quick"
               @select="open(quickForm(systemClock.today(), $event))"
             />
@@ -193,3 +203,32 @@ function operationColor(color: string): MudColor {
     />
   </div>
 </template>
+
+<style scoped>
+@media (max-width: 599.98px) {
+  .operations-add-row {
+    flex-wrap: nowrap;
+  }
+
+  .operations-add-row :deep(.operations-add-item) {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .operations-add-row :deep(.mud-button-root) {
+    width: 100%;
+    min-width: 0;
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  .operations-add-row :deep(.mud-menu-button-activator .mud-button-icon-end) {
+    display: none;
+  }
+
+  .operations-add-row :deep(.mud-button-label) {
+    overflow: hidden;
+    white-space: nowrap;
+  }
+}
+</style>

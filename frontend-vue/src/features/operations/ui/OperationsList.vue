@@ -16,6 +16,8 @@ import {
   MudText,
 } from '@/shared/mud'
 import { resolveSkeletonCount } from '@/shared/ui/loading-skeletons'
+import { useNarrowViewport } from '@/shared/ui/useNarrowViewport'
+import { useScrollHide } from '@/shared/ui/useScrollHide'
 import VirtualList from '@/shared/ui/VirtualList.vue'
 import type { OperationFormValue } from '../model/operation-form'
 import OperationsDayCard from './OperationsDayCard.vue'
@@ -41,6 +43,9 @@ const DAY_CARD_ESTIMATE = 220
 const { height: viewportHeight } = useWindowSize()
 
 const skeletonCount = computed(() => resolveSkeletonCount(viewportHeight.value, DAY_CARD_ESTIMATE))
+
+const isNarrow = useNarrowViewport()
+const isScrollTopHidden = useScrollHide(isNarrow)
 
 const items = computed(() => props.days)
 
@@ -125,6 +130,10 @@ function dayKey(day: OperationsDay): string {
 
       <MudScrollToTop
         aria-label="Вернуться к началу списка"
+        :class="{
+          'operations-list-top-away': isScrollTopHidden,
+          'operations-list-top-raised': !isScrollTopHidden,
+        }"
         data-testid="operations-list-top"
       >
         <MudFab
@@ -137,3 +146,19 @@ function dayKey(day: OperationsDay): string {
     </template>
   </div>
 </template>
+
+<style scoped>
+@media (max-width: 599.98px) {
+  .mud-scroll-to-top.operations-list-top-raised {
+    bottom: calc(16px + var(--app-bottom-nav-height));
+  }
+}
+
+.mud-scroll-to-top.operations-list-top-away {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: scale(0);
+  transition: all 0.25s;
+}
+</style>

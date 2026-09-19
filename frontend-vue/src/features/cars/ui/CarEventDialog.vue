@@ -2,13 +2,15 @@
 import { computed, ref, watch } from 'vue'
 import type { LocalDate } from '@/domain/local-date'
 import { formatMileage } from '@/platform/format'
-import { mdComment } from '@/shared/icons'
+import { mdComment, mdDelete } from '@/shared/icons'
 import { DATE_UNPARSED } from '@/shared/ui/field-messages'
 import SmartDatePicker from '@/shared/ui/SmartDatePicker.vue'
+import { useNarrowViewport } from '@/shared/ui/useNarrowViewport'
 import {
   MudButton,
   MudDialog,
   MudGrid,
+  MudIconButton,
   MudImage,
   MudItem,
   MudNumericField,
@@ -27,11 +29,13 @@ const props = defineProps<{
   title: string
   isSaving: boolean
   topMileage: number
+  removable?: boolean
 }>()
 
 const emit = defineEmits<{
   submit: [value: CarEventFormValue]
   cancel: []
+  remove: []
 }>()
 
 const SPACES = /[\s\u00A0\u202F]/g
@@ -55,6 +59,9 @@ const typeError = ref('')
 const dateError = ref('')
 
 const dateField = ref<{ getDate: () => LocalDate | null }>()
+
+const isNarrow = useNarrowViewport()
+const canRemove = computed(() => props.removable === true && isNarrow.value && (props.value?.id ?? null) !== null)
 
 const dialogVisible = computed({
   get: () => props.value !== null,
@@ -83,6 +90,14 @@ watch(() => props.value, value => {
 function selectType(id: number): void {
   typeId.value = id
   typeError.value = ''
+}
+
+function remove(): void {
+  if (props.isSaving || !canRemove.value) {
+    return
+  }
+
+  emit('remove')
 }
 
 function submit(): void {
@@ -180,6 +195,7 @@ function submit(): void {
 
             <MudStack
               aria-label="Тип события"
+              class="car-event-types"
               justify="space-between"
               role="radiogroup"
               row
@@ -273,6 +289,18 @@ function submit(): void {
         Отмена
       </MudButton>
 
+      <MudIconButton
+        v-if="canRemove"
+        :disabled="isSaving"
+        :icon="mdDelete"
+        aria-label="Удалить событие"
+        color="error"
+        data-testid="cars-dialog-remove"
+        size="small"
+        title="Удалить"
+        @click="remove"
+      />
+
       <MudButton
         :disabled="isSaving"
         button-type="submit"
@@ -308,5 +336,27 @@ function submit(): void {
 .car-event-type--selected {
   border: 4px solid var(--mud-palette-tertiary);
   border-radius: 4px;
+}
+
+@media (max-width: 599.98px) {
+  .car-event-types {
+    justify-content: flex-start;
+  }
+
+  .car-event-type {
+    width: calc((100% - 16px) / 3);
+  }
+}
+</style>
+
+<style>
+@media (max-width: 599.98px) {
+  .mud-dialog.cars-dialog {
+    width: 100%;
+    max-width: none;
+    max-height: calc(var(--viewport-height, 100dvh) * 0.85);
+    margin: auto 0 var(--keyboard-inset, 0px);
+    border-radius: 12px 12px 0 0;
+  }
 }
 </style>

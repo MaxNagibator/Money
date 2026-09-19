@@ -54,6 +54,24 @@ const anonymousEntries: NavEntry[] = [
   { title: 'Вход', to: '/login', icon: mdPassword, testId: 'nav-sign-in' },
 ]
 
+const bottomEntryTitles = new Map([
+  ['/operations', 'Операции'],
+  ['/statistics', 'Статистика'],
+  ['/debts', 'Долги'],
+])
+
+export function buildBottomNavigation(): NavItem[] {
+  const known = new Map(authorizedEntries
+    .flatMap(entry => (isNavGroup(entry) ? entry.items : [entry]))
+    .map(item => [item.to, item]))
+
+  return [...bottomEntryTitles].flatMap(([path, title]) => {
+    const item = known.get(path)
+
+    return item === undefined ? [] : [{ ...item, title, testId: `bottom-${item.testId}` }]
+  })
+}
+
 export function buildNavigation(access: NavAccess): NavEntry[] {
   if (!access.isAuthenticated) {
     return anonymousEntries

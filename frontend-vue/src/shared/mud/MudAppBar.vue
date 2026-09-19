@@ -4,21 +4,26 @@ import MudToolBar from './MudToolBar.vue'
 
 const props = withDefaults(defineProps<{
   elevation?: number
+  bottom?: boolean
 }>(), {
   elevation: 4,
+  bottom: false,
 })
 
 const classes = computed(() => [
   'mud-appbar',
-  'mud-appbar-fixed-top',
+  props.bottom ? 'mud-appbar-fixed-bottom' : 'mud-appbar-fixed-top',
   `mud-elevation-${props.elevation}`,
 ])
 </script>
 
 <template>
-  <header :class="classes">
+  <component
+    :is="bottom ? 'footer' : 'header'"
+    :class="classes"
+  >
     <MudToolBar class="mud-toolbar-appbar">
       <slot />
     </MudToolBar>
-  </header>
+  </component>
 </template>

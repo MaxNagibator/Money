@@ -2,12 +2,13 @@
 import { computed, nextTick, ref, shallowRef, watch } from 'vue'
 import type { LocalDate } from '@/domain/local-date'
 import type { Money } from '@/domain/money'
-import { mdComment } from '@/shared/icons'
+import { mdComment, mdDelete } from '@/shared/icons'
 import {
   MudAlert,
   MudButton,
   MudDialog,
   MudGrid,
+  MudIconButton,
   MudItem,
   MudProgressCircular,
   MudSelect,
@@ -18,6 +19,7 @@ import {
 import SmartDatePicker from '@/shared/ui/SmartDatePicker.vue'
 import SmartDebtOwner from '@/shared/ui/SmartDebtOwner.vue'
 import SmartSum from '@/shared/ui/SmartSum.vue'
+import { useNarrowViewport } from '@/shared/ui/useNarrowViewport'
 import { useOwnerSuggestions } from '@/shared/ui/useOwnerSuggestions'
 import { DEBT_TYPES } from '../model/debt'
 import type { DebtFormValue } from '../model/debt-form'
@@ -28,14 +30,19 @@ import {
   validateDebtForm,
 } from '../model/debt-form'
 
+const GRID_SPACING = 6
+const NARROW_GRID_SPACING = 2
+
 const props = defineProps<{
   value: DebtFormValue | null
   isSaving: boolean
+  removable?: boolean
 }>()
 
 const emit = defineEmits<{
   submit: [value: DebtFormValue]
   cancel: []
+  remove: []
 }>()
 
 const typeId = ref<number | null>(null)
@@ -54,7 +61,11 @@ const dateField = ref<{ getDate: () => LocalDate | null }>()
 
 const owners = useOwnerSuggestions()
 
+const isNarrow = useNarrowViewport()
+
 const title = computed(() => props.value?.id === null ? 'Создать' : 'Обновить')
+const canRemove = computed(() => props.removable === true && isNarrow.value && (props.value?.id ?? null) !== null)
+const gridSpacing = computed(() => isNarrow.value ? NARROW_GRID_SPACING : GRID_SPACING)
 const dialogVisible = computed({
   get: () => props.value !== null,
   set: (visible: boolean) => {
@@ -84,6 +95,14 @@ watch(() => props.value, value => {
     sumField.value?.focusInput()
   })
 }, { immediate: true })
+
+function remove(): void {
+  if (props.isSaving || !canRemove.value) {
+    return
+  }
+
+  emit('remove')
+}
 
 function submit(): void {
   const current = props.value
@@ -157,7 +176,7 @@ function submit(): void {
           {{ notice }}
         </MudAlert>
 
-        <MudGrid>
+        <MudGrid :spacing="gridSpacing">
           <MudItem :xs="12">
             <SmartDebtOwner
               v-model="ownerName"
@@ -233,6 +252,17 @@ function submit(): void {
         Отмена
       </MudButton>
 
+      <MudIconButton
+        v-if="canRemove"
+        :icon="mdDelete"
+        aria-label="Удалить долг"
+        color="error"
+        data-testid="debts-dialog-remove"
+        size="small"
+        title="Удалить"
+        @click="remove"
+      />
+
       <MudButton
         :disabled="isSaving"
         color="success"
@@ -252,4 +282,16 @@ function submit(): void {
     </template>
   </MudDialog>
 </template>
+
+<style>
+@media (max-width: 599.98px) {
+  .mud-dialog.debt-dialog {
+    width: 100%;
+    max-width: none;
+    max-height: calc(var(--viewport-height, 100dvh) * 0.85);
+    margin: auto 0 var(--keyboard-inset, 0px);
+    border-radius: 12px 12px 0 0;
+  }
+}
+</style>
 

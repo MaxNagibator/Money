@@ -74,7 +74,7 @@ function submit(): void {
   <MudDialog
     v-model:visible="dialogVisible"
     :aria-label="title"
-    style="max-width: 440px;"
+    class="category-dialog"
   >
     <template #title>
       <MudText typo="h6">
@@ -161,3 +161,24 @@ function submit(): void {
     </template>
   </MudDialog>
 </template>
+
+<style>
+.mud-dialog.category-dialog {
+  max-width: 440px;
+}
+
+@media (max-width: 599.98px) {
+  .mud-dialog.category-dialog {
+    width: 100%;
+    max-width: none;
+    max-height: calc(var(--viewport-height, 100dvh) * 0.85);
+    margin: auto 0 var(--keyboard-inset, 0px);
+    border-radius: 12px 12px 0 0;
+  }
+
+  .mud-dialog.category-dialog .mud-picker-static {
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+</style>

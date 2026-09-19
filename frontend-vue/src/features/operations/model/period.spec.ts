@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { LocalDate } from '@/domain/local-date'
 import { parseLocalDate } from '@/domain/local-date'
-import { formatPeriod } from './period'
+import { formatPeriod, formatPeriodRange } from './period'
 
 function date(value: string): LocalDate {
   const parsed = parseLocalDate(value)
@@ -23,5 +23,19 @@ describe('formatPeriod', () => {
 
   it('ставит прочерк вместо незаданной границы', () => {
     expect(formatPeriod(null, null)).toBe('Период с - по -')
+  })
+})
+
+describe('formatPeriodRange', () => {
+  it('печатает границы цифрами для свёрнутого фильтра', () => {
+    expect(formatPeriodRange(date('2026-01-01'), date('2026-12-31'))).toBe('01.01.2026 – 31.12.2026')
+  })
+
+  it('ставит прочерк вместо одной незаданной границы', () => {
+    expect(formatPeriodRange(null, date('2026-12-31'))).toBe('- – 31.12.2026')
+  })
+
+  it('называет пустой период словами', () => {
+    expect(formatPeriodRange(null, null)).toBe('Период не задан')
   })
 })

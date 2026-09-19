@@ -6,14 +6,37 @@ export interface OperationType {
   id: OperationTypeId
   name: string
   addLabel: string
+  shortAddLabel: string
+  newTitle: string
+  editTitle: string
   color: string
   icon: string
   sign: string
 }
 
 export const OPERATION_TYPES: readonly OperationType[] = [
-  { id: 1, name: 'Расходы', addLabel: 'Добавить расходы', color: 'warning', icon: mdArrowCircleDown, sign: '−' },
-  { id: 2, name: 'Доходы', addLabel: 'Добавить доходы', color: 'success', icon: mdArrowCircleUp, sign: '+' },
+  {
+    id: 1,
+    name: 'Расходы',
+    addLabel: 'Добавить расходы',
+    shortAddLabel: 'Расход',
+    newTitle: 'Новый расход',
+    editTitle: 'Правка расхода',
+    color: 'warning',
+    icon: mdArrowCircleDown,
+    sign: '−',
+  },
+  {
+    id: 2,
+    name: 'Доходы',
+    addLabel: 'Добавить доходы',
+    shortAddLabel: 'Доход',
+    newTitle: 'Новый доход',
+    editTitle: 'Правка дохода',
+    color: 'success',
+    icon: mdArrowCircleUp,
+    sign: '+',
+  },
 ]
 
 export function isOperationTypeId(value: number): value is OperationTypeId {

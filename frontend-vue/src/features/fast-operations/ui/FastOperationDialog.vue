@@ -5,6 +5,7 @@ import type { Money } from '@/domain/money'
 import type { OperationTypeId } from '@/domain/operation-type'
 import {
   mdComment,
+  mdDelete,
   mdSearch,
 } from '@/shared/icons'
 import {
@@ -12,6 +13,7 @@ import {
   MudButton,
   MudDialog,
   MudGrid,
+  MudIconButton,
   MudItem,
   MudNumericField,
   MudProgressCircular,
@@ -20,6 +22,7 @@ import {
 } from '@/shared/mud'
 import SmartPlace from '@/shared/ui/SmartPlace.vue'
 import SmartSum from '@/shared/ui/SmartSum.vue'
+import { useNarrowViewport } from '@/shared/ui/useNarrowViewport'
 import type { FastOperationFormValue } from '../model/fast-operation-form'
 import { categoryOptions, searchCategories, validateFastOperationForm } from '../model/fast-operation-form'
 
@@ -28,11 +31,13 @@ const props = defineProps<{
   categories: readonly Category[]
   title: string
   isSaving: boolean
+  removable?: boolean
 }>()
 
 const emit = defineEmits<{
   submit: [value: FastOperationFormValue]
   cancel: []
+  remove: []
 }>()
 
 const operationTypeId = ref<OperationTypeId | null>(null)
@@ -55,6 +60,8 @@ const selectedCategory = computed<Category | null>({
     categoryId.value = category?.id ?? null
   },
 })
+const isNarrow = useNarrowViewport()
+const canRemove = computed(() => props.removable === true && isNarrow.value && (props.value?.id ?? null) !== null)
 const dialogVisible = computed({
   get: () => props.value !== null,
   set: (visible: boolean) => {
@@ -95,6 +102,14 @@ function categoryText(value: unknown): string {
 
 function readOrder(): number | null {
   return order.value
+}
+
+function remove(): void {
+  if (props.isSaving || !canRemove.value) {
+    return
+  }
+
+  emit('remove')
 }
 
 function submit(): void {
@@ -246,6 +261,18 @@ function submit(): void {
       >
         Отмена
       </MudButton>
+
+      <MudIconButton
+        v-if="canRemove"
+        :disabled="isSaving"
+        :icon="mdDelete"
+        aria-label="Удалить быструю операцию"
+        color="error"
+        data-testid="fast-operations-dialog-remove"
+        size="small"
+        title="Удалить"
+        @click="remove"
+      />
       <MudButton
         :disabled="isSaving"
         color="success"
@@ -269,4 +296,16 @@ function submit(): void {
     </template>
   </MudDialog>
 </template>
+
+<style>
+@media (max-width: 599.98px) {
+  .mud-dialog.fast-operation-dialog {
+    width: 100%;
+    max-width: none;
+    max-height: calc(var(--viewport-height, 100dvh) * 0.85);
+    margin: auto 0 var(--keyboard-inset, 0px);
+    border-radius: 12px 12px 0 0;
+  }
+}
+</style>
 

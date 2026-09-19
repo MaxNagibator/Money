@@ -8,6 +8,7 @@ import { setDocumentTitle } from '@/platform/title'
 declare module 'vue-router' {
   interface RouteMeta {
     isPublic?: boolean
+    ownHeading?: boolean
     title?: string
   }
 }

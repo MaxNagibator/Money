@@ -1,7 +1,9 @@
 import { defineStore } from 'pinia'
 import { reactive, watch } from 'vue'
+import type { OperationFilter } from '@/api/adapters/operations'
 import type { LocalDate } from '@/domain/local-date'
 import { addDays, addMonths, daysInMonth, fromParts, parseLocalDate, toParts, weekdayIndex } from '@/domain/local-date'
+import { trimToNull } from '@/domain/text'
 import type { Clock } from '@/platform/clock'
 import { systemClock } from '@/platform/clock'
 import { readSetting, writeSetting } from '@/platform/storage'
@@ -32,6 +34,16 @@ export interface OperationFiltersState {
 const FROM_KEY = 'operations:from'
 const TO_KEY = 'operations:to'
 const INTERVAL_KEY = 'operations:interval'
+
+export function toOperationFilter(filters: OperationFilters): OperationFilter {
+  return {
+    dateFrom: filters.from,
+    dateTo: filters.to,
+    categoryIds: [...filters.categoryIds].sort((left, right) => left - right),
+    comment: trimToNull(filters.comment),
+    place: trimToNull(filters.place),
+  }
+}
 
 export function intervalStart(interval: OperationInterval, anchor: LocalDate): LocalDate {
   const { year, month } = toParts(anchor)
