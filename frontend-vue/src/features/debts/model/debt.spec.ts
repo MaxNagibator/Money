@@ -6,14 +6,18 @@ import { Money } from '@/domain/money'
 import type { DebtOwnerGroup } from './debt'
 import {
   canForgiveDebt,
+  debtCountText,
+  debtRoleColor,
   debtStatus,
   filterDebtGroups,
   groupDebts,
   hasPaymentHistory,
   lastPaymentDate,
+  nextPayableDebt,
   ownerPercent,
   ownerRemainder,
   ownerTotal,
+  paidPercentText,
   parsePaymentHistory,
   paymentProgress,
   typeTotal,
@@ -247,5 +251,62 @@ describe('история погашений', () => {
     [{ paySum: money('100'), payComment: '2026.08.21 100 взнос' }, true],
   ])('таблица истории для %j показывается: %s', (extra, expected) => {
     expect(hasPaymentHistory(debt(1, extra))).toBe(expected)
+  })
+})
+
+describe('книжная карточка на узком экране', () => {
+  it.each([
+    [1, 'success'],
+    [2, 'warning'],
+  ])('тип %i красится в %s', (typeId, expected) => {
+    expect(debtRoleColor(typeId)).toBe(expected)
+  })
+
+  it.each([
+    [0, '0 долгов'],
+    [1, '1 долг'],
+    [2, '2 долга'],
+    [4, '4 долга'],
+    [5, '5 долгов'],
+    [11, '11 долгов'],
+    [14, '14 долгов'],
+    [21, '21 долг'],
+    [22, '22 долга'],
+    [25, '25 долгов'],
+    [111, '111 долгов'],
+  ])('%i долгов пишется как «%s»', (count, expected) => {
+    expect(debtCountText(count)).toBe(expected)
+  })
+
+  it.each([
+    [0, 'ничего не выплачено'],
+    [-1, 'ничего не выплачено'],
+    [42, 'выплачено 42 %'],
+    [100, 'выплачено полностью'],
+  ])('доля %i пишется как «%s»', (percent, expected) => {
+    expect(paidPercentText(percent)).toBe(expected)
+  })
+
+  it('к оплате берётся самый ранний непогашенный долг', () => {
+    const group = owner([
+      debt(1, { date: date('2026-08-22') }),
+      debt(2, { date: date('2026-08-20') }),
+      debt(3, { date: date('2026-08-18'), paySum: money('1000') }),
+    ])
+
+    expect(nextPayableDebt(group)?.id).toBe(2)
+  })
+
+  it('удалённый долг к оплате не предлагается', () => {
+    const group = owner([
+      debt(1, { date: date('2026-08-18'), isDeleted: true }),
+      debt(2, { date: date('2026-08-20') }),
+    ])
+
+    expect(nextPayableDebt(group)?.id).toBe(2)
+  })
+
+  it('у полностью выплаченного держателя платить нечего', () => {
+    expect(nextPayableDebt(owner([debt(1, { paySum: money('1000') })]))).toBeNull()
   })
 })

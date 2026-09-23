@@ -36,6 +36,7 @@ function toggleVisibility(): void {
 <template>
   <form
     data-testid="register-form"
+    novalidate
     @submit.prevent="submit"
   >
     <MudText
@@ -74,6 +75,8 @@ function toggleVisibility(): void {
           autocomplete="email"
           data-testid="register-email"
           helper-text="Необязательна, но вдруг забудете пароль"
+          input-mode="email"
+          input-type="email"
           label="Электронная почта"
           name="email"
           placeholder="name@example.com"

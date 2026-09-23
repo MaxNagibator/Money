@@ -3,11 +3,13 @@ import type { Debt } from '@/domain/debt'
 import type { LocalDate } from '@/domain/local-date'
 import { compareLocalDate, parseLocalDate } from '@/domain/local-date'
 import { Money } from '@/domain/money'
+import { mdInput, mdOutput } from '@/shared/icons'
 
 export interface DebtType {
   id: number
   name: string
   addLabel: string
+  icon: string
 }
 
 export interface DebtOwnerGroup {
@@ -30,13 +32,21 @@ export interface DebtPaymentRecord {
 export type DebtStatus = 'paid' | 'inProgress' | 'notStarted'
 
 export const DEBT_TYPES: readonly DebtType[] = [
-  { id: 1, name: 'Нужно забрать', addLabel: 'Забрать своё' },
-  { id: 2, name: 'Нужно отдать', addLabel: 'Отдать чужое' },
+  { id: 1, name: 'Нужно забрать', addLabel: 'Забрать своё', icon: mdInput },
+  { id: 2, name: 'Нужно отдать', addLabel: 'Отдать чужое', icon: mdOutput },
 ]
 
-export const FORGIVABLE_TYPE_ID = 1
+export const TAKE_TYPE_ID = 1
+export const FORGIVABLE_TYPE_ID = TAKE_TYPE_ID
 export const UNKNOWN_TYPE_NAME = 'Неизвестный тип'
 export const NO_PAYMENT_MARK = '∞'
+export const NOTHING_PAID_TEXT = 'ничего не выплачено'
+export const FULLY_PAID_TEXT = 'выплачено полностью'
+
+const DEBT_COUNT_FORMS = ['долгов', 'долг', 'долга', 'долга', 'долга'] as const
+const TEEN_FROM = 5
+const TEEN_TO = 20
+const LAST_FORM = 4
 
 export const DEBT_STATUS_TEXT: Record<DebtStatus, string> = {
   paid: 'Погашено',
@@ -126,6 +136,40 @@ export function ownerPercent(owner: DebtOwnerGroup): number {
     .toDecimalPlaces(PERCENT_SCALE, Decimal.ROUND_HALF_EVEN)
     .times(FULL_PROGRESS)
     .toNumber()
+}
+
+export function debtRoleColor(typeId: number): string {
+  return typeId === TAKE_TYPE_ID ? 'success' : 'warning'
+}
+
+export function debtCountText(count: number): string {
+  const tail = count % 100
+  const last = count % 10
+  const index = tail >= TEEN_FROM && tail < TEEN_TO || last > LAST_FORM ? 0 : last
+
+  return `${count} ${DEBT_COUNT_FORMS[index] ?? DEBT_COUNT_FORMS[0]}`
+}
+
+export function paidPercentText(percent: number): string {
+  if (percent <= 0) {
+    return NOTHING_PAID_TEXT
+  }
+
+  return percent >= FULL_PROGRESS ? FULLY_PAID_TEXT : `выплачено ${percent} %`
+}
+
+export function debtRemainder(debt: Debt): Money {
+  return debt.sum.subtract(debt.paySum)
+}
+
+export function nextPayableDebt(owner: DebtOwnerGroup): Debt | null {
+  return owner.debts.reduce<Debt | null>((found, debt) => {
+    if (debt.isDeleted || debtRemainder(debt).compare(Money.zero) <= 0) {
+      return found
+    }
+
+    return found === null || compareLocalDate(debt.date, found.date) < 0 ? debt : found
+  }, null)
 }
 
 export function typeTotal(group: DebtTypeGroup): Money {

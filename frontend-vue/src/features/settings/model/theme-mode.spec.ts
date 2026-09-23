@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { computed, ref } from 'vue'
-import { brightnessToggleMode, isManualMode, resolveTheme } from './theme-mode'
+import type { ThemeMode } from '@/shared/ui/useAppTheme'
+import type { EffectiveTheme } from './theme-mode'
+import { brightnessToggleMode, isManualMode, resolveTheme, themeStatusLabel } from './theme-mode'
 import type { ThemeSchedule } from './theme-schedule'
 import { themeScheduleDefaults } from './theme-schedule'
 
@@ -57,5 +59,18 @@ describe('автоматический режим', () => {
     isSystemDark.value = true
 
     expect(applied.value).toBe('dark')
+  })
+})
+
+describe('строка состояния темы', () => {
+  it.each<[ThemeMode, EffectiveTheme, boolean, string]>([
+    ['light', 'light', false, 'Сейчас светлая тема, выбрана вручную'],
+    ['dark', 'dark', true, 'Сейчас тёмная тема, выбрана вручную'],
+    ['system', 'dark', true, 'Сейчас тёмная тема, по расписанию'],
+    ['system', 'light', true, 'Сейчас светлая тема, по расписанию'],
+    ['system', 'dark', false, 'Сейчас тёмная тема, как в системе'],
+    ['system', 'light', false, 'Сейчас светлая тема, как в системе'],
+  ])('режим %s, тема %s, расписание %s', (mode, effective, isScheduleEnabled, expected) => {
+    expect(themeStatusLabel(mode, effective, isScheduleEnabled)).toBe(expected)
   })
 })

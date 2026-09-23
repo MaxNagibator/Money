@@ -330,3 +330,80 @@ test.describe('машины и события', () => {
     await expect(page.getByTestId('cars-empty')).toHaveCount(0)
   })
 })
+
+test.describe('авто на телефоне', () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
+
+  test.beforeEach(async ({ page }) => {
+    await signInAsStub(page)
+  })
+
+  test('событие идёт строкой с типом, датой и пробегом, касание открывает правку', async ({ page }) => {
+    await stubApi(page)
+
+    await openCars(page)
+
+    await expect(page.getByTestId('cars-event-title-11')).toHaveText('Страховка ОСАГО')
+    await expect(page.getByTestId('cars-event-card-11')).toContainText('Страховка · 20.01.2026 · ')
+    await expect(page.getByTestId('cars-event-mileage-11')).toHaveText(/^98\s000 км$/)
+    await expect(page.getByTestId('cars-event-delete-11')).toHaveCount(0)
+    await expect(page.getByTestId('cars-event-edit-11')).toHaveAccessibleName('Изменить событие Страховка ОСАГО, Страховка, 20.01.2026')
+    await expect(page.getByTestId('cars-event-edit-12')).toHaveAccessibleName('Изменить событие Переобувка, 01.02.2026')
+
+    const rows = await page.getByTestId('cars-event-rows').boundingBox()
+    const row = await page.getByTestId('cars-event-edit-11').boundingBox()
+
+    expect(rows?.width).toBeGreaterThanOrEqual(350)
+    expect(row?.height).toBeLessThanOrEqual(56)
+
+    await page.getByTestId('cars-event-edit-11').tap()
+
+    await expect(page.locator(dialogTitleInput)).toHaveValue('Страховка ОСАГО')
+    await expect(page.getByTestId('cars-dialog-remove')).toBeVisible()
+  })
+
+  test('удаление из листа правки помечает строку, восстановление снимает пометку', async ({ page }) => {
+    const stub = await stubApi(page)
+
+    await openCars(page)
+
+    await page.getByTestId('cars-event-edit-12').tap()
+    await page.getByTestId('cars-dialog-remove').tap()
+
+    await expect(page.getByTestId('cars-dialog')).toHaveCount(0)
+    await expect(page.getByTestId('cars-event-edit-12')).toBeDisabled()
+    await expect(page.getByTestId('cars-event-edit-12')).toHaveAccessibleName('Изменить событие Переобувка, 01.02.2026, удалено')
+    await expect(page.getByTestId('cars-event-restore-12')).toHaveAccessibleName('Восстановить событие Переобувка, 01.02.2026')
+
+    await page.getByTestId('cars-event-restore-12').tap()
+
+    await expect(page.getByTestId('cars-event-edit-12')).toBeEnabled()
+    expect(stub.removed).toEqual([12])
+    expect(stub.restored).toEqual([12])
+  })
+
+  test('в листе создания кнопки удаления нет, авто добавляется листом снизу', async ({ page }) => {
+    const stub = await stubApi(page)
+
+    await openCars(page)
+
+    await page.getByTestId('cars-event-add').tap()
+    await expect(page.getByTestId('cars-dialog')).toBeVisible()
+    await expect(page.getByTestId('cars-dialog-remove')).toHaveCount(0)
+    await page.getByTestId('cars-dialog-cancel').tap()
+
+    await page.getByTestId('cars-add-toggle').tap()
+
+    const sheet = page.getByRole('dialog', { name: 'Добавление авто' })
+
+    await expect(sheet).toBeVisible()
+    await expect.poll(async () => (await sheet.boundingBox())?.width).toBe(390)
+
+    await page.locator(addName).fill('Ласточка')
+    await page.getByTestId('cars-add-submit').tap()
+
+    await expect(sheet).toHaveCount(0)
+    await expect(page.getByTestId('cars-tab-100')).toBeVisible()
+    expect(stub.createdCars).toEqual(['Ласточка'])
+  })
+})

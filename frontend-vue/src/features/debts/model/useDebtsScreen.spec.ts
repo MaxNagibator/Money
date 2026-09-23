@@ -346,6 +346,25 @@ describe('удаление и оплата', () => {
     expect(debtOf(state, 1).isDeleted).toBe(false)
   })
 
+  it('удаление из диалога правки закрывает форму и помечает открытый долг', async () => {
+    const state = await setup()
+
+    state.startEdit(debtOf(state, 1))
+    await state.removeEdited()
+
+    expect(deleteDebtMock).toHaveBeenCalledWith(1)
+    expect(state.form.value).toBeNull()
+    expect(debtOf(state, 1).isDeleted).toBe(true)
+  })
+
+  it('без открытой формы удалять нечего', async () => {
+    const state = await setup()
+
+    await state.removeEdited()
+
+    expect(deleteDebtMock).not.toHaveBeenCalled()
+  })
+
   it('восстановление возвращает долг, которого уже нет в ответе сервера', async () => {
     const state = await setup()
 

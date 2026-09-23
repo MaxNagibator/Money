@@ -87,10 +87,9 @@ function resolveBounds(
   range: BarChartRange,
   today: LocalDate,
 ): { from: LocalDate, to: LocalDate } {
-  const from = range.from ?? today
-  const to = range.to ?? today
+  const { from, to } = range
 
-  if (compareLocalDate(addDays(from, FILTER_RANGE_MAX_DAYS), to) >= 0) {
+  if (from !== null && to !== null && compareLocalDate(addDays(from, FILTER_RANGE_MAX_DAYS), to) >= 0) {
     return { from, to }
   }
 

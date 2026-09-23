@@ -51,7 +51,7 @@ test.describe('категории', () => {
     await expect(tree.getByText('Еда')).toBeVisible()
     await expect(tree.getByText('Кафе')).toBeHidden()
 
-    await tree.getByRole('button', { name: 'Expand', exact: true }).click()
+    await tree.getByRole('button', { name: 'Развернуть', exact: true }).click()
 
     await expect(tree.getByText('Кафе')).toBeVisible()
 

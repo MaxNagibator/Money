@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
+import type { LocalDate } from '@/domain/local-date'
 import { Money } from '@/domain/money'
-import { formatMoneyInput, formatMoneyPlain } from '@/platform/format'
+import { formatLocalDateDayMonth, formatLocalDateWithWeekday, formatMoneyInput, formatMoneyPlain } from '@/platform/format'
 
 function money(raw: string): Money {
   const value = Money.parseInput(raw)
@@ -51,5 +52,25 @@ describe('formatMoneyInput', () => {
 
   it('сумму без масштаба готовит по её записи', () => {
     expect(formatMoneyInput(Money.fromMinorUnits(150))).toBe('1,5')
+  })
+})
+
+describe('formatLocalDateDayMonth', () => {
+  it.each([
+    ['2026-09-26', '26.09'],
+    ['2027-01-04', '04.01'],
+  ])('печатает %j как %j', (value, expected) => {
+    expect(formatLocalDateDayMonth(value as LocalDate)).toBe(expected)
+  })
+})
+
+describe('formatLocalDateWithWeekday', () => {
+  it.each([
+    ['2026-09-17', '17 сентября, чт'],
+    ['2026-09-14', '14 сентября, пн'],
+    ['2026-01-04', '4 января, вс'],
+    ['2024-02-29', '29 февраля, чт'],
+  ])('печатает %j как %j', (value, expected) => {
+    expect(formatLocalDateWithWeekday(value as LocalDate)).toBe(expected)
   })
 })

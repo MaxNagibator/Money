@@ -4,6 +4,10 @@ import type { MudColor, MudSize } from './types'
 import MudButton from './MudButton.vue'
 import { mudToggleGroupContextKey } from './MudToggleGroup.vue'
 
+interface MudToggleItemRegistration {
+  value: () => unknown
+}
+
 interface MudToggleGroupContext {
   color: Readonly<ComputedRef<MudColor>>
   size: Readonly<ComputedRef<MudSize>>
@@ -11,9 +15,12 @@ interface MudToggleGroupContext {
   delimiters: Readonly<ComputedRef<boolean>>
   ripple: Readonly<ComputedRef<boolean>>
   disabled: Readonly<ComputedRef<boolean>>
-  registerItem: (item: unknown) => () => void
+  exclusive: Readonly<ComputedRef<boolean>>
+  registerItem: (item: MudToggleItemRegistration) => () => void
   isSelected: (value: unknown) => boolean
+  isTabStop: (item: MudToggleItemRegistration) => boolean
   toggleItem: (value: unknown) => void
+  moveSelection: (event: KeyboardEvent) => void
 }
 
 const props = defineProps<{
@@ -21,7 +28,7 @@ const props = defineProps<{
 }>()
 
 const context = inject(mudToggleGroupContextKey as InjectionKey<MudToggleGroupContext>)
-const item = {}
+const item: MudToggleItemRegistration = { value: () => props.value }
 let unregister: (() => void) | undefined
 
 onMounted(() => {
@@ -37,6 +44,13 @@ const disabled = computed(() => context?.disabled.value ?? false)
 const size = computed(() => context?.size.value ?? 'medium')
 const color = computed(() => context?.color.value ?? 'primary')
 const ripple = computed(() => context?.ripple.value ?? true)
+const exclusive = computed(() => context?.exclusive.value ?? false)
+const tabindex = computed(() => {
+  if (!exclusive.value) {
+    return undefined
+  }
+  return context?.isTabStop(item) === true ? 0 : -1
+})
 const classes = computed(() => [
   'mud-toggle-item',
   {
@@ -71,9 +85,11 @@ const toggle = () => {
     :ripple="ripple"
     :size="size"
     :variant="variant"
-    role="checkbox"
+    :role="exclusive ? 'radio' : 'checkbox'"
     :aria-checked="selected ? 'true' : 'false'"
+    :tabindex="tabindex"
     @click="toggle"
+    @keydown="context?.moveSelection($event)"
   >
     <div
       v-if="$slots.default"

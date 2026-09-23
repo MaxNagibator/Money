@@ -410,3 +410,58 @@ test.describe('регулярные операции', () => {
     await expect(page.locator(dialogCategory)).toHaveValue('')
   })
 })
+
+test.describe('регулярные операции на телефоне', () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
+
+  test.beforeEach(async ({ page }) => {
+    await signInAsStub(page)
+  })
+
+  test('строка печатает ближайший запуск с шагом и сумму с разрядами', async ({ page }) => {
+    await stubApi(page, [{ ...regularOperations[0]!, sum: 118000 }, regularOperations[1]!, { ...regularOperations[1]!, id: 3, runTime: null }])
+
+    await openScreen(page)
+
+    await expect(page.getByTestId('regular-operations-run-time-1')).toHaveText('следующая 05.02 · каждый месяц')
+    await expect(page.getByTestId('regular-operations-run-time-2')).toHaveText('следующая 10.02 · каждый день')
+    await expect(page.getByTestId('regular-operations-run-time-3')).toHaveText('запусков больше нет · каждый день')
+    await expect(page.getByTestId('regular-operations-sum-1')).toHaveText('118 000,00')
+    await expect(page.getByTestId('regular-operations-delete-1')).toHaveCount(0)
+  })
+
+  test('заголовок страницы встаёт в одну строку рядом с «+»', async ({ page }) => {
+    await stubApi(page)
+
+    await openScreen(page)
+
+    const heading = page.locator('.page-header .mud-typography-h3')
+    const lineHeight = await heading.evaluate(element => Number.parseFloat(getComputedStyle(element).lineHeight))
+    const box = await heading.boundingBox()
+
+    expect(box?.height).toBeLessThan(lineHeight * 1.5)
+  })
+
+  test('удаление из листа правки помечает строку, восстановление снимает пометку', async ({ page }) => {
+    const stub = await stubApi(page)
+
+    await openScreen(page)
+
+    await page.getByTestId('regular-operations-edit-1').tap()
+
+    await expect(page.locator(dialogTimeValue)).toHaveAttribute('inputmode', 'numeric')
+
+    await page.getByTestId('regular-operations-dialog-remove').tap()
+
+    await expect(page.getByTestId('regular-operations-dialog')).toHaveCount(0)
+    await expect(page.getByTestId('regular-operations-edit-1')).toBeDisabled()
+    await expect(page.getByTestId('regular-operations-edit-1')).toHaveAccessibleName(/, удалена$/)
+    await expect(page.getByTestId('regular-operations-restore-1')).toHaveAccessibleName(/^Восстановить регулярную операцию Аренда, Продукты, расход 1\s000,00$/)
+
+    await page.getByTestId('regular-operations-restore-1').tap()
+
+    await expect(page.getByTestId('regular-operations-edit-1')).toBeEnabled()
+    expect(stub.removed).toEqual([1])
+    expect(stub.restored).toEqual([1])
+  })
+})

@@ -7,6 +7,7 @@ import type { FastOperation } from '@/api/adapters/fast-operations'
 import {
   createFastOperation,
   deleteFastOperation,
+  fetchFastOperation,
   fetchFastOperations,
   restoreFastOperation,
   updateFastOperation,
@@ -25,6 +26,7 @@ vi.mock('@/api/adapters/categories', async importOriginal => ({
 
 vi.mock('@/api/adapters/fast-operations', async importOriginal => ({
   ...await importOriginal<typeof import('@/api/adapters/fast-operations')>(),
+  fetchFastOperation: vi.fn(),
   fetchFastOperations: vi.fn(),
   createFastOperation: vi.fn(),
   updateFastOperation: vi.fn(),
@@ -33,6 +35,7 @@ vi.mock('@/api/adapters/fast-operations', async importOriginal => ({
 }))
 
 const fetchCategoriesMock = vi.mocked(fetchCategories)
+const fetchFastOperationMock = vi.mocked(fetchFastOperation)
 const fetchFastOperationsMock = vi.mocked(fetchFastOperations)
 const createFastOperationMock = vi.mocked(createFastOperation)
 const updateFastOperationMock = vi.mocked(updateFastOperation)
@@ -49,6 +52,7 @@ beforeEach(() => {
   stored = [operation(1, { order: 2 }), operation(2, { order: null }), operation(3, { order: 1 })]
 
   fetchCategoriesMock.mockImplementation(() => Promise.resolve([food]))
+  fetchFastOperationMock.mockImplementation(id => Promise.resolve(stored.find(item => item.id === id) ?? null))
   fetchFastOperationsMock.mockImplementation(() => Promise.resolve([...stored]))
   createFastOperationMock.mockResolvedValue(9)
   updateFastOperationMock.mockResolvedValue(undefined)
@@ -206,17 +210,54 @@ describe('удаление и восстановление', () => {
     expect(screen.operations.value[0]!.isDeleted).toBe(false)
   })
 
-  it('отказ удаления оставляет карточку неотмеченной и показывает текст сервера', async () => {
+  it.each([
+    ['из строки', async (screen: FastOperationsScreenState) => screen.remove(screen.operations.value[0]!)],
+    ['из листа правки', async (screen: FastOperationsScreenState) => {
+      screen.startEdit(screen.operations.value[0]!)
+      await screen.removeEdited()
+    }],
+  ])('отказ удаления %s оставляет карточку неотмеченной, форму закрытой и показывает текст сервера', async (_, remove) => {
     deleteFastOperationMock.mockRejectedValue(new ApiError('Операция не найдена'))
 
     const screen = setup()
 
     await settle(screen)
 
-    await screen.remove(screen.operations.value[0]!)
+    await remove(screen)
 
+    expect(deleteFastOperationMock.mock.calls[0]![0]).toBe(3)
+    expect(screen.form.value).toBeNull()
     expect(screen.operations.value[0]!.isDeleted).toBe(false)
     expect(screen.notice.value).toEqual({ text: 'Операция не найдена', type: 'error' })
+  })
+
+  it('удаление из листа правки закрывает форму и помечает карточку для восстановления', async () => {
+    const screen = setup()
+
+    await settle(screen)
+
+    screen.startEdit(screen.operations.value[0]!)
+    await screen.removeEdited()
+
+    expect(screen.form.value).toBeNull()
+    expect(deleteFastOperationMock.mock.calls[0]![0]).toBe(3)
+    expect(screen.operations.value[0]!.isDeleted).toBe(true)
+  })
+
+  it('удаление из листа не срабатывает для новой формы и во время сохранения', async () => {
+    const screen = setup()
+
+    await settle(screen)
+
+    screen.startCreate(null)
+    await screen.removeEdited()
+
+    screen.startEdit(screen.operations.value[0]!)
+    screen.isSaving.value = true
+    await screen.removeEdited()
+
+    expect(deleteFastOperationMock).not.toHaveBeenCalled()
+    expect(screen.form.value?.id).toBe(3)
   })
 })
 

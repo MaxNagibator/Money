@@ -5,7 +5,7 @@ import { signInAsStub } from './support/session'
 
 const FIRST_RENDER_TIMEOUT = 30_000
 
-const LINE_ALPHA = 0.5
+const LINE_EDGE_SHARE = 85
 const HEADER_ALPHA = 0.22
 
 interface CardTone {
@@ -61,6 +61,21 @@ async function roleColor(card: Locator, role: string, alpha: number): Promise<st
   return `rgba(${triplet.split(',').map(part => part.trim()).join(', ')}, ${alpha})`
 }
 
+async function roleEdgeLine(card: Locator, role: string): Promise<string> {
+  return card.evaluate((element, { edgeRole, share }) => {
+    const probe = document.createElement('span')
+
+    probe.style.color = `color-mix(in srgb, var(--mud-palette-${edgeRole}-darken) ${share}%, var(--mud-palette-text-primary))`
+    element.append(probe)
+
+    const color = getComputedStyle(probe).color
+
+    probe.remove()
+
+    return color
+  }, { edgeRole: role, share: LINE_EDGE_SHARE })
+}
+
 async function paperBackground(card: Locator): Promise<string> {
   const surface = await cssVariable(card, '--mud-palette-surface')
   const [red, green, blue] = surface.replace(/^rgba?\(|\)$/g, '').split(',').map(part => part.trim())
@@ -72,11 +87,11 @@ async function expectRoleTone(card: Locator, role: string): Promise<void> {
   const tone = await readTone(card)
 
   expect(tone.borderWidths).toEqual(['1px', '1px', '1px', '1px'])
-  expect(tone.borderColor).toBe(await roleColor(card, role, LINE_ALPHA))
+  expect(tone.borderColor).toBe(await roleEdgeLine(card, role))
   expect(tone.borderRadius).toBe(await cssVariable(card, '--mud-default-borderradius'))
   expect(tone.background).toBe(await paperBackground(card))
   expect(tone.headerBorderWidth).toBe('1px')
-  expect(tone.headerBorderColor).toBe(await roleColor(card, role, LINE_ALPHA))
+  expect(tone.headerBorderColor).toBe(tone.borderColor)
   expect(tone.headerBackground).toBe(await roleColor(card, role, HEADER_ALPHA))
 }
 

@@ -32,7 +32,7 @@ const toggle = (): void => {
       :class="classes"
       :disabled="disabled"
       :icon="mdChevronRight"
-      :aria-label="expanded ? 'Collapse' : 'Expand'"
+      :aria-label="expanded ? 'Свернуть' : 'Развернуть'"
       @click.stop="toggle"
     />
   </div>

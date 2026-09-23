@@ -58,6 +58,7 @@ const code = defineModel<string>('code', { default: '' })
         />
 
         <MudStack
+          class="confirm-actions"
           row
           align-items="center"
         >
@@ -105,3 +106,15 @@ const code = defineModel<string>('code', { default: '' })
     </MudCardContent>
   </MudCard>
 </template>
+
+<style scoped>
+@media (max-width: 599.98px) {
+  .confirm-actions {
+    flex-wrap: wrap;
+  }
+
+  .confirm-actions > :deep(.mud-button-root) {
+    flex: 1 1 100%;
+  }
+}
+</style>

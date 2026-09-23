@@ -1,0 +1,22 @@
+@media (max-width: 599.98px) {
+  .mud-card.settings-card {
+    margin-bottom: 12px !important;
+  }
+
+  .settings-card > .mud-card-header.mud-card-header-padding {
+    padding: 12px 16px 4px;
+  }
+
+  .settings-card > .mud-card-content.mud-card-content-padding {
+    padding: 4px 16px 12px;
+  }
+
+  .settings-card .mud-divider {
+    margin-top: 8px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .settings-card .settings-gap {
+    margin-top: 8px !important;
+  }
+}

@@ -12,7 +12,7 @@ import {
   shouldShowDivider,
   useDisplaySettings,
 } from '@/features/settings'
-import { formatLocalDate, formatMoney } from '@/platform/format'
+import { formatLocalDate, formatLocalDateWithWeekday, formatMoney } from '@/platform/format'
 import { mdAdd, mdCalendarToday } from '@/shared/icons'
 import type { MudColor } from '@/shared/mud'
 import {
@@ -23,10 +23,12 @@ import {
   MudIcon,
   MudIconButton,
   MudItem,
+  MudMenuItem,
   MudSpacer,
   MudStack,
   MudText,
 } from '@/shared/mud'
+import { useNarrowViewport } from '@/shared/ui/useNarrowViewport'
 import { fastOperationForm, newOperationForm } from '../model/operation-form'
 import type { OperationFormValue } from '../model/operation-form'
 import OperationDialog from './OperationDialog.vue'
@@ -55,13 +57,24 @@ function quickForm(operation: FastOperation): OperationFormValue {
 
 const { settings } = useDisplaySettings()
 
-const dateText = computed(() => formatLocalDate(props.day.date))
+const isNarrow = useNarrowViewport()
 
-const totals = computed(() => OPERATION_TYPES.map(type => ({
-  type,
-  color: type.color as MudColor,
-  amount: formatMoney(calculateDayTotal(props.day, type.id)),
-})))
+const dateText = computed(() => (isNarrow.value ? formatLocalDateWithWeekday(props.day.date) : formatLocalDate(props.day.date)))
+
+const totals = computed(() => OPERATION_TYPES.map(type => {
+  const total = calculateDayTotal(props.day, type.id)
+
+  return {
+    type,
+    color: type.color as MudColor,
+    amount: formatMoney(total),
+    isZero: total.isZero,
+  }
+}))
+
+const visibleTotals = computed(() => (isNarrow.value ? totals.value.filter(total => !total.isZero) : totals.value))
+
+const addLabel = computed(() => (isNarrow.value ? `Добавить за ${dateText.value}` : `Быстрое добавление за ${dateText.value}`))
 
 const rowsClasses = computed(() => operationsListClasses(settings))
 
@@ -76,22 +89,26 @@ const rowsStyle = computed(() => moneyColumnStyle(settings))
     :elevation="3"
   >
     <MudCardHeader
-      class="border-b-2 border-solid pa-2"
+      :class="isNarrow ? 'pa-1' : 'pa-2'"
+      class="border-b-2 border-solid day-header"
       style="border-color: var(--mud-palette-divider)"
     >
       <MudItem :xs="12">
         <MudStack
           align-items="center"
+          class="day-header-row"
           row
           :spacing="3"
           wrap="wrap"
         >
           <MudStack
+            class="day-date"
             justify="start"
             row
             stretch-items="end"
           >
             <MudIcon
+              v-if="!isNarrow"
               :icon="mdCalendarToday"
               size="small"
             />
@@ -107,55 +124,92 @@ const rowsStyle = computed(() => moneyColumnStyle(settings))
             @submit="emit('submit', $event)"
           >
             <template #default="{ isOpen, open }">
-              <div class="align-center d-flex flex-row gap-4">
-                <MudIconButton
-                  v-for="{ type, color } in totals"
-                  :key="type.id"
-                  :aria-label="`${type.addLabel} за ${dateText}`"
-                  :color="color"
-                  :data-testid="`operations-day-add-${type.id}`"
-                  :disabled="isOpen"
-                  :icon="mdAdd"
-                  :title="`${type.addLabel} за ${dateText}`"
-                  size="small"
-                  @click="open(newOperationForm(type.id, day.date))"
-                />
+              <div class="align-center d-flex day-actions flex-row gap-4">
+                <template v-if="!isNarrow">
+                  <MudIconButton
+                    v-for="{ type, color } in totals"
+                    :key="type.id"
+                    :aria-label="`${type.addLabel} за ${dateText}`"
+                    :color="color"
+                    :data-testid="`operations-day-add-${type.id}`"
+                    :disabled="isOpen"
+                    :icon="mdAdd"
+                    :title="`${type.addLabel} за ${dateText}`"
+                    size="small"
+                    @click="open(newOperationForm(type.id, day.date))"
+                  />
+                </template>
 
                 <QuickOperationMenu
-                  :action-label="`Быстрое добавление за ${dateText}`"
+                  :action-label="addLabel"
+                  :color="isNarrow ? 'default' : 'info'"
                   :disabled="isOpen"
                   :operations="fastOperations"
                   :test-id="`operations-day-quick-${day.date}`"
-                  color="info"
                   @select="open(quickForm($event))"
-                />
+                >
+                  <template
+                    v-if="isNarrow"
+                    #items
+                  >
+                    <MudMenuItem
+                      v-for="{ type, color } in totals"
+                      :key="type.id"
+                      :data-testid="`operations-day-add-${type.id}`"
+                      @click="open(newOperationForm(type.id, day.date))"
+                    >
+                      <span class="align-center d-flex flex-row gap-2">
+                        <MudIcon
+                          :color="color"
+                          :icon="type.icon"
+                          size="small"
+                        />
+                        {{ type.shortAddLabel }}
+                      </span>
+                    </MudMenuItem>
+                  </template>
+                </QuickOperationMenu>
               </div>
             </template>
           </OperationDialog>
 
-          <MudSpacer />
+          <MudSpacer class="day-spacer" />
 
-          <div
-            v-for="{ type, amount, color } in totals"
-            :key="type.id"
-            class="align-center d-flex flex-row gap-2"
-          >
-            <MudIcon
-              :color="color"
-              :icon="type.icon"
-              :title="type.name"
-              size="small"
-            />
-            <MudText :data-testid="`operations-day-total-${type.id}`">
-              {{ amount }}
-            </MudText>
+          <div class="day-totals">
+            <div
+              v-for="{ type, amount, color } in visibleTotals"
+              :key="type.id"
+              class="align-center d-flex flex-row gap-2 day-total"
+            >
+              <MudIcon
+                v-if="!isNarrow"
+                :color="color"
+                :icon="type.icon"
+                :title="type.name"
+                size="small"
+              />
+              <MudText
+                v-else
+                :color="color"
+                :title="type.name"
+                class="day-total-text"
+              >
+                {{ type.sign }}
+              </MudText>
+              <MudText
+                :data-testid="`operations-day-total-${type.id}`"
+                class="day-total-text"
+              >
+                {{ amount }}
+              </MudText>
+            </div>
           </div>
         </MudStack>
       </MudItem>
     </MudCardHeader>
 
     <MudCardContent
-      :class="[rowsClasses, 'pa-2']"
+      :class="[rowsClasses, isNarrow ? 'pa-0' : 'pa-2']"
       :style="rowsStyle"
     >
       <MudStack :spacing="0">
@@ -189,6 +243,67 @@ const rowsStyle = computed(() => moneyColumnStyle(settings))
 </template>
 
 <style scoped>
+.day-totals {
+  display: contents;
+}
+
+@media (max-width: 599.98px) {
+  .day-header {
+    border-bottom-width: 1px !important;
+    background-color: var(--mud-palette-background-grey);
+  }
+
+  .day-header-row {
+    min-height: 44px;
+    gap: 8px !important;
+  }
+
+  .day-date {
+    flex: 0 0 auto;
+  }
+
+  .day-date :deep([data-testid="operations-day-date"]) {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--mud-palette-text-secondary);
+  }
+
+  .day-spacer {
+    display: none;
+  }
+
+  .day-totals {
+    display: flex;
+    flex: 1 1 0;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    padding-right: 8px;
+    gap: 0 8px;
+  }
+
+  .day-total {
+    gap: 2px !important;
+  }
+
+  .day-total-text {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .day-header-row :deep(.mud-menu-icon-button-activator) {
+    width: 44px;
+    height: 44px;
+  }
+
+  .operation-row {
+    padding: 0;
+  }
+}
+
 .operation-row {
   padding: 2px 4px;
   transition: background-color 0.15s ease-in-out;

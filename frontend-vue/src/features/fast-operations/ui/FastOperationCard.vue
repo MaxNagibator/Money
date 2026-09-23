@@ -21,7 +21,9 @@ import {
   MudText,
   MudTooltip,
 } from '@/shared/mud'
+import RecordRow from '@/shared/ui/RecordRow.vue'
 import { operationRoleVariables } from '@/shared/ui/record-card'
+import { useNarrowViewport } from '@/shared/ui/useNarrowViewport'
 import type { FastOperationKind, FastOperationView } from '../model/fast-operation-list'
 import { categoryNameOf, fastOperationKind } from '../model/fast-operation-list'
 
@@ -43,10 +45,46 @@ const emit = defineEmits<{
 const kind = computed(() => fastOperationKind(props.operation))
 const categoryName = computed(() => categoryNameOf(props.operation))
 const role = computed(() => operationRoleVariables(props.operation.category?.operationTypeId ?? null))
+const hasComment = computed(() => (props.operation.comment ?? '').length > 0)
+const isNarrow = useNarrowViewport()
 </script>
 
 <template>
+  <RecordRow
+    v-if="isNarrow"
+    :data-testid="`fast-operations-card-${operation.id}`"
+    :deleted="operation.isDeleted"
+    :edit-label="`Изменить быструю операцию ${operation.name}, ${categoryName}`"
+    :edit-test-id="`fast-operations-edit-${operation.id}`"
+    :operation-type-id="operation.category?.operationTypeId ?? null"
+    :restore-label="`Восстановить быструю операцию ${operation.name}, ${categoryName}`"
+    :restore-test-id="`fast-operations-restore-${operation.id}`"
+    :sum="operation.sum"
+    :sum-test-id="`fast-operations-sum-${operation.id}`"
+    @edit="emit('edit', operation)"
+    @restore="emit('restore', operation)"
+  >
+    <template #title>
+      {{ operation.name }}
+    </template>
+
+    <template #meta>
+      <MudIcon
+        v-if="operation.category === null"
+        :icon="mdWarningAmber"
+        color="warning"
+        size="small"
+      />
+      <span :data-testid="`fast-operations-category-${operation.id}`">{{ categoryName }}</span>
+      <template v-if="hasComment">
+        <span>&nbsp;·&nbsp;</span>
+        <span :data-testid="`fast-operations-comment-${operation.id}`">{{ operation.comment }}</span>
+      </template>
+    </template>
+  </RecordRow>
+
   <MudCard
+    v-else
     :class="[`fast-operation-card--${kind}`, TONE_CLASS[kind]]"
     :data-testid="`fast-operations-card-${operation.id}`"
     :style="role"

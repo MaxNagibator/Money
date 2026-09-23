@@ -107,6 +107,21 @@ describe('столбчатая диаграмма статистики', () => {
     expect(data.series[0]?.values).toEqual([null, null, null, null, 100, null, null, null, null, null, null])
   })
 
+  it.each([
+    { period: 'не задан', range: { from: null, to: null } },
+    { period: 'задан только началом', range: { from: local('2026-03-10'), to: null } },
+    { period: 'задан только концом', range: { from: null, to: local('2026-03-12') } },
+  ])('берёт границы из дат операций, когда период $period', ({ range }) => {
+    const data = buildBarChartData(
+      [operation(1, FOOD, '2026-03-10', 10_000), operation(2, FOOD, '2026-03-12', 20_000)],
+      range,
+      TODAY,
+    )
+
+    expect(data.labels).toEqual(['10.03.2026', '11.03.2026', '12.03.2026'])
+    expect(data.series[0]?.values).toEqual([100, null, 200])
+  })
+
   it('на пустом списке операций даёт одну корзину за сегодня', () => {
     const data = buildBarChartData([], { from: local('2026-01-01'), to: local('2026-12-31') }, TODAY)
 

@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import type { FastOperation } from '@/api/adapters/fast-operations'
 import { mdAdd } from '@/shared/icons'
 import type { MudColor } from '@/shared/mud'
-import { MudMenu, MudMenuItem } from '@/shared/mud'
+import { MudDivider, MudMenu, MudMenuItem } from '@/shared/mud'
 
 const props = defineProps<{
   operations: readonly FastOperation[]
@@ -19,11 +19,13 @@ const emit = defineEmits<{
 }>()
 
 const available = computed(() => props.operations.filter(operation => !operation.isDeleted))
+
+const hasQuick = computed(() => available.value.length > 0)
 </script>
 
 <template>
   <MudMenu
-    v-if="available.length > 0"
+    v-if="hasQuick || $slots.items"
     :aria-label="actionLabel"
     :color="color"
     :data-testid="testId"
@@ -39,7 +41,14 @@ const available = computed(() => props.operations.filter(operation => !operation
     size="small"
     transform-origin="top-center"
   >
-    <div :data-testid="`${testId}-list`">
+    <slot name="items" />
+
+    <MudDivider v-if="$slots.items && hasQuick" />
+
+    <div
+      v-if="hasQuick"
+      :data-testid="`${testId}-list`"
+    >
       <MudMenuItem
         v-for="operation in available"
         :key="operation.id"

@@ -49,6 +49,7 @@ export interface DebtsScreenState {
   cancelEdit: () => void
   submit: (value: DebtFormValue) => Promise<void>
   remove: (debt: Debt) => Promise<void>
+  removeEdited: () => Promise<void>
   restore: (debt: Debt) => Promise<void>
   payment: Ref<PaymentFormValue | null>
   isPaying: Ref<boolean>
@@ -118,6 +119,14 @@ export function useDebtsScreen(
     selectedIds.value = new Set()
   }
 
+  const removeById = async (id: number): Promise<void> => {
+    try {
+      await debts.remove(id)
+    } catch (error) {
+      notice.value = { text: messageOf(error, 'Не удалось удалить долг'), type: 'error' }
+    }
+  }
+
   return {
     debts,
     owners,
@@ -163,12 +172,17 @@ export function useDebtsScreen(
         isSaving.value = false
       }
     },
-    remove: async debt => {
-      try {
-        await debts.remove(debt.id)
-      } catch (error) {
-        notice.value = { text: messageOf(error, 'Не удалось удалить долг'), type: 'error' }
+    remove: debt => removeById(debt.id),
+    removeEdited: async () => {
+      const id = form.value?.id ?? null
+
+      if (id === null) {
+        return
       }
+
+      form.value = null
+
+      await removeById(id)
     },
     restore: async debt => {
       try {

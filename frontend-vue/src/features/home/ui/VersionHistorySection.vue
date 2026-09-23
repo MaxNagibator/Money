@@ -33,6 +33,7 @@ const version = computed(() => currentVersion(VERSION_HISTORY))
         <MudStack
           row
           align-items="center"
+          class="history-head"
           :spacing="3"
         >
           <MudIcon
@@ -100,3 +101,11 @@ const version = computed(() => currentVersion(VERSION_HISTORY))
     </MudCollapse>
   </section>
 </template>
+
+<style scoped>
+@media (max-width: 599.98px) {
+  .history-head {
+    flex-wrap: wrap;
+  }
+}
+</style>

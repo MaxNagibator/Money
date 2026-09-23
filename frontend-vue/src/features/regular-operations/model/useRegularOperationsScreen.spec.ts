@@ -352,16 +352,53 @@ describe('удаление и восстановление', () => {
     expect(screen.operations.value[0]?.isDeleted).toBe(false)
   })
 
-  it('отказ удаления оставляет карточку неотмеченной и показывает текст сервера', async () => {
+  it.each([
+    ['из строки', async (screen: RegularOperationsScreenState) => screen.remove(screen.operations.value[0]!)],
+    ['из листа правки', async (screen: RegularOperationsScreenState) => {
+      screen.startEdit(screen.operations.value[0]!)
+      await screen.removeEdited()
+    }],
+  ])('отказ удаления %s оставляет карточку неотмеченной, форму закрытой и показывает текст сервера', async (_, remove) => {
     deleteRegularOperationMock.mockRejectedValue(new ApiError('Регулярная операция не найдена'))
 
     const screen = setup()
 
     await settle(screen)
-    await screen.remove(screen.operations.value[0]!)
+    await remove(screen)
 
+    expect(deleteRegularOperationMock).toHaveBeenCalledWith(3)
+    expect(screen.form.value).toBeNull()
     expect(screen.operations.value[0]?.isDeleted).toBe(false)
     expect(screen.notice.value).toEqual({ text: 'Регулярная операция не найдена', type: 'error' })
+  })
+
+  it('удаление из листа правки закрывает форму и помечает карточку для восстановления', async () => {
+    const screen = setup()
+
+    await settle(screen)
+
+    screen.startEdit(screen.operations.value[0]!)
+    await screen.removeEdited()
+
+    expect(screen.form.value).toBeNull()
+    expect(deleteRegularOperationMock).toHaveBeenCalledWith(3)
+    expect(screen.operations.value[0]?.isDeleted).toBe(true)
+  })
+
+  it('удаление из листа не срабатывает для новой формы и во время сохранения', async () => {
+    const screen = setup()
+
+    await settle(screen)
+
+    screen.startCreate(null)
+    await screen.removeEdited()
+
+    screen.startEdit(screen.operations.value[0]!)
+    screen.isSaving.value = true
+    await screen.removeEdited()
+
+    expect(deleteRegularOperationMock).not.toHaveBeenCalled()
+    expect(screen.form.value?.id).toBe(3)
   })
 })
 

@@ -64,6 +64,7 @@ async function signIn(login: string, secret: string): Promise<void> {
         <MudTextField
           v-model="userName"
           autocomplete="username"
+          class="login-name-field"
           data-testid="login-name"
           label="Электронная почта или имя пользователя"
           name="username"
@@ -144,3 +145,11 @@ async function signIn(login: string, secret: string): Promise<void> {
     </MudGrid>
   </form>
 </template>
+
+<style scoped>
+@media (max-width: 599.98px) {
+  .login-name-field :deep(.mud-input-label) {
+    font-size: 0.85rem !important;
+  }
+}
+</style>

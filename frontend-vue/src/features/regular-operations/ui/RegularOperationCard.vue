@@ -21,9 +21,11 @@ import {
   MudText,
   MudTooltip,
 } from '@/shared/mud'
+import RecordRow from '@/shared/ui/RecordRow.vue'
 import { operationRoleVariables } from '@/shared/ui/record-card'
+import { useNarrowViewport } from '@/shared/ui/useNarrowViewport'
 import type { RegularOperationKind, RegularOperationView } from '../model/regular-operation-list'
-import { categoryNameOf, formatRunTime, regularOperationKind } from '../model/regular-operation-list'
+import { categoryNameOf, formatRunTime, regularOperationKind, scheduleText } from '../model/regular-operation-list'
 
 const TONE_CLASS: Record<RegularOperationKind, string | null> = {
   expense: null,
@@ -43,10 +45,43 @@ const kind = computed(() => regularOperationKind(props.operation))
 const categoryName = computed(() => categoryNameOf(props.operation))
 const runTime = computed(() => formatRunTime(props.operation.runTime))
 const role = computed(() => operationRoleVariables(props.operation.category?.operationTypeId ?? null))
+const schedule = computed(() => scheduleText(props.operation))
+const isNarrow = useNarrowViewport()
 </script>
 
 <template>
+  <RecordRow
+    v-if="isNarrow"
+    :data-testid="`regular-operations-card-${operation.id}`"
+    :deleted="operation.isDeleted"
+    :edit-label="`Изменить регулярную операцию ${operation.name}, ${categoryName}, ${schedule}`"
+    :edit-test-id="`regular-operations-edit-${operation.id}`"
+    :operation-type-id="operation.category?.operationTypeId ?? null"
+    :restore-label="`Восстановить регулярную операцию ${operation.name}, ${categoryName}`"
+    :restore-test-id="`regular-operations-restore-${operation.id}`"
+    :sum="operation.sum"
+    :sum-test-id="`regular-operations-sum-${operation.id}`"
+    @edit="emit('edit', operation)"
+    @restore="emit('restore', operation)"
+  >
+    <template #title>
+      <MudIcon
+        v-if="operation.category === null"
+        :icon="mdWarningAmber"
+        color="warning"
+        size="small"
+        :title="categoryName"
+      />
+      <span :data-testid="`regular-operations-name-${operation.id}`">{{ operation.name }}</span>
+    </template>
+
+    <template #meta>
+      <span :data-testid="`regular-operations-run-time-${operation.id}`">{{ schedule }}</span>
+    </template>
+  </RecordRow>
+
   <MudCard
+    v-else
     :class="[`regular-operation-card--${kind}`, TONE_CLASS[kind]]"
     :data-testid="`regular-operations-card-${operation.id}`"
     :style="role"

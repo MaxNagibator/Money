@@ -25,7 +25,9 @@ import {
   MudTooltip,
 } from '@/shared/mud'
 import type { MudColor } from '@/shared/mud'
+import { useNarrowViewport } from '@/shared/ui/useNarrowViewport'
 
+const isNarrow = useNarrowViewport()
 const state = useCategories()
 
 const activeType = ref<OperationTypeId>(OPERATION_TYPES[0]?.id ?? 1)
@@ -101,12 +103,26 @@ async function restore(category: Category): Promise<void> {
 </script>
 
 <template>
-  <MudText
-    gutter-bottom
-    typo="h3"
-  >
-    Категории
-  </MudText>
+  <div class="categories-heading">
+    <MudText
+      gutter-bottom
+      typo="h3"
+    >
+      Категории
+    </MudText>
+
+    <MudIconButton
+      v-if="isNarrow"
+      :aria-label="activeOperationType.addLabel"
+      :color="activeOperationColor"
+      :icon="mdAdd"
+      :title="activeOperationType.addLabel"
+      data-testid="category-add-root"
+      size="small"
+      variant="filled"
+      @click="create(null)"
+    />
+  </div>
 
   <div
     v-if="state.isLoading.value"
@@ -130,7 +146,10 @@ async function restore(category: Category): Promise<void> {
       v-model:active-panel-index="activePanelIndex"
       :elevation="4"
     >
-      <template #tabPanelHeader="{ panel }">
+      <template
+        v-if="!isNarrow"
+        #tabPanelHeader="{ panel }"
+      >
         <MudTooltip
           v-if="panel.text === activeOperationType.name"
           :text="activeOperationType.addLabel"
@@ -176,3 +195,19 @@ async function restore(category: Category): Promise<void> {
     data-testid="categories-notice"
   />
 </template>
+
+<style scoped>
+@media (max-width: 599.98px) {
+  .categories-heading {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.7rem;
+  }
+
+  .categories-heading .mud-typography-gutterbottom {
+    margin-bottom: 0;
+  }
+}
+</style>

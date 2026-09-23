@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { mdExpandLess, mdExpandMore } from '@/shared/icons'
 import {
   MudButton,
   MudExpansionPanel,
   MudGrid,
+  MudIconButton,
   MudItem,
   MudStack,
   MudText,
+  MudTooltip,
 } from '@/shared/mud'
+import { useNarrowViewport } from '@/shared/ui/useNarrowViewport'
 import { useTransitionsAfterMount } from '@/shared/ui/useTransitionsAfterMount'
 import { collectSumKeys } from '../model/category-sums'
 import type { StatisticsPanel } from '../model/useStatistics'
@@ -21,6 +24,9 @@ const props = defineProps<{ panel: StatisticsPanel }>()
 const opened = ref<string[]>([])
 const expanded = ref(true)
 const areTransitionsEnabled = useTransitionsAfterMount()
+const isNarrow = useNarrowViewport()
+const collapseLabel = computed(() => `Свернуть все категории: ${props.panel.type.name}`)
+const expandLabel = computed(() => `Развернуть все категории: ${props.panel.type.name}`)
 
 interface ExpansionPanelInstance {
   $el?: HTMLElement
@@ -46,7 +52,7 @@ function collapseAll(): void {
   <MudExpansionPanel
     ref="expansionPanelReference"
     v-model:expanded="expanded"
-    :class="{ 'statistics-panel-static': !areTransitionsEnabled }"
+    :class="['statistics-panel', { 'statistics-panel-static': !areTransitionsEnabled }]"
     :data-testid="`statistics-panel-${panel.type.id}`"
     :text="panel.type.name"
   >
@@ -84,6 +90,35 @@ function collapseAll(): void {
           </div>
 
           <MudStack
+            v-if="isNarrow"
+            align-items="center"
+            class="mt-2"
+            justify="end"
+            row
+            :spacing="1"
+          >
+            <MudTooltip :text="collapseLabel">
+              <MudIconButton
+                :aria-label="collapseLabel"
+                :data-testid="`statistics-collapse-${panel.type.id}`"
+                :icon="mdExpandLess"
+                variant="outlined"
+                @click="collapseAll"
+              />
+            </MudTooltip>
+            <MudTooltip :text="expandLabel">
+              <MudIconButton
+                :aria-label="expandLabel"
+                :data-testid="`statistics-expand-${panel.type.id}`"
+                :icon="mdExpandMore"
+                variant="outlined"
+                @click="expandAll"
+              />
+            </MudTooltip>
+          </MudStack>
+
+          <MudStack
+            v-else
             align-items="center"
             class="mt-2"
             row
@@ -127,5 +162,12 @@ function collapseAll(): void {
 <style scoped>
 .statistics-panel-static :deep(.mud-collapse-container) {
   transition: none;
+}
+
+@media (max-width: 599.98px) {
+  .statistics-panel :deep(.mud-expand-panel-content.mud-expand-panel-gutters) {
+    padding-right: 8px;
+    padding-left: 8px;
+  }
 }
 </style>

@@ -5,6 +5,7 @@ import { computed } from 'vue'
 import { Bar } from 'vue-chartjs'
 import type { BarChartData } from '../model/bar-series'
 import { buildBarOptions } from '../model/chart-options'
+import { useNarrowViewport } from '@/shared/ui/useNarrowViewport'
 import { useChartPalette } from '../model/useChartPalette'
 
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, Legend, Tooltip)
@@ -12,8 +13,9 @@ Chart.register(BarController, BarElement, CategoryScale, LinearScale, Legend, To
 const props = defineProps<{ data: BarChartData }>()
 
 const palette = useChartPalette()
+const isNarrow = useNarrowViewport()
 
-const options = computed(() => buildBarOptions(palette.value))
+const options = computed(() => buildBarOptions(palette.value, isNarrow.value))
 
 const chartData = computed<ChartData<'bar'>>(() => ({
   labels: props.data.labels,

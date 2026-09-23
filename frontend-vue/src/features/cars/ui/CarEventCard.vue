@@ -23,6 +23,8 @@ import {
   MudText,
   MudTooltip,
 } from '@/shared/mud'
+import RecordRow from '@/shared/ui/RecordRow.vue'
+import { useNarrowViewport } from '@/shared/ui/useNarrowViewport'
 import { carEventType } from '../model/car-event-type'
 
 const props = defineProps<{ event: CarEvent }>()
@@ -36,10 +38,54 @@ const emit = defineEmits<{
 const type = computed(() => carEventType(props.event.typeId))
 const hasTitle = computed(() => (props.event.title ?? '') !== '')
 const hasComment = computed(() => (props.event.comment ?? '') !== '')
+const rowTitle = computed(() => (hasTitle.value ? props.event.title ?? '' : type.value.name))
+const rowTypeShown = computed(() => hasTitle.value && props.event.title !== type.value.name)
+const rowSubject = computed(() => {
+  const parts = [rowTitle.value]
+
+  if (rowTypeShown.value) {
+    parts.push(type.value.name)
+  }
+
+  parts.push(formatLocalDate(props.event.date))
+
+  return parts.join(', ')
+})
+const isNarrow = useNarrowViewport()
 </script>
 
 <template>
+  <RecordRow
+    v-if="isNarrow"
+    :data-testid="`cars-event-card-${event.id}`"
+    :deleted="event.isDeleted"
+    :edit-label="`Изменить событие ${rowSubject}`"
+    :edit-test-id="`cars-event-edit-${event.id}`"
+    :restore-label="`Восстановить событие ${rowSubject}`"
+    :restore-test-id="`cars-event-restore-${event.id}`"
+    deleted-mark="удалено"
+    @edit="emit('edit', event)"
+    @restore="emit('restore', event)"
+  >
+    <template #title>
+      <span :data-testid="`cars-event-title-${event.id}`">{{ rowTitle }}</span>
+    </template>
+
+    <template #meta>
+      <template v-if="rowTypeShown">
+        <span>{{ type.name }}</span>
+        <span>&nbsp;·&nbsp;</span>
+      </template>
+      <span :data-testid="`cars-event-date-${event.id}`">{{ formatLocalDate(event.date) }}</span>
+      <template v-if="event.mileage !== null">
+        <span>&nbsp;·&nbsp;</span>
+        <span :data-testid="`cars-event-mileage-${event.id}`">{{ formatMileage(event.mileage) }} км</span>
+      </template>
+    </template>
+  </RecordRow>
+
   <MudCard
+    v-else
     :class="event.isDeleted ? 'car-event-card car-event-card--deleted' : 'car-event-card'"
     :data-testid="`cars-event-card-${event.id}`"
     class="d-flex flex-column"

@@ -285,6 +285,50 @@ describe('события авто', () => {
     expect(screen.notice.value).toEqual({ text: 'Извините, не удалось удалить', type: 'error' })
   })
 
+  it('удаление из листа правки закрывает форму и помечает событие для восстановления', async () => {
+    const screen = setup()
+
+    await settle(screen)
+
+    screen.startEditEvent(findEvent(screen, 12))
+    await screen.removeEditedEvent()
+
+    expect(screen.form.value).toBeNull()
+    expect(deleteCarEventMock).toHaveBeenCalledWith(12)
+    expect(findEvent(screen, 12).isDeleted).toBe(true)
+  })
+
+  it('отказ удаления из листа правки закрывает форму и показывает текст сервера', async () => {
+    const screen = setup()
+
+    await settle(screen)
+
+    deleteCarEventMock.mockRejectedValue(new ApiError('Извините, не удалось удалить'))
+
+    screen.startEditEvent(findEvent(screen, 12))
+    await screen.removeEditedEvent()
+
+    expect(screen.form.value).toBeNull()
+    expect(findEvent(screen, 12).isDeleted).toBe(false)
+    expect(screen.notice.value).toEqual({ text: 'Извините, не удалось удалить', type: 'error' })
+  })
+
+  it('удаление из листа не срабатывает для новой формы и во время сохранения', async () => {
+    const screen = setup()
+
+    await settle(screen)
+
+    screen.startCreateEvent()
+    await screen.removeEditedEvent()
+
+    screen.startEditEvent(findEvent(screen, 12))
+    screen.isSaving.value = true
+    await screen.removeEditedEvent()
+
+    expect(deleteCarEventMock).not.toHaveBeenCalled()
+    expect(screen.form.value?.id).toBe(12)
+  })
+
   it('созданное событие уходит на сервер и попадает в список по общему порядку', async () => {
     const screen = setup()
 

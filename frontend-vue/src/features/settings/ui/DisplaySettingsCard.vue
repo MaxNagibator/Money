@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { mdBorderLeft, mdCheck, mdClose, mdFormatColorFill } from '@/shared/icons'
+import { mdBorderLeft, mdClose, mdFormatColorFill } from '@/shared/icons'
 import {
   MudCard,
   MudCardContent,
@@ -9,9 +9,7 @@ import {
   MudIcon,
   MudSlider,
   MudStack,
-  MudIconButton,
   MudText,
-  MudTooltip,
   MudToggleGroup,
   MudToggleItem,
 } from '@/shared/mud'
@@ -21,6 +19,8 @@ import {
   MONEY_COLUMN_WIDTH_MIN,
   useDisplaySettings,
 } from '../model/display-settings'
+import SettingSwitch from './SettingSwitch.vue'
+import './settings-card.css'
 
 const { settings, update } = useDisplaySettings()
 
@@ -40,7 +40,7 @@ function selectRowStyle(value: unknown): void {
 </script>
 
 <template>
-  <MudCard class="mb-6">
+  <MudCard class="mb-6 settings-card">
     <MudCardHeader>
       <template #card-header-content>
         <MudText typo="h6">
@@ -50,31 +50,19 @@ function selectRowStyle(value: unknown): void {
     </MudCardHeader>
 
     <MudCardContent>
-      <MudText>
+      <MudText typo="body2">
         Выберите, показывать ли разделители между записями операций. Это может помочь улучшить читаемость.
       </MudText>
-      <MudStack
-        row
-        align-items="center"
-        :spacing="2"
-      >
-        <MudTooltip :text="settings.showDividers ? 'Включены' : 'Выключены'">
-          <MudIconButton
-            aria-label="Показывать разделители"
-            :color="settings.showDividers ? 'primary' : 'default'"
-            data-testid="settings-dividers"
-            :icon="settings.showDividers ? mdCheck : mdClose"
-            @click="update({ showDividers: !settings.showDividers })"
-          />
-        </MudTooltip>
-        <MudText typo="body1">
-          Показывать разделители в операциях
-        </MudText>
-      </MudStack>
+      <SettingSwitch
+        :model-value="settings.showDividers"
+        data-testid="settings-dividers"
+        label="Показывать разделители в операциях"
+        @update:model-value="update({ showDividers: $event })"
+      />
 
       <MudDivider class="my-4" />
 
-      <MudText>
+      <MudText typo="body2">
         Чередование строк операций: подсветка фона или цветная полоса слева у каждой второй строки для более
         удобного чтения списка.
       </MudText>
@@ -85,6 +73,7 @@ function selectRowStyle(value: unknown): void {
       >
         <MudToggleGroup
           :model-value="settings.alternateRowStyle"
+          aria-label="Чередование строк"
           color="primary"
           data-testid="settings-alternate"
           @update:model-value="selectRowStyle"
@@ -112,28 +101,16 @@ function selectRowStyle(value: unknown): void {
 
       <MudDivider class="my-4" />
 
-      <MudText>
+      <MudText typo="body2">
         Выравнивание копеек: суммы в списке операций прижимаются к правому краю колонки, дробные части располагаются
         строго одна под другой.
       </MudText>
-      <MudStack
-        row
-        align-items="center"
-        :spacing="2"
-      >
-        <MudTooltip :text="settings.alignMoneyDecimals ? 'Включено' : 'Выключено'">
-          <MudIconButton
-            aria-label="Выравнивать копейки"
-            :color="settings.alignMoneyDecimals ? 'primary' : 'default'"
-            data-testid="settings-align-decimals"
-            :icon="settings.alignMoneyDecimals ? mdCheck : mdClose"
-            @click="update({ alignMoneyDecimals: !settings.alignMoneyDecimals })"
-          />
-        </MudTooltip>
-        <MudText typo="body1">
-          Выравнивать копейки в списке операций
-        </MudText>
-      </MudStack>
+      <SettingSwitch
+        :model-value="settings.alignMoneyDecimals"
+        data-testid="settings-align-decimals"
+        label="Выравнивать копейки в списке операций"
+        @update:model-value="update({ alignMoneyDecimals: $event })"
+      />
 
       <MudStack
         class="mt-2"
@@ -178,28 +155,16 @@ function selectRowStyle(value: unknown): void {
 
       <MudDivider class="my-4" />
 
-      <MudText>
+      <MudText typo="body2">
         Использовать цвета темы для графиков (адаптируются под темную/светлую тему). Если выключено, используются
         стандартные цвета Chart.js.
       </MudText>
-      <MudStack
-        row
-        align-items="center"
-        :spacing="2"
-      >
-        <MudTooltip :text="settings.useChartThemeColors ? 'Включены' : 'Выключены'">
-          <MudIconButton
-            aria-label="Использовать цвета темы на графиках"
-            :color="settings.useChartThemeColors ? 'primary' : 'default'"
-            data-testid="settings-chart-colors"
-            :icon="settings.useChartThemeColors ? mdCheck : mdClose"
-            @click="update({ useChartThemeColors: !settings.useChartThemeColors })"
-          />
-        </MudTooltip>
-        <MudText typo="body1">
-          Использовать цвета темы на графиках
-        </MudText>
-      </MudStack>
+      <SettingSwitch
+        :model-value="settings.useChartThemeColors"
+        data-testid="settings-chart-colors"
+        label="Использовать цвета темы на графиках"
+        @update:model-value="update({ useChartThemeColors: $event })"
+      />
     </MudCardContent>
   </MudCard>
 </template>

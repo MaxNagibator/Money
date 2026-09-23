@@ -68,15 +68,9 @@ export function useCarEvents(carId: Ref<number | null> | ComputedRef<number | nu
   })
 
   const removeMutation = useMutation({
-    mutationFn: (id: number) => deleteCarEvent(id),
-    onSuccess: (_, id) => {
-      const removed = events.value.find(event => event.id === id)
-
-      if (removed === undefined) {
-        return
-      }
-
-      tombstones.value = new Map(tombstones.value).set(id, { ...removed, isDeleted: true })
+    mutationFn: (removed: CarEvent) => deleteCarEvent(removed.id),
+    onSuccess: (_, removed) => {
+      tombstones.value = new Map(tombstones.value).set(removed.id, { ...removed, isDeleted: true })
     },
   })
 
@@ -106,7 +100,13 @@ export function useCarEvents(carId: Ref<number | null> | ComputedRef<number | nu
       await saveMutation.mutateAsync({ id, draft })
     },
     remove: async id => {
-      await removeMutation.mutateAsync(id)
+      const removed = events.value.find(event => event.id === id)
+
+      if (removed === undefined) {
+        return
+      }
+
+      await removeMutation.mutateAsync(removed)
     },
     restore: async id => {
       await restoreMutation.mutateAsync(id)

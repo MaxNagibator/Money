@@ -800,3 +800,29 @@ test.describe('операции', () => {
     expect(stub.queries).toHaveLength(1)
   })
 })
+
+test.describe('операции на телефоне', () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
+
+  test.beforeEach(async ({ page }) => {
+    await signInAsStub(page)
+  })
+
+  test('имя строки несёт тип и сумму, удалённая строка помечена', async ({ page }) => {
+    await stubApi(page)
+
+    await openOperations(page)
+
+    const expense = page.locator('[data-operation-id="10"]')
+    const income = page.locator('[data-operation-id="12"]')
+
+    await expect(expense.getByTestId('operation-item-edit')).toHaveAccessibleName('Изменить операцию Кафе, расход 100,50')
+    await expect(income.getByTestId('operation-item-edit')).toHaveAccessibleName(/^Изменить операцию Зарплата, доход 5\s000,00$/)
+
+    await expense.getByTestId('operation-item-edit').tap()
+    await page.getByTestId('operation-dialog-remove').tap()
+
+    await expect(expense.getByTestId('operation-item-edit')).toHaveAccessibleName('Изменить операцию Кафе, расход 100,50, удалена')
+    await expect(expense.getByTestId('operation-item-restore')).toHaveAccessibleName('Восстановить операцию Кафе, расход 100,50')
+  })
+})

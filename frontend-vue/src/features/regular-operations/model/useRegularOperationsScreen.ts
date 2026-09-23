@@ -49,6 +49,7 @@ export interface RegularOperationsScreenState {
   cancel: () => void
   submit: (value: RegularOperationFormValue) => Promise<void>
   remove: (view: RegularOperationView) => Promise<void>
+  removeEdited: () => Promise<void>
   restore: (view: RegularOperationView) => Promise<void>
 }
 
@@ -80,6 +81,14 @@ export function useRegularOperationsScreen(clock: Clock = systemClock): RegularO
   const dialogCategories = computed(
     () => categoryOptions(categories.value, requiredTypeId.value, openedCategoryId.value),
   )
+
+  async function removeById(id: number): Promise<void> {
+    try {
+      await regular.remove(id)
+    } catch (error) {
+      notice.value = { text: messageOf(error, REGULAR_OPERATION_DELETE_ERROR), type: 'error' }
+    }
+  }
 
   return {
     operations: regular.operations,
@@ -140,11 +149,18 @@ export function useRegularOperationsScreen(clock: Clock = systemClock): RegularO
       }
     },
     remove: async view => {
-      try {
-        await regular.remove(view.id)
-      } catch (error) {
-        notice.value = { text: messageOf(error, REGULAR_OPERATION_DELETE_ERROR), type: 'error' }
+      await removeById(view.id)
+    },
+    removeEdited: async () => {
+      const id = form.value?.id ?? null
+
+      if (id === null || isSaving.value) {
+        return
       }
+
+      form.value = null
+
+      await removeById(id)
     },
     restore: async view => {
       try {

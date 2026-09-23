@@ -21,6 +21,7 @@ import {
   MudButton,
   MudDivider,
   MudGrid,
+  MudIconButton,
   MudItem,
   MudPopover,
   MudProgressCircular,
@@ -32,19 +33,22 @@ import {
   MudToggleIconButton,
   MudTooltip,
 } from '@/shared/mud'
+import { useNarrowViewport } from '@/shared/ui/useNarrowViewport'
 
 const categoriesState = useCategories()
 const screen = useDebtsScreen(categoriesState.categories)
+const isNarrow = useNarrowViewport()
 </script>
 
 <template>
   <MudStack
     align-items="center"
-    class="mb-3"
+    class="debts-header mb-3"
     row
     :spacing="1"
   >
     <MudText
+      class="debts-title"
       html-tag="h1"
       typo="h3"
     >
@@ -53,44 +57,74 @@ const screen = useDebtsScreen(categoriesState.categories)
 
     <MudSpacer />
 
-    <MudTooltip :text="screen.showPaid.value ? 'Скрыть погашенные долги' : 'Показать погашенные долги'">
-      <MudToggleIconButton
-        :toggled="screen.showPaid.value"
-        :aria-label="screen.showPaid.value ? 'Скрыть погашенные долги' : 'Показать погашенные долги'"
-        color="tertiary"
-        data-testid="debts-toggle-paid"
-        :icon="screen.showPaid.value ? mdVisibilityOff : mdVisibility"
-        toggled-variant="outlined"
-        variant="filled"
-        @update:toggled="screen.showPaid.value = $event"
-      />
-    </MudTooltip>
+    <div class="debts-header-actions">
+      <template v-if="isNarrow">
+        <MudTooltip
+          v-for="type in DEBT_TYPES"
+          :key="type.id"
+          :text="type.addLabel"
+        >
+          <MudIconButton
+            :aria-label="type.addLabel"
+            :data-testid="`debts-add-${type.id}`"
+            :icon="type.icon"
+            color="tertiary"
+            variant="filled"
+            @click="screen.startCreate(type.id)"
+          />
+        </MudTooltip>
 
-    <MudTooltip text="Простить долги">
-      <MudToggleIconButton
-        :toggled="screen.isForgiveOpen.value"
-        aria-label="Простить долги"
-        color="tertiary"
-        data-testid="debts-toggle-forgive"
-        :icon="mdHandshake"
-        toggled-variant="outlined"
-        variant="filled"
-        @update:toggled="screen.openForgive($event)"
-      />
-    </MudTooltip>
+        <MudTooltip text="Добавить">
+          <MudIconButton
+            :icon="mdAdd"
+            aria-label="Добавить"
+            color="tertiary"
+            data-testid="debts-add"
+            variant="filled"
+            @click="screen.startCreate()"
+          />
+        </MudTooltip>
+      </template>
 
-    <MudTooltip text="Слияние держателей">
-      <MudToggleIconButton
-        :toggled="screen.isMergeOpen.value"
-        aria-label="Объединить держателей"
-        color="tertiary"
-        data-testid="debts-toggle-merge"
-        :icon="mdMerge"
-        toggled-variant="outlined"
-        variant="filled"
-        @update:toggled="screen.openMerge($event)"
-      />
-    </MudTooltip>
+      <MudTooltip :text="screen.showPaid.value ? 'Скрыть погашенные долги' : 'Показать погашенные долги'">
+        <MudToggleIconButton
+          :toggled="screen.showPaid.value"
+          :aria-label="screen.showPaid.value ? 'Скрыть погашенные долги' : 'Показать погашенные долги'"
+          color="tertiary"
+          data-testid="debts-toggle-paid"
+          :icon="screen.showPaid.value ? mdVisibilityOff : mdVisibility"
+          toggled-variant="outlined"
+          variant="filled"
+          @update:toggled="screen.showPaid.value = $event"
+        />
+      </MudTooltip>
+
+      <MudTooltip text="Простить долги">
+        <MudToggleIconButton
+          :toggled="screen.isForgiveOpen.value"
+          aria-label="Простить долги"
+          color="tertiary"
+          data-testid="debts-toggle-forgive"
+          :icon="mdHandshake"
+          toggled-variant="outlined"
+          variant="filled"
+          @update:toggled="screen.openForgive($event)"
+        />
+      </MudTooltip>
+
+      <MudTooltip text="Слияние держателей">
+        <MudToggleIconButton
+          :toggled="screen.isMergeOpen.value"
+          aria-label="Объединить держателей"
+          color="tertiary"
+          data-testid="debts-toggle-merge"
+          :icon="mdMerge"
+          toggled-variant="outlined"
+          variant="filled"
+          @update:toggled="screen.openMerge($event)"
+        />
+      </MudTooltip>
+    </div>
 
     <MudPopover
       :open="screen.isForgiveOpen.value"
@@ -133,39 +167,41 @@ const screen = useDebtsScreen(categoriesState.categories)
     class="mb-4"
     :spacing="2"
   >
-    <MudItem
-      v-for="type in DEBT_TYPES"
-      :key="type.id"
-      :lg="2"
-      :md="3"
-      :xs="12"
-    >
-      <MudButton
-        :data-testid="`debts-add-${type.id}`"
-        :end-icon="mdAdd"
-        full-width
-        variant="filled"
-        @click="screen.startCreate(type.id)"
+    <template v-if="!isNarrow">
+      <MudItem
+        v-for="type in DEBT_TYPES"
+        :key="type.id"
+        :lg="2"
+        :md="3"
+        :xs="12"
       >
-        {{ type.addLabel }}
-      </MudButton>
-    </MudItem>
+        <MudButton
+          :data-testid="`debts-add-${type.id}`"
+          :end-icon="mdAdd"
+          full-width
+          variant="filled"
+          @click="screen.startCreate(type.id)"
+        >
+          {{ type.addLabel }}
+        </MudButton>
+      </MudItem>
 
-    <MudItem
-      :lg="2"
-      :md="2"
-      :xs="12"
-    >
-      <MudButton
-        :end-icon="mdAdd"
-        data-testid="debts-add"
-        full-width
-        variant="filled"
-        @click="screen.startCreate()"
+      <MudItem
+        :lg="2"
+        :md="2"
+        :xs="12"
       >
-        Добавить
-      </MudButton>
-    </MudItem>
+        <MudButton
+          :end-icon="mdAdd"
+          data-testid="debts-add"
+          full-width
+          variant="filled"
+          @click="screen.startCreate()"
+        >
+          Добавить
+        </MudButton>
+      </MudItem>
+    </template>
 
     <MudItem
       :lg="6"
@@ -250,7 +286,9 @@ const screen = useDebtsScreen(categoriesState.categories)
   <DebtDialog
     :is-saving="screen.isSaving.value"
     :value="screen.form.value"
+    removable
     @cancel="screen.cancelEdit()"
+    @remove="screen.removeEdited()"
     @submit="screen.submit($event)"
   />
 
@@ -263,3 +301,28 @@ const screen = useDebtsScreen(categoriesState.categories)
     @update:model-value="screen.notice.value = null"
   />
 </template>
+
+<style scoped>
+.debts-header-actions {
+  display: contents;
+}
+
+@media (max-width: 599.98px) {
+  .debts-title {
+    font-size: 2rem;
+    line-height: 1.2;
+  }
+
+  .debts-header {
+    flex-wrap: wrap;
+  }
+
+  .debts-header-actions {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+  }
+}
+</style>

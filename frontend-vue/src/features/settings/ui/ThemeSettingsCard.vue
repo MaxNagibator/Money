@@ -1,42 +1,46 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import {
-  mdBrightness4,
   mdComputer,
-  mdCheck,
+  mdDarkMode,
+  mdLightMode,
   mdSchedule,
-  mdSwapHoriz,
 } from '@/shared/icons'
 import {
   MudCard,
   MudCardContent,
   MudCardHeader,
-  MudDivider,
-  MudIconButton,
+  MudIcon,
   MudText,
+  MudToggleGroup,
+  MudToggleItem,
 } from '@/shared/mud'
+import type { ThemeMode } from '@/shared/ui/useAppTheme'
+import { themeStatusLabel } from '../model/theme-mode'
 import { useThemeSettings } from '../model/useThemeSettings'
+import './settings-card.css'
 
 const theme = useThemeSettings()
 
-const modeLabel = computed(() => theme.isManual.value ? 'Ручной' : 'Авто')
-const autoLabel = computed(() => theme.schedule.isEnabled ? 'По расписанию' : 'Согласно настройкам системы')
-const appliedLabel = computed(() => theme.isDark.value ? 'Темный' : 'Светлый')
-const brightnessLabel = computed(() => theme.isDark.value ? 'Переключить на светлую тему' : 'Переключить на темную тему')
-const manualLabel = computed(() => theme.isManual.value ? 'Переключить на автоматический режим' : 'Переключить на ручной режим')
-const scheduleLabel = computed(() => theme.schedule.isEnabled ? 'Переключить на режим системы' : 'Переключить на расписание')
+const modes = computed<readonly { value: ThemeMode, label: string, icon: string, testId: string }[]>(() => [
+  { value: 'light', label: 'Светлая', icon: mdLightMode, testId: 'settings-mode-light' },
+  { value: 'dark', label: 'Тёмная', icon: mdDarkMode, testId: 'settings-mode-dark' },
+  { value: 'system', label: 'Авто', icon: theme.schedule.isEnabled ? mdSchedule : mdComputer, testId: 'settings-mode-system' },
+])
 
-function toggleManualMode(): void {
-  theme.setMode(theme.isManual.value ? 'system' : theme.effective.value)
-}
+const statusLabel = computed(() => themeStatusLabel(theme.mode.value, theme.effective.value, theme.schedule.isEnabled))
 
-function toggleScheduleMode(): void {
-  theme.updateSchedule({ isEnabled: !theme.schedule.isEnabled })
+function selectMode(value: unknown): void {
+  const mode = modes.value.find(item => item.value === value)
+
+  if (mode !== undefined) {
+    theme.setMode(mode.value)
+  }
 }
 </script>
 
 <template>
-  <MudCard class="mb-6">
+  <MudCard class="mb-6 settings-card">
     <MudCardHeader>
       <template #card-header-content>
         <MudText typo="h6">
@@ -46,51 +50,47 @@ function toggleScheduleMode(): void {
     </MudCardHeader>
 
     <MudCardContent data-testid="settings-mode">
-      <MudIconButton
-        :aria-label="manualLabel"
-        :color="theme.isManual.value ? 'primary' : 'secondary'"
-        :icon="theme.isManual.value ? mdCheck : mdSwapHoriz"
-        :title="modeLabel"
-        data-testid="settings-mode-manual"
-        @click="toggleManualMode()"
-      />
-      {{ ' ' }}
-      <MudIconButton
-        :aria-label="scheduleLabel"
-        :color="theme.schedule.isEnabled ? 'primary' : 'secondary'"
-        :disabled="theme.isManual.value"
-        :icon="theme.schedule.isEnabled ? mdSchedule : mdComputer"
-        :title="autoLabel"
-        data-testid="settings-mode-schedule"
-        @click="toggleScheduleMode()"
-      />
-      {{ ' ' }}
-      <MudIconButton
-        :aria-label="brightnessLabel"
-        :icon="mdBrightness4"
-        :title="appliedLabel"
-        color="inherit"
-        data-testid="settings-brightness"
-        @click="theme.toggleBrightness()"
-      />
-
-      <MudDivider class="my-4" />
+      <MudToggleGroup
+        :model-value="theme.mode.value"
+        aria-label="Режим темы"
+        class="theme-mode-group"
+        color="primary"
+        @update:model-value="selectMode"
+      >
+        <MudToggleItem
+          v-for="mode in modes"
+          :key="mode.value"
+          :data-testid="mode.testId"
+          :value="mode.value"
+        >
+          <span class="theme-mode-segment">
+            <MudIcon :icon="mode.icon" />
+            <span>{{ mode.label }}</span>
+          </span>
+        </MudToggleItem>
+      </MudToggleGroup>
 
       <MudText
-        :color="theme.isManual.value ? 'warning' : 'default'"
+        class="mt-3"
         data-testid="settings-mode-status"
+        typo="body2"
       >
-        Текущий режим темной темы: {{ modeLabel }}
-      </MudText>
-      <MudText
-        :style="theme.isManual.value ? 'text-decoration: line-through;' : ''"
-        data-testid="settings-auto-status"
-      >
-        Текущий автоматический режим: {{ autoLabel }}
-      </MudText>
-      <MudText data-testid="settings-applied-status">
-        Текущий режим темной темы: {{ appliedLabel }}
+        {{ statusLabel }}
       </MudText>
     </MudCardContent>
   </MudCard>
 </template>
+
+<style scoped>
+.theme-mode-group :deep(.mud-toggle-item) {
+  min-height: 56px;
+}
+
+.theme-mode-segment {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-transform: none;
+}
+</style>

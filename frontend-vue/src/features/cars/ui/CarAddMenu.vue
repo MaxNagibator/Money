@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { watch } from 'vue'
 import { mdAdd, mdClose, mdComment } from '@/shared/icons'
 import {
   MudButton,
+  MudDialog,
   MudIconButton,
   MudMenu,
   MudPaper,
@@ -12,6 +14,7 @@ import {
   MudTextField,
   MudTooltip,
 } from '@/shared/mud'
+import { useNarrowViewport } from '@/shared/ui/useNarrowViewport'
 
 defineProps<{
   canCreate: boolean
@@ -22,10 +25,88 @@ const emit = defineEmits<{ submit: [] }>()
 
 const isOpen = defineModel<boolean>('isOpen', { required: true })
 const name = defineModel<string>('name', { required: true })
+
+const isNarrow = useNarrowViewport()
+
+watch(isNarrow, () => {
+  isOpen.value = false
+})
 </script>
 
 <template>
-  <MudTooltip text="Добавить авто">
+  <template v-if="isNarrow">
+    <MudIconButton
+      :icon="mdAdd"
+      aria-haspopup="dialog"
+      aria-label="Добавить авто"
+      data-testid="cars-add-toggle"
+      @click="isOpen = true"
+    />
+
+    <MudDialog
+      v-model:visible="isOpen"
+      class="car-add-dialog"
+    >
+      <template #title>
+        <MudText typo="h6">
+          Добавление авто
+        </MudText>
+      </template>
+
+      <template #content>
+        <form
+          id="cars-add-form"
+          @submit.prevent="emit('submit')"
+        >
+          <MudTextField
+            v-model="name"
+            :adornment-icon="mdComment"
+            adornment="start"
+            adornment-color="tertiary"
+            clearable
+            data-testid="cars-add-name"
+            immediate
+            label="Наименование"
+            placeholder="Моя машинка"
+            sizing="auto"
+          />
+        </form>
+      </template>
+
+      <template #actions>
+        <MudButton
+          data-testid="cars-add-cancel"
+          @click="isOpen = false"
+        >
+          Отмена
+        </MudButton>
+
+        <MudButton
+          :disabled="!canCreate || isCreating"
+          button-type="submit"
+          color="tertiary"
+          data-testid="cars-add-submit"
+          form="cars-add-form"
+          variant="filled"
+        >
+          <MudProgressCircular
+            v-if="isCreating"
+            color="inherit"
+            indeterminate
+            size="small"
+          />
+          <template v-else>
+            Создать
+          </template>
+        </MudButton>
+      </template>
+    </MudDialog>
+  </template>
+
+  <MudTooltip
+    v-else
+    text="Добавить авто"
+  >
     <MudMenu
       v-model:open="isOpen"
       :max-height="400"
@@ -100,3 +181,15 @@ const name = defineModel<string>('name', { required: true })
     </MudMenu>
   </MudTooltip>
 </template>
+
+<style>
+@media (max-width: 599.98px) {
+  .mud-dialog.car-add-dialog {
+    width: 100%;
+    max-width: none;
+    max-height: calc(var(--viewport-height, 100dvh) * 0.85);
+    margin: auto 0 var(--keyboard-inset, 0px);
+    border-radius: 12px 12px 0 0;
+  }
+}
+</style>

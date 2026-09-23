@@ -2,10 +2,12 @@ import type { RegularOperation } from '@/api/adapters/regular-operations'
 import type { Category } from '@/domain/category'
 import type { LocalDate } from '@/domain/local-date'
 import { compareLocalDate } from '@/domain/local-date'
-import { formatLocalDate } from '@/platform/format'
+import { formatLocalDate, formatLocalDateDayMonth } from '@/platform/format'
+import { regularTimeType } from './time-type'
 
 export const UNKNOWN_CATEGORY_NAME = 'Несуществующая'
 export const NO_RUN_TIME = '∞'
+export const NO_NEXT_RUN = 'запусков больше нет'
 
 export type RegularOperationKind = 'expense' | 'income' | 'deleted'
 
@@ -27,6 +29,13 @@ export function regularOperationKind(view: RegularOperationView): RegularOperati
 
 export function formatRunTime(runTime: LocalDate | null): string {
   return runTime === null ? NO_RUN_TIME : formatLocalDate(runTime)
+}
+
+export function scheduleText(view: RegularOperationView): string {
+  const frequency = regularTimeType(view.timeTypeId)?.name.toLowerCase() ?? null
+  const next = view.runTime === null ? NO_NEXT_RUN : `следующая ${formatLocalDateDayMonth(view.runTime)}`
+
+  return [next, frequency].filter(part => part !== null).join(' · ')
 }
 
 export function withCategories(

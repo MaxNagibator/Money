@@ -12,8 +12,11 @@ import {
   MudTabs,
   MudText,
 } from '@/shared/mud'
+import { useNarrowViewport } from '@/shared/ui/useNarrowViewport'
 
 const screen = useCarsScreen()
+
+const isNarrow = useNarrowViewport()
 
 const activePanelIndex = computed({
   get: () => screen.cars.cars.value.findIndex(car => car.id === screen.cars.activeCarId.value),
@@ -104,7 +107,7 @@ const noticeVisible = computed({
       <MudTabPanel
         v-for="car in screen.cars.cars.value"
         :key="car.id"
-        panel-class="px-4 py-6"
+        :panel-class="isNarrow ? 'py-3' : 'px-4 py-6'"
         :show-close-icon="false"
         :text="car.name"
         :tab-test-id="`cars-tab-${car.id}`"
@@ -126,7 +129,9 @@ const noticeVisible = computed({
     :title="screen.dialogTitle.value"
     :top-mileage="screen.events.topMileage.value"
     :value="screen.form.value"
+    removable
     @cancel="screen.cancelEvent()"
+    @remove="screen.removeEditedEvent()"
     @submit="screen.submitEvent($event)"
   />
 

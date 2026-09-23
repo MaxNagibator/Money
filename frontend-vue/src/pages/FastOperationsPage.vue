@@ -22,8 +22,11 @@ import {
 } from '@/shared/mud'
 import { pinLeavingItem, unpinItem } from '@/shared/ui/list-flow'
 import { GRID_CARD_ESTIMATE, GRID_SKELETON_HEIGHT, resolveGridSkeletonCount } from '@/shared/ui/loading-skeletons'
+import { useNarrowViewport } from '@/shared/ui/useNarrowViewport'
 
 const screen = useFastOperationsScreen()
+
+const isNarrow = useNarrowViewport()
 
 const { height: viewportHeight, width: viewportWidth } = useWindowSize()
 
@@ -31,14 +34,16 @@ const skeletonCount = computed(() => resolveGridSkeletonCount(viewportWidth.valu
 </script>
 
 <template>
-  <MudText
-    gutter-bottom
-    typo="h3"
-  >
-    Быстрые операции
-  </MudText>
+  <div class="page-header">
+    <MudText
+      gutter-bottom
+      typo="h3"
+    >
+      Быстрые операции
+    </MudText>
 
-  <FastOperationsToolbar @create="screen.startCreate($event)" />
+    <FastOperationsToolbar @create="screen.startCreate($event)" />
+  </div>
 
   <MudDivider class="my-4" />
 
@@ -100,6 +105,28 @@ const skeletonCount = computed(() => resolveGridSkeletonCount(viewportWidth.valu
     </MudText>
   </MudPaper>
 
+  <MudPaper
+    v-else-if="isNarrow"
+    class="list-flow-host overflow-hidden"
+    data-testid="fast-operations-rows"
+    :elevation="1"
+  >
+    <TransitionGroup
+      name="list-flow"
+      @before-enter="unpinItem"
+      @before-leave="pinLeavingItem"
+    >
+      <FastOperationCard
+        v-for="operation in screen.operations.value"
+        :key="operation.id"
+        :operation="operation"
+        @edit="screen.startEdit($event)"
+        @remove="screen.remove($event)"
+        @restore="screen.restore($event)"
+      />
+    </TransitionGroup>
+  </MudPaper>
+
   <MudGrid
     v-else
     class="list-flow-host"
@@ -133,7 +160,9 @@ const skeletonCount = computed(() => resolveGridSkeletonCount(viewportWidth.valu
     :is-saving="screen.isSaving.value"
     :title="screen.dialogTitle.value"
     :value="screen.form.value"
+    removable
     @cancel="screen.cancel()"
+    @remove="screen.removeEdited()"
     @submit="screen.submit($event)"
   />
 
@@ -145,3 +174,23 @@ const skeletonCount = computed(() => resolveGridSkeletonCount(viewportWidth.valu
     @update:model-value="screen.notice.value = null"
   />
 </template>
+
+<style scoped>
+@media (max-width: 599.98px) {
+  .page-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .page-header > :first-child {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .page-header > * {
+    margin-bottom: 0 !important;
+  }
+}
+</style>

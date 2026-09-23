@@ -11,6 +11,8 @@ import {
   mdComment,
   mdClose,
   mdDeleteSweep,
+  mdExpandLess,
+  mdExpandMore,
   mdMoveToInbox,
   mdSearch,
   mdStar,
@@ -22,6 +24,7 @@ import {
   MudDatePicker,
   MudDateRangePicker,
   MudGrid,
+  MudIcon,
   MudIconButton,
   MudItem,
   MudPaper,
@@ -38,8 +41,10 @@ import {
 import { categoryTreeItems } from '@/shared/ui/category-items'
 import CategorySelector from '@/shared/ui/CategorySelector.vue'
 import SmartPlace from '@/shared/ui/SmartPlace.vue'
+import { useNarrowViewport } from '@/shared/ui/useNarrowViewport'
 import type { OperationFiltersState, OperationInterval } from '../model/filters'
 import { OPERATION_INTERVALS } from '../model/filters'
+import { formatPeriodRange } from '../model/period'
 
 interface IntervalLabel {
   name: string
@@ -69,9 +74,15 @@ const emit = defineEmits<{
 const isTransferOpen = ref(false)
 const transferCategoryId = ref<number | null>(null)
 const showDateRange = ref(true)
+const isExpanded = ref(false)
+
+const isNarrow = useNarrowViewport()
 
 const controls = computed(() => props.state)
 const filters = computed(() => controls.value.filters)
+const isPanelOpen = computed(() => !isNarrow.value || isExpanded.value)
+const periodRange = computed(() => formatPeriodRange(controls.value.applied.from, controls.value.applied.to))
+const toggleLabel = computed(() => isExpanded.value ? 'Свернуть фильтр' : 'Развернуть фильтр')
 const hasInterval = computed(() => filters.value.interval !== null)
 const previousRangeTooltip = computed(() => rangeTooltip('Предыдущ'))
 const nextRangeTooltip = computed(() => rangeTooltip('Следующ'))
@@ -250,7 +261,33 @@ function reset(): void {
     class="pa-2"
     data-testid="operations-filter"
   >
-    <MudGrid :spacing="2">
+    <button
+      v-if="isNarrow"
+      :aria-expanded="isExpanded"
+      :aria-label="toggleLabel"
+      class="filter-summary"
+      data-testid="operations-filter-toggle"
+      type="button"
+      @click="isExpanded = !isExpanded"
+    >
+      <span
+        class="filter-summary__period"
+        data-testid="operations-filter-period"
+      >
+        {{ periodRange }}
+      </span>
+
+      <MudIcon
+        :icon="isExpanded ? mdExpandLess : mdExpandMore"
+        color="tertiary"
+        size="small"
+      />
+    </button>
+
+    <MudGrid
+      v-show="isPanelOpen"
+      :spacing="2"
+    >
       <MudItem
         :md="6"
         :xs="12"
@@ -280,6 +317,7 @@ function reset(): void {
 
           <MudToggleGroup
             :model-value="filters.interval"
+            aria-label="Период"
             color="tertiary"
             selection-mode="toggle-selection"
             @update:model-value="selectInterval"
@@ -322,6 +360,7 @@ function reset(): void {
       >
         <MudStack
           align-items="center"
+          class="filter-date-row"
           row
           stretch-items="none"
         >
@@ -374,6 +413,7 @@ function reset(): void {
           </template>
 
           <MudIconButton
+            v-if="!isNarrow"
             :icon="mdSwapHoriz"
             aria-label="Переключить ввод диапазона"
             color="tertiary"
@@ -448,6 +488,21 @@ function reset(): void {
           row
           wrap="wrap"
         >
+          <MudTooltip
+            v-if="isNarrow"
+            text="Переключить ввод диапазона"
+          >
+            <MudIconButton
+              :icon="mdSwapHoriz"
+              aria-label="Переключить ввод диапазона"
+              color="tertiary"
+              data-testid="operations-filter-date-swap"
+              size="medium"
+              variant="filled"
+              @click="showDateRange = !showDateRange"
+            />
+          </MudTooltip>
+
           <MudTooltip text="Очистить все фильтры">
             <MudIconButton
               :icon="mdDeleteSweep"
@@ -544,3 +599,38 @@ function reset(): void {
     </MudGrid>
   </MudPaper>
 </template>
+
+<style scoped>
+@media (max-width: 599.98px) {
+  .filter-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    min-height: 44px;
+    padding: 0 4px;
+    border: none;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .filter-summary__period {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .filter-date-row {
+    flex-wrap: wrap;
+  }
+
+  .filter-date-row > :deep(.mud-picker) {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+}
+</style>

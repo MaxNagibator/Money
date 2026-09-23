@@ -30,14 +30,18 @@ const amounts = computed(() => OPERATION_TYPES.map(type => ({
     data-testid="operations-period"
   >
     <MudStack
+      class="period-row"
       row
       wrap="wrap"
     >
-      <MudText data-testid="operations-period-range">
+      <MudText
+        class="period-range"
+        data-testid="operations-period-range"
+      >
         {{ periodText }}
       </MudText>
 
-      <MudSpacer />
+      <MudSpacer class="period-spacer" />
 
       <MudStack
         v-for="entry in amounts"
@@ -61,3 +65,17 @@ const amounts = computed(() => OPERATION_TYPES.map(type => ({
     </MudStack>
   </MudPaper>
 </template>
+
+<style scoped>
+@media (max-width: 599.98px) {
+  .period-range,
+  .period-spacer {
+    display: none;
+  }
+
+  .period-row {
+    flex-wrap: nowrap !important;
+    justify-content: space-between;
+  }
+}
+</style>

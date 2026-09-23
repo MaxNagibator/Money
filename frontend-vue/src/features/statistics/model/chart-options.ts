@@ -15,7 +15,12 @@ const DEFAULT_TEXT_COLOR = '#000000'
 const MUTED_OPACITY = 0.6
 const GRID_OPACITY = 0.12
 const BAR_LEGEND_BOX_WIDTH = 0
+const NARROW_BAR_LEGEND_BOX_WIDTH = 12
 const PIE_LEGEND_BOX_WIDTH = 50
+const NARROW_PIE_LEGEND_BOX_WIDTH = 20
+const NARROW_PIE_ASPECT_RATIO = 1.6
+const NARROW_BAR_ASPECT_RATIO = 1
+const NARROW_BAR_TICKS ={ autoSkip: true, maxTicksLimit: 3, maxRotation: 45 }
 const HEX_PATTERN = /^#(?<digits>[\da-f]{3}|[\da-f]{6})$/i
 const SHORT_HEX_LENGTH = 3
 const HEX_RADIX = 16
@@ -31,26 +36,33 @@ export function themePalette(theme: ThemeSource): ChartPalette {
   }
 }
 
-export function buildBarOptions(palette: ChartPalette | null): ChartOptions<'bar'> {
+export function buildBarOptions(palette: ChartPalette | null, isNarrow = false): ChartOptions<'bar'> {
+  const narrowTicks = isNarrow ? NARROW_BAR_TICKS : {}
+  const legendPosition = isNarrow ? 'bottom' as const : 'top' as const
+  const aspect = isNarrow ? { aspectRatio: NARROW_BAR_ASPECT_RATIO } : {}
+  const boxWidth = isNarrow ? NARROW_BAR_LEGEND_BOX_WIDTH : BAR_LEGEND_BOX_WIDTH
+
   if (palette === null) {
     return {
       responsive: true,
+      ...aspect,
       scales: {
-        x: { stacked: true },
+        x: { stacked: true, ...(isNarrow ? { ticks: narrowTicks } : {}) },
         y: { stacked: true, beginAtZero: true },
       },
       plugins: {
-        legend: { display: true, position: 'top', labels: { boxWidth: BAR_LEGEND_BOX_WIDTH } },
+        legend: { display: true, position: legendPosition, labels: { boxWidth } },
       },
     }
   }
 
   return {
     responsive: true,
+    ...aspect,
     scales: {
       x: {
         stacked: true,
-        ticks: { color: palette.mutedText },
+        ticks: { ...narrowTicks, color: palette.mutedText },
         grid: { color: palette.grid },
       },
       y: {
@@ -61,28 +73,34 @@ export function buildBarOptions(palette: ChartPalette | null): ChartOptions<'bar
       },
     },
     plugins: {
-      legend: { display: true, position: 'top', labels: { boxWidth: BAR_LEGEND_BOX_WIDTH, color: palette.text } },
+      legend: { display: true, position: legendPosition, labels: { boxWidth, color: palette.text } },
     },
   }
 }
 
-export function buildPieOptions(palette: ChartPalette | null): ChartOptions<'pie'> {
+export function buildPieOptions(palette: ChartPalette | null, isNarrow = false): ChartOptions<'pie'> {
+  const legendPosition = isNarrow ? 'bottom' as const : 'right' as const
+  const boxWidth = isNarrow ? NARROW_PIE_LEGEND_BOX_WIDTH : PIE_LEGEND_BOX_WIDTH
+  const aspect = isNarrow ? { aspectRatio: NARROW_PIE_ASPECT_RATIO } : {}
+
   if (palette === null) {
     return {
       responsive: true,
+      ...aspect,
       plugins: {
-        legend: { display: true, position: 'right', labels: { boxWidth: PIE_LEGEND_BOX_WIDTH } },
+        legend: { display: true, position: legendPosition, labels: { boxWidth } },
       },
     }
   }
 
   return {
     responsive: true,
+    ...aspect,
     plugins: {
       legend: {
         display: true,
-        position: 'right',
-        labels: { boxWidth: PIE_LEGEND_BOX_WIDTH, color: palette.text },
+        position: legendPosition,
+        labels: { boxWidth, color: palette.text },
       },
     },
   }

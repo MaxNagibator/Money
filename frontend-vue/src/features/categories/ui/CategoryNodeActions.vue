@@ -5,10 +5,12 @@ import {
   mdDelete,
   mdEdit,
   mdCancel,
+  mdMoreHoriz,
+  mdRestore,
 } from '@/shared/icons'
-import { MudButton, MudIconButton } from '@/shared/mud'
+import { MudButton, MudDivider, MudIconButton, MudMenu, MudMenuItem } from '@/shared/mud'
 
-defineProps<{ category: Category }>()
+defineProps<{ category: Category, narrow: boolean }>()
 
 const emit = defineEmits<{
   create: [parentId: number]
@@ -21,21 +23,65 @@ const emit = defineEmits<{
 <template>
   <div class="category-actions">
     <span
-      v-if="category.color !== null && !category.isDeleted"
+      v-if="!narrow && category.color !== null && !category.isDeleted"
       :style="{ backgroundColor: category.color }"
       class="category-color"
     />
 
-    <MudButton
-      v-if="category.isDeleted"
-      :end-icon="mdCancel"
-      color="info"
-      data-testid="category-restore"
-      size="large"
-      @click.stop="emit('restore', category)"
+    <template v-if="category.isDeleted">
+      <MudIconButton
+        v-if="narrow"
+        :icon="mdRestore"
+        color="info"
+        data-testid="category-restore"
+        title="Восстановить"
+        @click.stop="emit('restore', category)"
+      />
+      <MudButton
+        v-else
+        :end-icon="mdCancel"
+        color="info"
+        data-testid="category-restore"
+        size="large"
+        @click.stop="emit('restore', category)"
+      >
+        Восстановить
+      </MudButton>
+    </template>
+    <MudMenu
+      v-else-if="narrow"
+      :aria-label="`Действия с «${category.name}»`"
+      :icon="mdMoreHoriz"
+      :title="`Действия с «${category.name}»`"
+      anchor-origin="bottom-right"
+      data-testid="category-actions-menu"
+      dense
+      size="small"
+      transform-origin="top-right"
     >
-      Восстановить
-    </MudButton>
+      <MudMenuItem
+        data-testid="category-add-child"
+        @click="emit('create', category.id)"
+      >
+        Добавить внутрь
+      </MudMenuItem>
+      <MudMenuItem
+        data-testid="category-edit"
+        @click="emit('edit', category)"
+      >
+        Изменить
+      </MudMenuItem>
+
+      <MudDivider />
+
+      <MudMenuItem
+        class="category-menu-remove"
+        data-testid="category-remove"
+        @click="emit('remove', category)"
+      >
+        Удалить
+      </MudMenuItem>
+    </MudMenu>
     <template v-else>
       <MudIconButton
         :icon="mdAdd"
@@ -78,5 +124,9 @@ const emit = defineEmits<{
   font-size: 1rem;
   font-weight: 500;
   line-height: 1.5;
+}
+
+.category-menu-remove {
+  color: var(--mud-palette-error);
 }
 </style>

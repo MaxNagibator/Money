@@ -2,7 +2,7 @@
 import { computed, useAttrs, useId } from 'vue'
 import MudInputControl from './MudInputControl.vue'
 import MudText from './MudText.vue'
-import type { MudColor, MudSize } from './types'
+import type { MudColor, MudPlacement, MudSize } from './types'
 
 defineOptions({ inheritAttrs: false })
 
@@ -11,11 +11,25 @@ const props = withDefaults(defineProps<{
   size?: MudSize
   disabled?: boolean
   label?: string
+  labelPlacement?: MudPlacement
 }>(), {
   color: 'default',
   size: 'medium',
   disabled: false,
   label: '',
+  labelPlacement: 'end',
+})
+
+const placementClass = computed(() => {
+  if (props.labelPlacement === 'left') {
+    return 'mud-input-content-placement-start'
+  }
+
+  if (props.labelPlacement === 'right') {
+    return 'mud-input-content-placement-end'
+  }
+
+  return `mud-input-content-placement-${props.labelPlacement}`
 })
 
 const model = defineModel<boolean | null>({ default: false })
@@ -38,7 +52,7 @@ const labelClasses = computed(() => [
   {
     'mud-disabled': props.disabled,
   },
-  'mud-input-content-placement-end',
+  placementClass.value,
 ])
 
 const switchClasses = computed(() => [

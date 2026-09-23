@@ -16,7 +16,7 @@ import PromoCard from './PromoCard.vue'
   <section>
     <MudText
       align="center"
-      class="mb-4"
+      class="mb-4 promo-title"
       typo="h5"
     >
       {{ PROMO_TITLE }}
@@ -56,3 +56,11 @@ import PromoCard from './PromoCard.vue'
     </MudText>
   </section>
 </template>
+
+<style scoped>
+@media (max-width: 599.98px) {
+  .promo-title {
+    display: none;
+  }
+}
+</style>

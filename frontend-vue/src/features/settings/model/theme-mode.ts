@@ -30,3 +30,15 @@ export function brightnessToggleMode(isDark: boolean): ThemeMode {
 export function isManualMode(mode: ThemeMode): boolean {
   return mode !== 'system'
 }
+
+export function themeStatusLabel(mode: ThemeMode, effective: EffectiveTheme, isScheduleEnabled: boolean): string {
+  const name = effective === 'dark' ? 'тёмная' : 'светлая'
+
+  if (isManualMode(mode)) {
+    return `Сейчас ${name} тема, выбрана вручную`
+  }
+
+  return isScheduleEnabled
+    ? `Сейчас ${name} тема, по расписанию`
+    : `Сейчас ${name} тема, как в системе`
+}

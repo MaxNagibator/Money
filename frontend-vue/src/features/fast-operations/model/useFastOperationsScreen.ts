@@ -46,6 +46,7 @@ export interface FastOperationsScreenState {
   cancel: () => void
   submit: (value: FastOperationFormValue) => Promise<void>
   remove: (view: FastOperationView) => Promise<void>
+  removeEdited: () => Promise<void>
   restore: (view: FastOperationView) => Promise<void>
 }
 
@@ -67,6 +68,14 @@ export function useFastOperationsScreen(): FastOperationsScreenState {
   const loadError = computed(() => fast.loadError.value ?? categoriesQuery.error.value?.message ?? null)
   const isEmpty = computed(() => !isLoading.value && loadError.value === null && fast.operations.value.length === 0)
   const dialogTitle = computed(() => form.value?.id === null ? 'Создать' : 'Обновить')
+
+  async function removeById(id: number): Promise<void> {
+    try {
+      await fast.remove(id)
+    } catch (error) {
+      notice.value = { text: messageOf(error, FAST_OPERATION_DELETE_ERROR), type: 'error' }
+    }
+  }
 
   return {
     operations: fast.operations,
@@ -119,11 +128,18 @@ export function useFastOperationsScreen(): FastOperationsScreenState {
       }
     },
     remove: async view => {
-      try {
-        await fast.remove(view.id)
-      } catch (error) {
-        notice.value = { text: messageOf(error, FAST_OPERATION_DELETE_ERROR), type: 'error' }
+      await removeById(view.id)
+    },
+    removeEdited: async () => {
+      const id = form.value?.id ?? null
+
+      if (id === null || isSaving.value) {
+        return
       }
+
+      form.value = null
+
+      await removeById(id)
     },
     restore: async view => {
       try {

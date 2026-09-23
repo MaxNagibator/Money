@@ -310,3 +310,65 @@ test.describe('быстрые операции', () => {
     await expect(page.getByTestId('fast-operations-error')).toHaveCount(0)
   })
 })
+
+test.describe('быстрые операции на телефоне', () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
+
+  test.beforeEach(async ({ page }) => {
+    await signInAsStub(page)
+  })
+
+  test('строка печатает сумму с разрядами и знаком дохода, касание открывает правку', async ({ page }) => {
+    await stubApi(page)
+
+    await openFastOperations(page)
+
+    await expect(page.getByTestId('fast-operations-sum-10')).toHaveText('250,50')
+    await expect(page.getByTestId('fast-operations-sum-11')).toHaveText('+5 000,00')
+    await expect(page.getByTestId('fast-operations-comment-10')).toHaveText('утро')
+    await expect(page.getByTestId('fast-operations-delete-10')).toHaveCount(0)
+    await expect(page.getByTestId('fast-operations-edit-10')).toHaveAccessibleName(/, расход 250,50$/)
+    await expect(page.getByTestId('fast-operations-edit-11')).toHaveAccessibleName(/, доход 5\s000,00$/)
+
+    await page.getByTestId('fast-operations-edit-10').tap()
+
+    await expect(page.locator(dialogName)).toHaveValue('Кофе')
+    await expect(page.locator(dialogOrder)).toHaveAttribute('type', 'number')
+    await expect(page.locator(dialogOrder)).not.toHaveAttribute('pattern', /.*/)
+  })
+
+  test('удаление из листа правки помечает строку, восстановление снимает пометку', async ({ page }) => {
+    const stub = await stubApi(page)
+
+    await openFastOperations(page)
+
+    await page.getByTestId('fast-operations-edit-10').tap()
+    await page.getByTestId('fast-operations-dialog-remove').tap()
+
+    await expect(page.getByTestId('fast-operations-dialog')).toHaveCount(0)
+    await expect(page.getByTestId('fast-operations-edit-10')).toBeDisabled()
+    await expect(page.getByTestId('fast-operations-edit-10')).toHaveAccessibleName(/, расход 250,50, удалена$/)
+    await expect(page.getByTestId('fast-operations-restore-10')).toHaveAccessibleName('Восстановить быструю операцию Кофе, Кафе, расход 250,50')
+
+    await page.getByTestId('fast-operations-restore-10').tap()
+
+    await expect(page.getByTestId('fast-operations-edit-10')).toBeEnabled()
+    expect(stub.removed).toEqual([10])
+    expect(stub.restored).toEqual([10])
+  })
+
+  test('в листе создания кнопки удаления нет', async ({ page }) => {
+    await stubApi(page)
+
+    await openFastOperations(page)
+
+    await expect(page.getByTestId('fast-operations-add-1')).toHaveCount(0)
+
+    await page.getByTestId('fast-operations-add-menu').tap()
+    await expect(page.getByRole('menuitem', { name: 'Расход' })).toBeVisible()
+    await page.getByTestId('fast-operations-add').tap()
+
+    await expect(page.getByTestId('fast-operations-dialog')).toBeVisible()
+    await expect(page.getByTestId('fast-operations-dialog-remove')).toHaveCount(0)
+  })
+})

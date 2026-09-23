@@ -28,6 +28,36 @@ describe('конфигурация диаграмм статистики', () =>
     expect(options.plugins?.legend?.labels?.boxWidth).toBe(50)
   })
 
+  it('на узком экране прореживает подписи оси, уводит легенду вниз с цветными метками и вытягивает холст вверх', () => {
+    const options = buildBarOptions(null, true)
+
+    expect(plain(options.scales?.x).ticks).toEqual({ autoSkip: true, maxTicksLimit: 3, maxRotation: 45 })
+    expect(options.plugins?.legend?.position).toBe('bottom')
+    expect(options.plugins?.legend?.labels?.boxWidth).toBe(12)
+    expect(options.aspectRatio).toBe(1)
+  })
+
+  it('на узком экране держит цветные метки легенды столбчатой и с цветами темы', () => {
+    expect(buildBarOptions(themePalette(THEME), true).plugins?.legend?.labels?.boxWidth).toBe(12)
+  })
+
+  it('на узком экране вытягивает холст столбчатой и с цветами темы', () => {
+    expect(buildBarOptions(themePalette(THEME), true).aspectRatio).toBe(1)
+  })
+
+  it('на широком экране высота столбчатой остаётся за Chart.js', () => {
+    expect(buildBarOptions(null).aspectRatio).toBeUndefined()
+    expect(buildBarOptions(themePalette(THEME)).aspectRatio).toBeUndefined()
+  })
+
+  it('на узком экране кладёт легенду круговой диаграммы под неё и снижает высоту', () => {
+    const options = buildPieOptions(null, true)
+
+    expect(options.plugins?.legend?.position).toBe('bottom')
+    expect(options.plugins?.legend?.labels?.boxWidth).toBe(20)
+    expect(options.aspectRatio).toBe(1.6)
+  })
+
   it('подставляет цвета темы готовыми значениями, без ссылок на CSS-переменные', () => {
     const palette = themePalette(THEME)
     const bar = buildBarOptions(palette)

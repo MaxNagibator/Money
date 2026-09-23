@@ -1,5 +1,5 @@
 import type { LocalDate } from '@/domain/local-date'
-import { toParts } from '@/domain/local-date'
+import { toParts, weekdayIndex } from '@/domain/local-date'
 import type { Money } from '@/domain/money'
 
 const LOCALE = 'ru-RU'
@@ -47,6 +47,16 @@ const MONTHS_NOMINATIVE = [
   'декабрь',
 ]
 
+const WEEKDAYS_SHORT = [
+  'пн',
+  'вт',
+  'ср',
+  'чт',
+  'пт',
+  'сб',
+  'вс',
+]
+
 const instantFormatter = new Intl.DateTimeFormat(LOCALE, {
   timeZone: TIME_ZONE,
   dateStyle: 'short',
@@ -90,6 +100,16 @@ export function formatMileage(value: number): string {
 export function formatLocalDate(value: LocalDate): string {
   const { year, month, day } = toParts(value)
   return `${pad(day)}.${pad(month)}.${String(year).padStart(4, '0')}`
+}
+
+export function formatLocalDateDayMonth(value: LocalDate): string {
+  const { month, day } = toParts(value)
+  return `${pad(day)}.${pad(month)}`
+}
+
+export function formatLocalDateWithWeekday(value: LocalDate): string {
+  const { month, day } = toParts(value)
+  return `${day} ${monthGenitive(month)}, ${WEEKDAYS_SHORT[weekdayIndex(value)]}`
 }
 
 export function monthGenitive(month: number): string {

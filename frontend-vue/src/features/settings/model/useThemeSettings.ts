@@ -17,8 +17,8 @@ export interface ThemeSettingsState {
   schedule: ThemeSchedule
   setMode: (mode: ThemeMode) => void
   toggleBrightness: () => void
-  toggleLocationChanged: () => void
   recheckOnNavigation: () => void
+  setLocationChanged: (isEnabled: boolean) => void
   updateSchedule: (patch: Partial<ThemeSchedule>) => void
 }
 
@@ -86,8 +86,8 @@ function createThemeSettings(): ThemeSettingsState {
     setMode(brightnessToggleMode(effective.value === 'dark'))
   }
 
-  function toggleLocationChanged(): void {
-    scheduleState.update({ isLocationChangedEnabled: !scheduleState.schedule.isLocationChangedEnabled })
+  function setLocationChanged(isEnabled: boolean): void {
+    scheduleState.update({ isLocationChangedEnabled: isEnabled })
   }
 
   function updateSchedule(patch: Partial<ThemeSchedule>): void {
@@ -104,7 +104,7 @@ function createThemeSettings(): ThemeSettingsState {
     setMode,
     toggleBrightness,
     recheckOnNavigation,
-    toggleLocationChanged,
+    setLocationChanged,
     updateSchedule,
   }
 }

@@ -36,6 +36,7 @@ export interface CarsScreenState {
   cancelEvent: () => void
   submitEvent: (value: CarEventFormValue) => Promise<void>
   removeEvent: (event: CarEvent) => Promise<void>
+  removeEditedEvent: () => Promise<void>
   restoreEvent: (event: CarEvent) => Promise<void>
 }
 
@@ -56,6 +57,14 @@ export function useCarsScreen(clock: Clock = systemClock): CarsScreenState {
   }, { immediate: true })
 
   const dialogTitle = computed(() => form.value?.id === null ? 'Создать' : 'Обновить')
+
+  async function removeById(id: number): Promise<void> {
+    try {
+      await events.remove(id)
+    } catch (error) {
+      notice.value = { text: messageOf(error, CAR_EVENT_DELETE_ERROR), type: 'error' }
+    }
+  }
 
   return {
     cars,
@@ -102,11 +111,18 @@ export function useCarsScreen(clock: Clock = systemClock): CarsScreenState {
       }
     },
     removeEvent: async event => {
-      try {
-        await events.remove(event.id)
-      } catch (error) {
-        notice.value = { text: messageOf(error, CAR_EVENT_DELETE_ERROR), type: 'error' }
+      await removeById(event.id)
+    },
+    removeEditedEvent: async () => {
+      const id = form.value?.id ?? null
+
+      if (id === null || isSaving.value) {
+        return
       }
+
+      form.value = null
+
+      await removeById(id)
     },
     restoreEvent: async event => {
       try {

@@ -3,6 +3,7 @@ import { computed, reactive } from 'vue'
 import type { Category, CategoryNode } from '@/domain/category'
 import { MudSpacer, MudText, MudTreeView, MudTreeViewItemToggleButton } from '@/shared/mud'
 import type { MudTreeItemData } from '@/shared/mud'
+import { useNarrowViewport } from '@/shared/ui/useNarrowViewport'
 import CategoryNodeActions from './CategoryNodeActions.vue'
 
 interface TreeItem extends MudTreeItemData {
@@ -34,6 +35,8 @@ const categoriesById = computed(() => {
   collect(props.nodes)
   return result
 })
+
+const isNarrow = useNarrowViewport()
 
 const expandedIds = reactive(new Set<number>())
 
@@ -81,6 +84,12 @@ function categoryOf(item: MudTreeItemData): Category {
 
   return category
 }
+
+function dotColor(item: MudTreeItemData): string | null {
+  const category = categoryOf(item)
+
+  return category.isDeleted ? null : category.color
+}
 </script>
 
 <template>
@@ -99,12 +108,21 @@ function categoryOf(item: MudTreeItemData): Category {
           :disabled="item.disabled"
           :visible="(item.children?.length ?? 0) > 0"
         />
-        <MudText html-tag="span">
+        <span
+          v-if="isNarrow && dotColor(item) !== null"
+          :style="{ backgroundColor: dotColor(item) ?? undefined }"
+          class="category-dot"
+        />
+        <MudText
+          class="category-name"
+          html-tag="span"
+        >
           {{ categoryOf(item).name }}
         </MudText>
         <MudSpacer />
         <CategoryNodeActions
           :category="categoryOf(item)"
+          :narrow="isNarrow"
           @create="emit('create', $event)"
           @edit="emit('edit', $event)"
           @remove="emit('remove', $event)"
@@ -114,3 +132,24 @@ function categoryOf(item: MudTreeItemData): Category {
     </template>
   </MudTreeView>
 </template>
+
+<style scoped>
+@media (max-width: 599.98px) {
+  .category-dot {
+    flex: none;
+    width: 10px;
+    height: 10px;
+    margin-inline-end: 0.5rem;
+    border: 1px solid rgb(0 0 0 / 20%);
+    border-radius: 50%;
+  }
+
+  .category-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+</style>

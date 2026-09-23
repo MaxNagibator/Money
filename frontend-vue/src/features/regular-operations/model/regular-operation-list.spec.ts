@@ -10,6 +10,7 @@ import {
   categoryNameOf,
   formatRunTime,
   regularOperationKind,
+  scheduleText,
   sortRegularOperations,
   UNKNOWN_CATEGORY_NAME,
   withCategories,
@@ -46,6 +47,20 @@ describe('порядок списка', () => {
     sortRegularOperations(source)
 
     expect(source.map(item => item.id)).toEqual([1, 2])
+  })
+})
+
+describe('расписание в строке телефона', () => {
+  it.each([
+    [3, '2026-09-26', 'следующая 26.09 · каждый месяц'],
+    [2, '2026-10-05', 'следующая 05.10 · каждую неделю'],
+    [1, null, 'запусков больше нет · каждый день'],
+    [99, '2026-09-26', 'следующая 26.09'],
+    [99, null, 'запусков больше нет'],
+  ])('шаг %j и запуск %j дают %j', (timeTypeId, runTime, expected) => {
+    const schedule = scheduleText(view(1, { timeTypeId, runTime: runTime === null ? null : localDate(runTime) }))
+
+    expect(schedule).toBe(expected)
   })
 })
 
