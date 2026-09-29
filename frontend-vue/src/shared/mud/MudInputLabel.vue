@@ -31,7 +31,7 @@ const classes = computed(() => [
 <template>
   <label
     :class="classes"
-    :for="forId"
+    :for="forId || undefined"
   >
     <slot />
   </label>

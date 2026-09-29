@@ -447,7 +447,7 @@ watch(dateRange, value => {
     <template #input="{ toggle }">
       <MudInputControl
         :label="label"
-        :for-id="inputId"
+        :for-id="`${inputId}-start`"
         @click="editable ? undefined : toggle"
       >
         <template #input-content>
@@ -481,6 +481,7 @@ watch(dateRange, value => {
             <input
               :id="`${inputId}-end`"
               v-model="endText"
+              :aria-label="label ? `${label}, конец` : undefined"
               class="mud-input-slot mud-input-root"
               :class="inputClasses"
               type="text"

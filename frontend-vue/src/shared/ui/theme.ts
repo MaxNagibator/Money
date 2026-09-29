@@ -53,7 +53,7 @@ export const darkTheme: AppTheme = {
   },
   variables: {
     'high-emphasis-opacity': 0.7,
-    'medium-emphasis-opacity': 0.5,
+    'medium-emphasis-opacity': 0.56,
     'disabled-opacity': 0.2,
     'border-color': '#FFFFFF',
     'border-opacity': 0.12,

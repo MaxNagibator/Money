@@ -123,6 +123,18 @@ const isHidden = computed(() => isScrollHidden.value || isKeyboardHidden.value)
     color: var(--mud-palette-primary);
   }
 
+  :global(html[data-mud-theme="dark"] .app-bottom-nav-link) {
+    color: var(--mud-palette-action-default);
+  }
+
+  :global(html[data-mud-theme="dark"] .app-bottom-nav-link.router-link-active) {
+    color: var(--mud-palette-primary-lighten);
+  }
+
+  :global(html[data-mud-theme="dark"] .router-link-active .app-bottom-nav-label) {
+    color: var(--mud-palette-text-primary);
+  }
+
   .app-bottom-nav-label {
     max-width: 100%;
     overflow: hidden;

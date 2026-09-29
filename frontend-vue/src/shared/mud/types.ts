@@ -105,6 +105,8 @@ export type MudAdornment = 'none' | 'start' | 'end'
 
 export type MudInputSizing = 'fixed' | 'auto'
 
+export type MudObjectFit = 'none' | 'cover' | 'contain' | 'fill' | 'scale-down'
+
 export type MudInputMode = 'none' | 'text' | 'decimal' | 'numeric' | 'tel' | 'search' | 'email' | 'url'
 
 export type MudInputType =

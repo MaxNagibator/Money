@@ -19,6 +19,12 @@ import { VERSION_HISTORY } from '../model/version-history'
 import VersionHistoryItem from './VersionHistoryItem.vue'
 
 const isVisible = ref(false)
+const isRendered = ref(false)
+
+const toggleHistory = (): void => {
+  isVisible.value = !isVisible.value
+  isRendered.value = true
+}
 
 const version = computed(() => currentVersion(VERSION_HISTORY))
 </script>
@@ -65,7 +71,7 @@ const version = computed(() => currentVersion(VERSION_HISTORY))
             data-testid="home-history-toggle"
             size="small"
             variant="text"
-            @click="isVisible = !isVisible"
+            @click="toggleHistory"
           >
             {{ isVisible ? 'Скрыть' : 'Показать' }}
           </MudButton>
@@ -82,6 +88,7 @@ const version = computed(() => currentVersion(VERSION_HISTORY))
       >
         <MudCardContent>
           <MudTimeline
+            v-if="isRendered"
             :reverse="false"
             timeline-orientation="vertical"
             timeline-position="start"

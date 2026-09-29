@@ -38,7 +38,7 @@ const MUD_TEXT_LIGHT = {
 
 const MUD_TEXT_DARK = {
   high: 'rgba(255,255,255,0.7)',
-  medium: 'rgba(255,255,255,0.5)',
+  medium: 'rgba(255,255,255,0.56)',
   disabled: 'rgba(255,255,255,0.2)',
 }
 

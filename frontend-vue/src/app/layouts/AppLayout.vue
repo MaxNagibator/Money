@@ -187,6 +187,7 @@ async function signOut(): Promise<void> {
               alt=""
               class="cursor-pointer"
               :height="64"
+              object-fit="contain"
               src="/icon-192.png"
             />
             <MudText
@@ -268,7 +269,10 @@ async function signOut(): Promise<void> {
       </MudNavMenu>
     </MudDrawer>
 
-    <MudMainContent :class="['pt-3 px-8', { 'app-mobile-shell': isMobileShell }]">
+    <MudMainContent
+      :class="['pt-3 px-8', { 'app-mobile-shell': isMobileShell }]"
+      role="main"
+    >
       <MudContainer
         max-width="lg"
         gutters
