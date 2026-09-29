@@ -29,6 +29,7 @@ export default defineConfig({
   projects: [
     {
       name: 'specs',
+      testIgnore: /integration\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
     },
   ],

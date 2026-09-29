@@ -6,8 +6,6 @@ on:
 env:
   API_PROJECT_FILE: backend/Money.Api/Money.Api.csproj
   API_PUBLISH_FOLDER: publish/api
-  WEB_PROJECT_FILE: frontend/Money.Web/Money.Web.csproj
-  WEB_PUBLISH_FOLDER: publish/web
 
 jobs:
   api-smoke:
@@ -93,34 +91,41 @@ jobs:
 
   web-smoke:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend-vue
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup .NET 10
-        uses: actions/setup-dotnet@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
         with:
-          dotnet-version: 10.0.x
+          package_json_file: frontend-vue/package.json
 
-      - name: Restore workload
-        run: dotnet workload restore ${{ env.WEB_PROJECT_FILE }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: frontend-vue/.node-version
+          cache: pnpm
+          cache-dependency-path: frontend-vue/pnpm-lock.yaml
 
-      - name: Restore
-        run: dotnet restore ${{ env.WEB_PROJECT_FILE }}
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-      - name: Publish
-        run: dotnet publish ${{ env.WEB_PROJECT_FILE }} -c Release --no-restore -o ${{ env.WEB_PUBLISH_FOLDER }} -p:RunAOTCompilation=false -p:BlazorEnableCompression=false
+      - name: Build
+        run: pnpm build
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: web-publish
-          path: ${{ env.WEB_PUBLISH_FOLDER }}/wwwroot
+          path: frontend-vue/dist
           retention-days: 3
 
-      - name: Serve wwwroot
-        working-directory: ${{ env.WEB_PUBLISH_FOLDER }}/wwwroot
+      - name: Serve dist
         run: |
-          nohup python3 -m http.server 8080 > web.log 2>&1 &
+          nohup node scripts/serve-static.mjs dist 8080 > web.log 2>&1 &
           echo $! > web.pid
 
       - name: Check index.html
@@ -131,26 +136,24 @@ jobs:
             fi
             sleep 1
           done
-          echo "index.html not served"; exit 1
+          echo "index.html not served"; cat web.log || true; exit 1
 
-      - name: Check Blazor framework
-        working-directory: ${{ env.WEB_PUBLISH_FOLDER }}/wwwroot
+      - name: Check entry bundle
         run: |
-          echo "Files in _framework/ (top 20):"
-          ls _framework/ | head -n 20
-          script=$(ls _framework/blazor.webassembly*.js 2>/dev/null | head -n 1)
-          if [ -z "$script" ]; then
-            echo "blazor.webassembly*.js not found in _framework/"; exit 1
+          echo "Files in dist/assets (top 20):"
+          ls dist/assets | head -n 20
+          entry=$(grep -o 'src="/assets/[^"]*\.js"' dist/index.html | head -n 1 | sed 's/^src="//; s/"$//')
+          if [ -z "$entry" ]; then
+            echo "index.html does not reference an entry module"; exit 1
           fi
-          script_name=$(basename "$script")
-          echo "Checking /_framework/$script_name"
-          curl -fsS -o /dev/null "http://127.0.0.1:8080/_framework/$script_name"
+          echo "Checking $entry"
+          curl -fsS -o /dev/null "http://127.0.0.1:8080$entry"
 
       - name: Stop server
         if: always()
         run: |
-          if [ -f ${{ env.WEB_PUBLISH_FOLDER }}/wwwroot/web.pid ]; then
-            kill "$(cat ${{ env.WEB_PUBLISH_FOLDER }}/wwwroot/web.pid)" || true
+          if [ -f web.pid ]; then
+            kill "$(cat web.pid)" || true
           fi
 
   integration-smoke:
@@ -226,19 +229,22 @@ jobs:
           done
           echo "API did not become alive"; exit 1
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: frontend-vue/package.json
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-
-      - name: Install static server (SPA-capable)
-        run: npm install -g serve@14
+          node-version-file: frontend-vue/.node-version
+          cache: pnpm
+          cache-dependency-path: frontend-vue/pnpm-lock.yaml
 
       - name: Serve Web (SPA fallback to index.html)
-        working-directory: web-publish
         run: |
-          nohup serve -s . -l tcp://127.0.0.1:8080 --no-request-logging > web.log 2>&1 &
-          echo $! > web.pid
+          nohup node frontend-vue/scripts/serve-static.mjs web-publish 8080 > web-publish/web.log 2>&1 &
+          echo $! > web-publish/web.pid
 
       - name: Wait for Web
         run: |
@@ -272,173 +278,37 @@ jobs:
           echo "$body" | grep -q "authorization_endpoint" \
             || { echo "OIDC discovery response invalid"; exit 1; }
 
-      - name: Install Playwright
-        run: |
-          npm init -y >/dev/null
-          npm i -D @playwright/test >/dev/null
-          npx playwright install chromium --with-deps
+      - name: Install frontend dependencies
+        working-directory: ./frontend-vue
+        run: pnpm install --frozen-lockfile
 
-      - name: Write Playwright smoke script
-        run: |
-          mkdir -p smoke
-          cat > smoke/smoke.mjs <<'JS'
-          import { chromium } from '@playwright/test';
-
-          const WEB = process.env.WEB_URL;
-          const API = process.env.API_URL;
-
-          const IGNORED_404 = [
-            '/_framework/aspnetcore-browser-refresh.js',
-          ];
-
-          const failures = [];
-          const browser = await chromium.launch();
-          const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-          const page = await context.newPage();
-
-          const consoleErrors = [];
-          page.on('console', (msg) => {
-            if (msg.type() === 'error') consoleErrors.push(msg.text());
-          });
-
-          const apiResponses = [];
-          const badResponses = [];
-          page.on('response', (resp) => {
-            const url = resp.url();
-            const status = resp.status();
-            if (url.startsWith(API)) apiResponses.push({ url, status });
-            if (status >= 400 && !IGNORED_404.some((s) => url.endsWith(s))) {
-              badResponses.push({ url, status });
-            }
-          });
-
-          console.log('[phase 1] Anonymous landing');
-          await page.goto(WEB, { waitUntil: 'domcontentloaded', timeout: 60_000 });
-          await page.waitForFunction(
-            () => !document.querySelector('#app .loading-bg'),
-            null,
-            { timeout: 90_000 },
-          );
-          await page.waitForSelector('.mud-layout, .mud-container, form', { timeout: 30_000 });
-          await page.waitForTimeout(2000);
-
-          const corsProbe = await page.evaluate(async (api) => {
-            try {
-              const r = await fetch(`${api}/.well-known/openid-configuration`, { mode: 'cors' });
-              return { ok: r.ok, status: r.status };
-            } catch (e) {
-              return { ok: false, error: String(e) };
-            }
-          }, API);
-          console.log('CORS probe:', JSON.stringify(corsProbe));
-
-          const errorUiVisible = await page.evaluate(() => {
-            const el = document.getElementById('blazor-error-ui');
-            return el && getComputedStyle(el).display !== 'none';
-          });
-          if (errorUiVisible) failures.push('Blazor error UI visible after anonymous load');
-          if (!corsProbe.ok) failures.push(`CORS probe failed: ${JSON.stringify(corsProbe)}`);
-
-          await page.screenshot({ path: 'smoke/anonymous.png', fullPage: true });
-
-          console.log('[phase 2] Auth flow');
-          const creds = { username: `smoke${Date.now()}`, password: 'SmokePass123!' };
-
-          const register = await page.evaluate(async ({ api, u, p }) => {
-            const r = await fetch(`${api}/accounts/register`, {
-              method: 'POST',
-              headers: { 'content-type': 'application/json' },
-              body: JSON.stringify({ UserName: u, Password: p }),
-            });
-            return { status: r.status, body: await r.text() };
-          }, { api: API, u: creds.username, p: creds.password });
-          console.log('Register:', register.status, register.body?.slice?.(0, 200) ?? '');
-          if (register.status !== 204) failures.push(`Register failed: ${JSON.stringify(register)}`);
-
-          const token = await page.evaluate(async ({ api, u, p }) => {
-            const r = await fetch(`${api}/connect/token`, {
-              method: 'POST',
-              headers: { 'content-type': 'application/x-www-form-urlencoded' },
-              body: new URLSearchParams({ grant_type: 'password', username: u, password: p }).toString(),
-              credentials: 'include',
-            });
-            const text = await r.text();
-            let body;
-            try { body = JSON.parse(text); } catch { body = text; }
-            return { status: r.status, body };
-          }, { api: API, u: creds.username, p: creds.password });
-          console.log('Token status:', token.status);
-          if (token.status !== 200 || !token.body?.access_token) {
-            failures.push(`Token exchange failed: ${JSON.stringify(token).slice(0, 400)}`);
-          }
-
-          if (token.body?.access_token) {
-            // Blazored.LocalStorage serializes strings as JSON → must store JSON-encoded
-            await page.evaluate(({ a, r }) => {
-              localStorage.setItem('authToken', JSON.stringify(a));
-              localStorage.setItem('refreshToken', JSON.stringify(r));
-            }, { a: token.body.access_token, r: token.body.refresh_token ?? '' });
-
-            const authApiBefore = apiResponses.length;
-
-            await page.goto(`${WEB}/categories`, { waitUntil: 'domcontentloaded', timeout: 60_000 });
-            await page.waitForFunction(
-              () => !document.querySelector('#app .loading-bg'),
-              null,
-              { timeout: 90_000 },
-            );
-            await page.waitForSelector('.mud-tabs, .mud-container, .mud-progress-circular', { timeout: 30_000 });
-            await page.waitForTimeout(3000);
-
-            await page.screenshot({ path: 'smoke/authenticated.png', fullPage: true });
-
-            const authApiCalls = apiResponses.slice(authApiBefore);
-            const categoriesOk = authApiCalls.some(
-              (c) => c.url.includes('/Categories') && c.status === 200,
-            );
-            if (!categoriesOk) {
-              failures.push(
-                `No successful GET /Categories after login. API calls after login: ${JSON.stringify(authApiCalls).slice(0, 500)}`,
-              );
-            }
-
-            const errorUiVisible2 = await page.evaluate(() => {
-              const el = document.getElementById('blazor-error-ui');
-              return el && getComputedStyle(el).display !== 'none';
-            });
-            if (errorUiVisible2) failures.push('Blazor error UI visible on /categories');
-          }
-
-          console.log('All API responses:', JSON.stringify(apiResponses, null, 2));
-          console.log('Non-ignored bad responses:', JSON.stringify(badResponses, null, 2));
-          console.log('Console errors:', consoleErrors);
-
-          if (badResponses.length) failures.push(`Unexpected bad responses: ${JSON.stringify(badResponses)}`);
-          const apiFailed = apiResponses.filter((c) => c.status >= 500);
-          if (apiFailed.length) failures.push(`API 5xx during run: ${JSON.stringify(apiFailed)}`);
-
-          await browser.close();
-
-          if (failures.length) {
-            console.error('SMOKE FAILED:\n - ' + failures.join('\n - '));
-            process.exit(1);
-          }
-          console.log('SMOKE OK');
-          JS
+      - name: Install browser
+        working-directory: ./frontend-vue
+        run: pnpm exec playwright install chromium --with-deps
 
       - name: Run Playwright smoke
-        run: node smoke/smoke.mjs
+        working-directory: ./frontend-vue
+        env:
+          E2E_BASE_URL: ${{ env.WEB_URL }}
+        run: pnpm exec playwright test --config=playwright.integration.config.ts
 
       - name: Upload smoke screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: integration-smoke-screenshots
-          path: |
-            smoke/anonymous.png
-            smoke/authenticated.png
+          path: frontend-vue/test-results
           retention-days: 14
           if-no-files-found: warn
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-smoke-report
+          path: frontend-vue/playwright-report
+          retention-days: 7
+          if-no-files-found: ignore
 
       - name: Stop processes
         if: always()
@@ -521,16 +391,16 @@ jobs:
           api_mb=$(awk "BEGIN{printf \"%.2f\", ${api_bytes:-0}/1048576}")
           web_mb=$(awk "BEGIN{printf \"%.2f\", ${web_bytes:-0}/1048576}")
 
-          top_wasm=$(du -b artifacts/web-publish/_framework/*.wasm 2>/dev/null \
+          top_assets=$(find artifacts/web-publish/assets -type f \( -name '*.js' -o -name '*.css' \) -printf '%s\t%p\n' 2>/dev/null \
             | sort -rn | head -5 \
-            | awk '{ sub("artifacts/web-publish/", "", $2); printf "- `%s` — %.2f MB\n", $2, $1/1048576 }')
-          [ -z "$top_wasm" ] && top_wasm="_(нет .wasm файлов)_"
+            | awk -F'\t' '{ sub("artifacts/web-publish/", "", $2); printf "- `%s` – %.1f KB\n", $2, $1/1024 }')
+          [ -z "$top_assets" ] && top_assets="_(нет файлов сборки)_"
 
           {
             echo "api_mb=$api_mb"
             echo "web_mb=$web_mb"
-            echo "top_wasm<<EOF"
-            echo "$top_wasm"
+            echo "top_assets<<EOF"
+            echo "$top_assets"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
@@ -541,7 +411,7 @@ jobs:
           INTEGRATION_RESULT: ${{ needs.integration-smoke.result }}
           API_MB: ${{ steps.metrics.outputs.api_mb }}
           WEB_MB: ${{ steps.metrics.outputs.web_mb }}
-          TOP_WASM: ${{ steps.metrics.outputs.top_wasm }}
+          TOP_ASSETS: ${{ steps.metrics.outputs.top_assets }}
           API_DUR: ${{ steps.timings.outputs.api_dur }}
           WEB_DUR: ${{ steps.timings.outputs.web_dur }}
           INT_DUR: ${{ steps.timings.outputs.int_dur }}
@@ -592,28 +462,28 @@ jobs:
             echo '| Проверка | Статус | Время | Что проверяет |'
             echo '| --- | --- | ---: | --- |'
             echo "| \`api-smoke\` | $(mark "$API_RESULT") | $API_DUR | publish, запуск, \`/alive\`, \`/health\`, \`/swagger\` |"
-            echo "| \`web-smoke\` | $(mark "$WEB_RESULT") | $WEB_DUR | publish WASM, отдача \`index.html\`, \`blazor.webassembly*.js\` |"
-            echo "| \`integration-smoke\` | $(mark "$INTEGRATION_RESULT") | $INT_DUR | CORS preflight, OIDC discovery, Playwright (anonymous + authenticated) |"
+            echo "| \`web-smoke\` | $(mark "$WEB_RESULT") | $WEB_DUR | сборка Vue, отдача \`index.html\`, модуль точки входа |"
+            echo "| \`integration-smoke\` | $(mark "$INTEGRATION_RESULT") | $INT_DUR | CORS preflight, OIDC discovery, Playwright (аноним + сессия) |"
             echo ''
             echo '### Размеры публикации'
             echo ''
             echo '| Артефакт | Размер |'
             echo '| --- | ---: |'
             echo "| API (\`Money.Api\`, net8.0) | $API_MB MB |"
-            echo "| Web (\`wwwroot\`, WASM) | $WEB_MB MB |"
+            echo "| Web (\`frontend-vue/dist\`) | $WEB_MB MB |"
             echo ''
             echo '<details>'
-            echo '<summary>Крупнейшие модули</summary>'
+            echo '<summary>Крупнейшие файлы сборки</summary>'
             echo ''
-            echo "$TOP_WASM"
+            echo "$TOP_ASSETS"
             echo ''
             echo '</details>'
             echo ''
             echo '### Артефакты'
             echo ''
-            echo "- [\`integration-smoke-screenshots\`]($RUN_URL#artifacts) — скриншоты anonymous + authenticated"
-            echo "- [\`integration-smoke-logs\`, \`api-smoke-log\`]($RUN_URL#artifacts) — логи API и веб-сервера"
-            echo "- [\`api-publish\`, \`web-publish\`]($RUN_URL#artifacts) — опубликованные бинарники"
+            echo "- [\`integration-smoke-screenshots\`]($RUN_URL#artifacts) – снимки экрана: аноним и сессия"
+            echo "- [\`integration-smoke-logs\`, \`api-smoke-log\`]($RUN_URL#artifacts) – логи API и веб-сервера"
+            echo "- [\`api-publish\`, \`web-publish\`]($RUN_URL#artifacts) – публикация API и сборка фронта"
             echo ''
             echo "[Полный лог прогона]($RUN_URL)"
           } > report.md
