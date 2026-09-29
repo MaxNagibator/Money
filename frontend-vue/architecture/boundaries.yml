@@ -39,3 +39,6 @@ layers:
   app:
     path: src/app
     mayImport: [pages, features, shared, domain, platform]
+  serviceWorker:
+    path: src/service-worker
+    mayImport: [platform]

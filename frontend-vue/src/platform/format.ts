@@ -15,6 +15,13 @@ const wholeFormatter = new Intl.NumberFormat(LOCALE, {
   maximumFractionDigits: 0,
 })
 
+const sizeFormatter = new Intl.NumberFormat(LOCALE, {
+  maximumFractionDigits: 1,
+})
+
+const SIZE_UNITS = ['Б', 'КБ', 'МБ', 'ГБ', 'ТБ']
+const SIZE_STEP = 1024
+
 const nameCollator = new Intl.Collator(LOCALE)
 
 const MONTHS_GENITIVE = [
@@ -95,6 +102,18 @@ export function formatMoneyWhole(value: Money): string {
 
 export function formatMileage(value: number): string {
   return wholeFormatter.format(value)
+}
+
+export function formatByteSize(bytes: number): string {
+  let value = Math.max(0, bytes)
+  let unit = 0
+
+  while (value >= SIZE_STEP && unit < SIZE_UNITS.length - 1) {
+    value /= SIZE_STEP
+    unit += 1
+  }
+
+  return `${sizeFormatter.format(value)} ${SIZE_UNITS[unit] ?? ''}`
 }
 
 export function formatLocalDate(value: LocalDate): string {

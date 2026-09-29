@@ -4,6 +4,7 @@ import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import { setAccessTokenProvider, setAccessTokenRefresher } from '@/api/transport/client'
 import { setApiBaseUrlSource } from '@/platform/http'
+import { removeServiceWorker, startServiceWorker, watchAppEnvironment } from '@/platform/pwa'
 import { loadApiBaseUrl } from '@/platform/runtime-config'
 import App from '@/app/App.vue'
 import { handleAppError } from '@/app/errors'
@@ -34,6 +35,13 @@ setSessionChangeHandler(change => {
 })
 
 setApiBaseUrlSource(loadApiBaseUrl())
+watchAppEnvironment()
+
+if (import.meta.env.PROD && __PWA_SELF_DESTROY__) {
+  void removeServiceWorker()
+} else if (import.meta.env.PROD) {
+  void startServiceWorker(() => import('virtual:pwa-register').then(module => module.registerSW))
+}
 
 syncMudTheme()
 ensureMudPopoverContainer()

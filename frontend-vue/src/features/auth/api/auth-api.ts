@@ -23,6 +23,9 @@ const TOKEN_URL = `${API_BASE_URL}/connect/token`
 const FORM_CONTENT_TYPE = 'application/x-www-form-urlencoded'
 
 export class AuthError extends Error {
+  constructor(message: string, readonly status = 400) {
+    super(message)
+  }
 }
 
 async function exchange(form: URLSearchParams, accessToken: string | null): Promise<AuthTokens> {
@@ -43,7 +46,7 @@ async function exchange(form: URLSearchParams, accessToken: string | null): Prom
   if (!response.ok) {
     const failure = payload as TokenFailure | null
 
-    throw new AuthError(failure?.error_description ?? failure?.title ?? 'Не удалось получить данные авторизации')
+    throw new AuthError(failure?.error_description ?? failure?.title ?? 'Не удалось получить данные авторизации', response.status)
   }
 
   const data = payload as TokenSuccess

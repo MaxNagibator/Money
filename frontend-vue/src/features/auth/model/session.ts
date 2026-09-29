@@ -2,9 +2,11 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import type { SessionChange } from '@/domain/session'
 import { systemClock } from '@/platform/clock'
+import { NetworkError } from '@/platform/http'
+import { clearApiCache } from '@/platform/pwa'
 import { readSetting, removeSetting, writeSetting } from '@/platform/storage'
 import type { AuthTokens } from '../api/auth-api'
-import { requestExternalGrant, requestPasswordGrant, requestRefreshGrant, revokeRefreshToken } from '../api/auth-api'
+import { AuthError, requestExternalGrant, requestPasswordGrant, requestRefreshGrant, revokeRefreshToken } from '../api/auth-api'
 
 // TODO: временная схема, токены лежат в localStorage и доступны любому XSS.
 // Убрать вместе с переходом на cookie-сессию same-origin.
@@ -39,6 +41,8 @@ export const useSessionStore = defineStore('session', () => {
   function forget(change: SessionChange): void {
     tokens.value = null
     removeSetting(TOKENS_KEY)
+    // TODO: вторая открытая вкладка держит прежнюю сессию в памяти и снова наполняет money-api после выхода здесь; синхронизировать выход между вкладками через событие storage, когда одним устройством начнут пользоваться разные люди
+    void clearApiCache()
     sessionChangeHandler(change)
   }
 
@@ -55,6 +59,10 @@ export const useSessionStore = defineStore('session', () => {
   }
 
   async function accept(started: number, granted: AuthTokens): Promise<void> {
+    if (started === identity) {
+      await clearApiCache()
+    }
+
     if (started !== identity) {
       await revokeRefreshToken(granted).catch(() => undefined)
 
@@ -91,8 +99,8 @@ export const useSessionStore = defineStore('session', () => {
       refreshedToken = refreshed.accessToken
 
       return refreshed.accessToken
-    } catch {
-      if (started !== identity) {
+    } catch (error) {
+      if (started !== identity || error instanceof NetworkError || (error instanceof AuthError && error.status >= 500)) {
         return tokens.value?.accessToken ?? null
       }
 

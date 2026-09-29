@@ -22,6 +22,7 @@ export default defineConfig({
     locale: 'ru-RU',
     timezoneId: 'Europe/Moscow',
     viewport: { width: 1280, height: 900 },
+    serviceWorkers: 'block',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },

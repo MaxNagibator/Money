@@ -1,5 +1,7 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { NetworkError } from '@/platform/http'
+import { clearApiCache } from '@/platform/pwa'
 import type { AuthTokens } from '../api/auth-api'
 import { AuthError, requestPasswordGrant, requestRefreshGrant, revokeRefreshToken } from '../api/auth-api'
 import { setSessionChangeHandler, useSessionStore } from './session'
@@ -14,6 +16,10 @@ vi.mock('@/platform/storage', () => ({
   removeSetting: (key: string): void => {
     store.delete(key)
   },
+}))
+
+vi.mock('@/platform/pwa', () => ({
+  clearApiCache: vi.fn(() => Promise.resolve(true)),
 }))
 
 vi.mock('../api/auth-api', async importOriginal => ({
@@ -245,6 +251,53 @@ describe('смена личности', () => {
     await expect(pending).resolves.toBe('после входа')
     expect(session.isAuthenticated).toBe(true)
     expect(onSessionChange.mock.calls).toEqual([['signedIn']])
+  })
+})
+
+describe('сохранённые ответы API', () => {
+  it.each([
+    ['выход', 'signedOut', (session: ReturnType<typeof useSessionStore>) => session.signOut()],
+    ['протухшая сессия', 'expired', async (session: ReturnType<typeof useSessionStore>) => {
+      requestRefreshGrantMock.mockRejectedValue(new AuthError('срок истёк'))
+      await session.refreshAccessToken('access')
+    }],
+  ])('%s стирает их, чтобы следующий пользователь устройства не увидел чужого', async (_case, change, end) => {
+    store.set(TOKENS_KEY, tokens(3_600_000))
+
+    const session = useSessionStore()
+
+    await end(session)
+
+    expect(vi.mocked(clearApiCache)).toHaveBeenCalledTimes(1)
+    expect(onSessionChange.mock.calls).toEqual([[change]])
+  })
+
+  it('вход стирает их до того, как новая сессия начнёт запросы', async () => {
+    requestPasswordGrantMock.mockResolvedValue(tokens(3_600_000))
+
+    const session = useSessionStore()
+
+    await session.signIn('пётр', 'пароль')
+
+    const cleared = vi.mocked(clearApiCache).mock.invocationCallOrder[0] ?? Infinity
+    const announced = onSessionChange.mock.invocationCallOrder[0] ?? -Infinity
+
+    expect(cleared).toBeLessThan(announced)
+  })
+
+  it.each([
+    ['обрыв сети', new NetworkError('нет сети')],
+    ['отказ прокси при лежащем API', new AuthError('Bad Gateway', 502)],
+  ])('%s при обновлении токена сессию не гасит и сохранённое не стирает', async (_case, failure) => {
+    store.set(TOKENS_KEY, tokens(-1_000))
+    requestRefreshGrantMock.mockRejectedValue(failure)
+
+    const session = useSessionStore()
+
+    await expect(session.getAccessToken()).resolves.toBe('access')
+    expect(session.isAuthenticated).toBe(true)
+    expect(onSessionChange).not.toHaveBeenCalled()
+    expect(vi.mocked(clearApiCache)).not.toHaveBeenCalled()
   })
 })
 

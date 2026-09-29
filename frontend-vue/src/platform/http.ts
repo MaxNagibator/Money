@@ -1,5 +1,26 @@
+import { OFFLINE_COPY_HEADER } from './offline-caches'
+
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api'
 export const API_TIMEOUT_MS = 100_000
+
+export const OFFLINE_WRITE_MESSAGE = 'Нет сети, данные не отправлены. Повторите, когда связь появится'
+export const LOST_WRITE_MESSAGE = 'Связь с сервером прервалась, данные могли не сохраниться. Проверьте, когда связь появится'
+export const LOST_READ_MESSAGE = 'Нет связи с сервером. Проверьте подключение к интернету'
+
+const READ_METHODS: ReadonlySet<string> = new Set(['GET', 'HEAD'])
+
+export class NetworkError extends Error {
+}
+
+let reachabilityHandler: (reachable: boolean) => void = () => undefined
+
+export function isOffline(): boolean {
+  return typeof navigator !== 'undefined' && !navigator.onLine
+}
+
+export function setReachabilityHandler(handler: (reachable: boolean) => void): void {
+  reachabilityHandler = handler
+}
 
 let targetBaseUrl: string | null = null
 let pendingBaseUrl: Promise<void> | null = null
@@ -29,12 +50,32 @@ export async function resolveApiBaseUrl(): Promise<string> {
 }
 
 export async function apiFetch(input: Request): Promise<Response> {
+  const isRead = READ_METHODS.has(input.method.toUpperCase())
+
+  if (!isRead && isOffline()) {
+    throw new NetworkError(OFFLINE_WRITE_MESSAGE)
+  }
+
   const request = await retarget(input)
 
-  return fetch(request, {
-    credentials: 'include',
-    signal: AbortSignal.any([input.signal, AbortSignal.timeout(API_TIMEOUT_MS)]),
-  })
+  try {
+    const response = await fetch(request, {
+      credentials: 'include',
+      signal: AbortSignal.any([input.signal, AbortSignal.timeout(API_TIMEOUT_MS)]),
+    })
+
+    reachabilityHandler(response.headers.get(OFFLINE_COPY_HEADER) === null)
+
+    return response
+  } catch (error) {
+    if (error instanceof TypeError || (error instanceof DOMException && error.name === 'TimeoutError')) {
+      reachabilityHandler(false)
+
+      throw new NetworkError(isRead ? LOST_READ_MESSAGE : LOST_WRITE_MESSAGE, { cause: error })
+    }
+
+    throw error
+  }
 }
 
 export function retargetUrl(url: string, from: string, to: string): string {

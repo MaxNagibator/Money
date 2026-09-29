@@ -31,6 +31,7 @@ import { useViewportVariables } from '@/shared/ui/useViewportVariables'
 import AppBottomNav from './AppBottomNav.vue'
 import AppErrorBoundary from './AppErrorBoundary.vue'
 import AppQuickOperationHost from './AppQuickOperationHost.vue'
+import AppStatusBanner from './AppStatusBanner.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -277,6 +278,8 @@ async function signOut(): Promise<void> {
         max-width="lg"
         gutters
       >
+        <AppStatusBanner />
+
         <MudText
           v-if="isPageTitleShown"
           data-testid="app-page-title"
