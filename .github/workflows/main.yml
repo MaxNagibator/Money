@@ -103,7 +103,7 @@ jobs:
           net use \\$SambaServer\$SambaShare /delete /y
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1
         with:
           package_json_file: frontend-vue/package.json
 

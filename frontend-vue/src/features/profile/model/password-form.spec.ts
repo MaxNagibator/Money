@@ -1,15 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { newPasswordForm, PASSWORD_REQUIRED, toPasswordChange, validatePasswordForm } from './password-form'
+import { FIELD_REQUIRED, newPasswordForm, toPasswordChange, validatePasswordForm } from './password-form'
 
 describe('validatePasswordForm', () => {
   it('оба поля обязательны', () => {
     expect(validatePasswordForm(newPasswordForm())).toEqual({
-      currentPassword: PASSWORD_REQUIRED,
-      newPassword: PASSWORD_REQUIRED,
+      currentPassword: FIELD_REQUIRED,
+      newPassword: FIELD_REQUIRED,
     })
 
     expect(validatePasswordForm({ currentPassword: 'old', newPassword: '' }))
-      .toEqual({ newPassword: PASSWORD_REQUIRED })
+      .toEqual({ newPassword: FIELD_REQUIRED })
   })
 
   it('сложность нового пароля клиент не проверяет', () => {
