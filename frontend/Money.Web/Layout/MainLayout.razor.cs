@@ -1,14 +1,17 @@
-using Blazored.LocalStorage;
+﻿using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Routing;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
 namespace Money.Web.Layout;
 
-public partial class MainLayout(
+public sealed partial class MainLayout(
     IWebAssemblyHostEnvironment environment,
     ILocalStorageService storageService,
     NavigationManager navigationManager,
     AuthenticationStateProvider authenticationStateProvider)
+    : IDisposable
 {
     private readonly MudTheme _defaultTheme = new();
     private AppSettings _appSettings = new();
@@ -16,9 +19,16 @@ public partial class MainLayout(
     private MudThemeProvider _mudThemeProvider = null!;
     private DarkModeToggle _darkModeToggle = null!;
 
+    private ErrorBoundary? _errorBoundary;
+
     private bool _drawerOpen = true;
 
     private bool IsHomePage => string.Equals(navigationManager.BaseUri, navigationManager.Uri, StringComparison.OrdinalIgnoreCase);
+
+    public void Dispose()
+    {
+        navigationManager.LocationChanged -= OnLocationChanged;
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -29,11 +39,13 @@ public partial class MainLayout(
             await SaveSettings();
             StateHasChanged();
         };
+
+        navigationManager.LocationChanged += OnLocationChanged;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender == false)
+        if (!firstRender)
         {
             return;
         }
@@ -53,6 +65,16 @@ public partial class MainLayout(
                 navigationManager.NavigateTo("operations");
             }
         }
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        RecoverFromError();
+    }
+
+    private void RecoverFromError()
+    {
+        _errorBoundary?.Recover();
     }
 
     private async Task SaveSettings()

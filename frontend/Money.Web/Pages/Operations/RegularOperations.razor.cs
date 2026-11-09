@@ -5,7 +5,7 @@ namespace Money.Web.Pages.Operations;
 
 public partial class RegularOperations
 {
-    private List<RegularOperation> _operations = [];
+    private List<RegularOperation>? _operations;
 
     [Inject]
     private RegularOperationService RegularOperationService { get; set; } = null!;
@@ -36,6 +36,7 @@ public partial class RegularOperations
             return;
         }
 
+        _operations ??= [];
         _operations.Insert(0, created);
     }
 

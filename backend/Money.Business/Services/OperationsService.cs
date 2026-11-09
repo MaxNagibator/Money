@@ -107,6 +107,44 @@ public class OperationsService(
         await context.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task<int?> InferCategoryByPlaceAsync(string place, OperationTypes type, int count, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(place) || count < 2)
+        {
+            return null;
+        }
+
+        var placeId = await context.Places
+            .IsUserEntity(environment.UserId)
+            .Where(x => x.IsDeleted == false && x.Name == place)
+            .Select(x => (int?)x.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (placeId == null)
+        {
+            return null;
+        }
+
+        var typeId = (int)type;
+
+        var categoryIds = await context.Operations
+            .IsUserEntity(environment.UserId)
+            .Where(x => x.PlaceId == placeId && x.Category != null && x.Category.TypeId == typeId)
+            .OrderByDescending(x => x.Date)
+            .ThenByDescending(x => x.Id)
+            .Take(count)
+            .Select(x => x.CategoryId)
+            .ToListAsync(cancellationToken);
+
+        if (categoryIds.Count < 2)
+        {
+            return null;
+        }
+
+        var first = categoryIds[0];
+        return categoryIds.All(x => x == first) ? first : null;
+    }
+
     public async Task<IEnumerable<Operation>> UpdateBatchAsync(List<int> operationIds, int categoryId, CancellationToken cancellationToken = default)
     {
         var category = await categoriesService.GetByIdAsync(categoryId, cancellationToken);
@@ -201,12 +239,12 @@ public class OperationsService(
             entities = entities.Where(x => filter.CategoryIds.Contains(x.CategoryId));
         }
 
-        if (string.IsNullOrEmpty(filter.Comment) == false)
+        if (!string.IsNullOrEmpty(filter.Comment))
         {
             entities = entities.Where(x => x.Comment != null && x.Comment.Contains(filter.Comment));
         }
 
-        if (string.IsNullOrEmpty(filter.Place) == false)
+        if (!string.IsNullOrEmpty(filter.Place))
         {
             var placesIds = context.Places
                 .Where(x => x.UserId == environment.UserId && x.Name.Contains(filter.Place))

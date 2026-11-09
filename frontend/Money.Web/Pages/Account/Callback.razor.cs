@@ -1,5 +1,4 @@
-﻿using CSharpFunctionalExtensions;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Money.Web.Services.Authentication;
 
 namespace Money.Web.Pages.Account;
@@ -13,16 +12,25 @@ public partial class Callback
     private AuthenticationService AuthenticationService { get; set; } = null!;
 
     [Inject]
+    private AuthStateProvider AuthStateProvider { get; set; } = null!;
+
+    [Inject]
     private NavigationManager NavigationManager { get; set; } = null!;
 
     [Inject]
     private ISnackbar Snackbar { get; set; } = null!;
 
-    protected override Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
-        return AuthenticationService.ExchangeExternalAsync()
-            .TapError(message => Snackbar.Add($"Ошибка во время входа {message}", Severity.Error))
-            .Map(() => ReturnUrl ?? "operations")
-            .Tap(x => NavigationManager.ReturnTo(x));
+        var result = await AuthenticationService.ExchangeExternalAsync();
+
+        if (result.IsFailure)
+        {
+            Snackbar.Add($"Ошибка во время входа {result.Error}", Severity.Error);
+            return;
+        }
+
+        await AuthStateProvider.NotifyUserAuthentication();
+        NavigationManager.ReturnToSafe(ReturnUrl ?? "operations");
     }
 }

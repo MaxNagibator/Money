@@ -1,15 +1,21 @@
-﻿@if (_isNumericSumVisible)
+﻿@using System.Globalization
+@if (_isNumericSumVisible)
 {
-    <MudNumericField Adornment="Adornment.Start"
-                     AdornmentColor="Color.Tertiary"
-                     AdornmentIcon="@Icons.Material.Rounded.Calculate"
-                     AutoFocus="IsAutoFocus"
-                     @bind-Value="Sum"
-                     For="@(() => Sum)"
-                     Immediate
-                     Label="Сумма"
-                     OnAdornmentClick="ToggleSumFieldAsync"
-                     OnKeyDown="OnSumKeyDownAsync" />
+    <div @onfocusin="OnNumericFocusInAsync">
+        <MudNumericField Adornment="Adornment.Start"
+                         AdornmentColor="Color.Tertiary"
+                         AdornmentIcon="@Icons.Material.Rounded.Calculate"
+                         @bind-Value="Sum"
+                         Culture="@CultureInfo.CurrentCulture"
+                         For="@(() => Sum)"
+                         Format="G"
+                         Immediate
+                         Label="Сумма"
+                         OnAdornmentClick="EnterTextModeAsync"
+                         OnKeyDown="OnSumKeyDownAsync"
+                         ReadOnly="@HasExpression"
+                         @ref="_numericField" />
+    </div>
 }
 else
 {
@@ -22,6 +28,6 @@ else
                   For="@(() => _calculationSum)"
                   Immediate
                   Label="Сумма"
-                  OnAdornmentClick="ToggleSumFieldAsync"
-                  OnBlur="ToggleSumFieldAsync" />
+                  OnAdornmentClick="ExitTextModeAsync"
+                  OnBlur="ExitTextModeAsync" />
 }

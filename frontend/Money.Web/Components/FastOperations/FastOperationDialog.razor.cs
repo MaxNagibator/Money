@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Money.ApiClient;
 using System.ComponentModel.DataAnnotations;
@@ -35,6 +35,9 @@ public partial class FastOperationDialog
 
     [Inject]
     private CategoryService CategoryService { get; set; } = null!;
+
+    [Inject]
+    private PlaceService PlaceService { get; set; } = null!;
 
     [Inject]
     private ISnackbar SnackbarService { get; set; } = null!;
@@ -90,6 +93,11 @@ public partial class FastOperationDialog
 
             await SaveAsync();
             SnackbarService.Add("Успех!", Severity.Success);
+
+            if (!string.IsNullOrWhiteSpace(Input.Place) && Input.Place != Model.Place)
+            {
+                PlaceService.InvalidateCache();
+            }
 
             Model.Name = Input.Name!;
             Model.Category = Input.Category ?? throw new MoneyException("Категория операции не может быть null");

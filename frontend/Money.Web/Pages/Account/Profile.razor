@@ -1,4 +1,4 @@
-@page "/profile"
+﻿@page "/profile"
 @attribute [Authorize]
 
 <PageTitle>Личный кабинет</PageTitle>
@@ -32,7 +32,7 @@
     </MudCardContent>
 </MudCard>
 
-@if (_emailConfirmed == false)
+@if (!_emailConfirmed)
 {
     <MudCard Class="mb-6">
         <MudCardHeader>
@@ -91,14 +91,22 @@
                   OnValidSubmit="@HandleChangePassword">
             <MudTextField @bind-Value="_changePaswordModel.CurrentPassword"
                           Label="Текущий пароль"
-                          InputMode="InputMode.numeric"
+                          InputType="@PasswordInputType"
+                          Adornment="Adornment.End"
+                          AdornmentIcon="@PasswordIcon"
+                          OnAdornmentClick="TogglePasswordVisibility"
+                          AdornmentAriaLabel="Показать или скрыть пароль"
                           Required
                           RequiredError="Обязательно"
                           Class="mb-2"
                           Variant="Variant.Outlined" />
             <MudTextField @bind-Value="_changePaswordModel.NewPassword"
                           Label="Новый пароль"
-                          InputMode="InputMode.numeric"
+                          InputType="@PasswordInputType"
+                          Adornment="Adornment.End"
+                          AdornmentIcon="@PasswordIcon"
+                          OnAdornmentClick="TogglePasswordVisibility"
+                          AdornmentAriaLabel="Показать или скрыть пароль"
                           Required
                           RequiredError="Обязательно"
                           Class="mb-2"

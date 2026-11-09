@@ -44,6 +44,13 @@ public class DebtOwnerService(MoneyClient moneyClient)
         return owners;
     }
 
+    public void InvalidateCache()
+    {
+        _cache.Clear();
+        _cacheOrder.Clear();
+        _lastSearchedValue = string.Empty;
+    }
+
     private void AddToCache(string key, string[] value)
     {
         if (_cache.ContainsKey(key))

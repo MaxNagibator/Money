@@ -9,6 +9,9 @@ public sealed partial class Chart(IJSRuntime jsRuntime) : IAsyncDisposable
     private readonly string _id = "chart-" + Guid.NewGuid();
     private bool _isRendered;
 
+    [CascadingParameter]
+    public AppSettings AppSettings { get; set; } = null!;
+
     [Parameter]
     public required ChartConfig Config { get; set; }
 
@@ -22,14 +25,19 @@ public sealed partial class Chart(IJSRuntime jsRuntime) : IAsyncDisposable
         return ValueTask.CompletedTask;
     }
 
-    public ValueTask DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
+        AppSettings.OnChange -= OnAppSettingsChanged;
+
         if (_isRendered)
         {
-            return jsRuntime.InvokeVoidAsync("moneyChart.destroy", _id);
+            await jsRuntime.InvokeVoidAsync("moneyChart.destroy", _id);
         }
+    }
 
-        return ValueTask.CompletedTask;
+    protected override void OnInitialized()
+    {
+        AppSettings.OnChange += OnAppSettingsChanged;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -39,5 +47,10 @@ public sealed partial class Chart(IJSRuntime jsRuntime) : IAsyncDisposable
             await jsRuntime.InvokeVoidAsync("moneyChart.create", _id, Config);
             _isRendered = true;
         }
+    }
+
+    private async void OnAppSettingsChanged(object? sender, EventArgs e)
+    {
+        await UpdateAsync();
     }
 }

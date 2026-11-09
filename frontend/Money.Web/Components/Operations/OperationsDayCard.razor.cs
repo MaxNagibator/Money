@@ -50,6 +50,46 @@ public partial class OperationsDayCard
         return base.SetParametersAsync(ParameterView.Empty);
     }
 
+    private string GetContentCssClass()
+    {
+        var classes = new List<string> { "pa-2" };
+
+        switch (Settings.AlternateRowStyle)
+        {
+            case AlternateRowStyle.Background:
+                classes.Add("operations-alt-bg");
+                break;
+
+            case AlternateRowStyle.Border:
+                classes.Add("operations-alt-border");
+                break;
+        }
+
+        if (Settings.AlignMoneyDecimals)
+        {
+            classes.Add("operations-money-align");
+        }
+
+        return string.Join(" ", classes);
+    }
+
+    private string? GetContentCssStyle()
+    {
+        return Settings.AlignMoneyDecimals
+            ? $"--money-col-width: {Settings.MoneyColumnWidth}ch;"
+            : null;
+    }
+
+    private string GetRowCssClass(int index)
+    {
+        if (Settings.AlternateRowStyle == AlternateRowStyle.None)
+        {
+            return "operation-row";
+        }
+
+        return index % 2 == 1 ? "operation-row operation-row-alt" : "operation-row";
+    }
+
     private RenderFragment RenderOperationButton(OperationTypes.Value type)
     {
         return builder =>

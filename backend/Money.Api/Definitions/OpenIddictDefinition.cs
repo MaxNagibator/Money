@@ -23,6 +23,7 @@ public class OpenIddictDefinition : AppDefinition
                 options.SetAuthorizationEndpointUris("connect/authorize")
                     .SetIntrospectionEndpointUris("connect/introspect")
                     .SetLogoutEndpointUris("connect/logout")
+                    .SetRevocationEndpointUris("connect/revoke")
                     .SetTokenEndpointUris("connect/token")
                     .SetVerificationEndpointUris("connect/verify")
                     .SetUserinfoEndpointUris("connect/userinfo")
@@ -49,6 +50,8 @@ public class OpenIddictDefinition : AppDefinition
                     .EnableUserinfoEndpointPassthrough()
                     .EnableStatusCodePagesIntegration()
                     .DisableTransportSecurityRequirement();
+
+                options.DisableAccessTokenEncryption();
             });
 
         var authAuthority = builder.Configuration["AUTH_AUTHORITY"];

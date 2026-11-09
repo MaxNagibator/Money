@@ -1,4 +1,5 @@
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Money.ApiClient;
 using System.ComponentModel.DataAnnotations;
 
@@ -111,6 +112,14 @@ public partial class CarEventDialog
     private void SelectEventType(CarEventTypes.Value eventType)
     {
         Input.Type = eventType;
+    }
+
+    private void OnEventTypeKeyDown(KeyboardEventArgs e, CarEventTypes.Value eventType)
+    {
+        if (e.Key is "Enter" or " " or "Spacebar")
+        {
+            SelectEventType(eventType);
+        }
     }
 
     private sealed class InputModel

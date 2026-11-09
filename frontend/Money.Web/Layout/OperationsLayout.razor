@@ -1,4 +1,4 @@
-@inherits LayoutComponentBase
+﻿@inherits LayoutComponentBase
 @layout MainLayout
 
 <OperationsFilter @ref="_operationsFilter" />
@@ -10,7 +10,8 @@
 else
 {
     <MudPaper Class="my-1 pa-2">
-        <MudStack Row>
+        <MudStack Row
+                  Wrap="Wrap.Wrap">
             <MudText>
                 @PeriodString
             </MudText>

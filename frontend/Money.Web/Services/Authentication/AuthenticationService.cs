@@ -1,5 +1,4 @@
-using Blazored.LocalStorage;
-using CSharpFunctionalExtensions;
+﻿using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.WebAssembly.Http;
 using Money.ApiClient;
 using System.Net.Http.Json;
@@ -8,10 +7,7 @@ using AuthData = Money.Web.Models.AuthData;
 
 namespace Money.Web.Services.Authentication;
 
-public class AuthenticationService(
-    HttpClient client,
-    AuthenticationStateProvider authStateProvider,
-    ILocalStorageService localStorage)
+public class AuthenticationService(HttpClient client, ILocalStorageService localStorage)
 {
     public const string AccessTokenKey = "authToken";
     public const string RefreshTokenKey = "refreshToken";
@@ -33,16 +29,20 @@ public class AuthenticationService(
     public async Task<Result> LoginAsync(UserDto user)
     {
         using var requestContent = new FormUrlEncodedContent([new("grant_type", "password"), new("username", user.Login), new("password", user.Password)]);
-
-        var result = await AuthenticateAsync(requestContent);
-
-        return await result.Tap(async () => await ((AuthStateProvider)authStateProvider).NotifyUserAuthentication());
+        var result = await AuthenticateAsync(requestContent, null);
+        return result.IsSuccess ? Result.Success() : Result.Failure(result.Error);
     }
 
     public async Task<Result> LogoutAsync()
     {
+        var refreshToken = await localStorage.GetItemAsync<string>(RefreshTokenKey);
+
+        if (!string.IsNullOrWhiteSpace(refreshToken))
+        {
+            await TryRevokeAsync(refreshToken);
+        }
+
         await localStorage.RemoveItemsAsync([AccessTokenKey, RefreshTokenKey]);
-        await ((AuthStateProvider)authStateProvider).NotifyUserAuthentication();
         return Result.Success();
     }
 
@@ -55,11 +55,8 @@ public class AuthenticationService(
     public async Task<Result> ExchangeExternalAsync()
     {
         using var requestContent = new FormUrlEncodedContent([new("grant_type", "external")]);
-        var result = await AuthenticateAsync(requestContent);
-
-        return await result.Tap(() => ((AuthStateProvider)authStateProvider).NotifyUserAuthentication())
-            .Map(_ => Result.Success())
-            .OnFailureCompensate(_ => Result.Failure("Не удалось завершить внешний вход."));
+        var result = await AuthenticateAsync(requestContent, null);
+        return result.IsSuccess ? Result.Success() : Result.Failure(result.Error);
     }
 
     public async Task<Result<string>> RefreshTokenAsync()
@@ -73,23 +70,25 @@ public class AuthenticationService(
         }
 
         using var requestContent = new FormUrlEncodedContent([new("grant_type", "refresh_token"), new("refresh_token", refreshToken)]);
-
-        client.DefaultRequestHeaders.Authorization = new("Bearer", token);
-        var result = await AuthenticateAsync(requestContent);
+        var result = await AuthenticateAsync(requestContent, token);
         return result.Map(data => data.AccessToken);
     }
 
-    private async Task<Result<AuthData>> AuthenticateAsync(FormUrlEncodedContent requestContent)
+    private async Task<Result<AuthData>> AuthenticateAsync(FormUrlEncodedContent requestContent, string? authorizationToken)
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, new Uri("connect/token", UriKind.Relative));
 
         request.Content = requestContent;
         request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
 
-        var response = await client.SendAsync(request);
-        client.DefaultRequestHeaders.Clear();
+        if (authorizationToken != null)
+        {
+            request.Headers.Authorization = new("Bearer", authorizationToken);
+        }
 
-        if (response.IsSuccessStatusCode == false)
+        var response = await client.SendAsync(request);
+
+        if (!response.IsSuccessStatusCode)
         {
             var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(await response.Content.ReadAsStringAsync());
             var error = problemDetails?.Title ?? "Не удалось получить данные авторизации.";
@@ -106,5 +105,27 @@ public class AuthenticationService(
         await localStorage.SetItemAsync(AccessTokenKey, result.AccessToken);
         await localStorage.SetItemAsync(RefreshTokenKey, result.RefreshToken);
         return result;
+    }
+
+    private async Task TryRevokeAsync(string refreshToken)
+    {
+        try
+        {
+            using var requestContent = new FormUrlEncodedContent([
+                new("token", refreshToken),
+                new("token_type_hint", "refresh_token"),
+            ]);
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, new Uri("connect/revoke", UriKind.Relative))
+            {
+                Content = requestContent,
+            };
+
+            request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+            await client.SendAsync(request);
+        }
+        catch (HttpRequestException)
+        {
+        }
     }
 }

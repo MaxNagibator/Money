@@ -1,17 +1,17 @@
-using Money.ApiClient;
+﻿using Money.ApiClient;
 
 namespace Money.Web.Services;
 
 public class PlaceService(MoneyClient moneyClient)
 {
-    private static readonly Dictionary<string, string[]> Cache = [];
+    private readonly Dictionary<string, string[]> _cache = [];
     private string _lastSearchedValue = string.Empty;
 
     public async Task<IEnumerable<string>> SearchPlace(string? value, CancellationToken token = default)
     {
         value ??= string.Empty;
 
-        if (Cache.TryGetValue(value, out var cachedResults))
+        if (_cache.TryGetValue(value, out var cachedResults))
         {
             return cachedResults;
         }
@@ -20,7 +20,7 @@ public class PlaceService(MoneyClient moneyClient)
 
         if (diff > 0
             && value[..^diff] == _lastSearchedValue
-            && Cache.TryGetValue(_lastSearchedValue, out var cachedPlaces)
+            && _cache.TryGetValue(_lastSearchedValue, out var cachedPlaces)
             && cachedPlaces.Length == 0)
         {
             return [];
@@ -35,9 +35,15 @@ public class PlaceService(MoneyClient moneyClient)
 
         var places = response.Content;
 
-        Cache[value] = places;
+        _cache[value] = places;
         _lastSearchedValue = value;
 
         return places;
+    }
+
+    public void InvalidateCache()
+    {
+        _cache.Clear();
+        _lastSearchedValue = string.Empty;
     }
 }

@@ -1,7 +1,8 @@
-namespace Money.Web.Models;
+﻿namespace Money.Web.Models;
 
 public record DateInterval(
     string DisplayName,
+    string ShortName,
     string ChangeName,
     Func<DateTime, DateTime> Start,
     Func<DateTime, DateTime> End,

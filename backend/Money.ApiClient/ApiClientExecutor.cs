@@ -76,7 +76,8 @@ public class ApiClientExecutor(MoneyClient apiClient)
 
         void AddHeader(string key, string value)
         {
-            apiClient.Log($"{key}: {value}");
+            var loggedValue = string.Equals(key, "Authorization", StringComparison.OrdinalIgnoreCase) ? "Bearer ***" : value;
+            apiClient.Log($"{key}: {loggedValue}");
             requestMessage.Headers.Add(key, value);
         }
     }

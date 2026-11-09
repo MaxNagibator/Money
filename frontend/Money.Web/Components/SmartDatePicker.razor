@@ -26,7 +26,8 @@ else
                   AdornmentIcon="@Icons.Material.Rounded.CalendarMonth"
                   @bind-Value="_dateText"
                   Clearable
-                  HelperText="дд.мм.гггг или сегодня/завтра/вчера"
+                  Error="@(_parseError != null)"
+                  ErrorText="@_parseError"
                   Immediate
                   Label="Дата"
                   OnAdornmentClick="OpenDatePickerAsync"

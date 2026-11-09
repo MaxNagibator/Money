@@ -12,7 +12,7 @@
             </MudTooltip>
 
             <MudStack Spacing="2">
-                @if (string.IsNullOrEmpty(Model.Title) == false)
+                @if (!string.IsNullOrEmpty(Model.Title))
                 {
                     <MudTooltip Placement="Placement.Bottom"
                                 Text="Название">
@@ -29,7 +29,7 @@
                         <MudStack AlignItems="AlignItems.Center"
                                   Row>
                             <MudIcon Color="Color.Primary"
-                                     Icon="@Icons.Material.Filled.DirectionsCar"
+                                     Icon="@Icons.Material.Rounded.DirectionsCar"
                                      Size="Size.Small" />
                             <MudText>@Model.Mileage?.ToString("N0") км</MudText>
                         </MudStack>
@@ -38,7 +38,7 @@
             </MudStack>
         </MudStack>
         <MudDivider FlexItem />
-        @if (string.IsNullOrEmpty(Model.Comment) == false)
+        @if (!string.IsNullOrEmpty(Model.Comment))
         {
             <MudTooltip Placement="Placement.Bottom"
                         Text="Комментарий">
@@ -65,7 +65,7 @@
         {
             <MudTooltip Text="Восстановить">
                 <MudIconButton Color="Color.Success"
-                               Icon="@Icons.Material.Filled.Restore"
+                               Icon="@Icons.Material.Rounded.Restore"
                                OnClick="() => Restore(Model)"
                                Size="Size.Small" />
             </MudTooltip>
@@ -74,14 +74,15 @@
         {
             <MudTooltip Text="Редактировать">
                 <MudIconButton Color="Color.Warning"
-                               Icon="@Icons.Material.Filled.Edit"
+                               Icon="@Icons.Material.Rounded.Edit"
                                OnClick="() => Update(Model)"
                                Size="Size.Small" />
             </MudTooltip>
 
             <MudTooltip Text="Удалить">
-                <MudIconButton Color="Color.Default"
-                               Icon="@Icons.Material.Filled.Delete"
+                <MudIconButton Class="trash-btn"
+                               Color="Color.Default"
+                               Icon="@Icons.Material.Rounded.Delete"
                                OnClick="() => Delete(Model)"
                                Size="Size.Small" />
             </MudTooltip>

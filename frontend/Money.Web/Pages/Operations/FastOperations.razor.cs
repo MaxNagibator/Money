@@ -5,7 +5,7 @@ namespace Money.Web.Pages.Operations;
 
 public partial class FastOperations
 {
-    private List<FastOperation> _operations = [];
+    private List<FastOperation>? _operations;
 
     [Inject]
     private FastOperationService FastOperationService { get; set; } = null!;
@@ -33,6 +33,7 @@ public partial class FastOperations
             return;
         }
 
+        _operations ??= [];
         _operations.Insert(0, created);
     }
 

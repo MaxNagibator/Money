@@ -12,11 +12,15 @@ public partial class Logout
     private AuthenticationService AuthenticationService { get; set; } = null!;
 
     [Inject]
+    private AuthStateProvider AuthStateProvider { get; set; } = null!;
+
+    [Inject]
     private NavigationManager NavigationManager { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
         await AuthenticationService.LogoutAsync();
-        NavigationManager.ReturnTo(ReturnUrl, true);
+        AuthStateProvider.MarkUserAsLoggedOut();
+        NavigationManager.ReturnToSafe(ReturnUrl, true);
     }
 }

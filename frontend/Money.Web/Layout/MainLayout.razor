@@ -14,12 +14,14 @@
                Style="pointer-events: none;">
         <MudStack Class="mt-3 ml-n4"
                   Spacing="1">
-            <MudIconButton Color="Color.Inherit"
+            <MudIconButton aria-label="Открыть меню"
+                           Color="Color.Inherit"
                            Edge="Edge.Start"
                            Icon="@Icons.Material.Rounded.Menu"
                            OnClick="ToggleDrawer"
                            Size="Size.Small"
-                           Style="pointer-events: all;" />
+                           Style="pointer-events: all;"
+                           title="Меню" />
             <DarkModeToggle AppSettings="_appSettings"
                             @ref="_darkModeToggle" />
         </MudStack>
@@ -47,7 +49,7 @@
     <MudMainContent Class="pt-3 px-8">
         <MudContainer Gutters
                       MaxWidth="MaxWidth.Large">
-            <ErrorBoundary>
+            <ErrorBoundary @ref="_errorBoundary">
                 <ChildContent>
                     <CascadingValue IsFixed="true"
                                     Value="_appSettings">
@@ -71,6 +73,13 @@
                         Извините, произошла ошибка.
                         Пожалуйста, попробуйте снова.
                     </MudAlert>
+                    <MudButton Class="mt-3"
+                               Color="Color.Primary"
+                               OnClick="RecoverFromError"
+                               StartIcon="@Icons.Material.Rounded.Refresh"
+                               Variant="Variant.Filled">
+                        Повторить
+                    </MudButton>
                 </ErrorContent>
             </ErrorBoundary>
         </MudContainer>

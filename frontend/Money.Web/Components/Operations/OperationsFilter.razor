@@ -10,7 +10,8 @@
                             Delay="100"
                             Placement="Placement.Bottom"
                             Text="@(SelectedRange == null ? "Не выбран диапазон" : "Предыдущ" + SelectedRange.ChangeName)">
-                    <MudIconButton Color="Color.Tertiary"
+                    <MudIconButton aria-label="Предыдущий диапазон"
+                                   Color="Color.Tertiary"
                                    Disabled="@(SelectedRange == null)"
                                    Icon="@Icons.Material.Rounded.ChevronLeft"
                                    OnClick="DecrementDateRangeAsync"
@@ -24,7 +25,11 @@
                                 ValueChanged="@(OnDateIntervalChanged)">
                     @foreach (var interval in DateIntervals)
                     {
-                        <MudToggleItem Value="interval">@interval.DisplayName</MudToggleItem>
+                        <MudToggleItem Value="interval"
+                                       title="@interval.DisplayName">
+                            <span class="d-none d-sm-inline">@interval.DisplayName</span>
+                            <span class="d-inline d-sm-none">@interval.ShortName</span>
+                        </MudToggleItem>
                     }
                 </MudToggleGroup>
 
@@ -32,7 +37,8 @@
                             Delay="100"
                             Placement="Placement.Bottom"
                             Text="@(SelectedRange == null ? "Не выбран диапазон" : "Следующ" + SelectedRange.ChangeName)">
-                    <MudIconButton Color="Color.Tertiary"
+                    <MudIconButton aria-label="Следующий диапазон"
+                                   Color="Color.Tertiary"
                                    Disabled="@(SelectedRange == null)"
                                    Icon="@Icons.Material.Rounded.ChevronRight"
                                    OnClick="IncrementDateRangeAsync"
@@ -118,7 +124,8 @@
         <MudItem md="6"
                  xs="12">
             <MudStack AlignItems="AlignItems.Baseline"
-                      Row>
+                      Row
+                      Wrap="Wrap.Wrap">
                 <MudTooltip Text="Очистить все фильтры">
                     <MudIconButton Color="Color.Tertiary"
                                    Icon="@Icons.Material.Rounded.DeleteSweep"

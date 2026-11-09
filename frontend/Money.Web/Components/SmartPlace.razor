@@ -1,4 +1,4 @@
-<div style="position: relative;">
+﻿<div style="position: relative;">
     <MudTextField Adornment="@Adornment"
                   AdornmentColor="Color.Tertiary"
                   AdornmentIcon="@Icons.Material.Rounded.Place"
@@ -26,11 +26,14 @@
                     var suggestion = _suggestions[i];
                     var isSelected = index == _selectedIndex;
                     var itemStyle = isSelected ? "background-color: var(--mud-palette-action-default-hover);" : string.Empty;
-                    <MudListItem OnClick="@(() => SelectSuggestionAsync(suggestion))"
-                                 Style="@itemStyle"
-                                 T="string">
-                        @suggestion
-                    </MudListItem>
+                    <div id="@GetItemId(index)">
+                        <MudListItem OnClick="@(() => SelectSuggestionAsync(suggestion))"
+                                     Style="@itemStyle"
+                                     T="string"
+                                     tabindex="-1">
+                            @suggestion
+                        </MudListItem>
+                    </div>
                 }
             </MudList>
         </MudPaper>

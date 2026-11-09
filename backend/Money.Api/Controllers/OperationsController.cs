@@ -147,6 +147,34 @@ public class OperationsController(OperationsService operationsService, PlacesSer
         return Ok(models.Select(x => x.Name));
     }
 
+    /// <summary>
+    /// Подсказать категорию по имени места на основе последних операций пользователя.
+    /// </summary>
+    /// <param name="place">Имя места (точное совпадение).</param>
+    /// <param name="operationType">Тип операции, для которого нужна подсказка.</param>
+    /// <param name="count">Сколько последних операций учитывать.</param>
+    /// <param name="cancellationToken">Токен отмены запроса.</param>
+    /// <returns>Идентификатор категории, если среди последних операций категория одна и та же; иначе 204.</returns>
+    [HttpGet("InferCategory/{place}")]
+    [ProducesResponseType(typeof(InferCategoryResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> InferCategory(
+        string place,
+        [FromQuery] OperationTypes operationType,
+        [FromQuery] int count = 5,
+        CancellationToken cancellationToken = default)
+    {
+        var categoryId = await operationsService.InferCategoryByPlaceAsync(place, operationType, count, cancellationToken);
+
+        if (categoryId == null)
+        {
+            return NoContent();
+        }
+
+        return Ok(new InferCategoryResponseDto { CategoryId = categoryId.Value });
+    }
+
     [HttpGet("ExcelFile")]
     public async Task<IActionResult> GetExcel([FromServices] CategoriesService categoriesService, [FromQuery] OperationFilterDto filter, CancellationToken cancellationToken)
     {
