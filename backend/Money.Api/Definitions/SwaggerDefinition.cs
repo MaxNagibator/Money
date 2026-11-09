@@ -25,8 +25,6 @@ public class SwaggerDefinition : AppDefinition
             var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
             options.IncludeXmlComments(xmlPath);
 
-            options.ResolveConflictingActions(descriptions => descriptions.First());
-
             options.AddSecurityDefinition("oauth2", new()
             {
                 Description = "OAuth2.0 Authorization",

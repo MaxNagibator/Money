@@ -1,0 +1,211 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
+import type { ComputedRef, Ref } from 'vue'
+import { computed, shallowRef, watch } from 'vue'
+import type { OperationDraft, OperationFilter } from '@/api/adapters/operations'
+import {
+  createOperation,
+  deleteOperation,
+  fetchOperations,
+  restoreOperation,
+  transferOperations,
+  updateOperation,
+} from '@/api/adapters/operations'
+import type { Category } from '@/domain/category'
+import { Money } from '@/domain/money'
+import type { Operation, OperationsDay } from '@/domain/operation'
+import { calculateDayTotal, fillEmptyDays, groupOperationsByDay } from '@/domain/operation'
+import type { OperationTypeId } from '@/domain/operation-type'
+import { OPERATION_TYPES } from '@/domain/operation-type'
+import type { OperationFilters } from './filters'
+import { toOperationFilter } from './filters'
+import { clearPinnedOperations, pinnedOperationsMatching, pinOperation, pinsEpoch, unpinOperation } from './operation-pins'
+
+export const OPERATIONS_QUERY_KEY = 'operations'
+
+export interface OperationsState {
+  days: ComputedRef<OperationsDay[]>
+  isLoading: ComputedRef<boolean>
+  errorMessage: ComputedRef<string | null>
+  totals: ComputedRef<Record<OperationTypeId, Money>>
+  search: () => Promise<void>
+  create: (draft: OperationDraft) => Promise<void>
+  update: (id: number, draft: OperationDraft) => Promise<void>
+  remove: (id: number) => Promise<void>
+  restore: (id: number) => Promise<void>
+  transfer: (categoryId: number) => Promise<void>
+}
+
+export function useOperations(
+  filters: OperationFilters,
+  categories: Ref<readonly Category[]> | ComputedRef<readonly Category[]>,
+): OperationsState {
+  const queryClient = useQueryClient()
+  const tombstones = shallowRef(new Map<number, Operation>())
+
+  const filter = computed<OperationFilter>(() => toOperationFilter(filters))
+
+  const query = useQuery({
+    queryKey: computed(() => [OPERATIONS_QUERY_KEY, filter.value]),
+    queryFn: () => fetchOperations(filter.value, categories.value),
+  })
+
+  const filterKey = computed(() => {
+    const value = filter.value
+
+    return [value.dateFrom, value.dateTo, value.categoryIds.join(','), value.comment, value.place].join(' ')
+  })
+
+  watch(filterKey, () => {
+    tombstones.value = new Map()
+    clearPinnedOperations()
+  })
+
+  const operations = computed<Operation[]>(() => {
+    const known = new Map(categories.value.map(category => [category.id, category]))
+    const buried = tombstones.value
+    const saved = pinnedOperationsMatching(filter.value)
+
+    const project = (operation: Operation, isDeleted: boolean): Operation => {
+      const category = known.get(operation.categoryId) ?? operation.category
+
+      if (category === operation.category && isDeleted === operation.isDeleted) {
+        return operation
+      }
+
+      return { ...operation, category, isDeleted }
+    }
+
+    const loaded = query.data.value ?? []
+    const loadedIds = new Set(loaded.map(operation => operation.id))
+
+    const merged = [
+      ...loaded.map(operation => saved.get(operation.id) ?? operation),
+      ...[...saved.values()].filter(operation => !loadedIds.has(operation.id)),
+    ]
+
+    const mergedIds = new Set(merged.map(operation => operation.id))
+
+    return [
+      ...merged.map(operation => project(operation, buried.has(operation.id))),
+      ...[...buried.values()]
+        .filter(operation => !mergedIds.has(operation.id))
+        .map(operation => project(operation, true)),
+    ]
+  })
+
+  const grouped = computed(() => groupOperationsByDay(operations.value))
+
+  const days = computed(() => (filters.showEmptyDays ? fillEmptyDays(grouped.value) : grouped.value))
+
+  const totals = computed(() => periodTotals(grouped.value))
+
+  const errorMessage = computed(() => {
+    const error = query.error.value
+
+    return error === null ? null : error.message
+  })
+
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: [OPERATIONS_QUERY_KEY] })
+
+  const pin = (id: number, draft: OperationDraft, since: number): void => {
+    const previous = operations.value.find(operation => operation.id === id)
+
+    pinOperation(id, draft, previous?.createdTaskId ?? null, since)
+  }
+
+  const createMutation = useMutation({
+    mutationFn: (draft: OperationDraft) => createOperation(draft),
+    onMutate: () => ({ since: pinsEpoch() }),
+    onSuccess: (id, draft, started) => {
+      pin(id, draft, started.since)
+
+      return invalidate()
+    },
+  })
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, draft }: { id: number, draft: OperationDraft }) => updateOperation(id, draft),
+    onMutate: () => ({ since: pinsEpoch() }),
+    onSuccess: (_, { id, draft }, started) => {
+      pin(id, draft, started.since)
+
+      return invalidate()
+    },
+  })
+
+  const removeMutation = useMutation({
+    mutationFn: (id: number) => deleteOperation(id),
+    onSuccess: (_, id) => {
+      const removed = operations.value.find(operation => operation.id === id)
+
+      unpinOperation(id)
+
+      if (removed === undefined) {
+        return
+      }
+
+      tombstones.value = new Map(tombstones.value).set(id, removed)
+    },
+  })
+
+  const transferMutation = useMutation({
+    mutationFn: (categoryId: number) => transferOperations(visibleIds(days.value), categoryId),
+    onSuccess: () => {
+      clearPinnedOperations()
+
+      return invalidate()
+    },
+  })
+
+  const restoreMutation = useMutation({
+    mutationFn: (id: number) => restoreOperation(id),
+    onSuccess: (_, id) => {
+      const next = new Map(tombstones.value)
+
+      next.delete(id)
+      tombstones.value = next
+
+      return invalidate()
+    },
+  })
+
+  return {
+    days,
+    isLoading: computed(() => query.isPending.value),
+    errorMessage,
+    totals,
+    search: async () => {
+      clearPinnedOperations()
+      await queryClient.refetchQueries({ queryKey: [OPERATIONS_QUERY_KEY, filter.value], exact: true })
+    },
+    create: async draft => {
+      await createMutation.mutateAsync(draft)
+    },
+    update: async (id, draft) => {
+      await updateMutation.mutateAsync({ id, draft })
+    },
+    remove: async id => {
+      await removeMutation.mutateAsync(id)
+    },
+    restore: async id => {
+      await restoreMutation.mutateAsync(id)
+    },
+    transfer: async categoryId => {
+      await transferMutation.mutateAsync(categoryId)
+    },
+  }
+}
+
+function visibleIds(days: readonly OperationsDay[]): number[] {
+  return days.flatMap(day => day.operations.map(operation => operation.id))
+}
+
+function periodTotals(days: readonly OperationsDay[]): Record<OperationTypeId, Money> {
+  const totals: Record<OperationTypeId, Money> = { 1: Money.zero, 2: Money.zero }
+
+  for (const { id } of OPERATION_TYPES) {
+    totals[id] = days.reduce((total, day) => total.add(calculateDayTotal(day, id)), Money.zero)
+  }
+
+  return totals
+}

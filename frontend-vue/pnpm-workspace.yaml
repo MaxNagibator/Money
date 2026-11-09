@@ -1,0 +1,6 @@
+allowBuilds:
+  vue-demi: true
+
+minimumReleaseAgeExclude:
+  - '@tanstack/query-core@5.102.0'
+  - '@tanstack/vue-query@5.102.0'

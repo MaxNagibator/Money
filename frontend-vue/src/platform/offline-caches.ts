@@ -1,0 +1,6 @@
+export const API_CACHE_NAME = 'money-api'
+export const CONFIG_CACHE_NAME = 'money-config'
+export const OFFLINE_COPY_HEADER = 'X-Money-Offline-Copy'
+export const EXPIRATION_DATABASE = 'workbox-expiration'
+export const RELEASE_EXPIRATION_MESSAGE = 'MONEY_RELEASE_EXPIRATION'
+export const EXPIRATION_RELEASED = 'MONEY_EXPIRATION_RELEASED'
