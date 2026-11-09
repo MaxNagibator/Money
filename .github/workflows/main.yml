@@ -24,8 +24,7 @@ env:
   API_PROJECT_FILE: 'backend\Money.Api\Money.Api.csproj'
   API_PUBLISH_FOLDER: 'publish\api'
   
-  WEB_PROJECT_FILE: 'frontend\Money.Web\Money.Web.csproj'
-  WEB_PUBLISH_FOLDER: 'publish\web'
+  WEB_PUBLISH_FOLDER: 'frontend-vue\dist'
 
 jobs:
   build:
@@ -103,37 +102,52 @@ jobs:
           # Отключаем шару
           net use \\$SambaServer\$SambaShare /delete /y
 
-      - name: Restore workload
-        run: dotnet workload restore ${{ env.WEB_PROJECT_FILE }}
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: frontend-vue/package.json
 
-      - name: WEB Restore dependencies
-        run: dotnet restore ${{ env.WEB_PROJECT_FILE }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: frontend-vue/.node-version
+          cache: pnpm
+          cache-dependency-path: frontend-vue/pnpm-lock.yaml
 
-      - name: WEB Publish
-        env:
-          TMP: ${{ runner.temp }}
-          TEMP: ${{ runner.temp }}
-        run: dotnet publish ${{ env.WEB_PROJECT_FILE }} -c ${{ github.event.inputs.configuration }} -o ${{ env.WEB_PUBLISH_FOLDER }} ${{ github.event.inputs.configuration == 'debug' && '-p:RunAOTCompilation=false -p:BlazorEnableCompression=false' || '' }}
+      - name: WEB Install dependencies
+        working-directory: ./frontend-vue
+        run: pnpm install --frozen-lockfile
 
-      - name: WEB Copy new files
+      - name: WEB Build Vue
+        working-directory: ./frontend-vue
+        run: pnpm build
+
+      - name: WEB Deploy Vue
+        shell: pwsh
         env:
           SAMBA_USER: ${{ vars.SAMBA_USER }}
           SAMBA_PASS: ${{ secrets.SAMBA_PASS }}
         run: |
           $SambaServer = "192.168.0.17"
           $SambaShare = "publish"
-          $DestDir = "\\$SambaServer\$SambaShare\bob217money\production\web"
-          
-          # Подключаем SMB-шару с аутентификацией
-          net use \\$SambaServer\$SambaShare /user:$env:SAMBA_USER $env:SAMBA_PASS /persistent:no
-          
-          # Создаем папку назначения (если её нет)
-          if (-not (Test-Path -Path $DestDir)) {
-            New-Item -ItemType Directory -Path $DestDir -Force | Out-Null
+          $DestDir = "\\$SambaServer\$SambaShare\bob217money\production\web-vue"
+          $SourceDir = (Resolve-Path "${{ env.WEB_PUBLISH_FOLDER }}").Path
+
+          & net.exe use \\$SambaServer\$SambaShare "/user:$env:SAMBA_USER" $env:SAMBA_PASS /persistent:no
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to connect to \\$SambaServer\$SambaShare"
           }
-          
-          # Копируем всё содержимое (рекурсивно)
-          Copy-Item -Path "${{ env.WEB_PUBLISH_FOLDER }}\*" -Destination $DestDir -Recurse -Force -Exclude "web.config", "appsettings.json", "nlog.config"
-          
-          # Отключаем шару
-          net use \\$SambaServer\$SambaShare /delete /y
+
+          try {
+            New-Item -ItemType Directory -Path $DestDir -Force | Out-Null
+
+            # Mirror only the dedicated Vue directory. The existing Blazor Web directory is untouched.
+            # appsettings.json is managed directly on the server and must survive mirrored deployments.
+            & robocopy.exe $SourceDir $DestDir /MIR /XF appsettings.json /R:2 /W:2 /NFL /NDL /NP
+            if ($LASTEXITCODE -ge 8) {
+              throw "Robocopy failed with exit code $LASTEXITCODE"
+            }
+          }
+          finally {
+            & net.exe use \\$SambaServer\$SambaShare /delete /y
+          }

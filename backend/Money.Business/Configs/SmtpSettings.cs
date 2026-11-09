@@ -1,9 +1,8 @@
-using System.Security;
-
-namespace Money.Business.Configs;
+﻿namespace Money.Business.Configs;
 
 public class SmtpSettings
 {
+    public bool SendToConsole { get; init; }
     public required string Host { get; init; }
     public required int Port { get; init; }
     public required string UserName { get; init; }
