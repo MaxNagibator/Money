@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <link rel="preload" href="/appsettings.json" as="fetch" crossorigin />
+    <meta name="description" content="Филочки – личный учёт доходов и расходов: операции, категории, статистика, долги и регулярные платежи." />
+    <title>Филочки</title>
+    <script>
+      (function () {
+        function read(key) {
+          try {
+            return JSON.parse(localStorage.getItem('money:' + key) || 'null')
+          } catch (error) {
+            return null
+          }
+        }
+
+        function pick(value) {
+          return value === 'light' || value === 'dark' ? value : null
+        }
+
+        var schedule = read('settings:theme-schedule')
+        var scheduled = schedule !== null && typeof schedule === 'object' && schedule.isEnabled === true
+        var system = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        var fallback = scheduled ? pick(read('theme-effective')) || system : system
+
+        document.documentElement.dataset.mudTheme = pick(read('theme')) || fallback
+      })()
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/app/main.ts"></script>
+  </body>
+</html>

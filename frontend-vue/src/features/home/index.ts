@@ -1,0 +1,5 @@
+export type { ChangeType, VersionChange, VersionHistoryEntry } from './model/version-entry'
+export { currentVersion } from './model/version-entry'
+export { VERSION_HISTORY } from './model/version-history'
+export { default as HomePromo } from './ui/HomePromo.vue'
+export { default as VersionHistorySection } from './ui/VersionHistorySection.vue'

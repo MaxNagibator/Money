@@ -1,0 +1,27 @@
+.list-flow-host {
+  position: relative;
+}
+
+.list-flow-enter-active {
+  transition: opacity 0.2s cubic-bezier(0, 0, 0.2, 1), transform 0.2s cubic-bezier(0, 0, 0.2, 1);
+}
+
+.list-flow-enter-from {
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+.list-flow-leave-active {
+  position: absolute;
+  box-sizing: border-box;
+  pointer-events: none;
+  transition: opacity 0.15s cubic-bezier(0.4, 0, 1, 1);
+}
+
+.list-flow-leave-to {
+  opacity: 0;
+}
+
+.list-flow-move {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}

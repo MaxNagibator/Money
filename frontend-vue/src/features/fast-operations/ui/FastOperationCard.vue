@@ -1,0 +1,264 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import { formatMoneyPlain } from '@/platform/format'
+import {
+  mdDelete,
+  mdModeEdit,
+  mdRestore,
+  mdSort,
+  mdWarningAmber,
+} from '@/shared/icons'
+import {
+  MudCard,
+  MudCardActions,
+  MudCardContent,
+  MudCardHeader,
+  MudChip,
+  MudDivider,
+  MudIcon,
+  MudIconButton,
+  MudSpacer,
+  MudText,
+  MudTooltip,
+} from '@/shared/mud'
+import RecordRow from '@/shared/ui/RecordRow.vue'
+import { operationRoleVariables } from '@/shared/ui/record-card'
+import { useNarrowViewport } from '@/shared/ui/useNarrowViewport'
+import type { FastOperationKind, FastOperationView } from '../model/fast-operation-list'
+import { categoryNameOf, fastOperationKind } from '../model/fast-operation-list'
+
+const TONE_CLASS: Record<FastOperationKind, string | null> = {
+  expense: null,
+  income: null,
+  unknown: 'record-card--tentative',
+  deleted: 'record-card--muted',
+}
+
+const props = defineProps<{ operation: FastOperationView }>()
+
+const emit = defineEmits<{
+  edit: [view: FastOperationView]
+  remove: [view: FastOperationView]
+  restore: [view: FastOperationView]
+}>()
+
+const kind = computed(() => fastOperationKind(props.operation))
+const categoryName = computed(() => categoryNameOf(props.operation))
+const role = computed(() => operationRoleVariables(props.operation.category?.operationTypeId ?? null))
+const hasComment = computed(() => (props.operation.comment ?? '').length > 0)
+const isNarrow = useNarrowViewport()
+</script>
+
+<template>
+  <RecordRow
+    v-if="isNarrow"
+    :data-testid="`fast-operations-card-${operation.id}`"
+    :deleted="operation.isDeleted"
+    :edit-label="`Изменить быструю операцию ${operation.name}, ${categoryName}`"
+    :edit-test-id="`fast-operations-edit-${operation.id}`"
+    :operation-type-id="operation.category?.operationTypeId ?? null"
+    :restore-label="`Восстановить быструю операцию ${operation.name}, ${categoryName}`"
+    :restore-test-id="`fast-operations-restore-${operation.id}`"
+    :sum="operation.sum"
+    :sum-test-id="`fast-operations-sum-${operation.id}`"
+    @edit="emit('edit', operation)"
+    @restore="emit('restore', operation)"
+  >
+    <template #title>
+      {{ operation.name }}
+    </template>
+
+    <template #meta>
+      <MudIcon
+        v-if="operation.category === null"
+        :icon="mdWarningAmber"
+        color="warning"
+        size="small"
+      />
+      <span :data-testid="`fast-operations-category-${operation.id}`">{{ categoryName }}</span>
+      <template v-if="hasComment">
+        <span>&nbsp;·&nbsp;</span>
+        <span :data-testid="`fast-operations-comment-${operation.id}`">{{ operation.comment }}</span>
+      </template>
+    </template>
+  </RecordRow>
+
+  <MudCard
+    v-else
+    :class="[`fast-operation-card--${kind}`, TONE_CLASS[kind]]"
+    :data-testid="`fast-operations-card-${operation.id}`"
+    :style="role"
+    class="fast-operation-card record-card d-flex flex-column"
+  >
+    <MudCardHeader style="padding: 4px 6px;">
+      <MudTooltip
+        root-class="mud-card-header-text record-card-title"
+        :text="operation.name"
+      >
+        <MudText
+          class="mud-card-header-text record-card-title"
+          :title="operation.name"
+          typo="h6"
+        >
+          {{ operation.name }}
+        </MudText>
+      </MudTooltip>
+    </MudCardHeader>
+
+    <MudCardContent style="padding: 4px 6px">
+      <MudTooltip
+        arrow
+        placement="right"
+        text="Категория"
+      >
+        <MudText
+          :class="{ 'record-card-muted-text': operation.category === null }"
+          :data-testid="`fast-operations-category-${operation.id}`"
+          class="d-flex align-center gap-1"
+          html-tag="div"
+          title="Категория"
+          typo="subtitle2"
+        >
+          <MudIcon
+            v-if="operation.category === null"
+            :icon="mdWarningAmber"
+            color="warning"
+            size="small"
+          />
+          <span class="record-card-truncate">{{ categoryName }}</span>
+        </MudText>
+      </MudTooltip>
+
+      <MudDivider class="mb-1" />
+
+      <MudTooltip
+        arrow
+        placement="right"
+        text="Сумма"
+      >
+        <MudText
+          :data-testid="`fast-operations-sum-${operation.id}`"
+          html-tag="div"
+          title="Сумма"
+          typo="body2"
+        >
+          {{ formatMoneyPlain(operation.sum) }}
+        </MudText>
+      </MudTooltip>
+
+      <template v-if="operation.place !== null && operation.place.length > 0">
+        <MudDivider class="mb-1" />
+
+        <MudTooltip
+          arrow
+          placement="right"
+          text="Место"
+        >
+          <MudText
+            :data-testid="`fast-operations-place-${operation.id}`"
+            html-tag="div"
+            title="Место"
+            typo="body2"
+          >
+            {{ operation.place }}
+          </MudText>
+        </MudTooltip>
+      </template>
+
+      <template v-if="operation.comment !== null && operation.comment.length > 0">
+        <MudDivider class="mb-1" />
+
+        <MudTooltip
+          arrow
+          placement="right"
+          text="Комментарий"
+        >
+          <MudText
+            :data-testid="`fast-operations-comment-${operation.id}`"
+            html-tag="div"
+            title="Комментарий"
+            typo="body2"
+          >
+            {{ operation.comment }}
+          </MudText>
+        </MudTooltip>
+      </template>
+    </MudCardContent>
+
+    <MudCardActions
+      class="mt-auto"
+      style="padding: 4px 2px"
+    >
+      <MudTooltip
+        v-if="operation.order !== null"
+        text="Приоритет сортировки"
+      >
+        <MudChip
+          :data-testid="`fast-operations-order-${operation.id}`"
+          :icon="mdSort"
+          :text="String(operation.order)"
+          size="small"
+          title="Приоритет сортировки"
+        />
+      </MudTooltip>
+
+      <MudSpacer />
+
+      <MudTooltip
+        v-if="operation.isDeleted"
+        text="Восстановить"
+      >
+        <MudIconButton
+          :data-testid="`fast-operations-restore-${operation.id}`"
+          :icon="mdRestore"
+          aria-label="Восстановить"
+          color="success"
+          size="small"
+          title="Восстановить"
+          @click="emit('restore', operation)"
+        />
+      </MudTooltip>
+
+      <template v-else>
+        <MudTooltip text="Редактировать">
+          <MudIconButton
+            :data-testid="`fast-operations-edit-${operation.id}`"
+            :icon="mdModeEdit"
+            aria-label="Редактировать"
+            color="warning"
+            size="small"
+            title="Редактировать"
+            @click="emit('edit', operation)"
+          />
+        </MudTooltip>
+
+        <MudTooltip text="Удалить">
+          <MudIconButton
+            :data-testid="`fast-operations-delete-${operation.id}`"
+            :icon="mdDelete"
+            aria-label="Удалить"
+            size="small"
+            title="Удалить"
+            @click="emit('remove', operation)"
+          />
+        </MudTooltip>
+      </template>
+    </MudCardActions>
+  </MudCard>
+</template>
+
+<style scoped src="@/shared/ui/record-card.css"></style>
+
+<style scoped>
+.record-card-title,
+.record-card-truncate {
+  overflow: hidden;
+  max-width: 100%;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.record-card-muted-text {
+  color: var(--mud-palette-text-secondary);
+}
+</style>

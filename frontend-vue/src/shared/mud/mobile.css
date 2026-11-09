@@ -1,0 +1,129 @@
+:root {
+  --app-bottom-nav-height: 0px;
+}
+
+@media (max-width: 599.98px) {
+  body.app-bottom-nav-shown {
+    --app-bottom-nav-height: calc(var(--mud-appbar-height) + env(safe-area-inset-bottom));
+  }
+
+  .mud-layout {
+    --mud-drawer-width-left: min(85vw, 320px);
+  }
+
+  .mud-main-content.px-8 {
+    padding-top: 60px !important;
+    padding-right: 16px !important;
+    padding-left: 16px !important;
+  }
+
+  .mud-main-content.app-mobile-shell {
+    padding-top: 12px !important;
+    padding-bottom: calc(var(--app-bottom-nav-height) + 8px) !important;
+  }
+
+  .mud-typography-h3 {
+    font-size: 1.5rem;
+  }
+
+  .mud-main-content .mud-container--gutters {
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  #mud-snackbar-container.mud-snackbar-location-bottom-right {
+    bottom: calc(24px + var(--app-bottom-nav-height));
+  }
+
+  .mud-appbar.mud-theme-transparent {
+    background-color: var(--mud-palette-surface) !important;
+    box-shadow: 0 1px 0 var(--mud-palette-lines-default);
+    pointer-events: auto !important;
+  }
+
+  .mud-appbar .app-bar-actions {
+    flex-direction: row !important;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    margin-top: 0 !important;
+    margin-left: 0 !important;
+  }
+
+  .mud-appbar .mud-badge.mud-badge-bottom.right.mud-badge-overlap {
+    top: calc(100% - 17px);
+  }
+
+  .mud-appbar .app-bar-title {
+    flex: 1 1 auto;
+    margin: 0;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .mud-button-root {
+    min-height: 44px;
+  }
+
+  .mud-icon-button {
+    min-width: 44px !important;
+    min-height: 44px !important;
+  }
+
+  .mud-picker-color-toolbar .mud-icon-button {
+    min-width: 0 !important;
+    min-height: 0 !important;
+  }
+
+  .mud-nav-link {
+    min-height: 48px;
+  }
+
+  .mud-checkbox {
+    align-items: flex-start;
+  }
+
+  .mud-input-control.mud-input-number-control .mud-input-numeric-spin {
+    display: none;
+  }
+
+  .mud-tabs-scroll-button {
+    display: none;
+  }
+
+  .mud-tabs-tabbar-content {
+    overflow-x: auto;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+    overscroll-behavior-x: contain;
+  }
+
+  .mud-tabs-tabbar-content::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mud-tab {
+    scroll-snap-align: start;
+  }
+
+  .mud-drawer {
+    overscroll-behavior: contain;
+  }
+
+  body.app-drawer-locked {
+    overflow: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

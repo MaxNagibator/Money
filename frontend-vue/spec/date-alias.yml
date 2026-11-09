@@ -1,0 +1,167 @@
+today: '2026-08-22'
+
+normalization:
+  - внешние пробелы обрезаются
+  - регистр приводится к нижнему
+  - явная дата принимается только в форматах d.M.yyyy, dd.MM.yyyy, d.MM.yyyy, dd.M.yyyy
+
+rules:
+  - пустой или пробельный ввод разбирается в null, а очистит он значение или оставит прежнее, решает поле: диалог операции ставит blankKeepsValue и держит прежнюю дату, остальные поля значение очищают
+  - годы с 1 по 99 отвергаются, так как Date.UTC отображает их в 1900+
+  - невалидный ввод оставляет прежнее значение и текст пользователя, наружу отдаётся null, как в поле суммы
+
+cases:
+  - input: 'с'
+    expected: '2026-08-22'
+
+  - input: 'сегодня'
+    expected: '2026-08-22'
+
+  - input: 'С'
+    expected: '2026-08-22'
+    note: регистр не важен
+
+  - input: '  с  '
+    expected: '2026-08-22'
+    note: внешние пробелы обрезаются
+
+  - input: 'з'
+    expected: '2026-08-23'
+
+  - input: 'завтра'
+    expected: '2026-08-23'
+
+  - input: 'ЗАВТРА'
+    expected: '2026-08-23'
+
+  - input: 'пз'
+    expected: '2026-08-24'
+
+  - input: 'послезавтра'
+    expected: '2026-08-24'
+
+  - input: 'ппз'
+    expected: '2026-08-25'
+
+  - input: 'послепослезавтра'
+    expected: '2026-08-25'
+
+  - input: 'пппз'
+    expected: '2026-08-26'
+
+  - input: 'в'
+    expected: '2026-08-21'
+
+  - input: 'вчера'
+    expected: '2026-08-21'
+
+  - input: 'пв'
+    expected: '2026-08-20'
+
+  - input: 'позавчера'
+    expected: '2026-08-20'
+
+  - input: 'ппв'
+    expected: '2026-08-19'
+
+  - input: 'позапозавчера'
+    expected: '2026-08-19'
+
+  - input: 'пппв'
+    expected: '2026-08-18'
+
+  - input: '22.08.2026'
+    expected: '2026-08-22'
+
+  - input: '1.1.2026'
+    expected: '2026-01-01'
+
+  - input: '01.01.2026'
+    expected: '2026-01-01'
+
+  - input: '1.01.2026'
+    expected: '2026-01-01'
+
+  - input: '01.1.2026'
+    expected: '2026-01-01'
+
+  - input: '31.12.2026'
+    expected: '2026-12-31'
+
+  - input: '29.02.2028'
+    expected: '2028-02-29'
+    note: високосный год
+
+  - input: '22.08.26'
+    expected: null
+    note: двузначный год не поддерживается
+
+  - input: '22/08/2026'
+    expected: null
+    note: разделитель только точка
+
+  - input: '22.08'
+    expected: null
+    note: год обязателен
+
+  - input: '22082026'
+    expected: null
+
+  - input: '31.02.2026'
+    expected: null
+    note: календарно несуществующая дата
+
+  - input: '29.02.2026'
+    expected: null
+    note: 2026 не високосный
+
+  - input: '22.13.2026'
+    expected: null
+    note: несуществующий месяц
+
+  - input: 'зз'
+    expected: null
+
+  - input: 'вв'
+    expected: null
+
+  - input: 'позавтра'
+    expected: null
+    note: смешение полной и краткой форм не поддерживается
+
+  - input: 'пзавтра'
+    expected: null
+
+  - input: 'с егодня'
+    expected: null
+    note: внутренние пробелы не допускаются
+
+  - input: '22. 08.2026'
+    expected: null
+    note: внутренние пробелы не допускаются и в явной дате
+
+  - input: 'пвчера'
+    expected: null
+    note: смешение форм не работает и на прошлой стороне
+
+  - input: 'послевчера'
+    expected: null
+
+  - input: '0.1.2026'
+    expected: null
+    note: нулевой день
+
+  - input: '22.0.2026'
+    expected: null
+    note: нулевой месяц
+
+  - input: 'asdf'
+    expected: null
+
+  - input: ''
+    expected: null
+    note: разбор даёт null, диалог операции под blankKeepsValue оставляет прежнюю дату; поля без флага значение очищают
+
+  - input: '   '
+    expected: null
+    note: то же, что для пустой строки
