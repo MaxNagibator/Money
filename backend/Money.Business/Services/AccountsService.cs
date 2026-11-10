@@ -1,4 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
+using Money.Business.Configs;
 using Money.Data.Entities;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -9,11 +12,16 @@ public partial class AccountsService(
     RequestEnvironment environment,
     UserManager<ApplicationUser> userManager,
     ApplicationDbContext context,
-    QueueHolder queueHolder)
+    QueueHolder queueHolder,
+    IMemoryCache memoryCache,
+    IOptions<AccountSettings> options)
 {
+    private static readonly object ConfirmStateLock = new();
+    private readonly AccountSettings _settings = options.Value;
+
     public async Task RegisterAsync(RegisterAccount model, CancellationToken cancellationToken = default)
     {
-        if (UserNameRegex().IsMatch(model.UserName) == false)
+        if (!UserNameRegex().IsMatch(model.UserName))
         {
             throw new EntityExistsException("Извините, но имя пользователя не может содержать служебные символы.");
         }
@@ -57,7 +65,7 @@ public partial class AccountsService(
 
         var result = await userManager.CreateAsync(user, model.Password);
 
-        if (result.Succeeded == false)
+        if (!result.Succeeded)
         {
             throw new IncorrectDataException($"Ошибки: {string.Join("; ", result.Errors.Select(error => error.Description))}");
         }
@@ -94,12 +102,11 @@ public partial class AccountsService(
         else
         {
             var result = await userManager.ChangePasswordAsync(user, currentPassword, newPassword);
-            if (result.Succeeded == false)
+            if (!result.Succeeded)
             {
                 throw new IncorrectDataException($"Ошибки: {string.Join("; ", result.Errors.Select(error => error.Description))}");
             }
         }
-
     }
 
     public async Task<int> EnsureUserIdAsync(Guid authUserId, CancellationToken cancellationToken = default)
@@ -133,13 +140,31 @@ public partial class AccountsService(
             throw new BusinessException("Простите, но у вас не заполнен email.");
         }
 
-        if (user.EmailConfirmCode != confirmCode)
+        var attemptsKey = $"confirm-email-attempts:{user.Id}";
+
+        lock (ConfirmStateLock)
         {
-            throw new BusinessException("Извините, код подтверждения недействительный.");
+            var failedAttempts = memoryCache.Get<int>(attemptsKey);
+
+            if (failedAttempts >= _settings.MaxConfirmEmailFailedAttempts)
+            {
+                throw new BusinessException("Слишком много неудачных попыток подтверждения. Попробуйте позже или запросите новый код.");
+            }
+
+            if (user.EmailConfirmCode != confirmCode)
+            {
+                memoryCache.Set(attemptsKey, failedAttempts + 1, _settings.ConfirmEmailLockoutDuration);
+                throw new BusinessException("Извините, код подтверждения недействительный.");
+            }
         }
 
         user.EmailConfirmed = true;
         await context.SaveChangesAsync(cancellationToken);
+
+        lock (ConfirmStateLock)
+        {
+            memoryCache.Remove(attemptsKey);
+        }
     }
 
     public async Task ResendConfirmCodeAsync(CancellationToken cancellationToken = default)
@@ -161,12 +186,41 @@ public partial class AccountsService(
             throw new BusinessException("Простите, но у вас не заполнен email.");
         }
 
-        // TODO: Проверка на повторную отправку по времени (защита от частых запросов)
+        var cooldownKey = $"resend-confirm-code:{user.Id}";
 
-        user.EmailConfirmCode = GetCode(6);
-        await context.SaveChangesAsync(cancellationToken);
+        lock (ConfirmStateLock)
+        {
+            if (memoryCache.TryGetValue(cooldownKey, out _))
+            {
+                throw new BusinessException("Повторная отправка кода возможна не чаще одного раза в минуту.");
+            }
 
-        SendEmail(user.UserName!, user.Email, user.EmailConfirmCode);
+            memoryCache.Set(cooldownKey, true, _settings.ResendConfirmCodeCooldown);
+        }
+
+        var confirmCode = GetCode(6);
+
+        try
+        {
+            user.EmailConfirmCode = confirmCode;
+            await context.SaveChangesAsync(cancellationToken);
+        }
+        catch
+        {
+            lock (ConfirmStateLock)
+            {
+                memoryCache.Remove(cooldownKey);
+            }
+
+            throw;
+        }
+
+        lock (ConfirmStateLock)
+        {
+            memoryCache.Remove($"confirm-email-attempts:{user.Id}");
+        }
+
+        SendEmail(user.UserName!, user.Email, confirmCode);
     }
 
     private static string GetCode(int length, string allowedChars = "1234567890")

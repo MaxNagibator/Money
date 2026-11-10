@@ -143,7 +143,11 @@ export const useSessionStore = defineStore('session', () => {
 
       return refreshed.accessToken
     } catch (error) {
-      if (started !== identity || error instanceof NetworkError || (error instanceof AuthError && error.status >= 500)) {
+      if (
+        started !== identity
+        || error instanceof NetworkError
+        || (error instanceof AuthError && (error.status === 429 || error.status >= 500))
+      ) {
         return tokens.value?.accessToken ?? null
       }
 

@@ -306,6 +306,7 @@ describe('сохранённые ответы API', () => {
 
   it.each([
     ['обрыв сети', new NetworkError('нет сети')],
+    ['временное ограничение частоты запросов', new AuthError('Too Many Requests', 429)],
     ['отказ прокси при лежащем API', new AuthError('Bad Gateway', 502)],
   ])('%s при обновлении токена сессию не гасит и сохранённое не стирает', async (_case, failure) => {
     store.set(TOKENS_KEY, tokens(-1_000))
