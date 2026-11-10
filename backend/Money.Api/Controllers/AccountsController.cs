@@ -1,5 +1,7 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using Money.Api.Definitions;
 using Money.Api.Dto.Accounts;
 using OpenIddict.Validation.AspNetCore;
 
@@ -7,6 +9,7 @@ namespace Money.Api.Controllers;
 
 [ApiController]
 [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
+[EnableRateLimiting(AuthorizationDefinition.SensitiveAuthPolicy)]
 [Route("[controller]")]
 public class AccountsController(AccountsService service) : ControllerBase
 {

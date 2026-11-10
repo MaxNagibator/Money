@@ -6,7 +6,10 @@ import type { AuthTokens } from '../api/auth-api'
 import { AuthError, requestPasswordGrant, requestRefreshGrant, revokeRefreshToken } from '../api/auth-api'
 import { setSessionChangeHandler, useSessionStore } from './session'
 
-const { store } = vi.hoisted(() => ({ store: new Map<string, unknown>() }))
+const { store, storageListeners } = vi.hoisted(() => ({
+  store: new Map<string, unknown>(),
+  storageListeners: new Map<string, Set<(value: unknown) => void>>(),
+}))
 
 vi.mock('@/platform/storage', () => ({
   readSetting: <T>(key: string, fallback: T): T => (store.has(key) ? store.get(key) as T : fallback),
@@ -15,6 +18,21 @@ vi.mock('@/platform/storage', () => ({
   },
   removeSetting: (key: string): void => {
     store.delete(key)
+  },
+  watchSetting: <T>(key: string, _fallback: T, onChange: (value: T) => void): (() => void) => {
+    let listeners = storageListeners.get(key)
+
+    if (!listeners) {
+      listeners = new Set()
+      storageListeners.set(key, listeners)
+    }
+
+    const wrapped = onChange as (value: unknown) => void
+    listeners.add(wrapped)
+
+    return () => {
+      listeners?.delete(wrapped)
+    }
   },
 }))
 
@@ -40,6 +58,7 @@ let onSessionChange = vi.fn()
 beforeEach(() => {
   setActivePinia(createPinia())
   store.clear()
+  storageListeners.clear()
   vi.clearAllMocks()
 
   onSessionChange = vi.fn()
@@ -287,6 +306,7 @@ describe('сохранённые ответы API', () => {
 
   it.each([
     ['обрыв сети', new NetworkError('нет сети')],
+    ['временное ограничение частоты запросов', new AuthError('Too Many Requests', 429)],
     ['отказ прокси при лежащем API', new AuthError('Bad Gateway', 502)],
   ])('%s при обновлении токена сессию не гасит и сохранённое не стирает', async (_case, failure) => {
     store.set(TOKENS_KEY, tokens(-1_000))
@@ -300,6 +320,58 @@ describe('сохранённые ответы API', () => {
     expect(vi.mocked(clearApiCache)).not.toHaveBeenCalled()
   })
 })
+
+describe('синхронизация между вкладками', () => {
+  it('выход в соседней вкладке гасит сессию и очищает кэш здесь', async () => {
+    store.set(TOKENS_KEY, tokens(3_600_000))
+
+    const session = useSessionStore()
+    emitStorage(TOKENS_KEY, null)
+
+    expect(session.isAuthenticated).toBe(false)
+    await expect(session.getAccessToken()).resolves.toBeNull()
+    expect(vi.mocked(clearApiCache)).toHaveBeenCalledTimes(1)
+    expect(onSessionChange.mock.calls).toEqual([['signedOut']])
+  })
+
+  it('смена пользователя в соседней вкладке очищает кэш и переключает сессию', async () => {
+    store.set(TOKENS_KEY, tokens(3_600_000))
+
+    const session = useSessionStore()
+    emitStorage(TOKENS_KEY, {
+      accessToken: 'другой-доступ',
+      refreshToken: 'другой-рефреш',
+      expiresAt: Date.now() + 3_600_000,
+    })
+
+    expect(session.isAuthenticated).toBe(true)
+    await expect(session.getAccessToken()).resolves.toBe('другой-доступ')
+    expect(vi.mocked(clearApiCache)).toHaveBeenCalledTimes(1)
+    expect(onSessionChange.mock.calls).toEqual([['signedIn']])
+  })
+
+  it('фоновое обновление токена того же пользователя в соседней вкладке подхватывается без сброса сессии', async () => {
+    store.set(TOKENS_KEY, tokens(3_600_000))
+
+    const session = useSessionStore()
+    emitStorage(TOKENS_KEY, {
+      ...tokens(3_600_000),
+      accessToken: 'обновлённый',
+    })
+
+    await expect(session.getAccessToken()).resolves.toBe('обновлённый')
+    expect(vi.mocked(clearApiCache)).not.toHaveBeenCalled()
+    expect(onSessionChange).not.toHaveBeenCalled()
+  })
+})
+
+function emitStorage(key: string, value: unknown): void {
+  store.set(key, value)
+
+  for (const listener of storageListeners.get(key) ?? []) {
+    listener(value)
+  }
+}
 
 function tokens(expiresIn: number): AuthTokens {
   return {

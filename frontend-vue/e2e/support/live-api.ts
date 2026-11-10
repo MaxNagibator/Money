@@ -29,7 +29,7 @@ interface TokenPayload {
 }
 
 export function newCredentials(): LiveCredentials {
-  const suffix = Math.random().toString(36).slice(2, 8)
+  const suffix = crypto.randomUUID().slice(0, 6)
 
   return { userName: `smoke${Date.now()}${suffix}`, password: 'SmokePass123!' }
 }

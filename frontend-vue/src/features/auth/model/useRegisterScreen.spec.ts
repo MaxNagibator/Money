@@ -16,6 +16,7 @@ vi.mock('@/platform/storage', () => ({
   removeSetting: (key: string): void => {
     store.delete(key)
   },
+  watchSetting: (): (() => void) => () => {},
 }))
 
 vi.mock('@/api/adapters/accounts', async importOriginal => ({

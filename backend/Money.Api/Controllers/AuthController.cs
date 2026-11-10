@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using Money.Api.Definitions;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 using System.Security.Claims;
@@ -24,6 +26,7 @@ public class AuthController(AuthService authService) : ControllerBase
     /// </remarks>
     /// <returns>Токен доступа в формате JSON.</returns>
     [HttpPost("~/connect/token")]
+    [EnableRateLimiting(AuthorizationDefinition.SensitiveAuthPolicy)]
     [IgnoreAntiforgeryToken]
     [Produces("application/json")]
     [ProducesResponseType(typeof(ClaimsPrincipal), StatusCodes.Status200OK)]

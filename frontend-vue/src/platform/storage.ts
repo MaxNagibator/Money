@@ -31,3 +31,34 @@ export function tryWriteSetting<T>(key: string, value: T): boolean {
 export function removeSetting(key: string): void {
   localStorage.removeItem(PREFIX + key)
 }
+
+export function watchSetting<T>(key: string, fallback: T, onChange: (value: T) => void): () => void {
+  if (typeof window === 'undefined') {
+    return () => undefined
+  }
+
+  const targetKey = PREFIX + key
+
+  const listener = (event: StorageEvent): void => {
+    if (event.key !== null && event.key !== targetKey) {
+      return
+    }
+
+    if (event.newValue === null) {
+      onChange(fallback)
+      return
+    }
+
+    try {
+      onChange(JSON.parse(event.newValue) as T)
+    } catch {
+      onChange(fallback)
+    }
+  }
+
+  window.addEventListener('storage', listener)
+
+  return () => {
+    window.removeEventListener('storage', listener)
+  }
+}

@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using Money.Api.Definitions;
 using Money.Data.Entities;
 using OpenIddict.Abstractions;
 using OpenIddict.Client.AspNetCore;
@@ -12,30 +14,34 @@ using System.Text.RegularExpressions;
 namespace Money.Api.Controllers;
 
 [ApiController]
+[EnableRateLimiting(AuthorizationDefinition.SensitiveAuthPolicy)]
 [Route("external")]
 public class ExternalAuthController(
     SignInManager<ApplicationUser> signInManager,
     UserManager<ApplicationUser> userManager,
     AccountsService accountsService,
-    IConfiguration configuration) : ControllerBase
+    IConfiguration configuration,
+    IHostEnvironment environment) : ControllerBase
 {
     [HttpGet("login/auth")]
     public IActionResult LoginWithAuth([FromQuery] string? returnUrl = null)
     {
+        if (!IsAllowedReturnUrl(returnUrl))
+        {
+            return BadRequest("Недопустимый адрес возврата.");
+        }
+
         var properties = new AuthenticationProperties { RedirectUri = Url.Content("~/connect/callback") };
         properties.SetString(OpenIddictClientAspNetCoreConstants.Properties.ProviderName, "Auth");
 
         var issuer = configuration["AUTH_AUTHORITY"];
 
-        if (string.IsNullOrWhiteSpace(issuer) == false)
+        if (!string.IsNullOrWhiteSpace(issuer))
         {
             properties.SetString(OpenIddictClientAspNetCoreConstants.Properties.Issuer, issuer);
         }
 
-        if (string.IsNullOrWhiteSpace(returnUrl) == false)
-        {
-            properties.Items["returnUrl"] = returnUrl;
-        }
+        properties.Items["returnUrl"] = returnUrl!;
 
         return Challenge(properties, OpenIddictClientAspNetCoreDefaults.AuthenticationScheme);
     }
@@ -43,13 +49,15 @@ public class ExternalAuthController(
     [HttpGet("login/github")]
     public IActionResult LoginWithGitHub([FromQuery] string? returnUrl = null)
     {
+        if (!IsAllowedReturnUrl(returnUrl))
+        {
+            return BadRequest("Недопустимый адрес возврата.");
+        }
+
         var properties = new AuthenticationProperties { RedirectUri = Url.Content("~/connect/callback") };
         properties.SetString(OpenIddictClientAspNetCoreConstants.Properties.ProviderName, "GitHub");
 
-        if (string.IsNullOrWhiteSpace(returnUrl) == false)
-        {
-            properties.Items["returnUrl"] = returnUrl;
-        }
+        properties.Items["returnUrl"] = returnUrl!;
 
         return Challenge(properties, OpenIddictClientAspNetCoreDefaults.AuthenticationScheme);
     }
@@ -68,6 +76,11 @@ public class ExternalAuthController(
         var userId = principal.FindFirst(OpenIddictConstants.Claims.Subject)?.Value
                      ?? principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return BadRequest("Не удалось определить идентификатор пользователя внешнего провайдера.");
+        }
+
         var email = principal.FindFirst(ClaimTypes.Email)?.Value
                     ?? principal.FindFirst(OpenIddictConstants.Claims.Email)?.Value;
 
@@ -76,16 +89,28 @@ public class ExternalAuthController(
             return BadRequest("Email обязателен для внешней аутентификации.");
         }
 
+        var isExternalEmailVerified = IsExternalEmailVerified(principal);
+
         var name = principal.FindFirst(ClaimTypes.Name)?.Value;
         var userNameCandidate = name ?? BuildValidUserName(email, userId);
 
         var providerName = result.Properties?.GetString(OpenIddictClientAspNetCoreConstants.Properties.ProviderName) ?? "GitHub";
 
-        var user = userId != null ? await userManager.FindByLoginAsync(providerName, userId) : null;
+        var user = await userManager.FindByLoginAsync(providerName, userId);
 
         if (user == null)
         {
-            user = await userManager.FindByEmailAsync(email);
+            var existingByEmail = await userManager.FindByEmailAsync(email);
+
+            if (existingByEmail != null)
+            {
+                if (!isExternalEmailVerified || !existingByEmail.EmailConfirmed)
+                {
+                    return BadRequest("Автоматическая привязка внешнего входа возможна только при подтвержденном email.");
+                }
+
+                user = existingByEmail;
+            }
         }
 
         if (user == null)
@@ -102,12 +127,12 @@ public class ExternalAuthController(
             {
                 UserName = uniqueUserName,
                 Email = email,
-                EmailConfirmed = true,
+                EmailConfirmed = isExternalEmailVerified,
             };
 
             var createResult = await userManager.CreateAsync(user);
 
-            if (createResult.Succeeded == false)
+            if (!createResult.Succeeded)
             {
                 return BadRequest(string.Join("; ", createResult.Errors.Select(e => e.Description)));
             }
@@ -115,18 +140,15 @@ public class ExternalAuthController(
             await accountsService.EnsureUserIdAsync(user.Id);
         }
 
-        if (userId != null)
+        var logins = await userManager.GetLoginsAsync(user);
+
+        if (!logins.Any(x => x.LoginProvider == providerName && x.ProviderKey == userId))
         {
-            var logins = await userManager.GetLoginsAsync(user);
+            var addLoginResult = await userManager.AddLoginAsync(user, new(providerName, userId, providerName));
 
-            if (logins.Any(x => x.LoginProvider == providerName && x.ProviderKey == userId) == false)
+            if (!addLoginResult.Succeeded)
             {
-                var addLoginResult = await userManager.AddLoginAsync(user, new(providerName, userId, providerName));
-
-                if (addLoginResult.Succeeded == false)
-                {
-                    return BadRequest(string.Join("; ", addLoginResult.Errors.Select(e => e.Description)));
-                }
+                return BadRequest(string.Join("; ", addLoginResult.Errors.Select(e => e.Description)));
             }
         }
 
@@ -134,12 +156,13 @@ public class ExternalAuthController(
 
         var props = result.Properties ?? throw new InvalidOperationException("ReturnUrl отсутствует в контексте авторизации.");
 
-        if (props.Items.TryGetValue("returnUrl", out var redirectUri) == false || string.IsNullOrWhiteSpace(redirectUri))
+        if (!props.Items.TryGetValue("returnUrl", out var redirectUri)
+            || !IsAllowedReturnUrl(redirectUri))
         {
-            throw new InvalidOperationException("ReturnUrl отсутствует в контексте авторизации.");
+            return BadRequest("Недопустимый адрес возврата.");
         }
 
-        return Redirect(redirectUri);
+        return Redirect(redirectUri!);
     }
 
     [HttpGet("denied")]
@@ -148,17 +171,67 @@ public class ExternalAuthController(
         return Forbid(CookieAuthenticationDefaults.AuthenticationScheme);
     }
 
+    private static bool IsExternalEmailVerified(ClaimsPrincipal principal)
+    {
+        var claim = principal.FindFirst(OpenIddictConstants.Claims.EmailVerified)?.Value;
+        return bool.TryParse(claim, out var verified) && verified;
+    }
+
+    private bool IsAllowedReturnUrl(string? returnUrl)
+    {
+        if (string.IsNullOrWhiteSpace(returnUrl))
+        {
+            return false;
+        }
+
+        if (Url.IsLocalUrl(returnUrl))
+        {
+            return true;
+        }
+
+        if (!Uri.TryCreate(returnUrl, UriKind.Absolute, out var targetUri))
+        {
+            return false;
+        }
+
+        if (targetUri.Scheme != Uri.UriSchemeHttp && targetUri.Scheme != Uri.UriSchemeHttps)
+        {
+            return false;
+        }
+
+        var configuredOrigins = (configuration["CORS_ORIGIN"] ?? "https://localhost:7168")
+            .Split([',', ';', ' '], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        foreach (var rawOrigin in configuredOrigins)
+        {
+            if (Uri.TryCreate(rawOrigin, UriKind.Absolute, out var allowedUri)
+                && Uri.Compare(targetUri,
+                    allowedUri,
+                    UriComponents.SchemeAndServer,
+                    UriFormat.Unescaped,
+                    StringComparison.OrdinalIgnoreCase)
+                == 0)
+            {
+                return true;
+            }
+        }
+
+        return environment.IsDevelopment()
+               && (string.Equals(targetUri.Host, "localhost", StringComparison.OrdinalIgnoreCase)
+                   || string.Equals(targetUri.Host, "127.0.0.1", StringComparison.OrdinalIgnoreCase));
+    }
+
     // TODO: Переделать на нормальный запрос у пользователя
     private static string BuildValidUserName(string? email, string? subject)
     {
         string baseName;
 
-        if (string.IsNullOrWhiteSpace(email) == false)
+        if (!string.IsNullOrWhiteSpace(email))
         {
             var at = email.IndexOf('@');
             baseName = at > 0 ? email[..at] : email;
         }
-        else if (string.IsNullOrWhiteSpace(subject) == false)
+        else if (!string.IsNullOrWhiteSpace(subject))
         {
             baseName = $"gh_{subject}";
         }

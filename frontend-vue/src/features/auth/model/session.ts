@@ -4,7 +4,7 @@ import type { SessionChange } from '@/domain/session'
 import { systemClock } from '@/platform/clock'
 import { NetworkError } from '@/platform/http'
 import { clearApiCache } from '@/platform/pwa'
-import { readSetting, removeSetting, writeSetting } from '@/platform/storage'
+import { readSetting, removeSetting, watchSetting, writeSetting } from '@/platform/storage'
 import type { AuthTokens } from '../api/auth-api'
 import { AuthError, requestExternalGrant, requestPasswordGrant, requestRefreshGrant, revokeRefreshToken } from '../api/auth-api'
 
@@ -41,10 +41,51 @@ export const useSessionStore = defineStore('session', () => {
   function forget(change: SessionChange): void {
     tokens.value = null
     removeSetting(TOKENS_KEY)
-    // TODO: вторая открытая вкладка держит прежнюю сессию в памяти и снова наполняет money-api после выхода здесь; синхронизировать выход между вкладками через событие storage, когда одним устройством начнут пользоваться разные люди
     void clearApiCache()
     sessionChangeHandler(change)
   }
+
+  watchSetting<AuthTokens | null>(TOKENS_KEY, null, next => {
+    const current = tokens.value
+
+    if (next === null) {
+      if (current === null) {
+        return
+      }
+
+      beginIdentity()
+      tokens.value = null
+      void clearApiCache()
+      sessionChangeHandler('signedOut')
+      return
+    }
+
+    if (current === null) {
+      beginIdentity()
+      tokens.value = next
+      sessionChangeHandler('signedIn')
+      return
+    }
+
+    if (
+      current.accessToken === next.accessToken
+      && current.refreshToken === next.refreshToken
+      && current.expiresAt === next.expiresAt
+    ) {
+      return
+    }
+
+    if (resolveTokenIdentity(current) !== resolveTokenIdentity(next)) {
+      beginIdentity()
+      tokens.value = next
+      void clearApiCache()
+      sessionChangeHandler('signedIn')
+      return
+    }
+
+    tokens.value = next
+    refreshedToken = next.accessToken
+  })
 
   async function signIn(userName: string, password: string): Promise<void> {
     const started = identity
@@ -60,6 +101,8 @@ export const useSessionStore = defineStore('session', () => {
 
   async function accept(started: number, granted: AuthTokens): Promise<void> {
     if (started === identity) {
+      tokens.value = null
+      removeSetting(TOKENS_KEY)
       await clearApiCache()
     }
 
@@ -100,7 +143,11 @@ export const useSessionStore = defineStore('session', () => {
 
       return refreshed.accessToken
     } catch (error) {
-      if (started !== identity || error instanceof NetworkError || (error instanceof AuthError && error.status >= 500)) {
+      if (
+        started !== identity
+        || error instanceof NetworkError
+        || (error instanceof AuthError && (error.status === 429 || error.status >= 500))
+      ) {
         return tokens.value?.accessToken ?? null
       }
 
@@ -160,3 +207,22 @@ export const useSessionStore = defineStore('session', () => {
     refreshAccessToken,
   }
 })
+
+function resolveTokenIdentity(value: AuthTokens): string {
+  const parts = value.accessToken.split('.')
+
+  if (parts.length === 3 && parts[1]) {
+    try {
+      const padded = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+      const payload = JSON.parse(atob(padded)) as { sub?: unknown }
+
+      if (typeof payload.sub === 'string' && payload.sub.length > 0) {
+        return `sub:${payload.sub}`
+      }
+    } catch {
+      return `refresh:${value.refreshToken}`
+    }
+  }
+
+  return `refresh:${value.refreshToken}`
+}

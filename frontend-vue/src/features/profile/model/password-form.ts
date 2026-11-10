@@ -1,6 +1,6 @@
 import type { PasswordChange } from '@/api/adapters/profile'
 
-export const PASSWORD_REQUIRED = 'Обязательно'
+export const FIELD_REQUIRED = 'Обязательно'
 
 export interface PasswordFormValue {
   currentPassword: string
@@ -20,11 +20,11 @@ export function validatePasswordForm(value: PasswordFormValue): PasswordFormErro
   const errors: PasswordFormErrors = {}
 
   if (value.currentPassword.length === 0) {
-    errors.currentPassword = PASSWORD_REQUIRED
+    errors.currentPassword = FIELD_REQUIRED
   }
 
   if (value.newPassword.length === 0) {
-    errors.newPassword = PASSWORD_REQUIRED
+    errors.newPassword = FIELD_REQUIRED
   }
 
   return errors

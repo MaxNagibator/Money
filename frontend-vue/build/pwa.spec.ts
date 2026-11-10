@@ -8,6 +8,7 @@ function reviveAsInServiceWorker(plugin: Plugin): Plugin {
   const revive = <T>(hook: T): T => new Function(`return (${String(hook)})`)() as T
 
   return {
+    cacheKeyWillBeUsed: revive(plugin.cacheKeyWillBeUsed),
     fetchDidSucceed: revive(plugin.fetchDidSucceed),
     handlerDidError: revive(plugin.handlerDidError),
     cachedResponseWillBeUsed: revive(plugin.cachedResponseWillBeUsed),
@@ -15,6 +16,43 @@ function reviveAsInServiceWorker(plugin: Plugin): Plugin {
 }
 
 const plugin = reviveAsInServiceWorker(offlineCopy)
+
+function makeJwt(sub: string, jti: string): string {
+  const header = btoa(JSON.stringify({ alg: 'RS256', typ: 'JWT' }))
+  const payload = btoa(JSON.stringify({ sub, jti }))
+
+  return `${header}.${payload}.sig`
+}
+
+describe('изоляция кэша API между пользователями', () => {
+  it('разводит ключи кэша для разных пользователей по одному URL', async () => {
+    const first = new Request('https://money.test/api/Operations', {
+      headers: { Authorization: `Bearer ${makeJwt('user-1', '1')}` },
+    })
+    const second = new Request('https://money.test/api/Operations', {
+      headers: { Authorization: `Bearer ${makeJwt('user-2', '1')}` },
+    })
+
+    const firstKey = await plugin.cacheKeyWillBeUsed({ request: first })
+    const secondKey = await plugin.cacheKeyWillBeUsed({ request: second })
+
+    expect(firstKey).not.toBe(secondKey)
+  })
+
+  it('сохраняет ключ кэша при обновлении JWT того же пользователя', async () => {
+    const initial = new Request('https://money.test/api/Operations', {
+      headers: { Authorization: `Bearer ${makeJwt('user-1', '1')}` },
+    })
+    const refreshed = new Request('https://money.test/api/Operations', {
+      headers: { Authorization: `Bearer ${makeJwt('user-1', '2')}` },
+    })
+
+    const initialKey = await plugin.cacheKeyWillBeUsed({ request: initial })
+    const refreshedKey = await plugin.cacheKeyWillBeUsed({ request: refreshed })
+
+    expect(initialKey).toBe(refreshedKey)
+  })
+})
 
 describe('метка сохранённой копии ответа API', () => {
   it('переживает перенос в воркер и помечает копию заголовком, который читает приложение', async () => {

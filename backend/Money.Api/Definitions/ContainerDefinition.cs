@@ -1,4 +1,5 @@
-using Money.Business;
+﻿using Money.Business;
+using Money.Business.Configs;
 
 namespace Money.Api.Definitions;
 
@@ -6,6 +7,8 @@ public class ContainerDefinition : AppDefinition
 {
     public override void ConfigureServices(WebApplicationBuilder builder)
     {
+        builder.Services.Configure<AccountSettings>(builder.Configuration.GetSection(nameof(AccountSettings)));
+
         builder.Services.AddScoped<RequestEnvironment>();
 
         builder.Services.AddScoped<AccountsService>();
