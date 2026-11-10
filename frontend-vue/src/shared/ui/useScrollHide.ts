@@ -18,6 +18,11 @@ export function useScrollHide(isEnabled: MaybeRefOrGetter<boolean> = true): Read
   }, SCROLL_HIDE_DELAY, { immediate: false })
 
   watch(scrollTop, value => {
+    if (!toValue(isEnabled)) {
+      directionAnchor = value
+      return
+    }
+
     const shift = value - directionAnchor
 
     if (Math.abs(shift) < SCROLL_HIDE_THRESHOLD) {
@@ -26,6 +31,13 @@ export function useScrollHide(isEnabled: MaybeRefOrGetter<boolean> = true): Read
 
     directionAnchor = value
     isScrollingDown.value = shift > 0
+  })
+
+  watch(() => toValue(isEnabled), enabled => {
+    if (!enabled) {
+      directionAnchor = scrollTop.value
+      isScrollingDown.value = false
+    }
   })
 
   watch(() => toValue(isEnabled) && isScrollingDown.value, shouldHide => {

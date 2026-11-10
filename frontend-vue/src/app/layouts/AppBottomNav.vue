@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { buildBottomNavigation } from '@/app/navigation'
+import { useDisplaySettings } from '@/features/settings'
 import { mdAdd, mdMoreHoriz } from '@/shared/icons'
 import { MudAppBar, MudFab, MudIcon } from '@/shared/mud'
 import { useKeyboardHide } from '@/shared/ui/useKeyboardHide'
@@ -14,8 +15,9 @@ const emit = defineEmits<{
 }>()
 
 const items = buildBottomNavigation()
+const { settings } = useDisplaySettings()
 
-const isScrollHidden = useScrollHide()
+const isScrollHidden = useScrollHide(() => !settings.pinBottomNav)
 const isKeyboardHidden = useKeyboardHide()
 
 const isHidden = computed(() => isScrollHidden.value || isKeyboardHidden.value)

@@ -165,6 +165,19 @@ function selectRowStyle(value: unknown): void {
         label="Использовать цвета темы на графиках"
         @update:model-value="update({ useChartThemeColors: $event })"
       />
+
+      <MudDivider class="my-4" />
+
+      <MudText typo="body2">
+        На узких экранах нижняя панель навигации по умолчанию скрывается при прокрутке вниз. Зафиксируйте её, чтобы она
+        оставалась на экране при листании.
+      </MudText>
+      <SettingSwitch
+        :model-value="settings.pinBottomNav"
+        data-testid="settings-pin-bottom-nav"
+        label="Зафиксировать нижнюю панель в мобильной версии"
+        @update:model-value="update({ pinBottomNav: $event })"
+      />
     </MudCardContent>
   </MudCard>
 </template>

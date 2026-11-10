@@ -298,6 +298,7 @@ defineExpose({ open, close })
   <MudPopover
     anchor-origin="bottom-left"
     class="mt-4 mx-4 pa-4 operation-popover"
+    :fixed="isNarrow"
     :open="isOpen"
     overflow-behavior="flip-never"
     transform-origin="top-left"
@@ -486,11 +487,16 @@ defineExpose({ open, close })
 }
 
 @media (max-width: 599.98px) {
+  body.form-sheet-open {
+    overflow: hidden;
+  }
+
   body.form-sheet-open .mud-appbar {
     z-index: calc(var(--mud-zindex-popover) - 1);
   }
 
   .operation-popover {
+    position: fixed;
     inset: auto 0 var(--keyboard-inset, 0px) 0 !important;
     max-width: none !important;
     max-height: calc(var(--viewport-height, 100dvh) * 0.85);
@@ -499,6 +505,10 @@ defineExpose({ open, close })
     overflow-y: auto;
     border-radius: 12px 12px 0 0;
     transform: none !important;
+  }
+
+  .operation-popover .mud-popover-cascading-value {
+    position: fixed;
   }
 }
 

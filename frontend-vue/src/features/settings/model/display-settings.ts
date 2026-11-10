@@ -14,6 +14,7 @@ export interface DisplaySettings {
   alignMoneyDecimals: boolean
   moneyColumnWidth: number
   useChartThemeColors: boolean
+  pinBottomNav: boolean
 }
 
 export interface DisplaySettingsState {
@@ -30,6 +31,7 @@ export function displaySettingsDefaults(): DisplaySettings {
     alignMoneyDecimals: true,
     moneyColumnWidth: 9,
     useChartThemeColors: true,
+    pinBottomNav: false,
   }
 }
 
@@ -59,6 +61,7 @@ export function readDisplaySettings(): DisplaySettings {
       ? clampMoneyColumnWidth(raw.moneyColumnWidth)
       : defaults.moneyColumnWidth,
     useChartThemeColors: readBoolean(raw.useChartThemeColors, defaults.useChartThemeColors),
+    pinBottomNav: readBoolean(raw.pinBottomNav, defaults.pinBottomNav),
   }
 }
 
@@ -130,6 +133,10 @@ export function createDisplaySettings(): DisplaySettingsState {
 
     if (patch.useChartThemeColors !== undefined) {
       settings.useChartThemeColors = patch.useChartThemeColors
+    }
+
+    if (patch.pinBottomNav !== undefined) {
+      settings.pinBottomNav = patch.pinBottomNav
     }
   }
 

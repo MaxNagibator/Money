@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { Ref } from 'vue'
-import { defineComponent, nextTick } from 'vue'
+import type { MaybeRefOrGetter, Ref } from 'vue'
+import { defineComponent, nextTick, ref } from 'vue'
 import { useScrollHide } from './useScrollHide'
 
 const SCROLL_HIDE_THRESHOLD = 24
@@ -72,9 +72,26 @@ describe('скрытие при прокрутке вниз', () => {
 
     expect(isHidden.value).toBe(false)
   })
+
+  it('включение после прокрутки в выключенном состоянии ждёт новой прокрутки вниз', async () => {
+    const enabled = ref(false)
+    const { isHidden } = setup(enabled)
+
+    await scroll(SCROLL_HIDE_THRESHOLD * 2)
+    enabled.value = true
+    await nextTick()
+    vi.advanceTimersByTime(SCROLL_HIDE_DELAY)
+
+    expect(isHidden.value).toBe(false)
+
+    await scroll(SCROLL_HIDE_THRESHOLD)
+    vi.advanceTimersByTime(SCROLL_HIDE_DELAY)
+
+    expect(isHidden.value).toBe(true)
+  })
 })
 
-function setup(isEnabled = true): { isHidden: Readonly<Ref<boolean>> } {
+function setup(isEnabled: MaybeRefOrGetter<boolean> = true): { isHidden: Readonly<Ref<boolean>> } {
   let isHidden!: Readonly<Ref<boolean>>
 
   mount(defineComponent({

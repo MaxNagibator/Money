@@ -825,4 +825,49 @@ test.describe('операции на телефоне', () => {
     await expect(expense.getByTestId('operation-item-edit')).toHaveAccessibleName('Изменить операцию Кафе, расход 100,50, удалена')
     await expect(expense.getByTestId('operation-item-restore')).toHaveAccessibleName('Восстановить операцию Кафе, расход 100,50')
   })
+
+  test('повторное открытие листа операции при прокрутке держит его над клавиатурой, а не уносит выше', async ({ page }) => {
+    await stubApi(page, manyOperations)
+
+    await page.goto('/operations')
+    await expect(page.getByTestId('operations-list-days')).toBeVisible({ timeout: FIRST_RENDER_TIMEOUT })
+
+    await page.evaluate(() => {
+      document.documentElement.style.setProperty('--viewport-height', '544px')
+      document.documentElement.style.setProperty('--keyboard-inset', '300px')
+    })
+
+    const firstRow = page.locator('[data-operation-id="229"]').getByTestId('operation-item-edit')
+
+    await firstRow.tap()
+
+    const popover = page.locator('.operation-popover.mud-popover-open')
+
+    await expect(popover).toBeVisible()
+    await expect.poll(async () => (await popover.boundingBox())?.y ?? -1).toBeGreaterThanOrEqual(0)
+    await expect.poll(async () => {
+      const box = await popover.boundingBox()
+
+      return box === null ? -1 : Math.round(box.y + box.height)
+    }).toBe(544)
+
+    await page.getByTestId('operation-dialog-cancel').tap()
+    await expect(popover).toHaveCount(0)
+
+    await page.evaluate(() => {
+      window.scrollTo(0, 400)
+    })
+
+    const nextRow = page.locator('[data-operation-id="220"]').getByTestId('operation-item-edit')
+
+    await nextRow.tap()
+
+    await expect(popover).toBeVisible()
+    await expect.poll(async () => (await popover.boundingBox())?.y ?? -1).toBeGreaterThanOrEqual(0)
+    await expect.poll(async () => {
+      const box = await popover.boundingBox()
+
+      return box === null ? -1 : Math.round(box.y + box.height)
+    }).toBe(544)
+  })
 })
