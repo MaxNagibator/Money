@@ -1,4 +1,4 @@
-import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
+﻿import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
 import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { computed, defineComponent, shallowRef } from 'vue'
@@ -17,7 +17,7 @@ import {
 } from '@/api/adapters/debts'
 import { ApiError } from '@/api/adapters/problem'
 import type { Category } from '@/domain/category'
-import type { Debt } from '@/domain/debt'
+import type { DebtMovement } from '@/domain/debt'
 import type { LocalDate } from '@/domain/local-date'
 import { Money } from '@/domain/money'
 import type { Clock } from '@/platform/clock'
@@ -64,7 +64,7 @@ const clock: Clock = {
   today: () => date('2026-08-22'),
 }
 
-let rows: Debt[] = []
+let rows: DebtMovement[] = []
 let nextId = 100
 
 beforeEach(() => {
@@ -78,9 +78,7 @@ beforeEach(() => {
 
   nextId = 100
 
-  fetchDebtsMock.mockImplementation(withPaid => Promise.resolve(
-    rows.filter(entry => withPaid || entry.paySum.compare(entry.sum) < 0).map(entry => ({ ...entry })),
-  ))
+  fetchDebtsMock.mockImplementation(() => Promise.resolve(rows.map(entry => ({ ...entry }))))
 
   createDebtMock.mockImplementation((draft: DebtDraft) => {
     const id = nextId++
@@ -106,38 +104,50 @@ beforeEach(() => {
 
   fetchDebtOwnersMock.mockResolvedValue([{ id: 5, name: 'Иван' }, { id: 6, name: 'Пётр' }])
   restoreDebtMock.mockResolvedValue(undefined)
-  payDebtMock.mockResolvedValue(undefined)
+  payDebtMock.mockImplementation((id, draft) => {
+    const source = rows.find(entry => entry.id === id)
+
+    if (source !== undefined) {
+      rows.push(row(nextId++, {
+        typeId: source.typeId === 1 ? 2 : 1,
+        ownerName: source.ownerName,
+        date: draft.date,
+        sum: draft.sum,
+        comment: draft.comment,
+      }))
+    }
+
+    return Promise.resolve()
+  })
   forgiveDebtsMock.mockResolvedValue(undefined)
   mergeDebtOwnersMock.mockResolvedValue(undefined)
 })
 
-describe('секции типов', () => {
-  it('раскрыты по умолчанию и сворачиваются кнопкой', async () => {
+describe('секция держателей', () => {
+  it('раскрыта по умолчанию и сворачивается кнопкой', async () => {
     const state = await setup()
 
-    expect(state.groups.value.map(group => group.typeId)).toEqual([2, 1])
-    expect(state.isTypeExpanded(1)).toBe(true)
+    expect(state.groups.value.map(group => group.typeId)).toEqual([0])
+    expect(state.isTypeExpanded(0)).toBe(true)
 
-    state.toggleType(1)
+    state.toggleType(0)
 
-    expect(state.isTypeExpanded(1)).toBe(false)
-    expect(state.isTypeExpanded(2)).toBe(true)
+    expect(state.isTypeExpanded(0)).toBe(false)
+    state.toggleType(0)
 
-    state.toggleType(1)
-
-    expect(state.isTypeExpanded(1)).toBe(true)
+    expect(state.isTypeExpanded(0)).toBe(true)
   })
 
   it('сохранение долга не разворачивает свёрнутую секцию', async () => {
     const state = await setup()
 
-    state.toggleType(1)
+    state.toggleType(0)
     await state.submit({ ...newDebtForm(date('2026-08-22'), 1), ownerName: 'Иван', sum: money('500') })
     await vi.waitFor(() => {
       expect(fetchDebtsMock).toHaveBeenCalledTimes(2)
     })
 
-    expect(state.isTypeExpanded(1)).toBe(false)
+    expect(state.isTypeExpanded(0)).toBe(false)
   })
 })
 
@@ -154,7 +164,7 @@ describe('сохранение долга', () => {
     expect(state.notice.value?.text).toBe('Успех!')
   })
 
-  it('смена типа переносит долг и убирает опустевшую группу', async () => {
+  it('смена типа оставляет движение у того же держателя', async () => {
     const state = await setup()
 
     rows = rows.filter(entry => entry.id !== 2)
@@ -169,10 +179,10 @@ describe('сохранение долга', () => {
     })
 
     await vi.waitFor(() => {
-      expect(state.groups.value.map(group => group.typeId)).toEqual([2])
+      expect(state.groups.value.map(group => group.typeId)).toEqual([0])
     })
 
-    expect(state.groups.value[0]?.owners.map(owner => owner.name)).toEqual(['Мария', 'Иван'])
+    expect(state.groups.value[0]?.owners.map(owner => owner.name)).toEqual(['Иван', 'Мария'])
   })
 
   it('ошибка сохранения оставляет форму открытой и говорит текстом сервера', async () => {
@@ -386,10 +396,8 @@ describe('удаление и оплата', () => {
     expect(debtOf(state, 1).isDeleted).toBe(false)
   })
 
-  it('оплата перечитывает долг и обновляет карточку без перезапроса списка', async () => {
+  it('оплата создаёт встречное движение и перечитывает список', async () => {
     const state = await setup()
-
-    fetchDebtMock.mockResolvedValue(paidDebt())
 
     state.startPayment(debtOf(state, 1))
 
@@ -399,10 +407,12 @@ describe('удаление и оплата', () => {
     await state.submitPayment({ debtId: 1, sum: money('400'), date: date('2026-08-22'), comment: '' })
 
     expect(payDebtMock).toHaveBeenCalledTimes(1)
-    expect(fetchDebtMock).toHaveBeenCalledWith(1)
     expect(state.payment.value).toBeNull()
-    expect(debtOf(state, 1).paySum.toMinorUnits()).toBe(40_000)
-    expect(fetchDebtsMock).toHaveBeenCalledTimes(1)
+    await vi.waitFor(() => {
+      expect(debtOf(state, 100).sum.toMinorUnits()).toBe(40_000)
+    })
+    expect(debtOf(state, 100).typeId).toBe(2)
+    expect(fetchDebtsMock).toHaveBeenCalledTimes(2)
   })
 
   it('отказ перечитывания не отменяет платёж и не оставляет форму на повтор', async () => {
@@ -419,13 +429,13 @@ describe('удаление и оплата', () => {
     expect(state.isPaying.value).toBe(false)
   })
 
-  it('поздний ответ списка не откатывает оплаченный долг', async () => {
+  it('поздний ответ списка после оплаты приводит к повторной загрузке движений', async () => {
     const state = await setup()
 
     const stale = rows.map(entry => ({ ...entry }))
-    let releaseList: (value: Debt[]) => void = () => undefined
+    let releaseList: (value: DebtMovement[]) => void = () => undefined
 
-    fetchDebtsMock.mockImplementationOnce(() => new Promise<Debt[]>(resolve => {
+    fetchDebtsMock.mockImplementationOnce(() => new Promise<DebtMovement[]>(resolve => {
       releaseList = resolve
     }))
 
@@ -434,13 +444,14 @@ describe('удаление и оплата', () => {
       expect(fetchDebtsMock).toHaveBeenCalledTimes(2)
     })
 
-    fetchDebtMock.mockResolvedValue(paidDebt())
     await state.submitPayment({ debtId: 1, sum: money('400'), date: date('2026-08-22'), comment: '' })
 
     releaseList(stale)
     await settle()
 
-    expect(debtOf(state, 1).paySum.toMinorUnits()).toBe(40_000)
+    await vi.waitFor(() => {
+      expect(debtOf(state, 101).sum.toMinorUnits()).toBe(40_000)
+    })
   })
 
   it('пока платёж выполняется, форма другого долга не открывается', async () => {
@@ -486,10 +497,10 @@ describe('удаление и оплата', () => {
     expect(state.payment.value).toBeNull()
   })
 
-  it('погашенные долги приходят отдельным запросом при включённом тумблере', async () => {
+  it('движения с нулевым итогом показываются при включённом тумблере истории', async () => {
     const state = await setup()
 
-    rows = [...rows, row(4, { typeId: 1, ownerName: 'Иван', date: date('2026-08-18'), paySum: money('1000') })]
+    rows = [...rows, row(4, { typeId: 2, ownerName: 'Иван', date: date('2026-08-18'), sum: money('1000') })]
     state.showPaid.value = true
 
     await vi.waitFor(() => {
@@ -594,7 +605,7 @@ async function setup(): Promise<DebtsScreenState> {
   return state
 }
 
-function debtOf(state: DebtsScreenState, id: number): Debt {
+function debtOf(state: DebtsScreenState, id: number): DebtMovement {
   const found = state.debts.debts.value.find(entry => entry.id === id)
 
   if (found === undefined) {
@@ -605,19 +616,19 @@ function debtOf(state: DebtsScreenState, id: number): Debt {
 }
 
 function debtIds(state: DebtsScreenState, typeId: number, ownerName: string): number[] {
-  const group = state.groups.value.find(entry => entry.typeId === typeId)
+  void typeId
+  const group = state.groups.value[0]
   const owner = group?.owners.find(entry => entry.name === ownerName)
 
   return owner?.debts.map(entry => entry.id) ?? []
 }
 
-function paidDebt(): Debt {
+function paidDebt(): DebtMovement {
   return row(1, {
     typeId: 1,
     ownerName: 'Иван',
     date: date('2026-08-20'),
-    paySum: money('400'),
-    payComment: '2026.08.22 400 взнос',
+    comment: 'взнос',
   })
 }
 
@@ -627,16 +638,14 @@ async function settle(): Promise<void> {
   })
 }
 
-function row(id: number, extra: Partial<Debt> = {}): Debt {
+function row(id: number, extra: Partial<DebtMovement> = {}): DebtMovement {
   return {
     id,
     typeId: 1,
     sum: money('1000'),
-    paySum: Money.zero,
     comment: null,
     ownerName: 'Иван',
     date: date('2026-08-22'),
-    payComment: null,
     isDeleted: false,
     ...extra,
   }

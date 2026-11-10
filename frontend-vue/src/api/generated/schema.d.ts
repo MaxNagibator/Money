@@ -1,4 +1,4 @@
-export interface paths {
+﻿export interface paths {
     "/Accounts/Register": {
         parameters: {
             query?: never;
@@ -1475,9 +1475,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["Money.Api.Dto.Debts.DebtDto"][];
-                        "application/json": components["schemas"]["Money.Api.Dto.Debts.DebtDto"][];
-                        "text/json": components["schemas"]["Money.Api.Dto.Debts.DebtDto"][];
+                        "text/plain": components["schemas"]["Money.Api.Dto.Debts.DebtMovementDto"][];
+                        "application/json": components["schemas"]["Money.Api.Dto.Debts.DebtMovementDto"][];
+                        "text/json": components["schemas"]["Money.Api.Dto.Debts.DebtMovementDto"][];
                     };
                 };
                 /** @description Unauthorized */
@@ -1578,9 +1578,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["Money.Api.Dto.Debts.DebtDto"];
-                        "application/json": components["schemas"]["Money.Api.Dto.Debts.DebtDto"];
-                        "text/json": components["schemas"]["Money.Api.Dto.Debts.DebtDto"];
+                        "text/plain": components["schemas"]["Money.Api.Dto.Debts.DebtMovementDto"];
+                        "application/json": components["schemas"]["Money.Api.Dto.Debts.DebtMovementDto"];
+                        "text/json": components["schemas"]["Money.Api.Dto.Debts.DebtMovementDto"];
                     };
                 };
                 /** @description Unauthorized */
@@ -3906,8 +3906,8 @@ export interface components {
              */
             operationTypeId: number;
         };
-        /** @description Долг. */
-        "Money.Api.Dto.Debts.DebtDto": {
+        /** @description Движение по долговому счёту. */
+        "Money.Api.Dto.Debts.DebtMovementDto": {
             /**
              * Format: int32
              * @description Идентификатор.
@@ -3932,13 +3932,6 @@ export interface components {
              * @description Дата возникновения.
              */
             date?: string;
-            /**
-             * Format: double
-             * @description Оплаченная сумма.
-             */
-            paySum?: number;
-            /** @description Комментарии к оплате. */
-            payComment?: string | null;
             /** @description Удален. */
             isDeleted?: boolean;
         };

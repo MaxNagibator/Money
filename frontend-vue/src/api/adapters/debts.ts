@@ -1,13 +1,13 @@
-import type { components } from '@/api/generated/schema'
+﻿import type { components } from '@/api/generated/schema'
 import { apiClient } from '@/api/transport/client'
-import type { Debt, DebtOwner } from '@/domain/debt'
+import type { DebtMovement, DebtOwner } from '@/domain/debt'
 import type { LocalDate } from '@/domain/local-date'
 import { parseLocalDate } from '@/domain/local-date'
 import { Money } from '@/domain/money'
 import { toWireSum } from './money-wire'
 import { ApiError, fail } from './problem'
 
-type DebtDto = components['schemas']['Money.Api.Dto.Debts.DebtDto']
+type DebtMovementDto = components['schemas']['Money.Api.Dto.Debts.DebtMovementDto']
 type DebtOwnerDto = components['schemas']['Money.Api.Dto.Debts.DebtOwnerDto']
 type DebtSaveRequest = components['schemas']['Money.Api.Dto.Debts.SaveRequest']
 type DebtPayRequest = components['schemas']['Money.Api.Dto.Debts.PayRequest']
@@ -39,7 +39,7 @@ export const UNNAMED_DEBT_OWNER = 'Неназванный держатель'
 const DAY_START_TIME = 'T00:00:00'
 const DATE_LENGTH = 10
 
-export async function fetchDebts(withPaid: boolean): Promise<Debt[]> {
+export async function fetchDebts(withPaid: boolean): Promise<DebtMovement[]> {
   const { data, error } = await apiClient.GET('/Debts', { params: { query: { withPaid } } })
 
   fail(error, 'Не удалось загрузить долги')
@@ -47,7 +47,7 @@ export async function fetchDebts(withPaid: boolean): Promise<Debt[]> {
   return (data ?? []).flatMap(toDebt)
 }
 
-export async function fetchDebt(id: number): Promise<Debt | null> {
+export async function fetchDebt(id: number): Promise<DebtMovement | null> {
   const { data, error } = await apiClient.GET('/Debts/{id}', { params: { path: { id } } })
 
   fail(error, 'Не удалось загрузить долг')
@@ -147,10 +147,10 @@ export async function fetchDebtOwnerNames(offset: number, count: number, name: s
   return data ?? []
 }
 
-export function toDebt(dto: DebtDto): Debt[] {
+export function toDebt(dto: DebtMovementDto): DebtMovement[] {
   const date = dto.date === undefined ? null : parseLocalDate(dto.date.slice(0, DATE_LENGTH))
 
-  if (dto.id === undefined || dto.typeId === undefined || date === null || dto.sum === undefined || dto.paySum === undefined) {
+  if (dto.id === undefined || dto.typeId === undefined || date === null || dto.sum === undefined) {
     return []
   }
 
@@ -158,11 +158,9 @@ export function toDebt(dto: DebtDto): Debt[] {
     id: dto.id,
     typeId: dto.typeId,
     sum: Money.fromWire(dto.sum),
-    paySum: Money.fromWire(dto.paySum),
     comment: dto.comment ?? null,
     ownerName: dto.ownerName ?? '',
     date,
-    payComment: dto.payComment ?? null,
     isDeleted: dto.isDeleted ?? false,
   }]
 }

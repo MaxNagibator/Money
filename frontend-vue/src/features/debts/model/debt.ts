@@ -1,7 +1,5 @@
-import Decimal from 'decimal.js'
-import type { Debt } from '@/domain/debt'
-import type { LocalDate } from '@/domain/local-date'
-import { compareLocalDate, parseLocalDate } from '@/domain/local-date'
+﻿import type { DebtMovement } from '@/domain/debt'
+import { compareLocalDate } from '@/domain/local-date'
 import { Money } from '@/domain/money'
 import { mdInput, mdOutput } from '@/shared/icons'
 
@@ -14,7 +12,7 @@ export interface DebtType {
 
 export interface DebtOwnerGroup {
   name: string
-  debts: Debt[]
+  debts: DebtMovement[]
 }
 
 export interface DebtTypeGroup {
@@ -23,64 +21,57 @@ export interface DebtTypeGroup {
   owners: DebtOwnerGroup[]
 }
 
-export interface DebtPaymentRecord {
-  date: LocalDate | null
-  sum: Money
-  comment: string
-}
-
-export type DebtStatus = 'paid' | 'inProgress' | 'notStarted'
-
 export const DEBT_TYPES: readonly DebtType[] = [
-  { id: 1, name: 'Нужно забрать', addLabel: 'Забрать своё', icon: mdInput },
-  { id: 2, name: 'Нужно отдать', addLabel: 'Отдать чужое', icon: mdOutput },
+  { id: 1, name: 'Мне должны', addLabel: 'Дал в долг', icon: mdInput },
+  { id: 2, name: 'Я должен', addLabel: 'Занял', icon: mdOutput },
 ]
 
 export const TAKE_TYPE_ID = 1
+export const GIVE_TYPE_ID = 2
 export const FORGIVABLE_TYPE_ID = TAKE_TYPE_ID
 export const UNKNOWN_TYPE_NAME = 'Неизвестный тип'
-export const NO_PAYMENT_MARK = '∞'
-export const NOTHING_PAID_TEXT = 'ничего не выплачено'
-export const FULLY_PAID_TEXT = 'выплачено полностью'
+export const DEBT_OWNERS_GROUP_ID = 0
+export const DEBT_OWNERS_GROUP_NAME = 'Держатели'
 
 const DEBT_COUNT_FORMS = ['долгов', 'долг', 'долга', 'долга', 'долга'] as const
 const TEEN_FROM = 5
 const TEEN_TO = 20
 const LAST_FORM = 4
 
-export const DEBT_STATUS_TEXT: Record<DebtStatus, string> = {
-  paid: 'Погашено',
-  inProgress: 'В процессе',
-  notStarted: 'Не начато',
-}
-
-const PERCENT_SCALE = 2
-const FULL_PROGRESS = 100
-const ENTRY_PARTS = 3
-
 export function debtTypeName(typeId: number): string {
   return DEBT_TYPES.find(type => type.id === typeId)?.name ?? UNKNOWN_TYPE_NAME
 }
 
-export function groupDebts(debts: readonly Debt[]): DebtTypeGroup[] {
-  const byType = new Map<number, Map<string, Debt[]>>()
+export function groupDebts(debts: readonly DebtMovement[], includeClosed = true): DebtTypeGroup[] {
+  const byOwner = new Map<string, DebtMovement[]>()
 
-  for (const debt of [...debts].sort(byDateDescending)) {
-    const owners = byType.get(debt.typeId) ?? new Map<string, Debt[]>()
-    const collected = owners.get(debt.ownerName) ?? []
+  for (const movement of [...debts].sort(byDateDescending)) {
+    const collected = byOwner.get(movement.ownerName) ?? []
 
-    collected.push(debt)
-    owners.set(debt.ownerName, collected)
-    byType.set(debt.typeId, owners)
+    collected.push(movement)
+    byOwner.set(movement.ownerName, collected)
   }
 
-  return [...byType]
-    .map(([typeId, owners]) => ({
-      typeId,
-      name: debtTypeName(typeId),
-      owners: [...owners].map(([name, ownerDebts]) => ({ name, debts: ownerDebts })),
-    }))
-    .sort((left, right) => right.typeId - left.typeId)
+  const owners: DebtOwnerGroup[] = []
+
+  for (const [name, ownerDebts] of byOwner) {
+    const balance = signedBalance(ownerDebts)
+    const hasKnownMovement = ownerDebts.some(movement => movement.typeId === TAKE_TYPE_ID || movement.typeId === GIVE_TYPE_ID)
+
+    if (!includeClosed && hasKnownMovement && balance.isZero) {
+      continue
+    }
+
+    owners.push({ name, debts: ownerDebts })
+  }
+
+  owners.sort((left, right) => left.name.localeCompare(right.name, 'ru', { sensitivity: 'base' }))
+
+  return owners.length === 0 ? [] : [{
+    typeId: DEBT_OWNERS_GROUP_ID,
+    name: DEBT_OWNERS_GROUP_NAME,
+    owners,
+  }]
 }
 
 export function filterDebtGroups(groups: readonly DebtTypeGroup[], query: string): DebtTypeGroup[] {
@@ -108,34 +99,17 @@ export function matchesSearch(owner: DebtOwnerGroup, query: string): boolean {
     return true
   }
 
-  return owner.debts.some(debt => contains(debt.comment, term) || contains(debt.payComment, term))
+  return owner.debts.some(movement => contains(movement.comment, term))
 }
 
 export function ownerTotal(owner: DebtOwnerGroup): Money {
-  return owner.debts.reduce((total, debt) => total.add(debt.sum), Money.zero)
-}
-
-export function ownerPaid(owner: DebtOwnerGroup): Money {
-  return owner.debts.reduce((total, debt) => total.add(debt.paySum), Money.zero)
+  return owner.debts.reduce((total, movement) => total.add(movement.sum), Money.zero)
 }
 
 export function ownerRemainder(owner: DebtOwnerGroup): Money {
-  return owner.debts.reduce((total, debt) => total.add(debt.sum).subtract(debt.paySum), Money.zero)
-}
+  const balance = signedBalance(owner.debts)
 
-export function ownerPercent(owner: DebtOwnerGroup): number {
-  const total = ownerTotal(owner)
-
-  if (total.isZero || total.isNegative) {
-    return 0
-  }
-
-  return ownerPaid(owner)
-    .toDecimal()
-    .dividedBy(total.toDecimal())
-    .toDecimalPlaces(PERCENT_SCALE, Decimal.ROUND_HALF_EVEN)
-    .times(FULL_PROGRESS)
-    .toNumber()
+  return balance.isNegative ? balance.negate() : balance
 }
 
 export function debtRoleColor(typeId: number): string {
@@ -150,141 +124,54 @@ export function debtCountText(count: number): string {
   return `${count} ${DEBT_COUNT_FORMS[index] ?? DEBT_COUNT_FORMS[0]}`
 }
 
-export function paidPercentText(percent: number): string {
-  if (percent <= 0) {
-    return NOTHING_PAID_TEXT
+export function debtRemainder(movement: DebtMovement): Money {
+  return movement.sum
+}
+
+export function nextPayableDebt(owner: DebtOwnerGroup): DebtMovement | null {
+  const balance = signedBalance(owner.debts)
+
+  if (balance.isZero) {
+    return null
   }
 
-  return percent >= FULL_PROGRESS ? FULLY_PAID_TEXT : `выплачено ${percent} %`
-}
+  const payableTypeId = balance.isNegative ? GIVE_TYPE_ID : TAKE_TYPE_ID
 
-export function debtRemainder(debt: Debt): Money {
-  return debt.sum.subtract(debt.paySum)
-}
-
-export function nextPayableDebt(owner: DebtOwnerGroup): Debt | null {
-  return owner.debts.reduce<Debt | null>((found, debt) => {
-    if (debt.isDeleted || debtRemainder(debt).compare(Money.zero) <= 0) {
+  return owner.debts.reduce<DebtMovement | null>((found, movement) => {
+    if (movement.typeId !== payableTypeId || movement.isDeleted || movement.sum.compare(Money.zero) <= 0) {
       return found
     }
 
-    return found === null || compareLocalDate(debt.date, found.date) < 0 ? debt : found
+    return found === null || compareLocalDate(movement.date, found.date) < 0 ? movement : found
   }, null)
 }
 
 export function typeTotal(group: DebtTypeGroup): Money {
-  return group.owners.reduce((total, owner) => total.add(ownerTotal(owner)), Money.zero)
+  return group.owners.reduce((total, owner) => total.add(ownerRemainder(owner)), Money.zero)
 }
 
-export function lastPaymentDate(owner: DebtOwnerGroup): LocalDate | null {
-  const newest = owner.debts.reduce<Debt | null>(
-    (found, debt) => found === null || compareLocalDate(debt.date, found.date) > 0 ? debt : found,
-    null,
-  )
-
-  const lines = splitLines(newest?.payComment ?? null)
-  const last = lines.at(-1)
-
-  if (last === undefined) {
-    return null
-  }
-
-  const space = last.indexOf(' ')
-
-  return parsePaymentDate(space < 0 ? last : last.slice(0, space))
-}
-
-export function parsePaymentHistory(payComment: string | null): DebtPaymentRecord[] {
-  return splitLines(payComment).flatMap(line => {
-    const [rawDate, rawSum, rawComment] = splitEntry(line)
-
-    if (rawDate === undefined || rawSum === undefined) {
-      return []
+export function signedBalance(debts: readonly DebtMovement[]): Money {
+  return debts.reduce((balance, movement) => {
+    if (movement.isDeleted) {
+      return balance
     }
 
-    return [{
-      date: parsePaymentDate(rawDate),
-      sum: Money.parseInput(rawSum) ?? Money.zero,
-      comment: rawComment ?? '',
-    }]
-  })
+    if (movement.typeId === TAKE_TYPE_ID) {
+      return balance.add(movement.sum)
+    }
+
+    return movement.typeId === GIVE_TYPE_ID ? balance.subtract(movement.sum) : balance
+  }, Money.zero)
 }
-
-export function hasPaymentHistory(debt: Debt): boolean {
-  return debt.paySum.compare(Money.zero) > 0 && splitLines(debt.payComment).length > 0
-}
-
-export function paymentProgress(debt: Debt): number {
-  if (debt.sum.isZero) {
-    return 0
-  }
-
-  const progress = debt.paySum
-    .toDecimal()
-    .dividedBy(debt.sum.toDecimal())
-    .times(FULL_PROGRESS)
-    .toNumber()
-
-  return Math.trunc(Math.min(progress, FULL_PROGRESS))
-}
-
-export function debtStatus(debt: Debt): DebtStatus {
-  const progress = paymentProgress(debt)
-
-  if (progress >= FULL_PROGRESS) {
-    return 'paid'
-  }
-
-  return progress > 0 ? 'inProgress' : 'notStarted'
-}
-
-export function canForgiveDebt(debt: Debt): boolean {
-  return debt.typeId === FORGIVABLE_TYPE_ID && !debt.isDeleted && debt.paySum.compare(debt.sum) < 0
+export function canForgiveDebt(movement: DebtMovement): boolean {
+  return movement.typeId === FORGIVABLE_TYPE_ID && !movement.isDeleted
 }
 
 function contains(value: string | null, term: string): boolean {
   return value !== null && value.toLowerCase().includes(term)
 }
 
-function splitLines(value: string | null): string[] {
-  if (value === null) {
-    return []
-  }
 
-  return value
-    .split(/\r?\n/)
-    .map(line => line.trim())
-    .filter(line => line.length > 0)
-}
-
-function splitEntry(line: string): string[] {
-  const parts: string[] = []
-  let rest = line.trim()
-
-  while (parts.length < ENTRY_PARTS - 1 && rest.length > 0) {
-    const space = rest.indexOf(' ')
-
-    if (space < 0) {
-      parts.push(rest)
-      rest = ''
-      break
-    }
-
-    parts.push(rest.slice(0, space))
-    rest = rest.slice(space + 1).trim()
-  }
-
-  if (rest.length > 0) {
-    parts.push(rest)
-  }
-
-  return parts
-}
-
-function parsePaymentDate(value: string): LocalDate | null {
-  return parseLocalDate(value.replaceAll('.', '-'))
-}
-
-function byDateDescending(left: Debt, right: Debt): number {
+function byDateDescending(left: DebtMovement, right: DebtMovement): number {
   return compareLocalDate(right.date, left.date)
 }

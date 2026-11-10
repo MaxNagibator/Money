@@ -1,18 +1,15 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { UNNAMED_DEBT_OWNER } from '@/api/adapters/debts'
-import type { Debt } from '@/domain/debt'
+import type { DebtMovement } from '@/domain/debt'
 import { formatLocalDate, formatMoney, formatMoneyWhole } from '@/platform/format'
 import {
-  mdArrowCircleUp,
   mdAttachMoney,
-  mdCalendarToday,
-  mdListAlt,
+  mdSwapHoriz,
 } from '@/shared/icons'
 import {
   MudChip,
-  MudGrid,
-  MudItem,
+  MudIcon,
   MudPaper,
   MudSpacer,
   MudStack,
@@ -23,37 +20,31 @@ import { roleVariables } from '@/shared/ui/record-card'
 import { useNarrowViewport } from '@/shared/ui/useNarrowViewport'
 import type { DebtOwnerGroup } from '../model/debt'
 import {
-  debtCountText,
   debtRoleColor,
-  lastPaymentDate,
-  NO_PAYMENT_MARK,
   nextPayableDebt,
-  ownerPercent,
   ownerRemainder,
   ownerTotal,
-  paidPercentText,
+  signedBalance,
 } from '../model/debt'
 import type { PaymentFormValue } from '../model/payment-form'
 import DebtCard from './DebtCard.vue'
 import DebtPaymentForm from './DebtPaymentForm.vue'
 
-const FULL_PROGRESS = 100
-
 const props = defineProps<{
   owner: DebtOwnerGroup
-  isSelectable: (debt: Debt) => boolean
+  isSelectable: (movement: DebtMovement) => boolean
   selectedIds: ReadonlySet<number>
   paymentValue: PaymentFormValue | null
   isPaying: boolean
 }>()
 
 const emit = defineEmits<{
-  'toggle-selection': [debt: Debt]
-  'edit': [debt: Debt]
-  'remove': [debt: Debt]
-  'restore': [debt: Debt]
-  'open-payment': [debt: Debt]
-  'cancel-payment': [debt: Debt]
+  'toggle-selection': [movement: DebtMovement]
+  'edit': [movement: DebtMovement]
+  'remove': [movement: DebtMovement]
+  'restore': [movement: DebtMovement]
+  'open-payment': [movement: DebtMovement]
+  'cancel-payment': [movement: DebtMovement]
   'submit-payment': [value: PaymentFormValue]
 }>()
 
@@ -65,14 +56,13 @@ const isCollapseBlocked = ref(false)
 
 const title = computed(() => props.owner.name.trim().length === 0 ? UNNAMED_DEBT_OWNER : props.owner.name)
 const total = computed(() => ownerTotal(props.owner))
+const balance = computed(() => signedBalance(props.owner.debts))
 const remainder = computed(() => ownerRemainder(props.owner))
-const percent = computed(() => ownerPercent(props.owner))
-const lastPayment = computed(() => lastPaymentDate(props.owner))
 
-const roleStyle = computed(() => roleVariables(debtRoleColor(props.owner.debts[0]?.typeId ?? 0)))
-const countText = computed(() => debtCountText(props.owner.debts.length))
-const percentText = computed(() => paidPercentText(percent.value))
-const progressWidth = computed(() => `${Math.min(Math.max(percent.value, 0), FULL_PROGRESS)}%`)
+const roleStyle = computed(() => roleVariables(debtRoleColor(signedBalance(props.owner.debts).isNegative ? 2 : 1)))
+const balanceColor = computed(() => balance.value.isNegative ? 'error' as const : balance.value.isZero ? 'default' as const : 'success' as const)
+const outgoingMovements = computed(() => props.owner.debts.filter(movement => movement.typeId === 1))
+const incomingMovements = computed(() => props.owner.debts.filter(movement => movement.typeId === 2))
 const payable = computed(() => nextPayableDebt(props.owner))
 const payableDate = computed(() => payable.value === null ? null : formatLocalDate(payable.value.date))
 const openPayment = computed(() => {
@@ -82,9 +72,9 @@ const openPayment = computed(() => {
     return null
   }
 
-  return props.owner.debts.some(debt => debt.id === value.debtId) ? value : null
+  return props.owner.debts.some(movement => movement.id === value.debtId) ? value : null
 })
-const isForgiving = computed(() => props.owner.debts.some(debt => props.isSelectable(debt)))
+const isForgiving = computed(() => props.owner.debts.some(movement => props.isSelectable(movement)))
 const collapseHint = computed(() => isCollapseBlocked.value ? COLLAPSE_HINT : '')
 
 watch(isForgiving, isOpen => {
@@ -111,7 +101,11 @@ function toggle(): void {
 
 function pay(): void {
   if (payable.value !== null) {
-    emit('open-payment', payable.value)
+    // Идентификатор задаёт направление, сумма — встречное движение по всему счёту.
+    emit('open-payment', {
+      ...payable.value,
+      sum: remainder.value,
+    })
   }
 }
 
@@ -122,10 +116,10 @@ function cancelPayment(): void {
     return
   }
 
-  const debt = props.owner.debts.find(candidate => candidate.id === value.debtId)
+  const movement = props.owner.debts.find(candidate => candidate.id === value.debtId)
 
-  if (debt !== undefined) {
-    emit('cancel-payment', debt)
+  if (movement !== undefined) {
+    emit('cancel-payment', movement)
   }
 }
 </script>
@@ -148,14 +142,20 @@ function cancelPayment(): void {
       <span class="debt-book__who">{{ title }}</span>
 
       <span class="debt-book__money">
-        <b
-          class="debt-book__remainder"
-          data-testid="debts-owner-remainder"
-        >{{ formatMoney(remainder) }}</b>
-        <span
-          class="debt-book__of"
-          data-testid="debts-owner-total"
-        >из {{ formatMoney(total) }}</span>
+        <span class="debt-book__metric">
+          <small>Баланс</small>
+          <b
+            :class="`debt-book__remainder debt-book__remainder--${balanceColor}`"
+            data-testid="debts-owner-remainder"
+          >{{ formatMoney(balance) }}</b>
+        </span>
+        <span class="debt-book__metric">
+          <small>Движения / оборот</small>
+          <span class="debt-book__combined">
+            <MudIcon :icon="mdSwapHoriz" size="small" />
+            <b data-testid="debts-owner-total">{{ owner.debts.length }} / {{ formatMoneyWhole(total) }}</b>
+          </span>
+        </span>
       </span>
     </button>
 
@@ -163,16 +163,9 @@ function cancelPayment(): void {
       class="debt-book__meta"
       data-testid="debts-owner-meta"
     >
-      <span>{{ countText }}</span>
       <template v-if="payableDate !== null">
-        <span class="debt-book__dot">·</span>
         <span>{{ payableDate }}</span>
       </template>
-      <template v-if="!isExpanded">
-        <span class="debt-book__dot">·</span>
-        <span>{{ percentText }}</span>
-      </template>
-
       <span
         class="debt-book__hint"
         data-testid="debts-owner-collapse-hint"
@@ -180,42 +173,46 @@ function cancelPayment(): void {
       >{{ collapseHint }}</span>
     </div>
 
-    <div
-      :aria-label="`Погашено ${percent} %`"
-      :aria-valuenow="percent"
-      aria-valuemax="100"
-      aria-valuemin="0"
-      class="debt-book__bar"
-      data-testid="debts-owner-progress"
-      role="progressbar"
-    >
-      <i :style="{ width: progressWidth }" />
-    </div>
-
     <template v-if="isExpanded">
-      <TransitionGroup
-        name="list-flow"
-        @before-enter="unpinItem"
-        @before-leave="pinLeavingItem"
-      >
-        <DebtCard
-          v-for="debt in owner.debts"
-          :key="debt.id"
-          :debt="debt"
-          :is-paying="isPaying"
-          :is-payment-open="paymentValue !== null && paymentValue.debtId === debt.id"
-          :is-selectable="isSelectable(debt)"
-          :is-selected="selectedIds.has(debt.id)"
-          :payment-value="paymentValue"
-          @cancel-payment="emit('cancel-payment', $event)"
-          @edit="emit('edit', $event)"
-          @open-payment="emit('open-payment', $event)"
-          @remove="emit('remove', $event)"
-          @restore="emit('restore', $event)"
-          @submit-payment="emit('submit-payment', $event)"
-          @toggle-selection="emit('toggle-selection', $event)"
-        />
-      </TransitionGroup>
+      <div class="debt-ledger">
+        <div class="debt-ledger__heading">
+          Уход
+        </div>
+        <div class="debt-ledger__heading">
+          Приход
+        </div>
+        <div
+          v-for="(movements, column) in [outgoingMovements, incomingMovements]"
+          :key="column"
+          :data-testid="column === 0 ? 'debts-owner-outgoing' : 'debts-owner-incoming'"
+          class="debt-ledger__column"
+        >
+          <TransitionGroup
+            name="list-flow"
+            @before-enter="unpinItem"
+            @before-leave="pinLeavingItem"
+          >
+            <DebtCard
+              v-for="movement in movements"
+              :key="movement.id"
+              ledger
+              :movement="movement"
+              :is-paying="isPaying"
+              :is-payment-open="paymentValue !== null && paymentValue.debtId === movement.id"
+              :is-selectable="isSelectable(movement)"
+              :is-selected="selectedIds.has(movement.id)"
+              :payment-value="paymentValue"
+              @cancel-payment="emit('cancel-payment', $event)"
+              @edit="emit('edit', $event)"
+              @open-payment="emit('open-payment', $event)"
+              @remove="emit('remove', $event)"
+              @restore="emit('restore', $event)"
+              @submit-payment="emit('submit-payment', $event)"
+              @toggle-selection="emit('toggle-selection', $event)"
+            />
+          </TransitionGroup>
+        </div>
+      </div>
 
       <div
         v-if="owner.debts.length > 1"
@@ -245,7 +242,7 @@ function cancelPayment(): void {
           type="button"
           @click="pay"
         >
-          Оплатить
+          Закрыть расчёт
         </button>
       </div>
     </template>
@@ -256,8 +253,15 @@ function cancelPayment(): void {
     :data-testid="`debts-owner-${owner.name}`"
   >
     <MudPaper
-      class="pa-2"
+      :aria-expanded="isExpanded"
+      :data-testid="`debts-owner-toggle-${owner.name}`"
+      class="pa-2 debt-owner__head"
       :elevation="1"
+      role="button"
+      tabindex="0"
+      @click="toggle"
+      @keydown.enter="toggle"
+      @keydown.space.prevent="toggle"
     >
       <MudStack
         align-items="center"
@@ -276,66 +280,56 @@ function cancelPayment(): void {
         <MudSpacer />
 
         <MudChip
-          :icon="mdListAlt"
-          :text="String(owner.debts.length)"
-          data-testid="debts-owner-count"
-          size="small"
-          title="Количество долгов"
-          variant="filled"
-        />
-
-        <MudChip
-          :icon="mdCalendarToday"
-          :text="lastPayment === null ? NO_PAYMENT_MARK : formatLocalDate(lastPayment)"
-          data-testid="debts-owner-last-payment"
-          size="small"
-          title="Последний платеж"
-          variant="filled"
-        />
-
-        <MudChip
+          :color="balanceColor"
           :icon="mdAttachMoney"
-          :text="`${formatMoneyWhole(total)}/${formatMoneyWhole(remainder)}`"
+          :text="formatMoneyWhole(balance)"
           data-testid="debts-owner-money"
           size="small"
-          title="Всего/Остаток"
+          title="Баланс"
           variant="filled"
         />
 
         <MudChip
-          :icon="mdArrowCircleUp"
-          :text="`${percent} %`"
-          data-testid="debts-owner-percent"
+          :icon="mdSwapHoriz"
+          :text="`${owner.debts.length} / ${formatMoneyWhole(total)}`"
+          data-testid="debts-owner-turnover"
           size="small"
-          title="Процент погашения"
+          title="Количество движений / оборот"
           variant="filled"
         />
       </MudStack>
     </MudPaper>
 
-    <MudGrid
-      class="my-1 list-flow-host"
-      :spacing="1"
+    <div
+      v-if="isExpanded"
+      class="debt-ledger debt-ledger--wide list-flow-host"
     >
-      <TransitionGroup
-        name="list-flow"
-        @before-enter="unpinItem"
-        @before-leave="pinLeavingItem"
+      <div class="debt-ledger__heading">
+        Уход
+      </div>
+      <div class="debt-ledger__heading">
+        Приход
+      </div>
+      <div
+        v-for="(movements, column) in [outgoingMovements, incomingMovements]"
+        :key="column"
+        :data-testid="column === 0 ? 'debts-owner-outgoing' : 'debts-owner-incoming'"
+        class="debt-ledger__column"
       >
-        <MudItem
-          v-for="debt in owner.debts"
-          :key="debt.id"
-          class="mb-3"
-          :lg="3"
-          :md="4"
-          :xs="12"
+        <TransitionGroup
+          name="list-flow"
+          @before-enter="unpinItem"
+          @before-leave="pinLeavingItem"
         >
           <DebtCard
-            :debt="debt"
+            v-for="movement in movements"
+            :key="movement.id"
+            ledger
+            :movement="movement"
             :is-paying="isPaying"
-            :is-payment-open="paymentValue !== null && paymentValue.debtId === debt.id"
-            :is-selectable="isSelectable(debt)"
-            :is-selected="selectedIds.has(debt.id)"
+            :is-payment-open="paymentValue !== null && paymentValue.debtId === movement.id"
+            :is-selectable="isSelectable(movement)"
+            :is-selected="selectedIds.has(movement.id)"
             :payment-value="paymentValue"
             @cancel-payment="emit('cancel-payment', $event)"
             @edit="emit('edit', $event)"
@@ -345,9 +339,9 @@ function cancelPayment(): void {
             @submit-payment="emit('submit-payment', $event)"
             @toggle-selection="emit('toggle-selection', $event)"
           />
-        </MudItem>
-      </TransitionGroup>
-    </MudGrid>
+        </TransitionGroup>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -357,6 +351,46 @@ function cancelPayment(): void {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.debt-owner__head {
+  cursor: pointer;
+}
+
+.debt-ledger {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  border-top: 1px solid var(--mud-palette-lines-default);
+}
+
+.debt-ledger--wide {
+  margin: 4px 0 16px;
+  border: 1px solid var(--mud-palette-lines-default);
+  border-radius: 0 0 6px 6px;
+}
+
+.debt-ledger__column {
+  min-width: 0;
+  padding: 4px 0;
+}
+
+.debt-ledger__heading {
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--mud-palette-lines-default);
+  color: var(--mud-palette-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.debt-ledger__heading + .debt-ledger__heading {
+  border-left: 1px solid var(--mud-palette-lines-default);
+}
+
+.debt-ledger__column + .debt-ledger__column {
+  border-left: 1px solid var(--mud-palette-lines-default);
 }
 
 .debt-book {
@@ -400,9 +434,40 @@ function cancelPayment(): void {
 }
 
 .debt-book__money {
+  display: flex;
   flex: 0 0 auto;
-  min-width: var(--money-col-width, 9ch);
+  gap: 14px;
   text-align: right;
+}
+
+.debt-book__metric {
+  display: grid;
+  gap: 1px;
+}
+
+.debt-book__metric small {
+  color: var(--mud-palette-text-disabled);
+  font-size: 0.625rem;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.debt-book__combined {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+}
+
+.debt-book__remainder--success {
+  color: var(--mud-palette-success);
+}
+
+.debt-book__remainder--error {
+  color: var(--mud-palette-error);
+}
+
+.debt-book__remainder--default {
+  color: var(--mud-palette-text-primary);
 }
 
 .debt-book__remainder {
@@ -414,14 +479,6 @@ function cancelPayment(): void {
   font-feature-settings: 'tnum';
 }
 
-.debt-book__of {
-  display: block;
-  font-size: 0.6875rem;
-  line-height: 1.3;
-  color: var(--mud-palette-text-disabled);
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: 'tnum';
-}
 
 .debt-book__meta {
   display: flex;

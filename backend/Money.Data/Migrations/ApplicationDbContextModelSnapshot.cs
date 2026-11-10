@@ -406,7 +406,7 @@ namespace Money.Data.Migrations
                     b.ToTable("categories", (string)null);
                 });
 
-            modelBuilder.Entity("Money.Data.Entities.Debt", b =>
+            modelBuilder.Entity("Money.Data.Entities.DebtMovement", b =>
                 {
                     b.Property<int>("UserId")
                         .HasColumnType("integer")
@@ -435,19 +435,6 @@ namespace Money.Data.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("owner_id");
 
-                    b.Property<string>("PayComment")
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)")
-                        .HasColumnName("pay_comment");
-
-                    b.Property<decimal>("PaySum")
-                        .HasColumnType("numeric")
-                        .HasColumnName("pay_sum");
-
-                    b.Property<int>("StatusId")
-                        .HasColumnType("integer")
-                        .HasColumnName("status_id");
-
                     b.Property<decimal>("Sum")
                         .HasColumnType("numeric")
                         .HasColumnName("sum");
@@ -457,12 +444,12 @@ namespace Money.Data.Migrations
                         .HasColumnName("type_id");
 
                     b.HasKey("UserId", "Id")
-                        .HasName("pk_debts");
+                        .HasName("pk_debt_movements");
 
                     b.HasIndex("UserId", "OwnerId")
-                        .HasDatabaseName("ix_debts_user_id_owner_id");
+                        .HasDatabaseName("ix_debt_movements_user_id_owner_id");
 
-                    b.ToTable("debts", (string)null);
+                    b.ToTable("debt_movements", (string)null);
                 });
 
             modelBuilder.Entity("Money.Data.Entities.DebtOwner", b =>
@@ -1159,21 +1146,21 @@ namespace Money.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Money.Data.Entities.Debt", b =>
+            modelBuilder.Entity("Money.Data.Entities.DebtMovement", b =>
                 {
                     b.HasOne("Money.Data.Entities.DomainUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_debts_domain_users_user_id");
+                        .HasConstraintName("fk_debt_movements_domain_users_user_id");
 
                     b.HasOne("Money.Data.Entities.DebtOwner", "Owner")
-                        .WithMany("Debts")
+                        .WithMany("Movements")
                         .HasForeignKey("UserId", "OwnerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_debts_debt_owners_user_id_owner_id");
+                        .HasConstraintName("fk_debt_movements_debt_owners_user_id_owner_id");
 
                     b.Navigation("Owner");
 
@@ -1306,7 +1293,7 @@ namespace Money.Data.Migrations
 
             modelBuilder.Entity("Money.Data.Entities.DebtOwner", b =>
                 {
-                    b.Navigation("Debts");
+                    b.Navigation("Movements");
                 });
 
             modelBuilder.Entity("OpenIddict.EntityFrameworkCore.Models.OpenIddictEntityFrameworkCoreApplication", b =>

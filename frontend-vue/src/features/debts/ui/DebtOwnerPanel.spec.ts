@@ -1,7 +1,7 @@
-import { mount } from '@vue/test-utils'
+﻿import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
-import type { Debt } from '@/domain/debt'
+import type { DebtMovement } from '@/domain/debt'
 import { parseLocalDate } from '@/domain/local-date'
 import { Money } from '@/domain/money'
 import type { DebtOwnerGroup } from '../model/debt'
@@ -21,22 +21,20 @@ const PAY = '[data-testid="debts-owner-pay"]'
 const FORM = '[data-testid="debts-payment"]'
 const HINT = '[data-testid="debts-owner-collapse-hint"]'
 
-function debt(id: number, extra: Partial<Debt> = {}): Debt {
+function DebtMovement(id: number, extra: Partial<DebtMovement> = {}): DebtMovement {
   return {
     id,
     typeId: 1,
     sum: Money.fromMinorUnits(100_000),
-    paySum: Money.zero,
     comment: null,
     ownerName: 'Пётр',
     date: parseLocalDate('2026-09-17')!,
-    payComment: null,
     isDeleted: false,
     ...extra,
   }
 }
 
-function owner(debts: readonly Debt[]): DebtOwnerGroup {
+function owner(debts: readonly DebtMovement[]): DebtOwnerGroup {
   return { name: 'Пётр', debts: [...debts] }
 }
 
@@ -62,24 +60,44 @@ function payment(debtId: number): PaymentFormValue {
 }
 
 describe('книжная карточка держателя на узком экране', () => {
-  it('свёрнутая карточка показывает остаток, исходную сумму и сводку строкой', () => {
+  it('раскладывает все движения в две постоянные колонки по направлению', async () => {
     const wrapper = mountPanel(owner([
-      debt(1, { paySum: Money.fromMinorUnits(50_000) }),
-      debt(2, { sum: Money.fromMinorUnits(30_000), date: parseLocalDate('2026-09-10')! }),
+      DebtMovement(1, { typeId: 1 }),
+      DebtMovement(2, { typeId: 2 }),
+      DebtMovement(3, { typeId: 1 }),
+      DebtMovement(4, { typeId: 2 }),
     ]))
 
-    expect(plain(wrapper.get('[data-testid="debts-owner-remainder"]').text())).toBe('800,00')
-    expect(plain(wrapper.get('[data-testid="debts-owner-total"]').text())).toBe('из 1 300,00')
+    await wrapper.get(TOGGLE).trigger('click')
+
+    const incoming = wrapper.get('[data-testid="debts-owner-incoming"]')
+    const outgoing = wrapper.get('[data-testid="debts-owner-outgoing"]')
+
+    expect(incoming.findAll('.debt-row')).toHaveLength(2)
+    expect(outgoing.findAll('.debt-row')).toHaveLength(2)
+    expect(plain(incoming.text())).toContain('1 000,00')
+    expect(plain(outgoing.text())).toContain('1 000,00')
+    expect(incoming.find('[data-testid="debts-card-1"]').exists()).toBe(false)
+    expect(outgoing.find('[data-testid="debts-card-2"]').exists()).toBe(false)
+  })
+
+  it('свёрнутая карточка показывает остаток, оборот и число движений', () => {
+    const wrapper = mountPanel(owner([
+      DebtMovement(1, { typeId: 1 }),
+      DebtMovement(2, { sum: Money.fromMinorUnits(30_000), date: parseLocalDate('2026-09-10')! }),
+    ]))
+
+    expect(plain(wrapper.get('[data-testid="debts-owner-remainder"]').text())).toBe('1 300,00')
+    expect(plain(wrapper.get('[data-testid="debts-owner-total"]').text())).toBe('1 300,00')
     expect(plain(wrapper.get(META).text())).toContain('2 долга')
-    expect(plain(wrapper.get(META).text())).toContain('выплачено 38 %')
     expect(wrapper.find('[data-testid="debts-owner-count"]').exists()).toBe(false)
     expect(wrapper.find('[data-testid="debts-card-edit-1"]').exists()).toBe(false)
   })
 
   it('раскрытая карточка отдаёт строку на долг, итог по держателю и одну кнопку оплаты', async () => {
     const group = owner([
-      debt(1, { date: parseLocalDate('2026-09-17')! }),
-      debt(2, { date: parseLocalDate('2026-09-10')! }),
+      DebtMovement(1, { date: parseLocalDate('2026-09-17')! }),
+      DebtMovement(2, { date: parseLocalDate('2026-09-10')! }),
     ])
     const wrapper = mountPanel(group)
 
@@ -91,11 +109,14 @@ describe('книжная карточка держателя на узком э�
 
     await wrapper.get(PAY).trigger('click')
 
-    expect(wrapper.emitted('open-payment')?.[0]).toEqual([group.debts[1]])
+    const emittedDebt = wrapper.emitted('open-payment')?.[0]?.[0] as DebtMovement
+
+    expect(emittedDebt.id).toBe(group.debts[1]?.id)
+    expect(emittedDebt.sum.toMinorUnits()).toBe(200_000)
   })
 
   it('единственный долг не повторяет остаток итоговой строкой', async () => {
-    const wrapper = mountPanel(owner([debt(1)]))
+    const wrapper = mountPanel(owner([DebtMovement(1)]))
 
     await wrapper.get(TOGGLE).trigger('click')
 
@@ -104,7 +125,7 @@ describe('книжная карточка держателя на узком э�
   })
 
   it('тап по строке долга просит правку, удалённый долг предлагает восстановление', async () => {
-    const group = owner([debt(1), debt(2, { isDeleted: true })])
+    const group = owner([DebtMovement(1), DebtMovement(2, { isDeleted: true })])
     const wrapper = mountPanel(group)
 
     await wrapper.get(TOGGLE).trigger('click')
@@ -116,8 +137,11 @@ describe('книжная карточка держателя на узком э�
     expect(wrapper.find('[data-testid="debts-card-delete-2"]').exists()).toBe(false)
   })
 
-  it('полностью выплаченному держателю платить нечем', async () => {
-    const wrapper = mountPanel(owner([debt(1, { paySum: Money.fromMinorUnits(100_000) })]))
+  it('держателю с нулевым балансом платить нечем', async () => {
+    const wrapper = mountPanel(owner([
+      DebtMovement(1, { typeId: 1 }),
+      DebtMovement(2, { typeId: 2 }),
+    ]))
 
     await wrapper.get(TOGGLE).trigger('click')
 
@@ -126,7 +150,7 @@ describe('книжная карточка держателя на узком э�
   })
 
   it('открытый платёж не даёт свернуть карточку и объясняет отказ', async () => {
-    const wrapper = mountPanel(owner([debt(1), debt(2)]))
+    const wrapper = mountPanel(owner([DebtMovement(1), DebtMovement(2)]))
 
     await wrapper.get(TOGGLE).trigger('click')
     await wrapper.setProps({ paymentValue: payment(2) })
@@ -149,7 +173,7 @@ describe('книжная карточка держателя на узком э�
   })
 
   it('режим прощения раскрывает держателя, не отбирая ручное управление', async () => {
-    const wrapper = mountPanel(owner([debt(1)]), { isSelectable: () => true })
+    const wrapper = mountPanel(owner([DebtMovement(1)]), { isSelectable: () => true })
 
     expect(wrapper.find('[data-testid="debts-card-edit-1"]').exists()).toBe(true)
 
@@ -159,7 +183,7 @@ describe('книжная карточка держателя на узком э�
   })
 
   it('выход из режима прощения не сворачивает раскрытое', async () => {
-    const wrapper = mountPanel(owner([debt(1)]))
+    const wrapper = mountPanel(owner([DebtMovement(1)]))
 
     expect(wrapper.find('[data-testid="debts-card-edit-1"]').exists()).toBe(false)
 
@@ -175,7 +199,7 @@ describe('книжная карточка держателя на узком э�
   it('на широком экране остаётся прежняя раскладка с чипами', () => {
     isNarrow.value = false
 
-    const wrapper = mountPanel(owner([debt(1)]))
+    const wrapper = mountPanel(owner([DebtMovement(1)]))
 
     expect(wrapper.find('[data-testid="debts-owner-count"]').exists()).toBe(true)
     expect(wrapper.find(TOGGLE).exists()).toBe(false)

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+﻿import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { DebtDraft, DebtPaymentDraft } from '@/api/adapters/debts'
 import {
   createDebt,
@@ -110,9 +110,9 @@ describe('fetchDebts', () => {
 
   it('сохраняет порядок ответа и не роняет список на битой строке', async () => {
     respondJson([
-      { id: 1, typeId: 1, sum: 100, ownerName: 'Иван', date: '2026-08-22T00:00:00', paySum: 0 },
-      { id: 2, typeId: 2, sum: 200, ownerName: null, date: 'не дата', paySum: 0 },
-      { id: 3, typeId: 2, sum: 300, ownerName: 'Пётр', date: '2026-08-21T00:00:00', paySum: 0 },
+      { id: 1, typeId: 1, sum: 100, ownerName: 'Иван', date: '2026-08-22T00:00:00' },
+      { id: 2, typeId: 2, sum: 200, ownerName: null, date: 'не дата' },
+      { id: 3, typeId: 2, sum: 300, ownerName: 'Пётр', date: '2026-08-21T00:00:00' },
     ])
 
     const debts = await fetchDebts(false)
@@ -129,7 +129,7 @@ describe('fetchDebts', () => {
 
 describe('toDebt', () => {
   it('читает дату ответа как день без времени', () => {
-    const debts = toDebt({ id: 1, typeId: 1, sum: 100, ownerName: 'Иван', date: '2026-08-22T13:45:00', paySum: 0 })
+    const debts = toDebt({ id: 1, typeId: 1, sum: 100, ownerName: 'Иван', date: '2026-08-22T13:45:00' })
 
     expect(debts[0]?.date).toBe('2026-08-22')
   })
@@ -139,41 +139,39 @@ describe('toDebt', () => {
     [0.145, '0.145'],
     [12_345_678.91, '12345678.91'],
   ])('читает сумму %f как %s без промежуточного округления', (sum, expected) => {
-    const debts = toDebt({ id: 1, typeId: 1, sum, ownerName: 'Иван', date: '2026-08-22T00:00:00', paySum: sum })
+    const debts = toDebt({ id: 1, typeId: 1, sum, ownerName: 'Иван', date: '2026-08-22T00:00:00' })
 
     expect(debts[0]?.sum.toDecimal().toString()).toBe(expected)
-    expect(debts[0]?.paySum.toDecimal().toString()).toBe(expected)
   })
 
   it('держатель без имени приходит пустой строкой, а не null', () => {
-    const debts = toDebt({ id: 1, typeId: 1, sum: 100, ownerName: null, date: '2026-08-22T00:00:00', paySum: 0 })
+    const debts = toDebt({ id: 1, typeId: 1, sum: 100, ownerName: null, date: '2026-08-22T00:00:00' })
 
     expect(debts[0]?.ownerName).toBe('')
   })
 
   it('долг из списка не помечен удалённым', () => {
-    const debts = toDebt({ id: 1, typeId: 1, sum: 100, ownerName: 'Иван', date: '2026-08-22T00:00:00', paySum: 0 })
+    const debts = toDebt({ id: 1, typeId: 1, sum: 100, ownerName: 'Иван', date: '2026-08-22T00:00:00' })
 
     expect(debts[0]?.isDeleted).toBe(false)
   })
 
   it('незнакомый тип не выбрасывает долг из списка', () => {
-    const debts = toDebt({ id: 1, typeId: 99, sum: 100, ownerName: 'Иван', date: '2026-08-22T00:00:00', paySum: 0 })
+    const debts = toDebt({ id: 1, typeId: 99, sum: 100, ownerName: 'Иван', date: '2026-08-22T00:00:00' })
 
     expect(debts[0]?.typeId).toBe(99)
   })
 
   it.each([
-    ['без суммы', { id: 1, typeId: 1, ownerName: 'Иван', date: '2026-08-22T00:00:00', paySum: 100 }],
-    ['без оплаченной части', { id: 1, typeId: 1, sum: 100, ownerName: 'Иван', date: '2026-08-22T00:00:00' }],
+    ['без суммы', { id: 1, typeId: 1, ownerName: 'Иван', date: '2026-08-22T00:00:00' }],
   ])('долг %s отбрасывается, а не читается нулём', (_, dto) => {
     expect(toDebt(dto)).toEqual([])
   })
 
   it('битый долг не роняет список и не даёт отрицательный остаток', async () => {
     respondJson([
-      { id: 1, typeId: 1, ownerName: 'Иван', date: '2026-08-22T00:00:00', paySum: 100 },
-      { id: 2, typeId: 1, sum: 300, ownerName: 'Пётр', date: '2026-08-21T00:00:00', paySum: 100 },
+      { id: 1, typeId: 1, ownerName: 'Иван', date: '2026-08-22T00:00:00' },
+      { id: 2, typeId: 1, sum: 300, ownerName: 'Пётр', date: '2026-08-21T00:00:00' },
     ])
 
     const debts = await fetchDebts(false)
@@ -285,7 +283,7 @@ describe('оплата', () => {
     })
   })
 
-  it('оплата ничего не возвращает, оплаченную часть приносит отдельный GET по идентификатору', async () => {
+  it('оплата ничего не возвращает, а GET по идентификатору читает движение', async () => {
     vi.mocked(apiFetch).mockImplementation(request => Promise.resolve(request.method === 'POST'
       ? new Response(null, { status: 204 })
       : new Response(
@@ -295,8 +293,7 @@ describe('оплата', () => {
             sum: 1000,
             ownerName: 'Иван',
             date: '2026-08-22T00:00:00',
-            paySum: 100,
-            payComment: '2026.08.22 100 первый взнос',
+            comment: 'первый взнос',
           }),
           { status: 200, headers: { 'content-type': 'application/json' } },
         )))
@@ -306,8 +303,8 @@ describe('оплата', () => {
 
     expect(paid).toBeUndefined()
     expect(requestLog()).toEqual(['POST /api/Debts/7/Pay', 'GET /api/Debts/7'])
-    expect(fresh?.paySum.toDecimal().toString()).toBe('100')
-    expect(fresh?.payComment).toBe('2026.08.22 100 первый взнос')
+    expect(fresh?.sum.toDecimal().toString()).toBe('1000')
+    expect(fresh?.comment).toBe('первый взнос')
   })
 
   it('превышение суммы долга приходит текстом сервера', async () => {

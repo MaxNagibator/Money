@@ -1,9 +1,9 @@
-﻿namespace Money.Api.Dto.Debts;
+namespace Money.Api.Dto.Debts;
 
 /// <summary>
-/// Долг.
+/// Движение по долговому счёту.
 /// </summary>
-public class DebtDto
+public class DebtMovementDto
 {
     /// <summary>
     /// Идентификатор.
@@ -36,16 +36,6 @@ public class DebtDto
     public DateTime Date { get; set; }
 
     /// <summary>
-    /// Оплаченная сумма.
-    /// </summary>
-    public decimal PaySum { get; set; }
-
-    /// <summary>
-    /// Комментарии к оплате.
-    /// </summary>
-    public string? PayComment { get; set; }
-
-    /// <summary>
     /// Удален.
     /// </summary>
     public bool IsDeleted { get; set; }
@@ -54,8 +44,8 @@ public class DebtDto
     /// Фабричный метод для создания DTO на основе бизнес-модели.
     /// </summary>
     /// <param name="business">Бизнес-модель.</param>
-    /// <returns>Новый объект <see cref="DebtDto" />.</returns>
-    public static DebtDto FromBusinessModel(Debt business)
+    /// <returns>Новый объект <see cref="DebtMovementDto" />.</returns>
+    public static DebtMovementDto FromBusinessModel(DebtMovement business)
     {
         return new()
         {
@@ -64,8 +54,6 @@ public class DebtDto
             Comment = business.Comment,
             Date = business.Date,
             OwnerName = business.OwnerName,
-            PaySum = business.PaySum,
-            PayComment = business.PayComment,
             TypeId = (int)business.Type,
             IsDeleted = business.IsDeleted,
         };

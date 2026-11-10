@@ -1,6 +1,6 @@
-import type { DebtDraft } from '@/api/adapters/debts'
+﻿import type { DebtDraft } from '@/api/adapters/debts'
 import { trimToNull } from '@/domain/text'
-import type { Debt } from '@/domain/debt'
+import type { DebtMovement } from '@/domain/debt'
 import type { LocalDate } from '@/domain/local-date'
 import { Money } from '@/domain/money'
 import { DATE_UNPARSED, SUM_UNPARSED } from '@/shared/ui/field-messages'
@@ -35,14 +35,14 @@ export function newDebtForm(date: LocalDate, typeId: number | null = null): Debt
   }
 }
 
-export function editDebtForm(debt: Debt): DebtFormValue {
+export function editDebtForm(movement: DebtMovement): DebtFormValue {
   return {
-    id: debt.id,
-    typeId: debt.typeId,
-    ownerName: debt.ownerName,
-    sum: debt.sum,
-    date: debt.date,
-    comment: debt.comment ?? '',
+    id: movement.id,
+    typeId: movement.typeId,
+    ownerName: movement.ownerName,
+    sum: movement.sum,
+    date: movement.date,
+    comment: movement.comment ?? '',
   }
 }
 
