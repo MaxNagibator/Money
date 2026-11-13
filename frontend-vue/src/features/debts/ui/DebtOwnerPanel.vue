@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { UNNAMED_DEBT_OWNER } from '@/api/adapters/debts'
 import type { DebtMovement } from '@/domain/debt'
+import { compareLocalDate } from '@/domain/local-date'
 import { formatLocalDate, formatMoney, formatMoneyWhole } from '@/platform/format'
 import {
   mdAttachMoney,
@@ -60,9 +61,10 @@ const balance = computed(() => signedBalance(props.owner.debts))
 const remainder = computed(() => ownerRemainder(props.owner))
 
 const roleStyle = computed(() => roleVariables(debtRoleColor(signedBalance(props.owner.debts).isNegative ? 2 : 1)))
-const balanceColor = computed(() => balance.value.isNegative ? 'error' as const : balance.value.isZero ? 'default' as const : 'success' as const)
-const outgoingMovements = computed(() => props.owner.debts.filter(movement => movement.typeId === 1))
-const incomingMovements = computed(() => props.owner.debts.filter(movement => movement.typeId === 2))
+const balanceColor = computed(() => balance.value.isNegative ? 'warning' as const : balance.value.isZero ? 'default' as const : 'success' as const)
+const chronologicalMovements = computed(() => [...props.owner.debts].sort(
+  (left, right) => compareLocalDate(right.date, left.date),
+))
 const payable = computed(() => nextPayableDebt(props.owner))
 const payableDate = computed(() => payable.value === null ? null : formatLocalDate(payable.value.date))
 const openPayment = computed(() => {
@@ -152,7 +154,10 @@ function cancelPayment(): void {
         <span class="debt-book__metric">
           <small>Движения / оборот</small>
           <span class="debt-book__combined">
-            <MudIcon :icon="mdSwapHoriz" size="small" />
+            <MudIcon
+              :icon="mdSwapHoriz"
+              size="small"
+            />
             <b data-testid="debts-owner-total">{{ owner.debts.length }} / {{ formatMoneyWhole(total) }}</b>
           </span>
         </span>
@@ -181,37 +186,59 @@ function cancelPayment(): void {
         <div class="debt-ledger__heading">
           Приход
         </div>
-        <div
-          v-for="(movements, column) in [outgoingMovements, incomingMovements]"
-          :key="column"
-          :data-testid="column === 0 ? 'debts-owner-outgoing' : 'debts-owner-incoming'"
-          class="debt-ledger__column"
+        <TransitionGroup
+          name="list-flow"
+          @before-enter="unpinItem"
+          @before-leave="pinLeavingItem"
         >
-          <TransitionGroup
-            name="list-flow"
-            @before-enter="unpinItem"
-            @before-leave="pinLeavingItem"
+          <div
+            v-for="movement in chronologicalMovements"
+            :key="movement.id"
+            class="debt-ledger__row"
           >
-            <DebtCard
-              v-for="movement in movements"
-              :key="movement.id"
-              ledger
-              :movement="movement"
-              :is-paying="isPaying"
-              :is-payment-open="paymentValue !== null && paymentValue.debtId === movement.id"
-              :is-selectable="isSelectable(movement)"
-              :is-selected="selectedIds.has(movement.id)"
-              :payment-value="paymentValue"
-              @cancel-payment="emit('cancel-payment', $event)"
-              @edit="emit('edit', $event)"
-              @open-payment="emit('open-payment', $event)"
-              @remove="emit('remove', $event)"
-              @restore="emit('restore', $event)"
-              @submit-payment="emit('submit-payment', $event)"
-              @toggle-selection="emit('toggle-selection', $event)"
-            />
-          </TransitionGroup>
-        </div>
+            <div class="debt-ledger__cell debt-ledger__cell--outgoing">
+              <DebtCard
+                v-if="movement.typeId === 1"
+                ledger
+                ledger-side="outgoing"
+                :movement="movement"
+                :is-paying="isPaying"
+                :is-payment-open="paymentValue !== null && paymentValue.debtId === movement.id"
+                :is-selectable="isSelectable(movement)"
+                :is-selected="selectedIds.has(movement.id)"
+                :payment-value="paymentValue"
+                @cancel-payment="emit('cancel-payment', $event)"
+                @edit="emit('edit', $event)"
+                @open-payment="emit('open-payment', $event)"
+                @remove="emit('remove', $event)"
+                @restore="emit('restore', $event)"
+                @submit-payment="emit('submit-payment', $event)"
+                @toggle-selection="emit('toggle-selection', $event)"
+              />
+            </div>
+
+            <div class="debt-ledger__cell debt-ledger__cell--incoming">
+              <DebtCard
+                v-if="movement.typeId === 2"
+                ledger
+                ledger-side="incoming"
+                :movement="movement"
+                :is-paying="isPaying"
+                :is-payment-open="paymentValue !== null && paymentValue.debtId === movement.id"
+                :is-selectable="isSelectable(movement)"
+                :is-selected="selectedIds.has(movement.id)"
+                :payment-value="paymentValue"
+                @cancel-payment="emit('cancel-payment', $event)"
+                @edit="emit('edit', $event)"
+                @open-payment="emit('open-payment', $event)"
+                @remove="emit('remove', $event)"
+                @restore="emit('restore', $event)"
+                @submit-payment="emit('submit-payment', $event)"
+                @toggle-selection="emit('toggle-selection', $event)"
+              />
+            </div>
+          </div>
+        </TransitionGroup>
       </div>
 
       <div
@@ -310,37 +337,59 @@ function cancelPayment(): void {
       <div class="debt-ledger__heading">
         Приход
       </div>
-      <div
-        v-for="(movements, column) in [outgoingMovements, incomingMovements]"
-        :key="column"
-        :data-testid="column === 0 ? 'debts-owner-outgoing' : 'debts-owner-incoming'"
-        class="debt-ledger__column"
+      <TransitionGroup
+        name="list-flow"
+        @before-enter="unpinItem"
+        @before-leave="pinLeavingItem"
       >
-        <TransitionGroup
-          name="list-flow"
-          @before-enter="unpinItem"
-          @before-leave="pinLeavingItem"
+        <div
+          v-for="movement in chronologicalMovements"
+          :key="movement.id"
+          class="debt-ledger__row"
         >
-          <DebtCard
-            v-for="movement in movements"
-            :key="movement.id"
-            ledger
-            :movement="movement"
-            :is-paying="isPaying"
-            :is-payment-open="paymentValue !== null && paymentValue.debtId === movement.id"
-            :is-selectable="isSelectable(movement)"
-            :is-selected="selectedIds.has(movement.id)"
-            :payment-value="paymentValue"
-            @cancel-payment="emit('cancel-payment', $event)"
-            @edit="emit('edit', $event)"
-            @open-payment="emit('open-payment', $event)"
-            @remove="emit('remove', $event)"
-            @restore="emit('restore', $event)"
-            @submit-payment="emit('submit-payment', $event)"
-            @toggle-selection="emit('toggle-selection', $event)"
-          />
-        </TransitionGroup>
-      </div>
+          <div class="debt-ledger__cell debt-ledger__cell--outgoing">
+            <DebtCard
+              v-if="movement.typeId === 1"
+              ledger
+              ledger-side="outgoing"
+              :movement="movement"
+              :is-paying="isPaying"
+              :is-payment-open="paymentValue !== null && paymentValue.debtId === movement.id"
+              :is-selectable="isSelectable(movement)"
+              :is-selected="selectedIds.has(movement.id)"
+              :payment-value="paymentValue"
+              @cancel-payment="emit('cancel-payment', $event)"
+              @edit="emit('edit', $event)"
+              @open-payment="emit('open-payment', $event)"
+              @remove="emit('remove', $event)"
+              @restore="emit('restore', $event)"
+              @submit-payment="emit('submit-payment', $event)"
+              @toggle-selection="emit('toggle-selection', $event)"
+            />
+          </div>
+
+          <div class="debt-ledger__cell debt-ledger__cell--incoming">
+            <DebtCard
+              v-if="movement.typeId === 2"
+              ledger
+              ledger-side="incoming"
+              :movement="movement"
+              :is-paying="isPaying"
+              :is-payment-open="paymentValue !== null && paymentValue.debtId === movement.id"
+              :is-selectable="isSelectable(movement)"
+              :is-selected="selectedIds.has(movement.id)"
+              :payment-value="paymentValue"
+              @cancel-payment="emit('cancel-payment', $event)"
+              @edit="emit('edit', $event)"
+              @open-payment="emit('open-payment', $event)"
+              @remove="emit('remove', $event)"
+              @restore="emit('restore', $event)"
+              @submit-payment="emit('submit-payment', $event)"
+              @toggle-selection="emit('toggle-selection', $event)"
+            />
+          </div>
+        </div>
+      </TransitionGroup>
     </div>
   </div>
 </template>
@@ -369,9 +418,19 @@ function cancelPayment(): void {
   border-radius: 0 0 6px 6px;
 }
 
-.debt-ledger__column {
+.debt-ledger__row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.debt-ledger__cell {
   min-width: 0;
-  padding: 4px 0;
+  border-bottom: 1px solid var(--mud-palette-lines-default);
+}
+
+.debt-ledger__cell--incoming {
+  border-left: 1px solid var(--mud-palette-lines-default);
 }
 
 .debt-ledger__heading {
@@ -389,9 +448,6 @@ function cancelPayment(): void {
   border-left: 1px solid var(--mud-palette-lines-default);
 }
 
-.debt-ledger__column + .debt-ledger__column {
-  border-left: 1px solid var(--mud-palette-lines-default);
-}
 
 .debt-book {
   position: relative;
@@ -462,8 +518,8 @@ function cancelPayment(): void {
   color: var(--mud-palette-success);
 }
 
-.debt-book__remainder--error {
-  color: var(--mud-palette-error);
+.debt-book__remainder--warning {
+  color: var(--mud-palette-warning);
 }
 
 .debt-book__remainder--default {

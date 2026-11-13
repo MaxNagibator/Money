@@ -34,6 +34,7 @@ const COLLAPSE_DELAY_MS = 1000
 const props = defineProps<{
   movement: DebtMovement
   ledger?: boolean
+  ledgerSide?: 'outgoing' | 'incoming'
   isSelectable: boolean
   isSelected: boolean
   isPaymentOpen: boolean
@@ -158,6 +159,7 @@ function togglePayment(): void {
       :aria-label="`Изменить долг ${actionSuffix}`"
       :data-testid="`debts-card-edit-${movement.id}`"
       :disabled="movement.isDeleted"
+      :class="{ 'debt-row__main--incoming': ledgerSide === 'incoming' }"
       class="debt-row__main"
       type="button"
       @click="emit('edit', movement)"
@@ -408,11 +410,11 @@ function togglePayment(): void {
 .debt-row {
   display: flex;
   align-items: center;
-  border-top: 1px solid var(--mud-palette-lines-default);
 }
 
 .debt-row__main {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: baseline;
   flex: 1 1 auto;
   gap: 10px;
@@ -425,6 +427,20 @@ function togglePayment(): void {
   font-family: inherit;
   font-size: 0.8125rem;
   text-align: left;
+}
+
+.debt-row__main--incoming {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.debt-row__main--incoming .debt-row__when {
+  grid-column: 2;
+  text-align: right;
+}
+
+.debt-row__main--incoming .debt-row__sum {
+  grid-column: 1;
+  grid-row: 1;
 }
 
 .debt-row__main:disabled {

@@ -60,25 +60,28 @@ function payment(debtId: number): PaymentFormValue {
 }
 
 describe('книжная карточка держателя на узком экране', () => {
-  it('раскладывает все движения в две постоянные колонки по направлению', async () => {
+  it('строит общие строки по дате и заполняет в каждой только нужную колонку', async () => {
     const wrapper = mountPanel(owner([
-      DebtMovement(1, { typeId: 1 }),
-      DebtMovement(2, { typeId: 2 }),
-      DebtMovement(3, { typeId: 1 }),
-      DebtMovement(4, { typeId: 2 }),
+      DebtMovement(1, { typeId: 1, date: parseLocalDate('2026-09-10')! }),
+      DebtMovement(2, { typeId: 2, date: parseLocalDate('2026-09-17')! }),
+      DebtMovement(3, { typeId: 1, date: parseLocalDate('2026-09-15')! }),
+      DebtMovement(4, { typeId: 2, date: parseLocalDate('2026-09-12')! }),
     ]))
 
     await wrapper.get(TOGGLE).trigger('click')
 
-    const incoming = wrapper.get('[data-testid="debts-owner-incoming"]')
-    const outgoing = wrapper.get('[data-testid="debts-owner-outgoing"]')
+    const rows = wrapper.findAll('.debt-ledger__row')
 
-    expect(incoming.findAll('.debt-row')).toHaveLength(2)
-    expect(outgoing.findAll('.debt-row')).toHaveLength(2)
-    expect(plain(incoming.text())).toContain('1 000,00')
-    expect(plain(outgoing.text())).toContain('1 000,00')
-    expect(incoming.find('[data-testid="debts-card-1"]').exists()).toBe(false)
-    expect(outgoing.find('[data-testid="debts-card-2"]').exists()).toBe(false)
+    expect(rows).toHaveLength(4)
+    expect(rows.map(row => row.find('.debt-row').attributes('data-testid'))).toEqual([
+      'debts-card-2',
+      'debts-card-3',
+      'debts-card-4',
+      'debts-card-1',
+    ])
+    expect(rows.every(row => row.findAll('.debt-row').length === 1)).toBe(true)
+    expect(rows[0]?.find('.debt-ledger__cell--outgoing .debt-row').exists()).toBe(false)
+    expect(rows[1]?.find('.debt-ledger__cell--incoming .debt-row').exists()).toBe(false)
   })
 
   it('свёрнутая карточка показывает остаток, оборот и число движений', () => {
@@ -88,10 +91,16 @@ describe('книжная карточка держателя на узком э�
     ]))
 
     expect(plain(wrapper.get('[data-testid="debts-owner-remainder"]').text())).toBe('1 300,00')
-    expect(plain(wrapper.get('[data-testid="debts-owner-total"]').text())).toBe('1 300,00')
-    expect(plain(wrapper.get(META).text())).toContain('2 долга')
+    expect(wrapper.get('[data-testid="debts-owner-remainder"]').classes()).toContain('debt-book__remainder--success')
+    expect(plain(wrapper.get('[data-testid="debts-owner-total"]').text())).toBe('2 / 1 300')
     expect(wrapper.find('[data-testid="debts-owner-count"]').exists()).toBe(false)
     expect(wrapper.find('[data-testid="debts-card-edit-1"]').exists()).toBe(false)
+  })
+
+  it('отрицательный баланс использует оранжевый цвет расходов', () => {
+    const wrapper = mountPanel(owner([DebtMovement(1, { typeId: 2 })]))
+
+    expect(wrapper.get('[data-testid="debts-owner-remainder"]').classes()).toContain('debt-book__remainder--warning')
   })
 
   it('раскрытая карточка отдаёт строку на долг, итог по держателю и одну кнопку оплаты', async () => {
@@ -196,13 +205,18 @@ describe('книжная карточка держателя на узком э�
     expect(wrapper.find('[data-testid="debts-card-edit-1"]').exists()).toBe(true)
   })
 
-  it('на широком экране остаётся прежняя раскладка с чипами', () => {
+  it('на широком экране движения также скрыты до нажатия на шапку', async () => {
     isNarrow.value = false
 
     const wrapper = mountPanel(owner([DebtMovement(1)]))
 
-    expect(wrapper.find('[data-testid="debts-owner-count"]').exists()).toBe(true)
-    expect(wrapper.find(TOGGLE).exists()).toBe(false)
+    expect(wrapper.find('[data-testid="debts-owner-count"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="debts-owner-turnover"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="debts-card-1"]').exists()).toBe(false)
+
+    await wrapper.get(TOGGLE).trigger('click')
+
+    expect(wrapper.find('[data-testid="debts-card-1"]').exists()).toBe(true)
 
     isNarrow.value = true
   })
