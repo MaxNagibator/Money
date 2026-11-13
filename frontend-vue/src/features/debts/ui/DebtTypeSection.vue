@@ -1,6 +1,6 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed } from 'vue'
-import type { Debt } from '@/domain/debt'
+import type { DebtMovement } from '@/domain/debt'
 import { formatMoney } from '@/platform/format'
 import { mdExpandLess, mdExpandMore, mdLabel } from '@/shared/icons'
 import {
@@ -21,7 +21,7 @@ import DebtOwnerPanel from './DebtOwnerPanel.vue'
 const props = defineProps<{
   group: DebtTypeGroup
   isExpanded: boolean
-  isSelectable: (debt: Debt) => boolean
+  isSelectable: (movement: DebtMovement) => boolean
   selectedIds: ReadonlySet<number>
   paymentValue: PaymentFormValue | null
   isPaying: boolean
@@ -29,12 +29,12 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'toggle': [typeId: number]
-  'toggle-selection': [debt: Debt]
-  'edit': [debt: Debt]
-  'remove': [debt: Debt]
-  'restore': [debt: Debt]
-  'open-payment': [debt: Debt]
-  'cancel-payment': [debt: Debt]
+  'toggle-selection': [movement: DebtMovement]
+  'edit': [movement: DebtMovement]
+  'remove': [movement: DebtMovement]
+  'restore': [movement: DebtMovement]
+  'open-payment': [movement: DebtMovement]
+  'cancel-payment': [movement: DebtMovement]
   'submit-payment': [value: PaymentFormValue]
 }>()
 

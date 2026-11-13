@@ -17,12 +17,12 @@ public class DebtsController(DebtsService service) : ControllerBase
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     /// <returns>Массив долгов.</returns>
     [HttpGet("")]
-    [ProducesResponseType(typeof(IEnumerable<DebtDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<DebtMovementDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Get(CancellationToken cancellationToken, bool withPaid = false)
     {
         var models = await service.GetAsync(withPaid, cancellationToken);
-        return Ok(models.Select(DebtDto.FromBusinessModel));
+        return Ok(models.Select(DebtMovementDto.FromBusinessModel));
     }
 
     /// <summary>
@@ -32,13 +32,13 @@ public class DebtsController(DebtsService service) : ControllerBase
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     /// <returns>Информация о долге.</returns>
     [HttpGet("{id:int}")]
-    [ProducesResponseType(typeof(DebtDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(DebtMovementDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
     {
         var model = await service.GetByIdAsync(id, cancellationToken);
-        return Ok(DebtDto.FromBusinessModel(model));
+        return Ok(DebtMovementDto.FromBusinessModel(model));
     }
 
     /// <summary>

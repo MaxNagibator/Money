@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Money.Data.Entities;
 using System.Reflection;
 
@@ -12,7 +12,7 @@ public class ApplicationDbContext(DbContextOptions options) : IdentityDbContext<
     public DbSet<FastOperation> FastOperations { get; set; } = null!;
     public DbSet<RegularOperation> RegularOperations { get; set; } = null!;
     public DbSet<Place> Places { get; set; } = null!;
-    public DbSet<Debt> Debts { get; set; } = null!;
+    public DbSet<DebtMovement> DebtMovements { get; set; } = null!;
     public DbSet<DebtOwner> DebtOwners { get; set; } = null!;
     public DbSet<Car> Cars { get; set; } = null!;
     public DbSet<CarEvent> CarEvents { get; set; } = null!;

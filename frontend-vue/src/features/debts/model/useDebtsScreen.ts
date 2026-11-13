@@ -1,9 +1,9 @@
-import type { ComputedRef, Ref } from 'vue'
+﻿import type { ComputedRef, Ref } from 'vue'
 import { computed, ref, shallowRef } from 'vue'
 import { DEBT_SAVE_ERROR } from '@/api/adapters/debts'
 import { trimToNull } from '@/domain/text'
 import type { Category } from '@/domain/category'
-import type { Debt } from '@/domain/debt'
+import type { DebtMovement } from '@/domain/debt'
 import type { OperationTypeId } from '@/domain/operation-type'
 import type { Clock } from '@/platform/clock'
 import { systemClock } from '@/platform/clock'
@@ -45,16 +45,16 @@ export interface DebtsScreenState {
   form: Ref<DebtFormValue | null>
   isSaving: Ref<boolean>
   startCreate: (typeId?: number | null) => void
-  startEdit: (debt: Debt) => void
+  startEdit: (movement: DebtMovement) => void
   cancelEdit: () => void
   submit: (value: DebtFormValue) => Promise<void>
-  remove: (debt: Debt) => Promise<void>
+  remove: (movement: DebtMovement) => Promise<void>
   removeEdited: () => Promise<void>
-  restore: (debt: Debt) => Promise<void>
+  restore: (movement: DebtMovement) => Promise<void>
   payment: Ref<PaymentFormValue | null>
   isPaying: Ref<boolean>
-  startPayment: (debt: Debt) => void
-  cancelPayment: (debt: Debt) => void
+  startPayment: (movement: DebtMovement) => void
+  cancelPayment: (movement: DebtMovement) => void
   submitPayment: (value: PaymentFormValue) => Promise<void>
   isForgiveOpen: Ref<boolean>
   isForgiving: Ref<boolean>
@@ -64,8 +64,8 @@ export interface DebtsScreenState {
   selectedIds: ComputedRef<ReadonlySet<number>>
   selectedCount: ComputedRef<number>
   openForgive: (state: boolean) => void
-  isSelectable: (debt: Debt) => boolean
-  toggleSelection: (debt: Debt) => void
+  isSelectable: (movement: DebtMovement) => boolean
+  toggleSelection: (movement: DebtMovement) => void
   selectAllVisible: () => void
   clearSelection: () => void
   forgive: () => Promise<void>
@@ -107,13 +107,13 @@ export function useDebtsScreen(
   const ownerFromId = ref<number | null>(null)
   const ownerToId = ref<number | null>(null)
 
-  const groups = computed(() => filterDebtGroups(groupDebts(debts.debts.value), search.value))
+  const groups = computed(() => filterDebtGroups(groupDebts(debts.debts.value, showPaid.value), search.value))
 
   const expenseCategories = computed(() => categories.value.filter(
     category => category.operationTypeId === EXPENSE_OPERATION_TYPE_ID && !category.isDeleted,
   ))
 
-  const isSelectable = (debt: Debt): boolean => isForgiveOpen.value && canForgiveDebt(debt)
+  const isSelectable = (movement: DebtMovement): boolean => isForgiveOpen.value && canForgiveDebt(movement)
 
   const clearSelection = (): void => {
     selectedIds.value = new Set()
@@ -149,8 +149,8 @@ export function useDebtsScreen(
     startCreate: (typeId = null) => {
       form.value = newDebtForm(clock.today(), typeId)
     },
-    startEdit: debt => {
-      form.value = editDebtForm(debt)
+    startEdit: movement => {
+      form.value = editDebtForm(movement)
     },
     cancelEdit: () => {
       form.value = null
@@ -172,7 +172,7 @@ export function useDebtsScreen(
         isSaving.value = false
       }
     },
-    remove: debt => removeById(debt.id),
+    remove: movement => removeById(movement.id),
     removeEdited: async () => {
       const id = form.value?.id ?? null
 
@@ -184,24 +184,24 @@ export function useDebtsScreen(
 
       await removeById(id)
     },
-    restore: async debt => {
+    restore: async movement => {
       try {
-        await debts.restore(debt.id)
+        await debts.restore(movement.id)
       } catch (error) {
         notice.value = { text: messageOf(error, 'Не удалось восстановить долг'), type: 'error' }
       }
     },
     payment,
     isPaying,
-    startPayment: debt => {
+    startPayment: movement => {
       if (isPaying.value) {
         return
       }
 
-      payment.value = newPaymentForm(debt, clock.today())
+      payment.value = newPaymentForm(movement, clock.today())
     },
-    cancelPayment: debt => {
-      if (payment.value?.debtId !== debt.id) {
+    cancelPayment: movement => {
+      if (payment.value?.debtId !== movement.id) {
         return
       }
 
@@ -241,16 +241,16 @@ export function useDebtsScreen(
       }
     },
     isSelectable,
-    toggleSelection: debt => {
-      if (!isSelectable(debt)) {
+    toggleSelection: movement => {
+      if (!isSelectable(movement)) {
         notice.value = { text: DEBT_NOT_FORGIVABLE, type: 'warning' }
         return
       }
 
       const next = new Set(selectedIds.value)
 
-      if (!next.delete(debt.id)) {
-        next.add(debt.id)
+      if (!next.delete(movement.id)) {
+        next.add(movement.id)
       }
 
       selectedIds.value = next
@@ -260,8 +260,8 @@ export function useDebtsScreen(
 
       for (const group of groups.value) {
         for (const owner of group.owners) {
-          for (const debt of owner.debts.filter(isSelectable)) {
-            next.add(debt.id)
+          for (const movement of owner.debts.filter(isSelectable)) {
+            next.add(movement.id)
           }
         }
       }
@@ -280,8 +280,8 @@ export function useDebtsScreen(
       }
 
       const debtIds = debts.debts.value
-        .filter(debt => selectedIds.value.has(debt.id) && canForgiveDebt(debt))
-        .map(debt => debt.id)
+        .filter(movement => selectedIds.value.has(movement.id) && canForgiveDebt(movement))
+        .map(movement => movement.id)
 
       if (debtIds.length === 0) {
         notice.value = { text: DEBT_NOT_FORGIVABLE, type: 'warning' }

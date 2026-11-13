@@ -1,15 +1,13 @@
-import type { LocalDate } from '@/domain/local-date'
+﻿import type { LocalDate } from '@/domain/local-date'
 import type { Money } from '@/domain/money'
 
-export interface Debt {
+export interface DebtMovement {
   id: number
   typeId: number
   sum: Money
-  paySum: Money
   comment: string | null
   ownerName: string
   date: LocalDate
-  payComment: string | null
   isDeleted: boolean
 }
 

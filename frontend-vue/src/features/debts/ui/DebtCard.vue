@@ -1,17 +1,15 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed, onScopeDispose, ref, watch } from 'vue'
-import type { Debt } from '@/domain/debt'
+import type { DebtMovement } from '@/domain/debt'
 import { formatLocalDate, formatMoney } from '@/platform/format'
 import {
-  mdCheckCircle,
   mdDelete,
+  mdInput,
   mdModeEdit,
+  mdOutput,
   mdPayment,
-  mdPending,
   mdRestore,
-  mdWarningAmber,
 } from '@/shared/icons'
-import type { MudColor } from '@/shared/mud'
 import {
   MudCard,
   MudCardActions,
@@ -22,36 +20,21 @@ import {
   MudDivider,
   MudIconButton,
   MudPopover,
-  MudProgressLinear,
-  MudSimpleTable,
   MudSpacer,
   MudStack,
   MudText,
 } from '@/shared/mud'
-import { roleVariables } from '@/shared/ui/record-card'
 import { useNarrowViewport } from '@/shared/ui/useNarrowViewport'
 import { useTransitionsAfterMount } from '@/shared/ui/useTransitionsAfterMount'
-import type { DebtStatus } from '../model/debt'
-import { DEBT_STATUS_TEXT, debtStatus, hasPaymentHistory, parsePaymentHistory, paymentProgress } from '../model/debt'
 import type { PaymentFormValue } from '../model/payment-form'
 import DebtPaymentForm from './DebtPaymentForm.vue'
 
 const COLLAPSE_DELAY_MS = 1000
 
-const STATUS_ICONS: Record<DebtStatus, string> = {
-  paid: mdCheckCircle,
-  inProgress: mdPending,
-  notStarted: mdWarningAmber,
-}
-
-const STATUS_COLORS: Record<DebtStatus, MudColor> = {
-  paid: 'success',
-  inProgress: 'info',
-  notStarted: 'secondary',
-}
-
 const props = defineProps<{
-  debt: Debt
+  movement: DebtMovement
+  ledger?: boolean
+  ledgerSide?: 'outgoing' | 'incoming'
   isSelectable: boolean
   isSelected: boolean
   isPaymentOpen: boolean
@@ -60,12 +43,12 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  'toggle-selection': [debt: Debt]
-  'edit': [debt: Debt]
-  'remove': [debt: Debt]
-  'restore': [debt: Debt]
-  'open-payment': [debt: Debt]
-  'cancel-payment': [debt: Debt]
+  'toggle-selection': [movement: DebtMovement]
+  'edit': [movement: DebtMovement]
+  'remove': [movement: DebtMovement]
+  'restore': [movement: DebtMovement]
+  'open-payment': [movement: DebtMovement]
+  'cancel-payment': [movement: DebtMovement]
   'submit-payment': [value: PaymentFormValue]
 }>()
 
@@ -76,25 +59,22 @@ const isNarrow = useNarrowViewport()
 
 let collapseTimer: ReturnType<typeof setTimeout> | null = null
 
-const remainder = computed(() => props.debt.sum.subtract(props.debt.paySum))
+const direction = computed(() => props.movement.typeId === 1 ? 1 : -1)
+const movementSum = computed(() => props.movement.sum.multiply(direction.value))
+const remainder = computed(() => movementSum.value)
 const comment = computed(() => {
-  const value = props.debt.comment?.trim() ?? ''
+  const value = props.movement.comment?.trim() ?? ''
 
   return value.length === 0 ? null : value
 })
-const progress = computed(() => paymentProgress(props.debt))
-const status = computed(() => debtStatus(props.debt))
-const isPaid = computed(() => status.value === 'paid' && !props.debt.isDeleted)
 const toneClass = computed(() => {
-  if (props.debt.isDeleted) {
+  if (props.movement.isDeleted) {
     return ['debt-card--deleted', 'record-card', 'record-card--muted']
   }
 
-  return isPaid.value ? ['debt-card--paid', 'record-card', 'record-card--faded'] : []
+  return []
 })
-const toneStyle = computed(() => isPaid.value ? roleVariables(STATUS_COLORS.paid) : null)
-const payments = computed(() => hasPaymentHistory(props.debt) ? parsePaymentHistory(props.debt.payComment) : [])
-const actionSuffix = computed(() => `${props.debt.ownerName} на ${formatMoney(props.debt.sum)}`)
+const actionSuffix = computed(() => `${props.movement.ownerName} на ${formatMoney(movementSum.value)}`)
 
 watch(() => props.isPaymentOpen, isOpen => {
   if (isOpen) {
@@ -147,62 +127,66 @@ function onFocusOut(event: FocusEvent): void {
 
 function togglePayment(): void {
   if (props.isPaymentOpen) {
-    emit('cancel-payment', props.debt)
+    emit('cancel-payment', props.movement)
     return
   }
 
-  emit('open-payment', props.debt)
+  emit('open-payment', props.movement)
 }
 </script>
 
 <template>
   <div
-    v-if="isNarrow"
-    :class="{ 'debt-row--deleted': debt.isDeleted, 'debt-row--paid': isPaid }"
-    :data-testid="`debts-card-${debt.id}`"
+    v-if="isNarrow || ledger"
+    :class="[
+      { 'debt-row--deleted': movement.isDeleted },
+      `debt-row--type-${movement.typeId}`,
+    ]"
+    :data-testid="`debts-card-${movement.id}`"
     class="debt-row"
   >
     <MudCheckBox
       v-if="isSelectable"
-      :data-testid="`debts-card-select-${debt.id}`"
+      :data-testid="`debts-card-select-${movement.id}`"
       :model-value="isSelected"
       aria-label="Выбрать долг для прощения"
       color="tertiary"
       size="small"
-      @click.stop="emit('toggle-selection', debt)"
+      @click.stop="emit('toggle-selection', movement)"
     />
 
     <button
       :aria-label="`Изменить долг ${actionSuffix}`"
-      :data-testid="`debts-card-edit-${debt.id}`"
-      :disabled="debt.isDeleted"
+      :data-testid="`debts-card-edit-${movement.id}`"
+      :disabled="movement.isDeleted"
+      :class="{ 'debt-row__main--incoming': ledgerSide === 'incoming' }"
       class="debt-row__main"
       type="button"
-      @click="emit('edit', debt)"
+      @click="emit('edit', movement)"
     >
       <span class="debt-row__when">
-        <span :data-testid="`debts-card-date-${debt.id}`">{{ formatLocalDate(debt.date) }}</span>
+        <span :data-testid="`debts-card-date-${movement.id}`">{{ formatLocalDate(movement.date) }}</span>
         <template v-if="comment !== null">
           <span>&nbsp;·&nbsp;</span>
-          <span :data-testid="`debts-card-comment-${debt.id}`">{{ comment }}</span>
+          <span :data-testid="`debts-card-comment-${movement.id}`">{{ comment }}</span>
         </template>
       </span>
 
       <span
-        :data-testid="`debts-card-remainder-${debt.id}`"
+        :data-testid="`debts-card-remainder-${movement.id}`"
         class="debt-row__sum"
-      >{{ formatMoney(remainder) }}</span>
+      >{{ formatMoney(movement.sum) }}</span>
     </button>
 
     <MudIconButton
-      v-if="debt.isDeleted"
-      :data-testid="`debts-card-restore-${debt.id}`"
+      v-if="movement.isDeleted"
+      :data-testid="`debts-card-restore-${movement.id}`"
       :icon="mdRestore"
       aria-label="Восстановить"
       color="success"
       size="small"
       title="Восстановить"
-      @click.stop="emit('restore', debt)"
+      @click.stop="emit('restore', movement)"
     />
   </div>
 
@@ -210,9 +194,8 @@ function togglePayment(): void {
     v-else
     :aria-expanded="isExpanded"
     :class="toneClass"
-    :data-testid="`debts-card-${debt.id}`"
+    :data-testid="`debts-card-${movement.id}`"
     :role="isExpanded || isSelectable ? undefined : 'button'"
-    :style="toneStyle"
     :tabindex="isExpanded || isSelectable ? undefined : 0"
     class="debt-card"
     outlined
@@ -236,21 +219,21 @@ function togglePayment(): void {
         >
           <MudCheckBox
             v-if="isSelectable"
-            :data-testid="`debts-card-select-${debt.id}`"
+            :data-testid="`debts-card-select-${movement.id}`"
             :model-value="isSelected"
             aria-label="Выбрать долг для прощения"
             color="tertiary"
             size="small"
-            @click.stop="emit('toggle-selection', debt)"
+            @click.stop="emit('toggle-selection', movement)"
           />
 
-          <span class="debt-card__field-label">Сумма</span>
+          <span class="debt-card__field-label">Движение</span>
 
           <MudText
             html-tag="span"
             typo="body1"
           >
-            {{ formatMoney(debt.sum) }}
+            {{ formatMoney(movementSum) }}
           </MudText>
 
           <MudSpacer />
@@ -262,7 +245,7 @@ function togglePayment(): void {
             html-tag="span"
             typo="body2"
           >
-            {{ formatLocalDate(debt.date) }}
+            {{ formatLocalDate(movement.date) }}
           </MudText>
         </MudStack>
 
@@ -271,27 +254,15 @@ function togglePayment(): void {
           row
           :spacing="1"
         >
-          <span class="debt-card__field-label">Остаток</span>
+          <span class="debt-card__field-label">Влияние</span>
 
           <MudText
-            :data-testid="`debts-card-remainder-${debt.id}`"
+            :data-testid="`debts-card-remainder-${movement.id}`"
             color="secondary"
             html-tag="span"
             typo="body1"
           >
             {{ formatMoney(remainder) }}
-          </MudText>
-
-          <MudSpacer />
-
-          <span class="debt-card__field-label">Выплачено</span>
-
-          <MudText
-            color="tertiary"
-            html-tag="span"
-            typo="body2"
-          >
-            {{ formatMoney(debt.paySum) }}
           </MudText>
         </MudStack>
       </MudCollapse>
@@ -306,12 +277,12 @@ function togglePayment(): void {
             html-tag="div"
             typo="body2"
           >
-            Дата: {{ formatLocalDate(debt.date) }}
+            Дата: {{ formatLocalDate(movement.date) }}
           </MudText>
 
           <MudText
             v-if="comment !== null"
-            :data-testid="`debts-card-comment-${debt.id}`"
+            :data-testid="`debts-card-comment-${movement.id}`"
             html-tag="div"
             typo="body2"
           >
@@ -324,7 +295,7 @@ function togglePayment(): void {
             html-tag="div"
             typo="subtitle2"
           >
-            Сумма: {{ formatMoney(debt.sum) }}
+            Движение: {{ formatMoney(movementSum) }}
           </MudText>
 
           <MudText
@@ -332,46 +303,8 @@ function togglePayment(): void {
             html-tag="div"
             typo="subtitle2"
           >
-            Остаток: {{ formatMoney(remainder) }}
+            Влияние на баланс: {{ formatMoney(remainder) }}
           </MudText>
-
-          <MudProgressLinear
-            :aria-label="`Погашено ${progress}%`"
-            :buffer-value="100"
-            :value="progress"
-            class="my-2"
-            color="secondary"
-          />
-
-          <template v-if="payments.length > 0">
-            <MudText
-              color="tertiary"
-              html-tag="div"
-              typo="subtitle2"
-            >
-              История погашений:
-            </MudText>
-
-            <MudSimpleTable
-              :data-testid="`debts-card-history-${debt.id}`"
-              class="mx-n3"
-              dense
-              hover
-            >
-              <tbody>
-                <tr
-                  v-for="(payment, index) in payments"
-                  :key="index"
-                >
-                  <td>{{ payment.date === null ? '' : formatLocalDate(payment.date) }}</td>
-                  <td>{{ formatMoney(payment.sum) }}</td>
-                  <td class="debt-card__history-comment">
-                    {{ payment.comment }}
-                  </td>
-                </tr>
-              </tbody>
-            </MudSimpleTable>
-          </template>
         </MudStack>
       </MudCollapse>
     </MudCardContent>
@@ -381,13 +314,13 @@ function togglePayment(): void {
 
       <MudCardActions class="px-1 py-2">
         <MudIconButton
-          :data-testid="`debts-card-pay-${debt.id}`"
-          :disabled="debt.isDeleted"
+          :data-testid="`debts-card-pay-${movement.id}`"
+          :disabled="movement.isDeleted"
           :icon="mdPayment"
-          aria-label="Оплатить"
+          aria-label="Добавить возврат"
           color="primary"
           size="small"
-          title="Оплатить"
+          title="Добавить возврат"
           @click.stop="togglePayment"
         />
 
@@ -399,7 +332,7 @@ function togglePayment(): void {
           <DebtPaymentForm
             :is-saving="isPaying"
             :value="paymentValue"
-            @cancel="emit('cancel-payment', debt)"
+            @cancel="emit('cancel-payment', movement)"
             @submit="emit('submit-payment', $event)"
           />
         </MudPopover>
@@ -407,47 +340,47 @@ function togglePayment(): void {
         <MudSpacer />
 
         <MudChip
-          :color="STATUS_COLORS[status]"
-          :data-testid="`debts-card-status-${debt.id}`"
-          :icon="STATUS_ICONS[status]"
-          :text="DEBT_STATUS_TEXT[status]"
+          :color="movement.typeId === 1 ? 'success' : 'warning'"
+          :data-testid="`debts-card-status-${movement.id}`"
+          :icon="movement.typeId === 1 ? mdInput : mdOutput"
+          :text="movement.typeId === 1 ? 'Увеличение' : 'Уменьшение'"
           size="small"
-          title="Статус"
+          title="Направление движения"
           variant="filled"
         />
 
         <MudSpacer />
 
-        <template v-if="debt.isDeleted">
+        <template v-if="movement.isDeleted">
           <MudIconButton
-            :data-testid="`debts-card-restore-${debt.id}`"
+            :data-testid="`debts-card-restore-${movement.id}`"
             :icon="mdRestore"
             aria-label="Восстановить"
             color="success"
             size="small"
             title="Восстановить"
-            @click.stop="emit('restore', debt)"
+            @click.stop="emit('restore', movement)"
           />
         </template>
 
         <template v-else>
           <MudIconButton
-            :data-testid="`debts-card-edit-${debt.id}`"
+            :data-testid="`debts-card-edit-${movement.id}`"
             :icon="mdModeEdit"
             aria-label="Редактировать"
             color="warning"
             size="small"
             title="Редактировать"
-            @click.stop="emit('edit', debt)"
+            @click.stop="emit('edit', movement)"
           />
 
           <MudIconButton
-            :data-testid="`debts-card-delete-${debt.id}`"
+            :data-testid="`debts-card-delete-${movement.id}`"
             :icon="mdDelete"
             aria-label="Удалить"
             size="small"
             title="Удалить"
-            @click.stop="emit('remove', debt)"
+            @click.stop="emit('remove', movement)"
           />
         </template>
       </MudCardActions>
@@ -477,11 +410,11 @@ function togglePayment(): void {
 .debt-row {
   display: flex;
   align-items: center;
-  border-top: 1px solid var(--mud-palette-lines-default);
 }
 
 .debt-row__main {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: baseline;
   flex: 1 1 auto;
   gap: 10px;
@@ -494,6 +427,20 @@ function togglePayment(): void {
   font-family: inherit;
   font-size: 0.8125rem;
   text-align: left;
+}
+
+.debt-row__main--incoming {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.debt-row__main--incoming .debt-row__when {
+  grid-column: 2;
+  text-align: right;
+}
+
+.debt-row__main--incoming .debt-row__sum {
+  grid-column: 1;
+  grid-row: 1;
 }
 
 .debt-row__main:disabled {

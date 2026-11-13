@@ -1,9 +1,9 @@
-﻿namespace Money.Business.Models;
+namespace Money.Business.Models;
 
 /// <summary>
-/// Долг.
+/// Движение по долговому счёту.
 /// </summary>
-public class Debt
+public class DebtMovement
 {
     /// <summary>
     /// Идентификатор.
@@ -34,19 +34,6 @@ public class Debt
     /// Дата возникновения.
     /// </summary>
     public DateTime Date { get; set; }
-
-    /// <summary>
-    /// Оплаченная сумма.
-    /// </summary>
-    public decimal PaySum { get; set; }
-
-    /// <summary>
-    /// Комментарии к оплате.
-    /// </summary>
-    public string? PayComment { get; set; }
-
-    // TODO: Разобраться в необходимости
-    public DebtStatus Status { get; set; }
 
     /// <summary>
     /// Удален.

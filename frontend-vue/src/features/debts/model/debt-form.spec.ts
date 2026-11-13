@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import type { Debt } from '@/domain/debt'
+﻿import { describe, expect, it } from 'vitest'
+import type { DebtMovement } from '@/domain/debt'
 import type { LocalDate } from '@/domain/local-date'
 import { parseLocalDate } from '@/domain/local-date'
 import { Money } from '@/domain/money'
@@ -15,16 +15,14 @@ function money(value: string): Money {
   return Money.parseInput(value)!
 }
 
-function debt(extra: Partial<Debt> = {}): Debt {
+function DebtMovement(extra: Partial<DebtMovement> = {}): DebtMovement {
   return {
     id: 7,
     typeId: 2,
     sum: money('1000'),
-    paySum: Money.zero,
     comment: 'за обед',
     ownerName: 'Иван',
     date: date('2026-08-20'),
-    payComment: null,
     isDeleted: false,
     ...extra,
   }
@@ -51,7 +49,7 @@ describe('форма долга', () => {
   })
 
   it('редактирование предзаполнено значениями долга', () => {
-    const value = editDebtForm(debt())
+    const value = editDebtForm(DebtMovement())
 
     expect(value.id).toBe(7)
     expect(value.typeId).toBe(2)
@@ -110,19 +108,13 @@ describe('дата в формах долга', () => {
 })
 
 describe('форма оплаты', () => {
-  it('предзаполняется остатком долга и сегодняшней датой', () => {
-    const value = newPaymentForm(debt({ sum: money('1000'), paySum: money('250') }), date('2026-08-22'))
+  it('предзаполняется суммой движения и сегодняшней датой', () => {
+    const value = newPaymentForm(DebtMovement({ sum: money('1000') }), date('2026-08-22'))
 
     expect(value.debtId).toBe(7)
-    expect(value.sum?.toMinorUnits()).toBe(75_000)
+    expect(value.sum?.toMinorUnits()).toBe(100_000)
     expect(value.date).toBe('2026-08-22')
     expect(value.comment).toBe('')
-  })
-
-  it('переплаченный долг предлагает нулевой платёж, а не отрицательный', () => {
-    const value = newPaymentForm(debt({ sum: money('1000'), paySum: money('1200') }), date('2026-08-22'))
-
-    expect(value.sum?.isZero).toBe(true)
   })
 
   it.each([
