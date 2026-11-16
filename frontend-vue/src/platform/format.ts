@@ -74,6 +74,11 @@ export function formatMoney(value: Money): string {
   return moneyFormatter.format(value.toDecimal().toNumber())
 }
 
+export function formatRubles(value: Money, compact = false): string {
+  const text = formatMoney(value)
+  return (compact ? text.replace(/,00$/, '') : text) + '\u00A0₽'
+}
+
 export function formatMoneyPlain(value: Money): string {
   const amount = value.toDecimal()
   const scale = value.wireScale
@@ -94,6 +99,12 @@ export function formatMoneyInput(value: Money): string {
   const scale = value.wireScale
 
   return (scale === null ? amount.toString() : amount.toFixed(scale)).replace('.', ',')
+}
+
+export function formatMoneyEditor(value: Money, fixed = false): string {
+  const [whole = '', decimal = ''] = value.toDecimal().toFixed().split('.')
+  const fraction = fixed ? decimal.padEnd(2, '0') : decimal
+  return whole.replace(/\B(?=(\d{3})+(?!\d))/g, '\u00A0') + (fraction.length > 0 ? ',' + fraction : '')
 }
 
 export function formatMoneyWhole(value: Money): string {

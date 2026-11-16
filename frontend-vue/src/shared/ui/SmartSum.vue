@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
 import type { Money } from '@/domain/money'
+import { formatMoneyEditor, formatMoneyInput } from '@/platform/format'
 import { mdCalculate, mdNumbers } from '@/shared/icons'
 import { MudNumericField, MudTextField } from '@/shared/mud'
 import { useSmartSum } from '@/shared/ui/useSmartSum'
@@ -9,14 +10,25 @@ const props = withDefaults(defineProps<{
   label?: string
   error?: boolean
   errorText?: string
+  amountFormat?: 'compact' | 'fixed' | undefined
+  placeholder?: string
+  helperText?: string
 }>(), {
   label: 'Сумма',
   error: false,
   errorText: '',
+  amountFormat: undefined,
+  placeholder: '',
+  helperText: '',
 })
 
 const model = defineModel<Money | null>({ default: null })
-const state = useSmartSum(model)
+const emit = defineEmits<{ preview: [value: Money | null] }>()
+const state = useSmartSum(model, value => {
+  if (props.amountFormat === undefined) { return formatMoneyInput(value) }
+  return formatMoneyEditor(value, props.amountFormat === 'fixed')
+})
+watch(state.parsedSum, value => emit('preview', value), { immediate: true })
 const numericField = ref<{ focus: () => void }>()
 const textField = ref<{ focus: () => void }>()
 
@@ -47,6 +59,9 @@ defineExpose({
     v-model:text="state.numericText.value"
     data-testid="sum-numeric"
     :label="label"
+    :placeholder="placeholder"
+    :helper-text="helperText"
+    hide-spin-buttons
     :readonly="state.hasExpression.value"
     :error="hasError"
     :error-text="numericErrorText"
@@ -66,6 +81,8 @@ defineExpose({
     v-model="state.calculationText.value"
     data-testid="sum-expression"
     :label="label"
+    :placeholder="placeholder"
+    :helper-text="helperText"
     :error="hasError"
     :error-text="textErrorText"
     :adornment-icon="mdNumbers"

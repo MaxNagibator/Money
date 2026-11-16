@@ -11,11 +11,13 @@ withDefaults(defineProps<{
   debounceInterval?: number
   error?: boolean
   errorText?: string
+  label?: string
 }>(), {
   adornment: 'end',
   debounceInterval: 300,
   error: false,
   errorText: '',
+  label: 'Держатель',
 })
 
 const model = defineModel<string>({ default: '' })
@@ -38,7 +40,7 @@ const owners = useOwnerSuggestions()
     :find="owners.find"
     :icon="mdPerson"
     id-prefix="sdo"
-    label="Держатель"
+    :label="label"
     test-id="owner-suggestions"
     @committed="emit('committed')"
   />

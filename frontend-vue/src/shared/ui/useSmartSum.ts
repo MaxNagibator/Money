@@ -11,6 +11,7 @@ export interface SmartSumState {
   numericText: Ref<string>
   calculationText: Ref<string>
   hasExpression: ComputedRef<boolean>
+  parsedSum: ComputedRef<Money | null>
   hasError: Ref<boolean>
   enterTextMode: () => void
   exitTextMode: () => void
@@ -21,7 +22,7 @@ export interface SmartSumState {
   getSum: () => Money | null
 }
 
-export function useSmartSum(model: Ref<Money | null>): SmartSumState {
+export function useSmartSum(model: Ref<Money | null>, format: (value: Money) => string = formatMoneyInput): SmartSumState {
   const isNumericVisible = ref(true)
   const numericText = ref('')
   const calculationText = ref('')
@@ -31,11 +32,15 @@ export function useSmartSum(model: Ref<Money | null>): SmartSumState {
     const raw = calculationText.value.trim()
     return raw.length > 0 && isMoneyExpression(raw)
   })
+  const parsedSum = computed(() => {
+    const raw = (isNumericVisible.value ? numericText.value : calculationText.value).trim()
+    return !isNumericVisible.value && isMoneyExpression(raw) ? evaluateMoneyExpression(raw) : Money.parseInput(raw)
+  })
 
   watch(
     model,
     value => {
-      numericText.value = value === null ? '' : formatMoneyInput(value)
+      numericText.value = value === null ? '' : format(value)
     },
     { immediate: true },
   )
@@ -81,7 +86,7 @@ export function useSmartSum(model: Ref<Money | null>): SmartSumState {
 
     hasError.value = false
     model.value = value
-    numericText.value = formatMoneyInput(value)
+    numericText.value = format(value)
     return true
   }
 
@@ -127,11 +132,12 @@ export function useSmartSum(model: Ref<Money | null>): SmartSumState {
   }
 
   function getSum(): Money | null {
+    const value = !isNumericVisible.value && calculationText.value.trim().length === 0 ? model.value : parsedSum.value
     if (isNumericVisible.value) {
-      return commitNumeric() ? model.value : null
+      return commitNumeric() ? value : null
     }
 
-    return tryUpdateSum() ? model.value : null
+    return tryUpdateSum() ? value : null
   }
 
   function clear(): void {
@@ -144,6 +150,7 @@ export function useSmartSum(model: Ref<Money | null>): SmartSumState {
     numericText,
     calculationText,
     hasExpression,
+    parsedSum,
     hasError,
     enterTextMode,
     exitTextMode,
