@@ -49,6 +49,6 @@ export default defineConfig({
     environment: 'happy-dom',
     include: ['src/**/*.spec.ts', 'build/**/*.spec.ts'],
     restoreMocks: true,
-    setupFiles: ['./src/platform/network-guard.setup.ts'],
+    setupFiles: ['./src/platform/network-guard.setup.ts', './src/platform/timer-guard.setup.ts'],
   },
 })
