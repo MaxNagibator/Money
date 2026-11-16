@@ -1855,6 +1855,83 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/Debts/{id}/PayOwner": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Распределить возврат по долгам держателя выбранного направления. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Идентификатор долга, определяющего держателя и направление. */
+                    id: number;
+                };
+                cookie?: never;
+            };
+            /** @description Сумма, дата, комментарий возврата и ожидаемые реквизиты группы. */
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["Money.Api.Dto.Debts.PayOwnerRequest"];
+                    "text/json": components["schemas"]["Money.Api.Dto.Debts.PayOwnerRequest"];
+                    "application/*+json": components["schemas"]["Money.Api.Dto.Debts.PayOwnerRequest"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["Microsoft.AspNetCore.Mvc.ProblemDetails"];
+                        "application/json": components["schemas"]["Microsoft.AspNetCore.Mvc.ProblemDetails"];
+                        "text/json": components["schemas"]["Microsoft.AspNetCore.Mvc.ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["Microsoft.AspNetCore.Mvc.ProblemDetails"];
+                        "application/json": components["schemas"]["Microsoft.AspNetCore.Mvc.ProblemDetails"];
+                        "text/json": components["schemas"]["Microsoft.AspNetCore.Mvc.ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["Microsoft.AspNetCore.Mvc.ProblemDetails"];
+                        "application/json": components["schemas"]["Microsoft.AspNetCore.Mvc.ProblemDetails"];
+                        "text/json": components["schemas"]["Microsoft.AspNetCore.Mvc.ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/Debts/MergeOwners/{fromUserId}/with/{toUserId}": {
         parameters: {
             query?: never;
@@ -2131,6 +2208,85 @@ export interface paths {
                     "application/json": components["schemas"]["Money.Api.Dto.Debts.ForgiveRequest"];
                     "text/json": components["schemas"]["Money.Api.Dto.Debts.ForgiveRequest"];
                     "application/*+json": components["schemas"]["Money.Api.Dto.Debts.ForgiveRequest"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["Microsoft.AspNetCore.Mvc.ProblemDetails"];
+                        "application/json": components["schemas"]["Microsoft.AspNetCore.Mvc.ProblemDetails"];
+                        "text/json": components["schemas"]["Microsoft.AspNetCore.Mvc.ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["Microsoft.AspNetCore.Mvc.ProblemDetails"];
+                        "application/json": components["schemas"]["Microsoft.AspNetCore.Mvc.ProblemDetails"];
+                        "text/json": components["schemas"]["Microsoft.AspNetCore.Mvc.ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["Microsoft.AspNetCore.Mvc.ProblemDetails"];
+                        "application/json": components["schemas"]["Microsoft.AspNetCore.Mvc.ProblemDetails"];
+                        "text/json": components["schemas"]["Microsoft.AspNetCore.Mvc.ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/Debts/{id}/ForgiveAccount/{categoryId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Списать остаток по держателю долгов в категорию расходов. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Идентификатор долга, определяющего держателя. */
+                    id: number;
+                    /** @description Идентификатор категории расходов. */
+                    categoryId: number;
+                };
+                cookie?: never;
+            };
+            /** @description Ожидаемый остаток, дата и комментарий списания. */
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["Money.Api.Dto.Debts.PayRequest"];
+                    "text/json": components["schemas"]["Money.Api.Dto.Debts.PayRequest"];
+                    "application/*+json": components["schemas"]["Money.Api.Dto.Debts.PayRequest"];
                 };
             };
             responses: {
@@ -3963,6 +4119,28 @@ export interface components {
             operationCategoryId: number;
             /** @description Комментарий в расходах. */
             operationComment?: string | null;
+        };
+        /** @description Запрос на групповой возврат долгов держателя. */
+        "Money.Api.Dto.Debts.PayOwnerRequest": {
+            /**
+             * Format: double
+             * @description Сумма.
+             */
+            sum: number;
+            /** @description Комментарий. */
+            comment?: string | null;
+            /**
+             * Format: date-time
+             * @description Дата.
+             */
+            date: string;
+            /** @description Ожидаемое имя держателя долга. */
+            ownerName: string;
+            /**
+             * Format: int32
+             * @description Ожидаемый идентификатор типа долга.
+             */
+            typeId: number;
         };
         /** @description Запрос на оплату долга. */
         "Money.Api.Dto.Debts.PayRequest": {

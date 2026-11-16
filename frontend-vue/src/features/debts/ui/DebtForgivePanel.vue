@@ -19,6 +19,7 @@ const props = defineProps<{
   selectedCount: number
   categories: readonly Category[]
   isForgiving: boolean
+  accountName?: string
 }>()
 
 const emit = defineEmits<{
@@ -55,10 +56,11 @@ function selectCategory(value: unknown): void {
       :spacing="2"
     >
       <MudText>
-        Перенос долгов держателей в расходы
+        {{ accountName === undefined ? 'Перенос долгов держателей в расходы' : `Списание остатка: ${accountName}` }}
       </MudText>
 
       <MudAlert
+        v-if="accountName === undefined"
         :severity="selectedCount > 0 ? 'info' : 'warning'"
         dense
       >

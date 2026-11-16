@@ -46,6 +46,12 @@ const appRoutes: RouteRecordRaw[] = [
     component: () => import('@/pages/RegularOperationsPage.vue'),
   },
   {
+    path: '/debts/accounts',
+    name: 'debt-accounts',
+    meta: { ownHeading: true, title: 'Долги по людям' },
+    component: () => import('@/pages/DebtAccountsPage.vue'),
+  },
+  {
     path: '/debts',
     name: 'debts',
     meta: { ownHeading: true, title: 'Долги' },

@@ -2,12 +2,14 @@
 import { ref, shallowRef, watch } from 'vue'
 import type { LocalDate } from '@/domain/local-date'
 import type { Money } from '@/domain/money'
+import { formatMoney } from '@/platform/format'
 import { mdComment } from '@/shared/icons'
 import {
   MudButton,
   MudPaper,
   MudProgressCircular,
   MudStack,
+  MudText,
   MudTextField,
 } from '@/shared/mud'
 import SmartDatePicker from '@/shared/ui/SmartDatePicker.vue'
@@ -85,6 +87,14 @@ function submit(): void {
   >
     <form @submit.prevent="submit">
       <MudStack :spacing="2">
+        <MudText
+          v-if="value?.scope === 'owner'"
+          data-testid="debts-payment-scope"
+          typo="body2"
+        >
+          Возврат по долгам одного направления, от старых к новым.
+          Максимальная сумма: {{ value.maximum === undefined ? '' : formatMoney(value.maximum) }}
+        </MudText>
         <div data-testid="debts-payment-sum">
           <SmartSum
             ref="sumField"

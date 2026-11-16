@@ -11,6 +11,7 @@ import {
 } from '@/shared/icons'
 import {
   MudChip,
+  MudButton,
   MudGrid,
   MudItem,
   MudPaper,
@@ -53,6 +54,8 @@ const emit = defineEmits<{
   'remove': [debt: Debt]
   'restore': [debt: Debt]
   'open-payment': [debt: Debt]
+  'pay-owner': [owner: DebtOwnerGroup]
+  'history': [ownerName: string]
   'cancel-payment': [debt: Debt]
   'submit-payment': [value: PaymentFormValue]
 }>()
@@ -111,7 +114,7 @@ function toggle(): void {
 
 function pay(): void {
   if (payable.value !== null) {
-    emit('open-payment', payable.value)
+    emit('pay-owner', props.owner)
   }
 }
 
@@ -178,6 +181,14 @@ function cancelPayment(): void {
         data-testid="debts-owner-collapse-hint"
         role="status"
       >{{ collapseHint }}</span>
+      <button
+        class="debt-book__history"
+        data-testid="debts-owner-history"
+        type="button"
+        @click="emit('history', owner.name)"
+      >
+        История
+      </button>
     </div>
 
     <div
@@ -203,7 +214,7 @@ function cancelPayment(): void {
           :key="debt.id"
           :debt="debt"
           :is-paying="isPaying"
-          :is-payment-open="paymentValue !== null && paymentValue.debtId === debt.id"
+          :is-payment-open="paymentValue !== null && paymentValue.scope !== 'owner' && paymentValue.debtId === debt.id"
           :is-selectable="isSelectable(debt)"
           :is-selected="selectedIds.has(debt.id)"
           :payment-value="paymentValue"
@@ -239,13 +250,13 @@ function cancelPayment(): void {
 
         <button
           v-else
-          :disabled="payable === null"
+          :disabled="payable === null || isPaying"
           class="debt-book__pay"
           data-testid="debts-owner-pay"
           type="button"
           @click="pay"
         >
-          Оплатить
+          Вернуть
         </button>
       </div>
     </template>
@@ -310,8 +321,29 @@ function cancelPayment(): void {
           title="Процент погашения"
           variant="filled"
         />
+        <MudButton
+          :disabled="payable === null || isPaying"
+          data-testid="debts-owner-pay"
+          @click="pay"
+        >
+          Вернуть
+        </MudButton>
+        <MudButton
+          data-testid="debts-owner-history"
+          @click="emit('history', owner.name)"
+        >
+          История
+        </MudButton>
       </MudStack>
     </MudPaper>
+
+    <DebtPaymentForm
+      v-if="openPayment?.scope === 'owner'"
+      :is-saving="isPaying"
+      :value="openPayment"
+      @cancel="cancelPayment"
+      @submit="emit('submit-payment', $event)"
+    />
 
     <MudGrid
       class="my-1 list-flow-host"
@@ -333,7 +365,7 @@ function cancelPayment(): void {
           <DebtCard
             :debt="debt"
             :is-paying="isPaying"
-            :is-payment-open="paymentValue !== null && paymentValue.debtId === debt.id"
+            :is-payment-open="paymentValue !== null && paymentValue.scope !== 'owner' && paymentValue.debtId === debt.id"
             :is-selectable="isSelectable(debt)"
             :is-selected="selectedIds.has(debt.id)"
             :payment-value="paymentValue"
@@ -445,6 +477,16 @@ function cancelPayment(): void {
 
 .debt-book__dot {
   color: var(--mud-palette-text-disabled);
+}
+
+.debt-book__history {
+  min-height: 32px;
+  margin-left: auto;
+  padding: 0 8px;
+  border: 0;
+  background: none;
+  color: var(--mud-palette-primary);
+  font: inherit;
 }
 
 .debt-book__bar {

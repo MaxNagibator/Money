@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
 import { useCategories } from '@/features/categories'
 import {
   DEBT_TYPES,
@@ -38,6 +39,11 @@ import { useNarrowViewport } from '@/shared/ui/useNarrowViewport'
 const categoriesState = useCategories()
 const screen = useDebtsScreen(categoriesState.categories)
 const isNarrow = useNarrowViewport()
+const router = useRouter()
+
+function openHistory(ownerName: string): void {
+  void router.push({ path: '/debts/accounts', query: { owner: ownerName } })
+}
 </script>
 
 <template>
@@ -56,6 +62,13 @@ const isNarrow = useNarrowViewport()
     </MudText>
 
     <MudSpacer />
+
+    <MudButton
+      data-testid="debts-view-accounts"
+      to="/debts/accounts"
+    >
+      Отчёты
+    </MudButton>
 
     <div class="debts-header-actions">
       <template v-if="isNarrow">
@@ -275,6 +288,8 @@ const isNarrow = useNarrowViewport()
       @cancel-payment="screen.cancelPayment($event)"
       @edit="screen.startEdit($event)"
       @open-payment="screen.startPayment($event)"
+      @pay-owner="screen.startOwnerPayment($event)"
+      @history="openHistory($event)"
       @remove="screen.remove($event)"
       @restore="screen.restore($event)"
       @submit-payment="screen.submitPayment($event)"

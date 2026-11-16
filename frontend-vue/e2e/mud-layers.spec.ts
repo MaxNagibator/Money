@@ -53,6 +53,7 @@ test.describe('всплывающие слои', () => {
     const close = page.locator('.mud-dialog .mud-button-close')
     const save = page.getByTestId('debts-dialog-save')
 
+    await save.focus()
     await page.keyboard.press('Tab')
     await expect(close).toBeFocused()
 
