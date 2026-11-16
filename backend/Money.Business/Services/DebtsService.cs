@@ -96,27 +96,111 @@ public class DebtsService(
 
     public async Task PayAsync(DebtPayment debtPayment, CancellationToken cancellationToken = default)
     {
-        var entity = await GetByIdInternal(debtPayment.Id, cancellationToken);
-
-        if (entity.PaySum + debtPayment.Sum > entity.Sum)
+        ValidatePayment(debtPayment);
+        await using var transaction = await context.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, cancellationToken);
+        try
         {
-            throw new BusinessException("Извините, но оплаченная часть долга не может превышать сумму долга");
+            var entity = await GetByIdInternal(debtPayment.Id, cancellationToken);
+            if (debtPayment.Sum > entity.Sum - entity.PaySum)
+            {
+                throw new BusinessException("Извините, но оплаченная часть долга не может превышать сумму долга");
+            }
+
+            ApplyPayment(entity, debtPayment, debtPayment.Sum);
+            await context.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+        }
+        catch (Exception exception) when (exception.GetBaseException() is Npgsql.PostgresException { SqlState: "40001" })
+        {
+            throw new BusinessException("Извините, но долги изменились, обновите страницу перед возвратом");
+        }
+    }
+
+    public async Task PayOwnerAsync(int debtId, DebtOwnerPayment payment, CancellationToken cancellationToken = default)
+    {
+        ValidatePayment(payment);
+        if (Enum.IsDefined(payment.Type) == false)
+        {
+            throw new BusinessException("Извините, неподдерживаемый тип долга");
         }
 
-        entity.PaySum += debtPayment.Sum;
+        await using var transaction = await context.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, cancellationToken);
+        try
+        {
+            var source = await GetByIdInternal(debtId, cancellationToken);
+            var sourceOwner = await context.DebtOwners
+                .IsUserEntity(environment.UserId)
+                .FirstOrDefaultAsync(x => x.Id == source.OwnerId, cancellationToken);
 
+            if (source.StatusId != (int)DebtStatus.Actual
+                || source.Sum <= source.PaySum
+                || source.TypeId != (int)payment.Type
+                || sourceOwner == null
+                || string.Equals(sourceOwner.Name, payment.OwnerName, StringComparison.Ordinal) == false)
+            {
+                throw new BusinessException("Извините, но долги изменились, обновите страницу перед возвратом");
+            }
+
+            var ownerIds = context.DebtOwners
+                .IsUserEntity(environment.UserId)
+                .Where(x => x.Name == sourceOwner.Name)
+                .Select(x => x.Id);
+
+            var entries = await context.Debts.IsUserEntity(environment.UserId)
+                .Where(x => ownerIds.Contains(x.OwnerId) && x.TypeId == source.TypeId
+                    && x.StatusId == (int)DebtStatus.Actual && x.Sum > x.PaySum)
+                .OrderBy(x => x.Date).ThenBy(x => x.Id)
+                .ToListAsync(cancellationToken);
+            var available = entries.Sum(x => x.Sum - x.PaySum);
+            if (payment.Sum > available)
+            {
+                throw new BusinessException($"Извините, но сумма возврата превышает остаток. Максимальная сумма: {available}");
+            }
+
+            var remaining = payment.Sum;
+            foreach (var entry in entries)
+            {
+                var part = Math.Min(remaining, entry.Sum - entry.PaySum);
+                ApplyPayment(entry, payment, part);
+                remaining -= part;
+                if (remaining == 0)
+                {
+                    break;
+                }
+            }
+
+            await context.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+        }
+        catch (Exception exception) when (exception.GetBaseException() is Npgsql.PostgresException { SqlState: "40001" })
+        {
+            throw new BusinessException("Извините, но долги изменились, обновите страницу перед возвратом");
+        }
+    }
+
+    private static void ValidatePayment(DebtPayment payment)
+    {
+        if (payment.Sum <= 0 || payment.Date == default)
+        {
+            throw new BusinessException("Извините, но нужно указать дату и положительную сумму возврата");
+        }
+    }
+
+    private static void ApplyPayment(Money.Data.Entities.Debt entity, DebtPayment payment, decimal sum)
+    {
+        var line = $"{payment.Date:yyyy.MM.dd} {sum} {payment.Comment}";
+        var history = string.IsNullOrEmpty(entity.PayComment) ? line : entity.PayComment + Environment.NewLine + line;
+        if (history.Length > 4000)
+        {
+            throw new BusinessException("Извините, но история оплат вместе с комментарием слишком длинная");
+        }
+
+        entity.PayComment = history;
+        entity.PaySum += sum;
         if (entity.PaySum == entity.Sum)
         {
             entity.StatusId = (int)DebtStatus.Paid;
         }
-
-        if (string.IsNullOrEmpty(entity.PayComment) == false)
-        {
-            entity.PayComment += Environment.NewLine;
-        }
-
-        entity.PayComment += $"{debtPayment.Date:yyyy.MM.dd} {debtPayment.Sum} {debtPayment.Comment}";
-        await context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task MergeOwnersAsync(int fromUserId, int toUserId, CancellationToken cancellationToken = default)
@@ -333,6 +417,7 @@ public class DebtsService(
             PaySum = entity.PaySum,
             PayComment = entity.PayComment,
             IsDeleted = entity.IsDeleted,
+            Status = (DebtStatus)entity.StatusId,
         };
     }
 
@@ -361,6 +446,56 @@ public class DebtsService(
         if (model.OwnerName.Length > 500)
         {
             throw new BusinessException("Извините, но имя держателя слишком длинное");
+        }
+    }
+
+    public async Task ForgiveAccountAsync(int debtId, int categoryId, decimal expectedBalance, DateTime date, string? comment, CancellationToken cancellationToken = default)
+    {
+        if (date == default || expectedBalance <= 0)
+        {
+            throw new BusinessException("Извините, но нужно указать дату и положительный остаток");
+        }
+
+        await using var transaction = await context.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, cancellationToken);
+        try
+        {
+            var source = await GetByIdInternal(debtId, cancellationToken);
+            var entries = await context.Debts.IsUserEntity(environment.UserId)
+                .Where(x => x.OwnerId == source.OwnerId)
+                .ToListAsync(cancellationToken);
+            var balance = entries.Sum(x => (x.TypeId == (int)DebtTypes.Plus ? 1 : -1) * (x.Sum - x.PaySum));
+            if (balance <= 0 || balance != expectedBalance)
+            {
+                throw new BusinessException("Извините, но остаток изменился, обновите расчёты перед списанием");
+            }
+
+            var category = await categoriesService.GetByIdAsync(categoryId, cancellationToken);
+            if (category.OperationType != OperationTypes.Costs)
+            {
+                throw new BusinessException("Извините, но списать остаток можно только в категорию расходов");
+            }
+
+            var owner = await context.DebtOwners.IsUserEntity(environment.UserId, source.OwnerId).FirstAsync(cancellationToken);
+            var expenseComment = $"Списание долга: {owner.Name}. {comment}";
+            if (expenseComment.Length > 4000)
+            {
+                throw new BusinessException("Извините, но комментарий вместе с именем держателя слишком длинный");
+            }
+
+            context.Debts.RemoveRange(entries);
+            await operationsService.CreateAsync(new()
+            {
+                CategoryId = category.Id,
+                Sum = balance,
+                Date = date.Date,
+                Comment = expenseComment,
+            }, cancellationToken);
+            await context.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+        }
+        catch (Exception exception) when (exception.GetBaseException() is Npgsql.PostgresException { SqlState: "40001" or "23505" })
+        {
+            throw new BusinessException("Извините, но расчёты изменились, обновите страницу перед списанием");
         }
     }
 

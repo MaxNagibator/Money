@@ -42,6 +42,16 @@ public class DebtClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
         return PostAsync($"{BaseUri}/{id}/Pay", request);
     }
 
+    public Task<ApiClientResponse> PayOwner(int id, PayOwnerRequest request)
+    {
+        return PostAsync($"{BaseUri}/{id}/PayOwner", request);
+    }
+
+    public Task<ApiClientResponse> ForgiveAccount(int id, int categoryId, PayRequest request)
+    {
+        return PostAsync($"{BaseUri}/{id}/ForgiveAccount/{categoryId}", request);
+    }
+
     public Task<ApiClientResponse> MergeOwners(int fromUserId, int toUserId)
     {
         return PostAsync($"{BaseUri}/MergeOwners/{fromUserId}/with/{toUserId}");
@@ -99,6 +109,13 @@ public class DebtClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
         public string? Comment { get; set; }
 
         public DateTime Date { get; set; }
+    }
+
+    public class PayOwnerRequest : PayRequest
+    {
+        public required string OwnerName { get; set; }
+
+        public int TypeId { get; set; }
     }
 
     public class DebtOwner
