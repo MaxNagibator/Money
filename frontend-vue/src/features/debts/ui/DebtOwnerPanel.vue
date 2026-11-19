@@ -10,11 +10,13 @@ import {
   mdListAlt,
 } from '@/shared/icons'
 import {
-  MudChip,
   MudButton,
+  MudChip,
+  MudDialog,
   MudGrid,
   MudItem,
   MudPaper,
+  MudPopover,
   MudSpacer,
   MudStack,
   MudText,
@@ -60,11 +62,8 @@ const emit = defineEmits<{
   'submit-payment': [value: PaymentFormValue]
 }>()
 
-const COLLAPSE_HINT = 'сначала завершите или отмените платёж'
-
 const isNarrow = useNarrowViewport()
 const isExpanded = ref(false)
-const isCollapseBlocked = ref(false)
 
 const title = computed(() => props.owner.name.trim().length === 0 ? UNNAMED_DEBT_OWNER : props.owner.name)
 const total = computed(() => ownerTotal(props.owner))
@@ -88,7 +87,14 @@ const openPayment = computed(() => {
   return props.owner.debts.some(debt => debt.id === value.debtId) ? value : null
 })
 const isForgiving = computed(() => props.owner.debts.some(debt => props.isSelectable(debt)))
-const collapseHint = computed(() => isCollapseBlocked.value ? COLLAPSE_HINT : '')
+const paymentDialogVisible = computed({
+  get: () => openPayment.value !== null,
+  set: (visible: boolean) => {
+    if (!visible) {
+      cancelPayment()
+    }
+  },
+})
 
 watch(isForgiving, isOpen => {
   if (isOpen) {
@@ -96,19 +102,7 @@ watch(isForgiving, isOpen => {
   }
 }, { immediate: true })
 
-watch(openPayment, value => {
-  if (value === null) {
-    isCollapseBlocked.value = false
-  }
-})
-
 function toggle(): void {
-  if (isExpanded.value && openPayment.value !== null) {
-    isCollapseBlocked.value = true
-    return
-  }
-
-  isCollapseBlocked.value = false
   isExpanded.value = !isExpanded.value
 }
 
@@ -176,11 +170,6 @@ function cancelPayment(): void {
         <span>{{ percentText }}</span>
       </template>
 
-      <span
-        class="debt-book__hint"
-        data-testid="debts-owner-collapse-hint"
-        role="status"
-      >{{ collapseHint }}</span>
       <button
         class="debt-book__history"
         data-testid="debts-owner-history"
@@ -240,16 +229,7 @@ function cancelPayment(): void {
       </div>
 
       <div class="debt-book__foot">
-        <DebtPaymentForm
-          v-if="openPayment !== null"
-          :is-saving="isPaying"
-          :value="openPayment"
-          @cancel="cancelPayment"
-          @submit="emit('submit-payment', $event)"
-        />
-
         <button
-          v-else
           :disabled="payable === null || isPaying"
           class="debt-book__pay"
           data-testid="debts-owner-pay"
@@ -260,6 +240,29 @@ function cancelPayment(): void {
         </button>
       </div>
     </template>
+
+    <MudDialog
+      v-model:visible="paymentDialogVisible"
+      :aria-label="`Возврат: ${title}`"
+      class="debt-payment-dialog"
+      data-testid="debts-payment-dialog"
+    >
+      <template #title>
+        <MudText typo="h6">
+          Возврат: {{ title }}
+        </MudText>
+      </template>
+
+      <template #content>
+        <DebtPaymentForm
+          :is-saving="isPaying"
+          :value="openPayment"
+          flat
+          @cancel="cancelPayment"
+          @submit="emit('submit-payment', $event)"
+        />
+      </template>
+    </MudDialog>
   </div>
 
   <div
@@ -321,13 +324,32 @@ function cancelPayment(): void {
           title="Процент погашения"
           variant="filled"
         />
-        <MudButton
-          :disabled="payable === null || isPaying"
-          data-testid="debts-owner-pay"
-          @click="pay"
-        >
-          Вернуть
-        </MudButton>
+        <span class="debt-owner__pay-anchor">
+          <MudButton
+            :disabled="payable === null || isPaying"
+            data-testid="debts-owner-pay"
+            @click="pay"
+          >
+            Вернуть
+          </MudButton>
+
+          <MudPopover
+            :elevation="8"
+            :open="openPayment?.scope === 'owner'"
+            anchor-origin="bottom-right"
+            class="debt-owner__payment-popover"
+            drop-shadow
+            transform-origin="top-right"
+          >
+            <DebtPaymentForm
+              :is-saving="isPaying"
+              :value="openPayment"
+              flat
+              @cancel="cancelPayment"
+              @submit="emit('submit-payment', $event)"
+            />
+          </MudPopover>
+        </span>
         <MudButton
           data-testid="debts-owner-history"
           @click="emit('history', owner.name)"
@@ -336,14 +358,6 @@ function cancelPayment(): void {
         </MudButton>
       </MudStack>
     </MudPaper>
-
-    <DebtPaymentForm
-      v-if="openPayment?.scope === 'owner'"
-      :is-saving="isPaying"
-      :value="openPayment"
-      @cancel="cancelPayment"
-      @submit="emit('submit-payment', $event)"
-    />
 
     <MudGrid
       class="my-1 list-flow-host"
@@ -384,6 +398,11 @@ function cancelPayment(): void {
 </template>
 
 <style scoped>
+.debt-owner__pay-anchor {
+  position: relative;
+  display: inline-flex;
+}
+
 .debt-owner__title {
   min-width: 0;
   overflow: hidden;
@@ -464,15 +483,6 @@ function cancelPayment(): void {
   font-size: 0.75rem;
   line-height: 1.3;
   color: var(--mud-palette-text-secondary);
-}
-
-.debt-book__hint {
-  flex: 1 1 100%;
-  color: var(--mud-palette-warning);
-}
-
-.debt-book__hint:empty {
-  display: none;
 }
 
 .debt-book__dot {
@@ -556,5 +566,29 @@ function cancelPayment(): void {
   border-color: var(--mud-palette-lines-default);
   background: var(--mud-palette-action-disabled-background);
   color: var(--mud-palette-action-disabled);
+}
+</style>
+
+<style>
+.mud-popover.debt-owner__payment-popover {
+  width: 340px;
+  max-width: calc(100vw - 32px);
+  border: 1px solid var(--mud-palette-divider);
+}
+
+.mud-dialog.debt-payment-dialog .mud-dialog-title {
+  padding: 16px;
+}
+
+@media (max-width: 599.98px) {
+  .mud-dialog.debt-payment-dialog {
+    width: 100%;
+    max-width: none;
+    max-height: calc(var(--viewport-height, 100dvh) * 0.85);
+    margin: auto 0 var(--keyboard-inset, 0px);
+    border-radius: 12px 12px 0 0;
+  }
+  .debt-payment-dialog .mud-dialog-title { padding: 16px; }
+  .debt-payment-dialog .mud-dialog-content { padding: 0 16px 16px; }
 }
 </style>

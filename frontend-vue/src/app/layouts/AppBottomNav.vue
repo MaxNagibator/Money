@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { buildBottomNavigation } from '@/app/navigation'
 import { useDisplaySettings } from '@/features/settings'
 import { mdAdd, mdMoreHoriz } from '@/shared/icons'
@@ -14,6 +15,7 @@ const emit = defineEmits<{
   more: []
 }>()
 
+const route = useRoute()
 const items = buildBottomNavigation()
 const { settings } = useDisplaySettings()
 
@@ -21,6 +23,10 @@ const isScrollHidden = useScrollHide(() => !settings.pinBottomNav)
 const isKeyboardHidden = useKeyboardHide()
 
 const isHidden = computed(() => isScrollHidden.value || isKeyboardHidden.value)
+
+function isItemActive(to: string): boolean {
+  return route.path === to || route.path.startsWith(`${to}/`)
+}
 </script>
 
 <template>
@@ -39,7 +45,7 @@ const isHidden = computed(() => isScrollHidden.value || isKeyboardHidden.value)
         :key="item.to"
       >
         <router-link
-          class="app-bottom-nav-link"
+          :class="['app-bottom-nav-link', { 'router-link-active': isItemActive(item.to) }]"
           :data-testid="item.testId"
           :to="item.to"
         >

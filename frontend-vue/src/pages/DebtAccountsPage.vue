@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { computed, ref, useId, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { DebtAccountPanel, debtAccounts, debtSummary, useDebts, useDebtViewMode, visibleDebtAccounts } from '@/features/debts'
+import { DebtAccountPanel, DebtChartsSection, debtAccounts, debtSummary, useDebts, useDebtViewMode, visibleDebtAccounts } from '@/features/debts'
+import { systemClock } from '@/platform/clock'
 import { formatRubles } from '@/platform/format'
-import { MudAlert, MudButton, MudPaper, MudProgressCircular, MudSelect, MudSelectItem, MudText, MudTextField } from '@/shared/mud'
-import { mdVisibility, mdVisibilityOff } from '@/shared/icons'
+import { MudAlert, MudButton, MudChip, MudPaper, MudProgressCircular, MudSelect, MudSelectItem, MudText, MudTextField } from '@/shared/mud'
+import { mdArrowBack, mdVisibility, mdVisibilityOff } from '@/shared/icons'
 
 const route = useRoute()
 const state = useDebts(ref(true))
+const today = systemClock.today()
 const search = ref('')
 const showPaid = ref(false)
 const sort = ref<'name' | 'balance'>('name')
@@ -17,6 +19,7 @@ const expandedNames = ref(new Set<string>())
 const settledRevealedFor = ref<string | null>(null)
 const allAccounts = computed(() => debtAccounts(state.debts.value))
 const accounts = computed(() => visibleDebtAccounts(allAccounts.value, search.value, showPaid.value, sort.value))
+const chartAccounts = computed(() => visibleDebtAccounts(allAccounts.value, search.value, true, sort.value))
 const summary = computed(() => debtSummary(accounts.value))
 const targetOwner = computed(() => typeof route.query.owner === 'string' ? route.query.owner : null)
 
@@ -123,27 +126,34 @@ function setAccountExpanded(name: string, value: boolean): void {
 
   <div class="debt-page-actions">
     <MudButton
-      to="/debts"
       data-testid="debts-report-back"
+      size="small"
+      :start-icon="mdArrowBack"
+      to="/debts"
+      variant="outlined"
     >
       К долгам
     </MudButton>
     <MudButton
-      :start-icon="showPaid ? mdVisibilityOff : mdVisibility"
-      :aria-pressed="showPaid"
       :aria-label="showPaid ? 'Скрыть закрытые счета' : 'Показать закрытые счета'"
+      :aria-pressed="showPaid"
+      :color="showPaid ? 'primary' : 'default'"
       data-testid="debts-toggle-paid"
+      size="small"
+      :start-icon="showPaid ? mdVisibilityOff : mdVisibility"
+      :variant="showPaid ? 'filled' : 'outlined'"
       @click="showPaid = !showPaid"
     >
       {{ showPaid ? 'Скрыть закрытые' : 'Показать закрытые' }}
     </MudButton>
-    <MudText
-      typo="body2"
-      color="secondary"
+    <MudChip
+      class="debt-readonly-chip"
       data-testid="debts-report-readonly"
-    >
-      Только просмотр
-    </MudText>
+      :icon="mdVisibility"
+      size="small"
+      text="Только просмотр"
+      variant="outlined"
+    />
   </div>
 
   <MudText
@@ -194,6 +204,12 @@ function setAccountExpanded(name: string, value: boolean): void {
     </MudPaper>
   </div>
 
+  <DebtChartsSection
+    :accounts="chartAccounts"
+    :filter-label="search.trim()"
+    :today="today"
+  />
+
   <div class="debt-page-filters">
     <MudTextField
       v-model="search"
@@ -239,7 +255,9 @@ function setAccountExpanded(name: string, value: boolean): void {
       :key="account.name"
       :account="account"
       :expanded="expandedNames.has(account.name)"
+      :initially-expanded="targetOwner === account.name"
       :mode="mode"
+      :today="today"
       @update:expanded="setAccountExpanded(account.name, $event)"
     />
   </template>
@@ -253,6 +271,7 @@ function setAccountExpanded(name: string, value: boolean): void {
 .debt-view-modes .active { background: var(--mud-palette-primary); color: var(--mud-palette-primary-text); }
 .debt-page-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
 .debt-page-actions :deep(.mud-button-label) { text-transform: none; }
+.debt-page-actions :deep(.debt-readonly-chip) { margin-left: auto; pointer-events: none; color: var(--mud-palette-text-secondary); border-color: var(--mud-palette-divider); }
 .debt-report-note { margin: -12px 0 18px; }
 .debt-summary-caption { margin-bottom: 8px; color: var(--mud-palette-text-secondary); font-size: 0.75rem; }
 .debt-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 20px; }
@@ -268,7 +287,8 @@ function setAccountExpanded(name: string, value: boolean): void {
   .debt-page-header :deep(h1) { font-size: 1.75rem; }
   .debt-view-modes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
   .debt-view-modes label { text-align: center; }
-  .debt-page-actions { gap: 4px; margin-bottom: 16px; }
+  .debt-page-actions { gap: 6px; margin-bottom: 16px; }
+  .debt-page-actions :deep(.debt-readonly-chip) { margin-left: 0; }
   .debt-report-note { margin: -8px 0 14px; }
   .debt-summary { gap: 6px; margin-bottom: 14px; }
   .summary-card { padding: 10px 8px; gap: 6px; }

@@ -32,6 +32,15 @@ describe('нижняя панель навигации', () => {
     expect(active[0]?.attributes('data-testid')).toBe(testId)
   })
 
+  it('на маршруте /debts/accounts сохраняет подсветку раздела Долги', async () => {
+    const wrapper = await setup('/debts/accounts')
+
+    const active = wrapper.findAll('.app-bottom-nav-link.router-link-active')
+
+    expect(active).toHaveLength(1)
+    expect(active[0]?.attributes('data-testid')).toBe('bottom-nav-debts')
+  })
+
   it.each([
     ['bottom-nav-more', 'more'],
     ['bottom-nav-add', 'add'],
@@ -109,7 +118,7 @@ describe('нижняя панель навигации', () => {
 async function setup(path: string): Promise<VueWrapper> {
   const router = createRouter({
     history: createMemoryHistory(),
-    routes: ['/operations', '/statistics', '/debts'].map(route => ({
+    routes: ['/operations', '/statistics', '/debts', '/debts/accounts'].map(route => ({
       path: route,
       component: { render: () => null },
     })),

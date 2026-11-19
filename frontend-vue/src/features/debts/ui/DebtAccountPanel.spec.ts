@@ -114,4 +114,83 @@ describe('единая карточка человека', () => {
 
     wrapper.unmount()
   })
+
+  it('показывает компактные полосы в обычном режиме с индикатором, датой, тегом и суммой', async () => {
+    const account = debtAccounts([
+      debt(1, { comment: 'Кофе', paySum: Money.fromWire('300'), payComment: '2026.11.12 300 Вернул часть' }),
+      debt(2, { typeId: 2, sum: Money.fromWire('400'), date: parseLocalDate('2026-11-11')!, comment: 'Билеты' }),
+    ])[0]!
+    const wrapper = mount(DebtAccountPanel, {
+      props: { account, mode: 'normal' },
+    })
+
+    await wrapper.get('[data-testid="debt-account-toggle"]').trigger('click')
+    const rows = wrapper.findAll('.feed-row')
+    expect(rows).toHaveLength(3)
+    expect(rows[0]!.find('.feed-indicator--in').exists()).toBe(true)
+    expect(rows[0]!.get('.feed-date').text()).toBe('12.11.2026')
+    expect(rows[0]!.get('.feed-tag').text()).toBe('Вернули')
+    expect(rows[0]!.get('.feed-meta').text()).toBe('12.11.2026 · Вернули')
+    expect(rows[0]!.get('[data-testid="debt-movement-in-1"]').classes()).toContain('cash-incoming')
+    expect(rows[1]!.find('.feed-indicator--out').exists()).toBe(true)
+    expect(rows[1]!.get('.feed-tag').text()).toBe('Взял в долг')
+    expect(rows[2]!.find('.feed-indicator--out').exists()).toBe(true)
+    expect(rows[2]!.get('.feed-tag').text()).toBe('Дал в долг')
+    wrapper.unmount()
+  })
+
+  it('управляет личным графиком баланса в обычном и бухгалтерском режимах', async () => {
+    const account = debtAccounts([
+      debt(1, { comment: 'Займ' }),
+      debt(2, { typeId: 2, sum: Money.fromWire('400'), date: parseLocalDate('2026-11-12')!, comment: 'Часть' }),
+    ])[0]!
+    const wrapper = mount(DebtAccountPanel, {
+      props: { account, mode: 'normal', today: parseLocalDate('2026-11-15')! },
+    })
+
+    await wrapper.get('[data-testid="debt-account-toggle"]').trigger('click')
+    const chartToggle = wrapper.get('[data-testid="debt-account-chart-toggle"]')
+    expect(chartToggle.attributes('aria-expanded')).toBe('false')
+    expect(wrapper.find('[data-testid="debt-account-chart"]').exists()).toBe(false)
+
+    await chartToggle.trigger('click')
+    expect(chartToggle.attributes('aria-expanded')).toBe('true')
+    expect(wrapper.find('[data-testid="debt-account-chart"]').exists()).toBe(true)
+
+    await wrapper.setProps({ mode: 'accounting' })
+    expect(wrapper.find('[data-testid="debt-account-chart"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="debt-account-chart-undated-note"]').exists()).toBe(false)
+    wrapper.unmount()
+
+    const preExpanded = mount(DebtAccountPanel, {
+      props: { account, mode: 'normal', initiallyExpanded: true, today: parseLocalDate('2026-11-15')! },
+    })
+    expect(preExpanded.get('[data-testid="debt-account-chart-toggle"]').attributes('aria-expanded')).toBe('true')
+    expect(preExpanded.find('[data-testid="debt-account-chart"]').exists()).toBe(true)
+    preExpanded.unmount()
+  })
+
+  it('показывает предупреждение под личным графиком, если есть оплаты без даты', () => {
+    const account = debtAccounts([
+      debt(1, { comment: 'Займ', paySum: Money.fromWire('300'), payComment: 'старый возврат' }),
+    ])[0]!
+    const wrapper = mount(DebtAccountPanel, {
+      props: { account, mode: 'normal', initiallyExpanded: true, today: parseLocalDate('2026-11-15')! },
+    })
+
+    const note = wrapper.get('[data-testid="debt-account-chart-undated-note"]')
+    expect(note.text()).toContain('Оплаты без даты (1) не включены в график: остаток по графику может отличаться от остатка карточки.')
+    wrapper.unmount()
+  })
+
+  it('скрывает переключатель личного графика, если нет не-удалённых датированных движений', () => {
+    const account = debtAccounts([debt(1, { isDeleted: true })])[0]!
+    const wrapper = mount(DebtAccountPanel, {
+      props: { account, mode: 'normal', initiallyExpanded: true },
+    })
+
+    expect(wrapper.find('[data-testid="debt-account-chart-toggle"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="debt-account-chart"]').exists()).toBe(false)
+    wrapper.unmount()
+  })
 })
