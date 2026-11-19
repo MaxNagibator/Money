@@ -19,7 +19,7 @@ public class DebtOwnerDto
     /// Фабричный метод для создания DTO на основе бизнес-модели.
     /// </summary>
     /// <param name="business">Бизнес-модель.</param>
-    /// <returns>Новый объект <see cref="DebtDto" />.</returns>
+    /// <returns>Новый объект <see cref="DebtMovementDto" />.</returns>
     public static DebtOwnerDto FromBusinessModel(DebtOwner business)
     {
         return new()

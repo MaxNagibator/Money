@@ -1,9 +1,9 @@
-﻿namespace Money.Data.Entities;
+namespace Money.Data.Entities;
 
 /// <summary>
-/// Долг.
+/// Движение по долговому счёту.
 /// </summary>
-public class Debt : UserEntity
+public class DebtMovement : UserEntity
 {
     /// <summary>
     /// Идентификатор типа.
@@ -26,21 +26,6 @@ public class Debt : UserEntity
     public DateTime Date { get; set; }
 
     /// <summary>
-    /// Оплаченная сумма.
-    /// </summary>
-    public decimal PaySum { get; set; }
-
-    /// <summary>
-    /// Комментарии к оплате.
-    /// </summary>
-    public string? PayComment { get; set; }
-
-    /// <summary>
-    /// Идентификатор статуса.
-    /// </summary>
-    public int StatusId { get; set; }
-
-    /// <summary>
     /// Идентификатор держателя.
     /// </summary>
     public int OwnerId { get; set; }
@@ -56,9 +41,9 @@ public class Debt : UserEntity
     public bool IsDeleted { get; set; }
 }
 
-public class DebtConfiguration : UserEntityConfiguration<Debt>
+public class DebtMovementConfiguration : UserEntityConfiguration<DebtMovement>
 {
-    protected override void AddBaseConfiguration(EntityTypeBuilder<Debt> builder)
+    protected override void AddBaseConfiguration(EntityTypeBuilder<DebtMovement> builder)
     {
         builder.Property(x => x.Date)
             .HasColumnType("date")
@@ -71,16 +56,6 @@ public class DebtConfiguration : UserEntityConfiguration<Debt>
             .IsRequired();
 
         builder.Property(x => x.Comment)
-            .HasMaxLength(4000)
-            .IsRequired(false);
-
-        builder.Property(x => x.PaySum)
-            .IsRequired();
-
-        builder.Property(x => x.StatusId)
-            .IsRequired();
-
-        builder.Property(x => x.PayComment)
             .HasMaxLength(4000)
             .IsRequired(false);
 

@@ -11,9 +11,9 @@ public class DebtOwner : UserEntity
     public required string Name { get; set; }
 
     /// <summary>
-    /// Список принадлежащих долгов.
+    /// Движения по счёту.
     /// </summary>
-    public List<Debt>? Debts { get; set; }
+    public List<DebtMovement>? Movements { get; set; }
 }
 
 public class DebtOwnerConfiguration : UserEntityConfiguration<DebtOwner>
@@ -24,7 +24,7 @@ public class DebtOwnerConfiguration : UserEntityConfiguration<DebtOwner>
             .IsRequired()
             .HasMaxLength(500);
 
-        builder.HasMany(x => x.Debts)
+        builder.HasMany(x => x.Movements)
             .WithOne(x => x.Owner)
             .HasForeignKey(x => new { x.UserId, DebtOwnerId = x.OwnerId })
             .IsRequired();

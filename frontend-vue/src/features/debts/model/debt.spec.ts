@@ -1,25 +1,17 @@
-import { describe, expect, it } from 'vitest'
-import type { Debt } from '@/domain/debt'
+﻿import { describe, expect, it } from 'vitest'
+import type { DebtMovement } from '@/domain/debt'
 import type { LocalDate } from '@/domain/local-date'
 import { parseLocalDate } from '@/domain/local-date'
 import { Money } from '@/domain/money'
 import type { DebtOwnerGroup } from './debt'
 import {
-  canForgiveDebt,
   debtCountText,
   debtRoleColor,
-  debtStatus,
   filterDebtGroups,
   groupDebts,
-  hasPaymentHistory,
-  lastPaymentDate,
   nextPayableDebt,
-  ownerPercent,
   ownerRemainder,
   ownerTotal,
-  paidPercentText,
-  parsePaymentHistory,
-  paymentProgress,
   typeTotal,
 } from './debt'
 
@@ -31,43 +23,84 @@ function money(value: string): Money {
   return Money.parseInput(value)!
 }
 
-function debt(id: number, extra: Partial<Debt> = {}): Debt {
+function movement(id: number, extra: Partial<DebtMovement> = {}): DebtMovement {
   return {
     id,
     typeId: 1,
     sum: money('1000'),
-    paySum: Money.zero,
     comment: null,
     ownerName: 'Иван',
     date: date('2026-08-22'),
-    payComment: null,
     isDeleted: false,
     ...extra,
   }
 }
 
-function owner(debts: readonly Debt[], name = 'Иван'): DebtOwnerGroup {
+function owner(debts: readonly DebtMovement[], name = 'Иван'): DebtOwnerGroup {
   return { name, debts: [...debts] }
 }
 
 describe('группировка долгов', () => {
-  it('типы идут по идентификатору убыв., держатели по первому появлению в списке от новых к старым', () => {
+  it('собирает всех держателей в один раздел и сортирует по алфавиту', () => {
     const groups = groupDebts([
-      debt(1, { typeId: 1, ownerName: 'Иван', date: date('2026-08-20') }),
-      debt(2, { typeId: 2, ownerName: 'Пётр', date: date('2026-08-22') }),
-      debt(3, { typeId: 1, ownerName: 'Пётр', date: date('2026-08-21') }),
+      movement(1, { typeId: 1, ownerName: 'Иван', date: date('2026-08-20') }),
+      movement(2, { typeId: 2, ownerName: 'Пётр', date: date('2026-08-22') }),
+      movement(3, { typeId: 1, ownerName: 'Пётр', date: date('2026-08-21') }),
     ])
 
-    expect(groups.map(group => group.typeId)).toEqual([2, 1])
-    expect(groups.map(group => group.name)).toEqual(['Нужно отдать', 'Нужно забрать'])
-    expect(groups[1]?.owners.map(entry => entry.name)).toEqual(['Пётр', 'Иван'])
+    expect(groups.map(group => group.typeId)).toEqual([0])
+    expect(groups.map(group => group.name)).toEqual(['Держатели'])
+    expect(groups[0]?.owners.map(entry => entry.name)).toEqual(['Иван', 'Пётр'])
+  })
+
+  it('встречные движения одного держателя взаимно уменьшают отображаемый остаток', () => {
+    const groups = groupDebts([
+      movement(1, { typeId: 1, sum: money('5000') }),
+      movement(2, { typeId: 2, sum: money('2000') }),
+    ])
+
+    expect(groups).toHaveLength(1)
+    expect(groups[0]?.typeId).toBe(0)
+    expect(ownerRemainder(groups[0]!.owners[0]!).toMinorUnits()).toBe(300_000)
+  })
+
+  it('нулевой счёт скрывается среди актуальных и остаётся в истории', () => {
+    const movements = [
+      movement(1, { typeId: 1, sum: money('5000') }),
+      movement(2, { typeId: 2, sum: money('5000') }),
+    ]
+
+    expect(groupDebts(movements, false)).toEqual([])
+    expect(groupDebts(movements, true)).toHaveLength(1)
+  })
+
+  it('после перехода через ноль держатель остаётся в общем разделе', () => {
+    const groups = groupDebts([
+      movement(1, { typeId: 1, sum: money('5000') }),
+      movement(2, { typeId: 2, sum: money('6000') }),
+    ], false)
+
+    expect(groups).toHaveLength(1)
+    expect(groups[0]?.typeId).toBe(0)
+    expect(groups[0]?.name).toBe('Держатели')
+    expect(ownerRemainder(groups[0]!.owners[0]!).toMinorUnits()).toBe(100_000)
+  })
+
+  it('удалённое движение не влияет на текущий баланс', () => {
+    const groups = groupDebts([
+      movement(1, { typeId: 1, sum: money('5000') }),
+      movement(2, { typeId: 2, sum: money('5000'), isDeleted: true }),
+    ], false)
+
+    expect(groups[0]?.typeId).toBe(0)
+    expect(ownerRemainder(groups[0]!.owners[0]!).toMinorUnits()).toBe(500_000)
   })
 
   it('долги держателя идут от новых к старым, равные даты сохраняют порядок ответа', () => {
     const groups = groupDebts([
-      debt(1, { date: date('2026-08-20') }),
-      debt(2, { date: date('2026-08-22') }),
-      debt(3, { date: date('2026-08-22') }),
+      movement(1, { date: date('2026-08-20') }),
+      movement(2, { date: date('2026-08-22') }),
+      movement(3, { date: date('2026-08-22') }),
     ])
 
     expect(groups[0]?.owners[0]?.debts.map(entry => entry.id)).toEqual([2, 3, 1])
@@ -75,8 +108,8 @@ describe('группировка долгов', () => {
 
   it('держатели с одинаковым именем сливаются в одну карточку', () => {
     const groups = groupDebts([
-      debt(1, { ownerName: 'Иван' }),
-      debt(2, { ownerName: 'Иван' }),
+      movement(1, { ownerName: 'Иван' }),
+      movement(2, { ownerName: 'Иван' }),
     ])
 
     expect(groups[0]?.owners).toHaveLength(1)
@@ -85,89 +118,50 @@ describe('группировка долгов', () => {
 
   it('имена, различающиеся регистром, остаются разными держателями', () => {
     const groups = groupDebts([
-      debt(1, { ownerName: 'Иван' }),
-      debt(2, { ownerName: 'иван' }),
+      movement(1, { ownerName: 'Иван' }),
+      movement(2, { ownerName: 'иван' }),
     ])
 
     expect(groups[0]?.owners.map(entry => entry.name)).toEqual(['Иван', 'иван'])
   })
 
-  it('незнакомый тип не теряется, а получает имя-заглушку', () => {
-    const groups = groupDebts([debt(1, { typeId: 99 })])
+  it('незнакомый тип не теряется из общего раздела', () => {
+    const groups = groupDebts([movement(1, { typeId: 99 })])
 
-    expect(groups[0]?.typeId).toBe(99)
-    expect(groups[0]?.name).toBe('Неизвестный тип')
+    expect(groups[0]?.typeId).toBe(0)
+    expect(groups[0]?.name).toBe('Держатели')
   })
 })
 
 describe('агрегаты держателя', () => {
-  it('считает сумму, остаток и процент погашения с округлением до двух знаков', () => {
+  it('считает оборот и чистый остаток по движениям', () => {
     const entry = owner([
-      debt(1, { sum: money('1000'), paySum: money('250') }),
-      debt(2, { sum: money('500') }),
+      movement(1, { typeId: 1, sum: money('1000') }),
+      movement(2, { typeId: 2, sum: money('250') }),
+      movement(3, { typeId: 1, sum: money('500') }),
     ])
 
-    expect(entry.debts).toHaveLength(2)
-    expect(ownerTotal(entry).toMinorUnits()).toBe(150_000)
+    expect(entry.debts).toHaveLength(3)
+    expect(ownerTotal(entry).toMinorUnits()).toBe(175_000)
     expect(ownerRemainder(entry).toMinorUnits()).toBe(125_000)
-    expect(ownerPercent(entry)).toBe(17)
-  })
-
-  it.each([
-    ['197', '200', 98],
-    ['25', '200', 12],
-    ['250', '1000', 25],
-  ])('ровная половина в проценте округляется к чётному: %s из %s', (paySum, sum, expected) => {
-    expect(ownerPercent(owner([debt(1, { sum: money(sum), paySum: money(paySum) })]))).toBe(expected)
-  })
-
-  it('нулевая сумма долгов даёт нулевой процент', () => {
-    expect(ownerPercent(owner([debt(1, { sum: Money.zero, paySum: Money.zero })]))).toBe(0)
   })
 
   it('итог типа складывается из сумм держателей', () => {
     const groups = groupDebts([
-      debt(1, { ownerName: 'Иван', sum: money('1000') }),
-      debt(2, { ownerName: 'Пётр', sum: money('500') }),
+      movement(1, { ownerName: 'Иван', sum: money('1000') }),
+      movement(2, { ownerName: 'Пётр', sum: money('500') }),
     ])
 
     expect(typeTotal(groups[0]!).toMinorUnits()).toBe(150_000)
   })
 })
 
-describe('последний платёж держателя', () => {
-  it('берётся из комментария самого свежего долга', () => {
-    const entry = owner([
-      debt(1, { date: date('2026-08-20'), payComment: '2026.08.19 100 старый' }),
-      debt(2, { date: date('2026-08-22'), payComment: '2026.08.01 50 первый\n2026.08.21 50 второй' }),
-    ])
-
-    expect(lastPaymentDate(entry)).toBe('2026-08-21')
-  })
-
-  it('строка платежа без пробела не роняет разбор', () => {
-    expect(lastPaymentDate(owner([debt(1, { payComment: '2026.08.21' })]))).toBe('2026-08-21')
-    expect(lastPaymentDate(owner([debt(1, { payComment: 'мусор' })]))).toBeNull()
-  })
-
-  it('строки режутся и по CRLF, и по LF', () => {
-    const entry = owner([debt(1, { payComment: '2026.08.01 50 первый\r\n2026.08.21 50 второй\r\n' })])
-
-    expect(lastPaymentDate(entry)).toBe('2026-08-21')
-  })
-
-  it('без платежей даты нет', () => {
-    expect(lastPaymentDate(owner([debt(1)]))).toBeNull()
-    expect(lastPaymentDate(owner([debt(1, { payComment: '   ' })]))).toBeNull()
-  })
-})
-
 describe('поиск по держателям', () => {
   const groups = groupDebts([
-    debt(1, { typeId: 1, ownerName: 'Иван', comment: 'за обед' }),
-    debt(2, { typeId: 1, ownerName: 'Иван', comment: null }),
-    debt(3, { typeId: 1, ownerName: 'Пётр', payComment: '2026.08.21 50 бензин' }),
-    debt(4, { typeId: 2, ownerName: 'Мария', comment: 'книга' }),
+    movement(1, { typeId: 1, ownerName: 'Иван', comment: 'за обед' }),
+    movement(2, { typeId: 1, ownerName: 'Иван', comment: null }),
+    movement(3, { typeId: 1, ownerName: 'Пётр', comment: 'бензин' }),
+    movement(4, { typeId: 2, ownerName: 'Мария', comment: 'книга' }),
   ])
 
   it.each([
@@ -186,71 +180,15 @@ describe('поиск по держателям', () => {
     expect(filtered[0]?.owners[0]?.debts.map(entry => entry.id)).toEqual([1, 2])
   })
 
-  it('тип без совпавших держателей исчезает целиком', () => {
+  it('поиск оставляет в общем разделе только совпавшего держателя', () => {
     const filtered = filterDebtGroups(groups, 'книга')
 
-    expect(filtered.map(group => group.typeId)).toEqual([2])
+    expect(filtered.map(group => group.typeId)).toEqual([0])
+    expect(filtered[0]?.owners.map(owner => owner.name)).toEqual(['Мария'])
   })
 
   it.each(['', '   '])('запрос %j отключает фильтр', query => {
-    expect(filterDebtGroups(groups, query)).toHaveLength(2)
-  })
-})
-
-describe('прогресс и статус долга', () => {
-  it.each([
-    ['1000', '1000', 100, 'Погашено'],
-    ['1000', '997', 99, 'В процессе'],
-    ['1000', '0', 0, 'Не начато'],
-    ['0', '0', 0, 'Не начато'],
-    ['1000', '1200', 100, 'Погашено'],
-  ])('долг %s с оплатой %s даёт прогресс %i', (sum, paySum, expected, text) => {
-    const entry = debt(1, { sum: money(sum), paySum: money(paySum) })
-    const statuses = { paid: 'Погашено', inProgress: 'В процессе', notStarted: 'Не начато' }
-
-    expect(paymentProgress(entry)).toBe(expected)
-    expect(statuses[debtStatus(entry)]).toBe(text)
-  })
-
-  it.each([
-    [{ typeId: 1 }, true],
-    [{ typeId: 2 }, false],
-    [{ typeId: 1, isDeleted: true }, false],
-    [{ typeId: 1, paySum: money('1000') }, false],
-  ])('прощаемость долга %j равна %s', (extra, expected) => {
-    expect(canForgiveDebt(debt(1, extra))).toBe(expected)
-  })
-})
-
-describe('история погашений', () => {
-  it('разбирает строки сервера и оставляет комментарий целиком', () => {
-    const records = parsePaymentHistory('2026.08.21 1234,56 за обед в кафе\r\n2026.08.22 100 ')
-
-    expect(records).toHaveLength(2)
-    expect(records[0]?.date).toBe('2026-08-21')
-    expect(records[0]?.sum.toMinorUnits()).toBe(123_456)
-    expect(records[0]?.comment).toBe('за обед в кафе')
-    expect(records[1]?.comment).toBe('')
-  })
-
-  it('строка меньше чем из двух частей отбрасывается', () => {
-    expect(parsePaymentHistory('2026.08.21\n\n2026.08.22 100 взнос')).toHaveLength(1)
-  })
-
-  it('нераспознанные дата и сумма не роняют строку', () => {
-    const records = parsePaymentHistory('мусор ещё мусор')
-
-    expect(records[0]?.date).toBeNull()
-    expect(records[0]?.sum.isZero).toBe(true)
-  })
-
-  it.each([
-    [{ paySum: Money.zero, payComment: '2026.08.21 100 взнос' }, false],
-    [{ paySum: money('100'), payComment: null }, false],
-    [{ paySum: money('100'), payComment: '   ' }, false],
-    [{ paySum: money('100'), payComment: '2026.08.21 100 взнос' }, true],
-  ])('таблица истории для %j показывается: %s', (extra, expected) => {
-    expect(hasPaymentHistory(debt(1, extra))).toBe(expected)
+    expect(filterDebtGroups(groups, query)).toHaveLength(1)
   })
 })
 
@@ -278,20 +216,10 @@ describe('книжная карточка на узком экране', () => {
     expect(debtCountText(count)).toBe(expected)
   })
 
-  it.each([
-    [0, 'ничего не выплачено'],
-    [-1, 'ничего не выплачено'],
-    [42, 'выплачено 42 %'],
-    [100, 'выплачено полностью'],
-  ])('доля %i пишется как «%s»', (percent, expected) => {
-    expect(paidPercentText(percent)).toBe(expected)
-  })
-
-  it('к оплате берётся самый ранний непогашенный долг', () => {
+  it('к обратному движению берётся самое раннее активное движение', () => {
     const group = owner([
-      debt(1, { date: date('2026-08-22') }),
-      debt(2, { date: date('2026-08-20') }),
-      debt(3, { date: date('2026-08-18'), paySum: money('1000') }),
+      movement(1, { date: date('2026-08-22') }),
+      movement(2, { date: date('2026-08-20') }),
     ])
 
     expect(nextPayableDebt(group)?.id).toBe(2)
@@ -299,14 +227,17 @@ describe('книжная карточка на узком экране', () => {
 
   it('удалённый долг к оплате не предлагается', () => {
     const group = owner([
-      debt(1, { date: date('2026-08-18'), isDeleted: true }),
-      debt(2, { date: date('2026-08-20') }),
+      movement(1, { date: date('2026-08-18'), isDeleted: true }),
+      movement(2, { date: date('2026-08-20') }),
     ])
 
     expect(nextPayableDebt(group)?.id).toBe(2)
   })
 
-  it('у полностью выплаченного держателя платить нечего', () => {
-    expect(nextPayableDebt(owner([debt(1, { paySum: money('1000') })]))).toBeNull()
+  it('у держателя с нулевым балансом платить нечего', () => {
+    expect(nextPayableDebt(owner([
+      movement(1, { typeId: 1 }),
+      movement(2, { typeId: 2 }),
+    ]))).toBeNull()
   })
 })

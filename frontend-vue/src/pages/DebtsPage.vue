@@ -1,11 +1,12 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
+import { computed } from 'vue'
 import { useCategories } from '@/features/categories'
 import {
   DEBT_TYPES,
   DebtDialog,
   DebtForgivePanel,
   DebtMergePanel,
-  DebtTypeSection,
+  DebtOwnerPanel,
   useDebtsScreen,
 } from '@/features/debts'
 import {
@@ -38,6 +39,7 @@ import { useNarrowViewport } from '@/shared/ui/useNarrowViewport'
 const categoriesState = useCategories()
 const screen = useDebtsScreen(categoriesState.categories)
 const isNarrow = useNarrowViewport()
+const visibleOwners = computed(() => screen.groups.value.flatMap(group => group.owners))
 </script>
 
 <template>
@@ -263,13 +265,12 @@ const isNarrow = useNarrowViewport()
   </MudText>
 
   <template v-else>
-    <DebtTypeSection
-      v-for="group in screen.groups.value"
-      :key="group.typeId"
-      :group="group"
-      :is-expanded="screen.isTypeExpanded(group.typeId)"
+    <DebtOwnerPanel
+      v-for="owner in visibleOwners"
+      :key="owner.name"
       :is-paying="screen.isPaying.value"
       :is-selectable="screen.isSelectable"
+      :owner="owner"
       :payment-value="screen.payment.value"
       :selected-ids="screen.selectedIds.value"
       @cancel-payment="screen.cancelPayment($event)"
@@ -278,7 +279,6 @@ const isNarrow = useNarrowViewport()
       @remove="screen.remove($event)"
       @restore="screen.restore($event)"
       @submit-payment="screen.submitPayment($event)"
-      @toggle="screen.toggleType($event)"
       @toggle-selection="screen.toggleSelection($event)"
     />
   </template>

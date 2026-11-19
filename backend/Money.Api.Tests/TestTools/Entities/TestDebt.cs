@@ -1,6 +1,6 @@
 ﻿using Money.Business.Enums;
 using Money.Data.Extensions;
-using Debt = Money.Data.Entities.Debt;
+using DebtMovement = Money.Data.Entities.DebtMovement;
 
 namespace Money.Api.Tests.TestTools.Entities;
 
@@ -16,12 +16,9 @@ public class TestDebt : TestObject
         Type = TestRandom.GetEnum<DebtTypes>(); // todo сделать рандом для энумов
         Sum = TestRandom.GetInt(minValue: 1);
         Comment = TestRandom.GetString("Comment");
-        PayComment = TestRandom.GetString("PayComment");
         OwnerName = TestRandom.GetString("User");
 
         Date = DateTime.Now.Date;
-        Status = DebtStatus.Actual;
-        PaySum = 0;
     }
 
     /// <summary>
@@ -42,12 +39,6 @@ public class TestDebt : TestObject
     public int OwnerId { get; private set; }
 
     public DateTime Date { get; }
-
-    public decimal PaySum { get; }
-
-    public string? PayComment { get; }
-
-    public DebtStatus Status { get; }
 
     /// <summary>
     /// Удален.
@@ -77,7 +68,7 @@ public class TestDebt : TestObject
         return this;
     }
 
-    private void FillDbProperties(Debt dbDebt, int ownerId)
+    private void FillDbProperties(DebtMovement dbDebt, int ownerId)
     {
         dbDebt.Sum = Sum;
         dbDebt.TypeId = (int)Type;
@@ -85,8 +76,6 @@ public class TestDebt : TestObject
         dbDebt.Comment = Comment;
         dbDebt.UserId = User.Id;
         dbDebt.Date = Date;
-        dbDebt.PaySum = 0;
-        dbDebt.StatusId = (int)Status;
         dbDebt.IsDeleted = IsDeleted;
     }
 
@@ -119,20 +108,20 @@ public class TestDebt : TestObject
             var debtId = dbUser.NextDebtId;
             dbUser.NextDebtId++; // todo обработать канкаренси
 
-            var obj = new Debt
+            var obj = new DebtMovement
             {
                 Id = debtId,
             };
 
             FillDbProperties(obj, dbOwner.Id);
-            Environment.Context.Debts.Add(obj);
+            Environment.Context.DebtMovements.Add(obj);
             IsNew = false;
             Environment.Context.SaveChanges();
             Id = obj.Id;
         }
         else
         {
-            var obj = Environment.Context.Debts
+            var obj = Environment.Context.DebtMovements
                 .IsUserEntity(User.Id, Id)
                 .First();
 

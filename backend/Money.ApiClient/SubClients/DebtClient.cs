@@ -6,15 +6,15 @@ public class DebtClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
 
     protected override string ApiPrefix => "";
 
-    public Task<ApiClientResponse<Debt[]>> Get(bool withPaid = false)
+    public Task<ApiClientResponse<DebtMovement[]>> Get(bool withPaid = false)
     {
         var paramUri = $"?withPaid={withPaid}";
-        return GetAsync<Debt[]>($"{BaseUri}{paramUri}");
+        return GetAsync<DebtMovement[]>($"{BaseUri}{paramUri}");
     }
 
-    public Task<ApiClientResponse<Debt>> GetById(int id)
+    public Task<ApiClientResponse<DebtMovement>> GetById(int id)
     {
-        return GetAsync<Debt>($"{BaseUri}/{id}");
+        return GetAsync<DebtMovement>($"{BaseUri}/{id}");
     }
 
     public Task<ApiClientResponse<int>> Create(SaveRequest request)
@@ -83,13 +83,10 @@ public class DebtClient(MoneyClient apiClient) : ApiClientExecutor(apiClient)
         public DateTime Date { get; set; }
     }
 
-    public class Debt : SaveRequest
+    public class DebtMovement : SaveRequest
     {
         public required int Id { get; set; }
 
-        public decimal PaySum { get; set; }
-
-        public string? PayComment { get; set; }
     }
 
     public class PayRequest

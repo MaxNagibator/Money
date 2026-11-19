@@ -1,7 +1,7 @@
-import { mount } from '@vue/test-utils'
+﻿import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import { nextTick, ref } from 'vue'
-import type { Debt } from '@/domain/debt'
+import type { DebtMovement } from '@/domain/debt'
 import { parseLocalDate } from '@/domain/local-date'
 import { Money } from '@/domain/money'
 import { editDebtForm, newDebtForm } from '../model/debt-form'
@@ -21,16 +21,14 @@ vi.mock('@/shared/ui/useOwnerSuggestions', () => ({
 const REMOVE = '[data-testid="debts-dialog-remove"]'
 const SCRIM = '.mud-overlay-dialog'
 
-function debt(): Debt {
+function DebtMovement(): DebtMovement {
   return {
     id: 7,
     typeId: 1,
     sum: Money.fromMinorUnits(100_000),
-    paySum: Money.zero,
     comment: null,
     ownerName: 'Пётр',
     date: parseLocalDate('2026-09-17')!,
-    payComment: null,
     isDeleted: false,
   }
 }
@@ -43,7 +41,7 @@ function openDialog(options: { removable?: boolean, existing?: boolean, isSaving
       removable: options.removable === true,
       value: options.existing === false
         ? newDebtForm(parseLocalDate('2026-09-17')!)
-        : editDebtForm(debt()),
+        : editDebtForm(DebtMovement()),
     },
   })
 }

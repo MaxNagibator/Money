@@ -24,7 +24,7 @@ public class PayRequest
     /// Преобразует текущую DTO-модель в бизнес-модель.
     /// </summary>
     /// <returns>
-    /// Экземпляр <see cref="Business.Models.Debt" />, который представляет бизнес-модель.
+    /// Экземпляр <see cref="Business.Models.DebtMovement" />, который представляет бизнес-модель.
     /// </returns>
     public DebtPayment ToBusinessModel()
     {

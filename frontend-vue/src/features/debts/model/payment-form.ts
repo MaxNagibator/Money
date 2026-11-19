@@ -1,6 +1,6 @@
-import type { DebtPaymentDraft } from '@/api/adapters/debts'
+﻿import type { DebtPaymentDraft } from '@/api/adapters/debts'
 import { trimToNull } from '@/domain/text'
-import type { Debt } from '@/domain/debt'
+import type { DebtMovement } from '@/domain/debt'
 import type { LocalDate } from '@/domain/local-date'
 import { Money } from '@/domain/money'
 import { FIELD_REQUIRED, SUM_UNPARSED } from './debt-form'
@@ -21,12 +21,10 @@ export interface PaymentFormErrors {
   date?: string
 }
 
-export function newPaymentForm(debt: Debt, today: LocalDate): PaymentFormValue {
-  const remainder = debt.sum.subtract(debt.paySum)
-
+export function newPaymentForm(movement: DebtMovement, today: LocalDate): PaymentFormValue {
   return {
-    debtId: debt.id,
-    sum: remainder.isNegative ? Money.zero : remainder,
+    debtId: movement.id,
+    sum: movement.sum,
     date: today,
     comment: '',
   }
