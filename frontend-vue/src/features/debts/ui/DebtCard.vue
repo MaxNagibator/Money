@@ -14,6 +14,7 @@ import {
   MudCard,
   MudCardActions,
   MudCardContent,
+  MudButton,
   MudCheckBox,
   MudChip,
   MudCollapse,
@@ -35,6 +36,8 @@ const props = defineProps<{
   movement: DebtMovement
   ledger?: boolean
   ledgerSide?: 'outgoing' | 'incoming'
+  ledgerDateExternal?: boolean
+  isPayable?: boolean
   isSelectable: boolean
   isSelected: boolean
   isPaymentOpen: boolean
@@ -165,9 +168,12 @@ function togglePayment(): void {
       @click="emit('edit', movement)"
     >
       <span class="debt-row__when">
-        <span :data-testid="`debts-card-date-${movement.id}`">{{ formatLocalDate(movement.date) }}</span>
+        <span
+          v-if="!ledgerDateExternal"
+          :data-testid="`debts-card-date-${movement.id}`"
+        >{{ formatLocalDate(movement.date) }}</span>
         <template v-if="comment !== null">
-          <span>&nbsp;·&nbsp;</span>
+          <span v-if="!ledgerDateExternal">&nbsp;·&nbsp;</span>
           <span :data-testid="`debts-card-comment-${movement.id}`">{{ comment }}</span>
         </template>
       </span>
@@ -177,6 +183,30 @@ function togglePayment(): void {
         class="debt-row__sum"
       >{{ formatMoney(movement.sum) }}</span>
     </button>
+
+    <template v-if="ledger && isPayable && !movement.isDeleted">
+      <MudButton
+        :data-testid="`debts-card-pay-${movement.id}`"
+        size="small"
+        variant="text"
+        @click.stop="togglePayment"
+      >
+        Погасить
+      </MudButton>
+
+      <MudPopover
+        :open="isPaymentOpen"
+        anchor-origin="bottom-right"
+        transform-origin="top-right"
+      >
+        <DebtPaymentForm
+          :is-saving="isPaying"
+          :value="paymentValue"
+          @cancel="emit('cancel-payment', movement)"
+          @submit="emit('submit-payment', $event)"
+        />
+      </MudPopover>
+    </template>
 
     <MudIconButton
       v-if="movement.isDeleted"

@@ -21,6 +21,7 @@ import { roleVariables } from '@/shared/ui/record-card'
 import { useNarrowViewport } from '@/shared/ui/useNarrowViewport'
 import type { DebtOwnerGroup } from '../model/debt'
 import {
+  balanceCycleIndexes,
   debtRoleColor,
   nextPayableDebt,
   ownerRemainder,
@@ -65,6 +66,7 @@ const balanceColor = computed(() => balance.value.isNegative ? 'warning' as cons
 const chronologicalMovements = computed(() => [...props.owner.debts].sort(
   (left, right) => compareLocalDate(right.date, left.date),
 ))
+const cycleIndexes = computed(() => balanceCycleIndexes(props.owner.debts))
 const payable = computed(() => nextPayableDebt(props.owner))
 const payableDate = computed(() => payable.value === null ? null : formatLocalDate(payable.value.date))
 const openPayment = computed(() => {
@@ -180,11 +182,14 @@ function cancelPayment(): void {
 
     <template v-if="isExpanded">
       <div class="debt-ledger">
-        <div class="debt-ledger__heading">
-          Уход
+        <div class="debt-ledger__heading debt-ledger__heading--date">
+          Дата
         </div>
         <div class="debt-ledger__heading">
-          Приход
+          Мне должны
+        </div>
+        <div class="debt-ledger__heading">
+          Я должен
         </div>
         <TransitionGroup
           name="list-flow"
@@ -194,15 +199,21 @@ function cancelPayment(): void {
           <div
             v-for="movement in chronologicalMovements"
             :key="movement.id"
+            :class="{ 'debt-ledger__row--alternate-cycle': (cycleIndexes.get(movement.id) ?? 0) % 2 === 1 }"
             class="debt-ledger__row"
           >
+            <div class="debt-ledger__date">
+              {{ formatLocalDate(movement.date) }}
+            </div>
             <div class="debt-ledger__cell debt-ledger__cell--outgoing">
               <DebtCard
                 v-if="movement.typeId === 1"
                 ledger
+                ledger-date-external
                 ledger-side="outgoing"
                 :movement="movement"
                 :is-paying="isPaying"
+                :is-payable="payable?.typeId === movement.typeId"
                 :is-payment-open="paymentValue !== null && paymentValue.debtId === movement.id"
                 :is-selectable="isSelectable(movement)"
                 :is-selected="selectedIds.has(movement.id)"
@@ -221,9 +232,11 @@ function cancelPayment(): void {
               <DebtCard
                 v-if="movement.typeId === 2"
                 ledger
+                ledger-date-external
                 ledger-side="incoming"
                 :movement="movement"
                 :is-paying="isPaying"
+                :is-payable="payable?.typeId === movement.typeId"
                 :is-payment-open="paymentValue !== null && paymentValue.debtId === movement.id"
                 :is-selectable="isSelectable(movement)"
                 :is-selected="selectedIds.has(movement.id)"
@@ -277,7 +290,9 @@ function cancelPayment(): void {
 
   <div
     v-else
+    :class="{ 'debt-owner--expanded': isExpanded }"
     :data-testid="`debts-owner-${owner.name}`"
+    class="debt-owner"
   >
     <MudPaper
       :aria-expanded="isExpanded"
@@ -331,11 +346,14 @@ function cancelPayment(): void {
       v-if="isExpanded"
       class="debt-ledger debt-ledger--wide list-flow-host"
     >
-      <div class="debt-ledger__heading">
-        Уход
+      <div class="debt-ledger__heading debt-ledger__heading--date">
+        Дата
       </div>
       <div class="debt-ledger__heading">
-        Приход
+        Мне должны
+      </div>
+      <div class="debt-ledger__heading">
+        Я должен
       </div>
       <TransitionGroup
         name="list-flow"
@@ -345,15 +363,21 @@ function cancelPayment(): void {
         <div
           v-for="movement in chronologicalMovements"
           :key="movement.id"
+          :class="{ 'debt-ledger__row--alternate-cycle': (cycleIndexes.get(movement.id) ?? 0) % 2 === 1 }"
           class="debt-ledger__row"
         >
+          <div class="debt-ledger__date">
+            {{ formatLocalDate(movement.date) }}
+          </div>
           <div class="debt-ledger__cell debt-ledger__cell--outgoing">
             <DebtCard
               v-if="movement.typeId === 1"
               ledger
+              ledger-date-external
               ledger-side="outgoing"
               :movement="movement"
               :is-paying="isPaying"
+              :is-payable="payable?.typeId === movement.typeId"
               :is-payment-open="paymentValue !== null && paymentValue.debtId === movement.id"
               :is-selectable="isSelectable(movement)"
               :is-selected="selectedIds.has(movement.id)"
@@ -372,9 +396,11 @@ function cancelPayment(): void {
             <DebtCard
               v-if="movement.typeId === 2"
               ledger
+              ledger-date-external
               ledger-side="incoming"
               :movement="movement"
               :is-paying="isPaying"
+              :is-payable="payable?.typeId === movement.typeId"
               :is-payment-open="paymentValue !== null && paymentValue.debtId === movement.id"
               :is-selectable="isSelectable(movement)"
               :is-selected="selectedIds.has(movement.id)"
@@ -402,40 +428,84 @@ function cancelPayment(): void {
   white-space: nowrap;
 }
 
+.debt-owner {
+  margin-bottom: 8px;
+}
+
 .debt-owner__head {
   cursor: pointer;
 }
 
+.debt-owner--expanded .debt-owner__head {
+  border-radius: 4px 4px 0 0;
+}
+
 .debt-ledger {
+  --debt-ledger-date-width: 100px;
+  --debt-ledger-grid: color-mix(in srgb, var(--mud-palette-text-primary) 22%, transparent);
+  --debt-ledger-cycle-fill: color-mix(in srgb, var(--mud-palette-text-primary) 5%, transparent);
+
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  border-top: 1px solid var(--mud-palette-lines-default);
+  grid-template-columns: var(--debt-ledger-date-width) minmax(0, 1fr) minmax(0, 1fr);
+  border-top: 1px solid var(--debt-ledger-grid);
 }
 
 .debt-ledger--wide {
-  margin: 4px 0 16px;
-  border: 1px solid var(--mud-palette-lines-default);
+  margin: 0;
+  border: 1px solid var(--debt-ledger-grid);
+  border-top: 0;
   border-radius: 0 0 6px 6px;
 }
 
 .debt-ledger__row {
   display: grid;
   grid-column: 1 / -1;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: var(--debt-ledger-date-width) minmax(0, 1fr) minmax(0, 1fr);
+  align-items: stretch;
+}
+
+.debt-ledger__row--alternate-cycle .debt-ledger__cell {
+  background: var(--debt-ledger-cycle-fill);
+}
+
+.debt-ledger__row--alternate-cycle .debt-ledger__date {
+  background: var(--debt-ledger-cycle-fill);
+}
+
+.debt-ledger__date {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--debt-ledger-grid);
+  color: var(--mud-palette-text-secondary);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .debt-ledger__cell {
+  display: flex;
+  align-items: stretch;
   min-width: 0;
-  border-bottom: 1px solid var(--mud-palette-lines-default);
+  border-bottom: 1px solid var(--debt-ledger-grid);
+}
+
+.debt-ledger__cell :deep(.debt-row) {
+  width: 100%;
+  min-height: 44px;
 }
 
 .debt-ledger__cell--incoming {
-  border-left: 1px solid var(--mud-palette-lines-default);
+  border-left: 1px solid var(--debt-ledger-grid);
+}
+
+.debt-ledger__cell--outgoing {
+  border-left: 1px solid var(--debt-ledger-grid);
 }
 
 .debt-ledger__heading {
   padding: 7px 12px;
-  border-bottom: 1px solid var(--mud-palette-lines-default);
+  border-bottom: 1px solid var(--debt-ledger-grid);
   color: var(--mud-palette-text-secondary);
   font-size: 0.75rem;
   font-weight: 500;
@@ -445,7 +515,7 @@ function cancelPayment(): void {
 }
 
 .debt-ledger__heading + .debt-ledger__heading {
-  border-left: 1px solid var(--mud-palette-lines-default);
+  border-left: 1px solid var(--debt-ledger-grid);
 }
 
 

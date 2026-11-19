@@ -163,6 +163,34 @@ export function signedBalance(debts: readonly DebtMovement[]): Money {
     return movement.typeId === GIVE_TYPE_ID ? balance.subtract(movement.sum) : balance
   }, Money.zero)
 }
+
+export function balanceCycleIndexes(debts: readonly DebtMovement[]): ReadonlyMap<number, number> {
+  const indexes = new Map<number, number>()
+  let balance = Money.zero
+  let hasMovement = false
+  let cycle = 0
+  const chronological = [...debts].sort((left, right) => compareLocalDate(left.date, right.date))
+
+  for (const movement of chronological) {
+    if (movement.isDeleted || movement.typeId !== TAKE_TYPE_ID && movement.typeId !== GIVE_TYPE_ID) {
+      indexes.set(movement.id, cycle)
+      continue
+    }
+
+    if (hasMovement && balance.isZero) {
+      cycle += 1
+    }
+
+    indexes.set(movement.id, cycle)
+    balance = movement.typeId === TAKE_TYPE_ID
+      ? balance.add(movement.sum)
+      : balance.subtract(movement.sum)
+    hasMovement = true
+  }
+
+  return indexes
+}
+
 export function canForgiveDebt(movement: DebtMovement): boolean {
   return movement.typeId === FORGIVABLE_TYPE_ID && !movement.isDeleted
 }

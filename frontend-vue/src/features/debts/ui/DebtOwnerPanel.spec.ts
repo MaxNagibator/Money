@@ -80,8 +80,52 @@ describe('книжная карточка держателя на узком э�
       'debts-card-1',
     ])
     expect(rows.every(row => row.findAll('.debt-row').length === 1)).toBe(true)
+    expect(rows.map(row => row.get('.debt-ledger__date').text())).toEqual([
+      '17.09.2026',
+      '15.09.2026',
+      '12.09.2026',
+      '10.09.2026',
+    ])
     expect(rows[0]?.find('.debt-ledger__cell--outgoing .debt-row').exists()).toBe(false)
     expect(rows[1]?.find('.debt-ledger__cell--incoming .debt-row').exists()).toBe(false)
+  })
+
+  it('позволяет начать погашение прямо из строки таблицы', async () => {
+    const movement = DebtMovement(1)
+    const wrapper = mountPanel(owner([movement]))
+
+    await wrapper.get(TOGGLE).trigger('click')
+    await wrapper.get('[data-testid="debts-card-pay-1"]').trigger('click')
+
+    expect(wrapper.emitted('open-payment')?.[0]).toEqual([movement])
+  })
+
+  it('скрывает погашение у направления, уже перекрытого встречными движениями', async () => {
+    const wrapper = mountPanel(owner([
+      DebtMovement(1, { typeId: 1, sum: Money.fromMinorUnits(100_000) }),
+      DebtMovement(2, { typeId: 2, sum: Money.fromMinorUnits(150_000) }),
+    ]))
+
+    await wrapper.get(TOGGLE).trigger('click')
+
+    expect(wrapper.find('[data-testid="debts-card-pay-1"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="debts-card-pay-2"]').exists()).toBe(true)
+  })
+
+  it('чередует фон циклов после нулевого баланса', async () => {
+    const wrapper = mountPanel(owner([
+      DebtMovement(1, { typeId: 1, date: parseLocalDate('2026-11-01')!, sum: Money.fromMinorUnits(500_000) }),
+      DebtMovement(2, { typeId: 2, date: parseLocalDate('2026-11-11')!, sum: Money.fromMinorUnits(200_000) }),
+      DebtMovement(3, { typeId: 2, date: parseLocalDate('2026-11-13')!, sum: Money.fromMinorUnits(300_000) }),
+      DebtMovement(4, { typeId: 2, date: parseLocalDate('2026-11-15')!, sum: Money.fromMinorUnits(500_000) }),
+    ]))
+
+    await wrapper.get(TOGGLE).trigger('click')
+
+    const alternateCycle = wrapper.findAll('.debt-ledger__row--alternate-cycle')
+
+    expect(alternateCycle).toHaveLength(1)
+    expect(alternateCycle[0]?.find('.debt-row').attributes('data-testid')).toBe('debts-card-4')
   })
 
   it('свёрнутая карточка показывает остаток, оборот и число движений', () => {
