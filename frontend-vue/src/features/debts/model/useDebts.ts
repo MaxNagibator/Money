@@ -1,14 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import type { ComputedRef, Ref } from 'vue'
 import { computed, shallowRef } from 'vue'
-import type { DebtDraft, DebtForgiveDraft, DebtPaymentDraft } from '@/api/adapters/debts'
+import type { DebtAccountForgiveDraft, DebtDraft, DebtForgiveDraft, DebtOwnerPaymentDraft, DebtPaymentDraft } from '@/api/adapters/debts'
 import {
   createDebt,
   deleteDebt,
   fetchDebt,
   fetchDebts,
   forgiveDebts,
+  forgiveDebtAccount,
   payDebt,
+  payDebtOwner,
   restoreDebt,
   updateDebt,
 } from '@/api/adapters/debts'
@@ -24,7 +26,9 @@ export interface DebtsState {
   remove: (id: number) => Promise<void>
   restore: (id: number) => Promise<void>
   pay: (id: number, draft: DebtPaymentDraft) => Promise<void>
+  payOwner: (id: number, draft: DebtOwnerPaymentDraft) => Promise<void>
   forgive: (draft: DebtForgiveDraft) => Promise<void>
+  forgiveAccount: (draft: DebtAccountForgiveDraft) => Promise<void>
 }
 
 export function useDebts(withPaid: Ref<boolean>): DebtsState {
@@ -114,9 +118,19 @@ export function useDebts(withPaid: Ref<boolean>): DebtsState {
     onSuccess: (_, { id }) => refreshPaidDebt(id),
   })
 
+  const payOwnerMutation = useMutation({
+    mutationFn: ({ id, draft }: { id: number, draft: DebtOwnerPaymentDraft }) => payDebtOwner(id, draft),
+    onSuccess: invalidate,
+  })
+
   const forgiveMutation = useMutation({
     mutationFn: (draft: DebtForgiveDraft) => forgiveDebts(draft),
     onSuccess: invalidate,
+  })
+
+  const forgiveAccountMutation = useMutation({
+    mutationFn: (draft: DebtAccountForgiveDraft) => forgiveDebtAccount(draft),
+    onSuccess: () => queryClient.invalidateQueries(),
   })
 
   return {
@@ -139,8 +153,14 @@ export function useDebts(withPaid: Ref<boolean>): DebtsState {
     pay: async (id, draft) => {
       await payMutation.mutateAsync({ id, draft })
     },
+    payOwner: async (id, draft) => {
+      await payOwnerMutation.mutateAsync({ id, draft })
+    },
     forgive: async draft => {
       await forgiveMutation.mutateAsync(draft)
+    },
+    forgiveAccount: async draft => {
+      await forgiveAccountMutation.mutateAsync(draft)
     },
   }
 }

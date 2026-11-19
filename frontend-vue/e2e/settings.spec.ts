@@ -8,6 +8,7 @@ const EVENING = '2026-02-03T20:00:00+03:00'
 const dividers = '[data-testid="settings-dividers"]'
 const alignDecimals = '[data-testid="settings-align-decimals"]'
 const chartColors = '[data-testid="settings-chart-colors"]'
+const pinBottomNav = '[data-testid="settings-pin-bottom-nav"]'
 const widthSlider = '[data-testid="settings-money-width"]'
 const scheduleEnabled = '[data-testid="settings-schedule-enabled"]'
 const scheduleStart = '[data-testid="settings-schedule-start"] input'
@@ -41,10 +42,12 @@ test.describe('настройки', () => {
 
     await expect(switchIn(page, dividers)).not.toBeChecked()
     await expect(page.getByTestId('settings-alternate-none')).toHaveAttribute('aria-checked', 'true')
+    await expect(switchIn(page, pinBottomNav)).not.toBeChecked()
 
     await page.locator(dividers).click()
     await page.getByTestId('settings-alternate-border').click()
     await page.locator(alignDecimals).click()
+    await page.locator(pinBottomNav).click()
 
     await page.reload()
 
@@ -52,6 +55,26 @@ test.describe('настройки', () => {
     await expect(page.getByTestId('settings-alternate-border')).toHaveAttribute('aria-checked', 'true')
     await expect(page.getByTestId('settings-alternate-none')).toHaveAttribute('aria-checked', 'false')
     await expect(switchIn(page, alignDecimals)).not.toBeChecked()
+    await expect(switchIn(page, pinBottomNav)).toBeChecked()
+  })
+
+  test('фиксация нижней панели удерживает её при прокрутке на узком экране', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await openSettings(page)
+
+    const bottomNav = page.getByTestId('bottom-nav')
+    await expect(bottomNav).not.toHaveClass(/app-bottom-nav-away/)
+
+    await page.evaluate(() => window.scrollTo(0, 200))
+    await expect(bottomNav).toHaveClass(/app-bottom-nav-away/)
+
+    await page.locator(pinBottomNav).click()
+    await expect(switchIn(page, pinBottomNav)).toBeChecked()
+    await expect(bottomNav).not.toHaveClass(/app-bottom-nav-away/)
+
+    await page.evaluate(() => window.scrollTo(0, 400))
+    await page.waitForTimeout(200)
+    await expect(bottomNav).not.toHaveClass(/app-bottom-nav-away/)
   })
 
   test('переключатель работает с клавиатуры', async ({ page }) => {

@@ -13,7 +13,7 @@ import {
   MudTooltip,
 } from '@/shared/mud'
 import { pinLeavingItem, unpinItem } from '@/shared/ui/list-flow'
-import type { DebtTypeGroup } from '../model/debt'
+import type { DebtOwnerGroup, DebtTypeGroup } from '../model/debt'
 import { typeTotal } from '../model/debt'
 import type { PaymentFormValue } from '../model/payment-form'
 import DebtOwnerPanel from './DebtOwnerPanel.vue'
@@ -34,6 +34,8 @@ const emit = defineEmits<{
   'remove': [debt: Debt]
   'restore': [debt: Debt]
   'open-payment': [debt: Debt]
+  'pay-owner': [owner: DebtOwnerGroup]
+  'history': [ownerName: string]
   'cancel-payment': [debt: Debt]
   'submit-payment': [value: PaymentFormValue]
 }>()
@@ -100,6 +102,8 @@ const total = computed(() => typeTotal(props.group))
             @cancel-payment="emit('cancel-payment', $event)"
             @edit="emit('edit', $event)"
             @open-payment="emit('open-payment', $event)"
+            @pay-owner="emit('pay-owner', $event)"
+            @history="emit('history', $event)"
             @remove="emit('remove', $event)"
             @restore="emit('restore', $event)"
             @submit-payment="emit('submit-payment', $event)"

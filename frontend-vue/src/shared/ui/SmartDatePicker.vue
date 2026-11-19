@@ -3,12 +3,13 @@ import { computed, nextTick, ref, watch } from 'vue'
 import type { LocalDate } from '@/domain/local-date'
 import { systemClock } from '@/platform/clock'
 import { mdCalendarMonth, mdEdit } from '@/shared/icons'
-import type { MudAdornment } from '@/shared/mud'
+import type { MudAdornment, MudColor } from '@/shared/mud'
 import { MudDatePicker, MudIconButton, MudTextField } from '@/shared/mud'
 import { DATE_PARSE_ERROR, useSmartDatePicker } from '@/shared/ui/useSmartDatePicker'
 
 const props = withDefaults(defineProps<{
   label?: string
+  color?: MudColor
   helperText?: string
   adornment?: MudAdornment
   blankKeepsValue?: boolean
@@ -17,6 +18,7 @@ const props = withDefaults(defineProps<{
   errorText?: string
 }>(), {
   label: 'Дата',
+  color: 'tertiary',
   helperText: '',
   adornment: 'end',
   blankKeepsValue: false,
@@ -65,7 +67,7 @@ defineExpose({
     :error-text="errorText"
     :helper-text="helperText"
     :adornment="adornment"
-    adornment-color="tertiary"
+    :adornment-color="color"
     :adornment-icon="mdCalendarMonth"
     :clearable="clearable"
     immediate
@@ -85,8 +87,8 @@ defineExpose({
       :label="label"
       :helper-text="helperText"
       :adornment="adornment"
-      adornment-color="tertiary"
-      color="tertiary"
+      :adornment-color="color"
+      :color="color"
       :error="error"
       :error-text="errorText"
       date-format="dd.MM.yyyy"
@@ -97,7 +99,7 @@ defineExpose({
     <MudIconButton
       data-testid="date-to-text"
       :icon="mdEdit"
-      color="tertiary"
+      :color="color"
       size="small"
       title="Текстовый ввод"
       style="position: absolute; right: 24px; top: 65%; transform: translateY(-50%); z-index: 1000;"

@@ -9,9 +9,11 @@ import type { OperationSave } from '../model/operation-save'
 import { provideOperationSave } from '../model/operation-save'
 import OperationDialog from './OperationDialog.vue'
 
+const isNarrow = ref(true)
+
 vi.mock('@/shared/ui/useNarrowViewport', () => ({
   NARROW_VIEWPORT: '(max-width: 599.98px)',
-  useNarrowViewport: () => ref(true),
+  useNarrowViewport: () => isNarrow,
 }))
 
 vi.mock('../model/category-inference', () => ({
@@ -176,6 +178,33 @@ describe('лист операции на узком экране', () => {
 
     expect(wrapper.find('[data-testid="operation-dialog"]').exists()).toBe(true)
     expect(wrapper.find('[data-testid="operation-dialog-scrim"]').exists()).toBe(true)
+
+    wrapper.unmount()
+  })
+
+  it('фиксируется относительно вьюпорта только на узком экране и держит отметку открытого листа на body', async () => {
+    const save = vi.fn<OperationSave>(() => Promise.resolve())
+
+    isNarrow.value = true
+    const wrapper = openDialog(save)
+    await settle()
+
+    expect(wrapper.get('.operation-popover').classes()).toContain('mud-popover-fixed')
+    expect(document.body.classList.contains('form-sheet-open')).toBe(true)
+
+    isNarrow.value = false
+    await nextTick()
+
+    expect(wrapper.get('.operation-popover').classes()).not.toContain('mud-popover-fixed')
+    expect(document.body.classList.contains('form-sheet-open')).toBe(false)
+
+    isNarrow.value = true
+    await nextTick()
+
+    await wrapper.get('[data-testid="operation-dialog-cancel"]').trigger('click')
+    await nextTick()
+
+    expect(document.body.classList.contains('form-sheet-open')).toBe(false)
 
     wrapper.unmount()
   })

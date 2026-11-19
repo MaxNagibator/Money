@@ -12,6 +12,7 @@ import {
   forgiveDebts,
   mergeDebtOwners,
   payDebt,
+  payDebtOwner,
   restoreDebt,
   updateDebt,
 } from '@/api/adapters/debts'
@@ -38,7 +39,9 @@ vi.mock('@/api/adapters/debts', async importOriginal => {
     deleteDebt: vi.fn(),
     restoreDebt: vi.fn(),
     payDebt: vi.fn(),
+    payDebtOwner: vi.fn(),
     forgiveDebts: vi.fn(),
+    forgiveDebtAccount: vi.fn(),
     mergeDebtOwners: vi.fn(),
   }
 })
@@ -51,6 +54,7 @@ const updateDebtMock = vi.mocked(updateDebt)
 const deleteDebtMock = vi.mocked(deleteDebt)
 const restoreDebtMock = vi.mocked(restoreDebt)
 const payDebtMock = vi.mocked(payDebt)
+const payDebtOwnerMock = vi.mocked(payDebtOwner)
 const forgiveDebtsMock = vi.mocked(forgiveDebts)
 const mergeDebtOwnersMock = vi.mocked(mergeDebtOwners)
 
@@ -107,8 +111,100 @@ beforeEach(() => {
   fetchDebtOwnersMock.mockResolvedValue([{ id: 5, name: 'Иван' }, { id: 6, name: 'Пётр' }])
   restoreDebtMock.mockResolvedValue(undefined)
   payDebtMock.mockResolvedValue(undefined)
+  payDebtOwnerMock.mockResolvedValue(undefined)
   forgiveDebtsMock.mockResolvedValue(undefined)
   mergeDebtOwnersMock.mockResolvedValue(undefined)
+})
+
+describe('общий возврат человеку', () => {
+  it('погашает группу через серверную команду, не создавая встречный долг', async () => {
+    rows = [row(1), row(2, { paySum: money('300') }), row(3, { typeId: 2 })]
+    const state = await setup()
+    const owner = state.groups.value.find(group => group.typeId === 1)!.owners[0]!
+    state.startOwnerPayment(owner)
+
+    expect(state.payment.value?.sum?.equals(money('1700'))).toBe(true)
+    await state.submitPayment({ ...state.payment.value!, sum: money('1200') })
+
+    expect(payDebtOwnerMock).toHaveBeenCalledWith(1, expect.objectContaining({
+      sum: money('1200'),
+      ownerName: 'Иван',
+      typeId: 1,
+    }))
+    expect(payDebtMock).not.toHaveBeenCalled()
+    expect(createDebtMock).not.toHaveBeenCalled()
+    expect(state.payment.value).toBeNull()
+  })
+
+  it('сохраняет форму при отказе сервера и не отправляет сумму сверх остатка', async () => {
+    const state = await setup()
+    state.startOwnerPayment(state.groups.value.find(group => group.typeId === 1)!.owners[0]!)
+    await state.submitPayment({ ...state.payment.value!, sum: money('1001') })
+    expect(payDebtOwnerMock).not.toHaveBeenCalled()
+
+    payDebtOwnerMock.mockRejectedValueOnce(new Error('Максимальная сумма изменилась'))
+    const value = state.payment.value!
+    await state.submitPayment(value)
+    expect(state.payment.value).toEqual(value)
+    expect(state.notice.value?.text).toBe('Максимальная сумма изменилась')
+  })
+})
+
+describe('прежний эксперимент со счётом человека', () => {
+  it('прощает чистый остаток человека через отдельную серверную команду', async () => {
+    rows = [row(1), row(2, { typeId: 2, sum: money('400') })]
+    const state = await setup('accounts')
+    state.startForgiveAccount(state.accounts.value[0]!)
+    state.forgiveCategoryId.value = 3
+    state.forgiveComment.value = 'Остаток'
+    await state.submitAccountForgiveness()
+
+    const adapter = await import('@/api/adapters/debts')
+    const call = vi.mocked(adapter.forgiveDebtAccount).mock.calls[0]?.[0]
+    expect(call).toMatchObject({ debtId: 1, categoryId: 3, date: date('2026-08-22'), comment: 'Остаток' })
+    expect(call?.balance.equals(money('600'))).toBe(true)
+    expect(state.accountToForgive.value).toBeNull()
+    expect(forgiveDebtsMock).not.toHaveBeenCalled()
+  })
+  it('загружает также погашенные записи для истории и скрывает нулевые счета локально', async () => {
+    rows = [row(1, { paySum: money('1000') })]
+    const state = await setup('accounts')
+
+    expect(fetchDebtsMock).toHaveBeenCalledWith(true)
+    expect(state.accounts.value).toHaveLength(0)
+    state.showPaid.value = true
+    expect(state.accounts.value[0]?.movements).toHaveLength(2)
+  })
+
+  it('возврат создаёт встречную запись, допускает переплату и не меняет старый PaySum', async () => {
+    rows = [row(1)]
+    const state = await setup('accounts')
+
+    state.startMovement(state.accounts.value[0]!, 2)
+    expect(state.form.value?.ownerName).toBe('Иван')
+    expect(state.form.value?.sum?.equals(money('1000'))).toBe(true)
+    await state.submit({ ...state.form.value!, sum: money('1200') })
+
+    await vi.waitFor(() => {
+      expect(state.accounts.value[0]?.balance.equals(money('-200'))).toBe(true)
+    })
+    expect(createDebtMock).toHaveBeenCalledWith(expect.objectContaining({ ownerName: 'Иван', typeId: 2 }))
+    expect(payDebtMock).not.toHaveBeenCalled()
+    expect(rows.find(entry => entry.id === 1)?.paySum.isZero).toBe(true)
+  })
+
+  it('ошибка сохранения сохраняет заполненную форму движения', async () => {
+    const state = await setup('accounts')
+    const account = state.accounts.value.find(entry => entry.name === 'Иван')!
+    state.startMovement(account, 2)
+    const draft = state.form.value!
+    createDebtMock.mockRejectedValueOnce(new Error('Сеть недоступна'))
+
+    await state.submit(draft)
+
+    expect(state.form.value).toEqual(draft)
+    expect(state.notice.value?.text).toBe('Сеть недоступна')
+  })
 })
 
 describe('секции типов', () => {
@@ -486,7 +582,7 @@ describe('удаление и оплата', () => {
     expect(state.payment.value).toBeNull()
   })
 
-  it('погашенные долги приходят отдельным запросом при включённом тумблере', async () => {
+  it('погашенные долги приходят отдельным запросом при включённом тумблере карточек', async () => {
     const state = await setup()
 
     rows = [...rows, row(4, { typeId: 1, ownerName: 'Иван', date: date('2026-08-18'), paySum: money('1000') })]
@@ -566,7 +662,7 @@ describe('слияние держателей', () => {
   })
 })
 
-async function setup(): Promise<DebtsScreenState> {
+async function setup(view: 'cards' | 'accounts' = 'cards'): Promise<DebtsScreenState> {
   const categories = shallowRef<Category[]>([...CATEGORIES])
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
 
@@ -575,7 +671,7 @@ async function setup(): Promise<DebtsScreenState> {
   const wrapper = mount(
     defineComponent({
       setup() {
-        state = useDebtsScreen(computed(() => categories.value), clock)
+        state = useDebtsScreen(computed(() => categories.value), clock, view)
 
         return () => null
       },

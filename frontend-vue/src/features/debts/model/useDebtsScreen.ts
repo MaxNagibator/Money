@@ -7,12 +7,14 @@ import type { Debt } from '@/domain/debt'
 import type { OperationTypeId } from '@/domain/operation-type'
 import type { Clock } from '@/platform/clock'
 import { systemClock } from '@/platform/clock'
-import type { DebtTypeGroup } from './debt'
+import type { DebtOwnerGroup, DebtTypeGroup } from './debt'
 import { canForgiveDebt, filterDebtGroups, groupDebts } from './debt'
+import type { DebtAccount, DebtAccountSort } from './debt-accounts'
+import { debtAccounts, visibleDebtAccounts } from './debt-accounts'
 import type { DebtFormValue } from './debt-form'
 import { editDebtForm, newDebtForm, toDebtDraft, validateDebtForm } from './debt-form'
 import type { PaymentFormValue } from './payment-form'
-import { newPaymentForm, toPaymentDraft, validatePaymentForm } from './payment-form'
+import { newOwnerPaymentForm, newPaymentForm, toOwnerPaymentDraft, toPaymentDraft, validatePaymentForm } from './payment-form'
 import type { DebtOwnersState } from './useDebtOwners'
 import { useDebtOwners } from './useDebtOwners'
 import type { DebtsState } from './useDebts'
@@ -39,6 +41,12 @@ export interface DebtsScreenState {
   search: Ref<string>
   showPaid: Ref<boolean>
   groups: ComputedRef<DebtTypeGroup[]>
+  accounts: ComputedRef<DebtAccount[]>
+  sort: Ref<DebtAccountSort>
+  startMovement: (account: DebtAccount, typeId: number) => void
+  accountToForgive: Ref<DebtAccount | null>
+  startForgiveAccount: (account: DebtAccount) => void
+  submitAccountForgiveness: () => Promise<void>
   notice: Ref<DebtsNotice | null>
   isTypeExpanded: (typeId: number) => boolean
   toggleType: (typeId: number) => void
@@ -54,6 +62,7 @@ export interface DebtsScreenState {
   payment: Ref<PaymentFormValue | null>
   isPaying: Ref<boolean>
   startPayment: (debt: Debt) => void
+  startOwnerPayment: (owner: DebtOwnerGroup) => void
   cancelPayment: (debt: Debt) => void
   submitPayment: (value: PaymentFormValue) => Promise<void>
   isForgiveOpen: Ref<boolean>
@@ -81,12 +90,14 @@ export interface DebtsScreenState {
 export function useDebtsScreen(
   categories: Ref<readonly Category[]> | ComputedRef<readonly Category[]>,
   clock: Clock = systemClock,
+  view: 'cards' | 'accounts' = 'cards',
 ): DebtsScreenState {
   const showPaid = ref(false)
-  const debts = useDebts(showPaid)
+  const debts = useDebts(view === 'accounts' ? ref(true) : showPaid)
   const owners = useDebtOwners()
 
   const search = ref('')
+  const sort = ref<DebtAccountSort>('name')
   const notice = ref<DebtsNotice | null>(null)
   const collapsedTypes = ref(new Set<number>())
 
@@ -98,6 +109,7 @@ export function useDebtsScreen(
 
   const isForgiveOpen = ref(false)
   const isForgiving = ref(false)
+  const accountToForgive = shallowRef<DebtAccount | null>(null)
   const forgiveComment = ref(DEBT_FORGIVE_COMMENT)
   const forgiveCategoryId = ref<number | null>(null)
   const selectedIds = ref(new Set<number>())
@@ -108,6 +120,7 @@ export function useDebtsScreen(
   const ownerToId = ref<number | null>(null)
 
   const groups = computed(() => filterDebtGroups(groupDebts(debts.debts.value), search.value))
+  const accounts = computed(() => visibleDebtAccounts(debtAccounts(debts.debts.value), search.value, showPaid.value, sort.value))
 
   const expenseCategories = computed(() => categories.value.filter(
     category => category.operationTypeId === EXPENSE_OPERATION_TYPE_ID && !category.isDeleted,
@@ -133,6 +146,51 @@ export function useDebtsScreen(
     search,
     showPaid,
     groups,
+    accounts,
+    sort,
+    accountToForgive,
+    startForgiveAccount: account => {
+      if (account.balance.isZero || account.balance.isNegative) {
+        return
+      }
+      accountToForgive.value = account
+      forgiveComment.value = ''
+    },
+    submitAccountForgiveness: async () => {
+      const account = accountToForgive.value
+      const source = account?.debts.find(debt => !debt.isDeleted)
+      if (account === null || source === undefined || isForgiving.value) {
+        return
+      }
+      if (!expenseCategories.value.some(category => category.id === forgiveCategoryId.value)) {
+        notice.value = { text: DEBT_CATEGORY_REQUIRED, type: 'warning' }
+        return
+      }
+
+      isForgiving.value = true
+      try {
+        await debts.forgiveAccount({
+          debtId: source.id,
+          categoryId: forgiveCategoryId.value!,
+          balance: account.balance,
+          date: clock.today(),
+          comment: trimToNull(forgiveComment.value),
+        })
+        accountToForgive.value = null
+        notice.value = { text: 'Остаток списан в расходы', type: 'success' }
+      } catch (error) {
+        notice.value = { text: messageOf(error, 'Не удалось списать остаток'), type: 'error' }
+      } finally {
+        isForgiving.value = false
+      }
+    },
+    startMovement: (account, typeId) => {
+      form.value = {
+        ...newDebtForm(clock.today(), typeId),
+        ownerName: account.name,
+        sum: account.balance.isNegative ? account.balance.negate() : account.balance,
+      }
+    },
     notice,
     isTypeExpanded: typeId => !collapsedTypes.value.has(typeId),
     toggleType: typeId => {
@@ -200,6 +258,11 @@ export function useDebtsScreen(
 
       payment.value = newPaymentForm(debt, clock.today())
     },
+    startOwnerPayment: owner => {
+      if (!isPaying.value) {
+        payment.value = newOwnerPaymentForm(owner, clock.today())
+      }
+    },
     cancelPayment: debt => {
       if (payment.value?.debtId !== debt.id) {
         return
@@ -215,7 +278,11 @@ export function useDebtsScreen(
       isPaying.value = true
 
       try {
-        await debts.pay(value.debtId, toPaymentDraft(value))
+        if (value.scope === 'owner') {
+          await debts.payOwner(value.debtId, toOwnerPaymentDraft(value))
+        } else {
+          await debts.pay(value.debtId, toPaymentDraft(value))
+        }
 
         if (payment.value?.debtId === value.debtId) {
           payment.value = null

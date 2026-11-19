@@ -129,6 +129,18 @@ describe('цвета темы на графиках', () => {
   })
 })
 
+describe('фиксация нижней панели', () => {
+  it('по умолчанию выключена', () => {
+    expect(createDisplaySettings().settings.pinBottomNav).toBe(false)
+  })
+
+  it('сохранённое включение переживает перезагрузку', () => {
+    createDisplaySettings().update({ pinBottomNav: true })
+
+    expect(createDisplaySettings().settings.pinBottomNav).toBe(true)
+  })
+})
+
 describe('сохранение настроек отображения', () => {
   it('пишет изменение сразу, без кнопки', () => {
     const state = createDisplaySettings()
@@ -150,7 +162,7 @@ describe('сохранение настроек отображения', () => {
   })
 
   it('отбрасывает испорченные значения из хранилища', () => {
-    store.set(KEY, { showDividers: 'да', alternateRowStyle: 'полоска', moneyColumnWidth: 'широко' })
+    store.set(KEY, { showDividers: 'да', alternateRowStyle: 'полоска', moneyColumnWidth: 'широко', pinBottomNav: 'да' })
 
     expect(createDisplaySettings().settings).toEqual(displaySettingsDefaults())
   })

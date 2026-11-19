@@ -1,8 +1,11 @@
-import type { DebtPaymentDraft } from '@/api/adapters/debts'
+import type { DebtOwnerPaymentDraft, DebtPaymentDraft } from '@/api/adapters/debts'
 import { trimToNull } from '@/domain/text'
 import type { Debt } from '@/domain/debt'
 import type { LocalDate } from '@/domain/local-date'
 import { Money } from '@/domain/money'
+import { formatMoney } from '@/platform/format'
+import type { DebtOwnerGroup } from './debt'
+import { nextPayableDebt } from './debt'
 import { FIELD_REQUIRED, SUM_UNPARSED } from './debt-form'
 
 export const PAYMENT_SUM_INVALID = 'Недопустимое значение'
@@ -11,6 +14,10 @@ export const MIN_PAYMENT_SUM = Money.fromMinorUnits(100)
 
 export interface PaymentFormValue {
   debtId: number
+  scope?: 'owner'
+  ownerName?: string
+  typeId?: number
+  maximum?: Money
   sum: Money | null
   date: LocalDate | null
   comment: string
@@ -26,17 +33,42 @@ export function newPaymentForm(debt: Debt, today: LocalDate): PaymentFormValue {
 
   return {
     debtId: debt.id,
+    maximum: remainder,
     sum: remainder.isNegative ? Money.zero : remainder,
     date: today,
     comment: '',
   }
 }
 
+export function newOwnerPaymentForm(owner: DebtOwnerGroup, today: LocalDate): PaymentFormValue | null {
+  const debt = nextPayableDebt(owner)
+  if (debt === null) {
+    return null
+  }
+
+  const maximum = owner.debts.reduce((total, entry) => {
+    const remainder = entry.sum.subtract(entry.paySum)
+    return entry.isDeleted || remainder.isNegative ? total : total.add(remainder)
+  }, Money.zero)
+
+  return {
+    ...newPaymentForm(debt, today),
+    scope: 'owner',
+    ownerName: debt.ownerName,
+    typeId: debt.typeId,
+    maximum,
+    sum: maximum,
+  }
+}
+
 export function validatePaymentForm(value: PaymentFormValue): PaymentFormErrors {
   const errors: PaymentFormErrors = {}
 
-  if (value.sum === null || value.sum.compare(MIN_PAYMENT_SUM) < 0) {
+  if (value.sum === null || value.sum.isZero || value.sum.isNegative
+    || (value.scope !== 'owner' && value.sum.compare(MIN_PAYMENT_SUM) < 0)) {
     errors.sum = PAYMENT_SUM_INVALID
+  } else if (value.maximum !== undefined && value.sum.compare(value.maximum) > 0) {
+    errors.sum = `Максимальная сумма возврата: ${formatMoney(value.maximum)}`
   }
 
   if (value.date === null) {
@@ -59,5 +91,17 @@ export function toPaymentDraft(value: PaymentFormValue): DebtPaymentDraft {
     sum: value.sum,
     comment: trimToNull(value.comment),
     date: value.date,
+  }
+}
+
+export function toOwnerPaymentDraft(value: PaymentFormValue): DebtOwnerPaymentDraft {
+  if (value.ownerName === undefined || value.typeId === undefined) {
+    throw new Error('Не выбрана группа долгов для возврата')
+  }
+
+  return {
+    ...toPaymentDraft(value),
+    ownerName: value.ownerName,
+    typeId: value.typeId,
   }
 }

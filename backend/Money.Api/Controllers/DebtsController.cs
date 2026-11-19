@@ -126,6 +126,23 @@ public class DebtsController(DebtsService service) : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Распределить возврат по долгам держателя выбранного направления.
+    /// </summary>
+    /// <param name="id">Идентификатор долга, определяющего держателя и направление.</param>
+    /// <param name="request">Сумма, дата, комментарий возврата и ожидаемые реквизиты группы.</param>
+    /// <param name="cancellationToken">Токен отмены запроса.</param>
+    [HttpPost("{id:int}/PayOwner")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> PayOwner(int id, [FromBody] PayOwnerRequest request, CancellationToken cancellationToken)
+    {
+        await service.PayOwnerAsync(id, request.ToBusinessModel(), cancellationToken);
+        return NoContent();
+    }
+
     // TODO: Подумать над with
     /// <summary>
     /// Перенести все долги из одного держателя в другого.
@@ -190,6 +207,24 @@ public class DebtsController(DebtsService service) : ControllerBase
     public async Task<IActionResult> Forgive([FromBody] ForgiveRequest request, CancellationToken cancellationToken)
     {
         await service.ForgiveAsync(request.DebtIds, request.OperationCategoryId, request.OperationComment, cancellationToken);
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Списать остаток по держателю долгов в категорию расходов.
+    /// </summary>
+    /// <param name="id">Идентификатор долга, определяющего держателя.</param>
+    /// <param name="categoryId">Идентификатор категории расходов.</param>
+    /// <param name="request">Ожидаемый остаток, дата и комментарий списания.</param>
+    /// <param name="cancellationToken">Токен отмены запроса.</param>
+    [HttpPost("{id:int}/ForgiveAccount/{categoryId:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ForgiveAccount(int id, int categoryId, [FromBody] PayRequest request, CancellationToken cancellationToken)
+    {
+        await service.ForgiveAccountAsync(id, categoryId, request.Sum, request.Date, request.Comment, cancellationToken);
         return NoContent();
     }
 }

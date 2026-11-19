@@ -103,7 +103,8 @@ export function useSmartDatePicker(
   }
 
   function getDate(): LocalDate | null {
-    return commitText() ? model.value : null
+    if (!commitText()) { return null }
+    return isCalendarVisible.value ? model.value : parseDateInput(dateText.value, clock.today())
   }
 
   return {

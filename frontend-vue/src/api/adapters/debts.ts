@@ -11,6 +11,7 @@ type DebtDto = components['schemas']['Money.Api.Dto.Debts.DebtDto']
 type DebtOwnerDto = components['schemas']['Money.Api.Dto.Debts.DebtOwnerDto']
 type DebtSaveRequest = components['schemas']['Money.Api.Dto.Debts.SaveRequest']
 type DebtPayRequest = components['schemas']['Money.Api.Dto.Debts.PayRequest']
+type DebtOwnerPayRequest = components['schemas']['Money.Api.Dto.Debts.PayOwnerRequest']
 type DebtForgiveRequest = components['schemas']['Money.Api.Dto.Debts.ForgiveRequest']
 
 export interface DebtDraft {
@@ -27,10 +28,32 @@ export interface DebtPaymentDraft {
   date: LocalDate
 }
 
+export interface DebtOwnerPaymentDraft extends DebtPaymentDraft {
+  ownerName: string
+  typeId: number
+}
+
 export interface DebtForgiveDraft {
   debtIds: readonly number[]
   categoryId: number
   comment: string | null
+}
+
+export interface DebtAccountForgiveDraft {
+  debtId: number
+  categoryId: number
+  balance: Money
+  date: LocalDate
+  comment: string | null
+}
+
+export async function forgiveDebtAccount(draft: DebtAccountForgiveDraft): Promise<void> {
+  const { error } = await apiClient.POST('/Debts/{id}/ForgiveAccount/{categoryId}', {
+    params: { path: { id: draft.debtId, categoryId: draft.categoryId } },
+    body: toPayRequest({ sum: draft.balance, date: draft.date, comment: draft.comment }),
+  })
+
+  fail(error, 'Не удалось списать остаток в расходы')
 }
 
 export const DEBT_SAVE_ERROR = 'Ошибка. Пожалуйста, попробуйте еще раз.'
@@ -95,6 +118,15 @@ export async function payDebt(id: number, draft: DebtPaymentDraft): Promise<void
   })
 
   fail(error, 'Не удалось оплатить долг')
+}
+
+export async function payDebtOwner(id: number, draft: DebtOwnerPaymentDraft): Promise<void> {
+  const { error } = await apiClient.POST('/Debts/{id}/PayOwner', {
+    params: { path: { id } },
+    body: toPayOwnerRequest(draft),
+  })
+
+  fail(error, 'Не удалось вернуть деньги по долгам')
 }
 
 export async function forgiveDebts(draft: DebtForgiveDraft): Promise<void> {
@@ -192,6 +224,14 @@ export function toPayRequest(draft: DebtPaymentDraft): DebtPayRequest {
     sum: toWireSum(draft.sum),
     comment: draft.comment,
     date: toApiDate(draft.date),
+  }
+}
+
+export function toPayOwnerRequest(draft: DebtOwnerPaymentDraft): DebtOwnerPayRequest {
+  return {
+    ...toPayRequest(draft),
+    ownerName: draft.ownerName,
+    typeId: draft.typeId,
   }
 }
 

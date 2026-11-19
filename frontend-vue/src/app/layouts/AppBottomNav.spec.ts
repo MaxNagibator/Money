@@ -1,8 +1,9 @@
 import type { VueWrapper } from '@vue/test-utils'
 import { mount } from '@vue/test-utils'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { nextTick } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
+import { useDisplaySettings } from '@/features/settings'
 import AppBottomNav from './AppBottomNav.vue'
 
 vi.mock('@/shared/ui/useNarrowViewport', async importOriginal => {
@@ -10,6 +11,11 @@ vi.mock('@/shared/ui/useNarrowViewport', async importOriginal => {
   const { ref: createRef } = await import('vue')
 
   return { ...actual, useNarrowViewport: () => createRef(true) }
+})
+
+beforeEach(() => {
+  useDisplaySettings().update({ pinBottomNav: false })
+  window.scrollTo(0, 0)
 })
 
 describe('нижняя панель навигации', () => {
@@ -56,6 +62,47 @@ describe('нижняя панель навигации', () => {
     await nextTick()
 
     expect(wrapper.get('[data-testid="bottom-nav"]').classes()).not.toContain('app-bottom-nav-away')
+  })
+
+  it('зафиксированная в настройках панель не прячется при прокрутке вниз, но уходит от клавиатуры', async () => {
+    vi.useFakeTimers()
+    onTestFinished(() => {
+      vi.useRealTimers()
+    })
+
+    const wrapper = await setup('/operations')
+
+    window.scrollTo(0, 48)
+    window.dispatchEvent(new Event('scroll'))
+    await nextTick()
+    vi.advanceTimersByTime(150)
+    await nextTick()
+
+    expect(wrapper.get('[data-testid="bottom-nav"]').classes()).toContain('app-bottom-nav-away')
+
+    useDisplaySettings().update({ pinBottomNav: true })
+    await nextTick()
+
+    expect(wrapper.get('[data-testid="bottom-nav"]').classes()).not.toContain('app-bottom-nav-away')
+
+    window.scrollTo(0, 96)
+    window.dispatchEvent(new Event('scroll'))
+    await nextTick()
+    vi.advanceTimersByTime(150)
+    await nextTick()
+
+    expect(wrapper.get('[data-testid="bottom-nav"]').classes()).not.toContain('app-bottom-nav-away')
+
+    const field = document.createElement('input')
+    document.body.append(field)
+    onTestFinished(() => {
+      field.remove()
+    })
+
+    field.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+    await nextTick()
+
+    expect(wrapper.get('[data-testid="bottom-nav"]').classes()).toContain('app-bottom-nav-away')
   })
 })
 

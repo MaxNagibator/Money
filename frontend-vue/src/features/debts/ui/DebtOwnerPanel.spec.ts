@@ -91,7 +91,7 @@ describe('книжная карточка держателя на узком э�
 
     await wrapper.get(PAY).trigger('click')
 
-    expect(wrapper.emitted('open-payment')?.[0]).toEqual([group.debts[1]])
+    expect(wrapper.emitted('pay-owner')?.[0]).toEqual([group])
   })
 
   it('единственный долг не повторяет остаток итоговой строкой', async () => {

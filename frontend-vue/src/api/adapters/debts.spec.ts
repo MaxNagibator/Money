@@ -8,6 +8,7 @@ import {
   fetchDebtOwners,
   fetchDebts,
   forgiveDebts,
+  forgiveDebtAccount,
   mergeDebtOwners,
   payDebt,
   restoreDebt,
@@ -30,6 +31,17 @@ vi.mock('@/platform/http', () => ({
 
 beforeEach(() => {
   vi.clearAllMocks()
+})
+
+it('списание счёта передаёт ожидаемый остаток без потери десятичных знаков', async () => {
+  vi.mocked(apiFetch).mockResolvedValueOnce(new Response(null, { status: 204 }))
+  await forgiveDebtAccount({
+    debtId: 7, categoryId: 3, balance: Money.fromWire('0.1234567890123456789'),
+    date: localDate('2026-11-10'), comment: 'Остаток',
+  })
+  const request = vi.mocked(apiFetch).mock.calls[0]![0]
+  expect(new URL(request.url).pathname).toBe('/api/Debts/7/ForgiveAccount/3')
+  expect(await request.text()).toContain('0.1234567890123456789')
 })
 
 function localDate(value: string): LocalDate {
