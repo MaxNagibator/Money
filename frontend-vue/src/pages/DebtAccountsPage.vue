@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, useId, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, useId, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { DebtAccountPanel, DebtChartsSection, debtAccounts, debtSummary, useDebts, useDebtViewMode, visibleDebtAccounts } from '@/features/debts'
 import { systemClock } from '@/platform/clock'
@@ -9,7 +9,28 @@ import { mdArrowBack, mdVisibility, mdVisibilityOff } from '@/shared/icons'
 
 const route = useRoute()
 const state = useDebts(ref(true))
-const today = systemClock.today()
+const today = ref(systemClock.today())
+
+function refreshToday(): void {
+  if (document.visibilityState === 'hidden') {
+    return
+  }
+
+  const current = systemClock.today()
+  if (today.value !== current) {
+    today.value = current
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('visibilitychange', refreshToday)
+  window.addEventListener('focus', refreshToday)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('visibilitychange', refreshToday)
+  window.removeEventListener('focus', refreshToday)
+})
 const search = ref('')
 const showPaid = ref(false)
 const sort = ref<'name' | 'balance'>('name')
@@ -254,8 +275,8 @@ function setAccountExpanded(name: string, value: boolean): void {
       v-for="account in accounts"
       :key="account.name"
       :account="account"
+      :chart-initially-open="targetOwner === account.name"
       :expanded="expandedNames.has(account.name)"
-      :initially-expanded="targetOwner === account.name"
       :mode="mode"
       :today="today"
       @update:expanded="setAccountExpanded(account.name, $event)"

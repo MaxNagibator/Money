@@ -125,6 +125,7 @@ const options = computed<ChartOptions<'bar'>>(() => {
         max: totalDays,
         ticks: {
           color: colors.mutedText,
+          precision: 0,
           autoSkip: true,
           autoSkipPadding: 20,
           includeBounds: false,
@@ -182,14 +183,23 @@ const options = computed<ChartOptions<'bar'>>(() => {
             }
 
             const directionLabel = cycle.direction === 'receivable' ? 'Мне должны' : 'Я должен'
-            const statusLabel = cycle.status === 'active' ? 'Активный цикл' : 'Закрытый цикл'
-            const lines = [
-              `${directionLabel} (${statusLabel})`,
-              `Период: с ${formatLocalDate(cycle.startDate)} по ${formatLocalDate(cycle.endDate)}`,
-              `Длительность: ${cycle.durationDays} дн.`,
-              `Пиковый остаток: ${formatRubles(cycle.peakAmount, true)}`,
-              `Операций: ${cycle.eventsCount}`,
-            ]
+            const statusLabel = cycle.isEndDateUnknown
+              ? 'Закрыт, дата оплаты не сохранена'
+              : (cycle.status === 'active' ? 'Активный цикл' : 'Закрытый цикл')
+            const lines = cycle.isEndDateUnknown
+              ? [
+                  `${directionLabel} (${statusLabel})`,
+                  `Начало: с ${formatLocalDate(cycle.startDate)}`,
+                  `Пиковый остаток: ${formatRubles(cycle.peakAmount, true)}`,
+                  `Операций: ${cycle.eventsCount}`,
+                ]
+              : [
+                  `${directionLabel} (${statusLabel})`,
+                  `Период: с ${formatLocalDate(cycle.startDate)} по ${formatLocalDate(cycle.endDate)}`,
+                  `Длительность: ${cycle.durationDays} дн.`,
+                  `Пиковый остаток: ${formatRubles(cycle.peakAmount, true)}`,
+                  `Операций: ${cycle.eventsCount}`,
+                ]
 
             const undatedCount = undatedByOwner.value.get(cycle.ownerName) ?? 0
             if (undatedCount > 0) {

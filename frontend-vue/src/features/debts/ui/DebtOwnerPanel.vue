@@ -107,6 +107,11 @@ function toggle(): void {
 }
 
 function pay(): void {
+  if (openPayment.value?.scope === 'owner') {
+    cancelPayment()
+    return
+  }
+
   if (payable.value !== null) {
     emit('pay-owner', props.owner)
   }
@@ -326,6 +331,7 @@ function cancelPayment(): void {
         />
         <span class="debt-owner__pay-anchor">
           <MudButton
+            :aria-expanded="openPayment?.scope === 'owner'"
             :disabled="payable === null || isPaying"
             data-testid="debts-owner-pay"
             @click="pay"
@@ -576,10 +582,6 @@ function cancelPayment(): void {
   border: 1px solid var(--mud-palette-divider);
 }
 
-.mud-dialog.debt-payment-dialog .mud-dialog-title {
-  padding: 16px;
-}
-
 @media (max-width: 599.98px) {
   .mud-dialog.debt-payment-dialog {
     width: 100%;
@@ -589,6 +591,6 @@ function cancelPayment(): void {
     border-radius: 12px 12px 0 0;
   }
   .debt-payment-dialog .mud-dialog-title { padding: 16px; }
-  .debt-payment-dialog .mud-dialog-content { padding: 0 16px 16px; }
+  .debt-payment-dialog .mud-dialog-content { padding: 0 4px calc(4px + env(safe-area-inset-bottom)); }
 }
 </style>

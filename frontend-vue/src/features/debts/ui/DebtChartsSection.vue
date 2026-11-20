@@ -51,6 +51,14 @@ watch(hasDatedMovements, value => {
 
 const undatedPaymentsCount = computed(() => countUndatedPayments(props.accounts))
 const showUndatedNote = computed(() => activeTab.value !== 'owners' && undatedPaymentsCount.value > 0)
+const undatedNote = computed(() => {
+  const count = undatedPaymentsCount.value
+  if (activeTab.value === 'monthly') {
+    return `Оплаты без даты (${count}) не включены во временные графики.`
+  }
+
+  return `Оплаты без даты (${count}) не включены во временные графики: остатки и сроки циклов могут отличаться от сводки.`
+})
 
 function toggle(): void {
   userToggled.value = true
@@ -139,7 +147,7 @@ function toggle(): void {
         html-tag="p"
         typo="caption"
       >
-        Оплаты без даты ({{ undatedPaymentsCount }}) не включены во временные графики.
+        {{ undatedNote }}
       </MudText>
     </div>
   </MudPaper>

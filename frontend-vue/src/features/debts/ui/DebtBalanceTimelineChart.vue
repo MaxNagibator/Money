@@ -14,14 +14,13 @@ import { computed } from 'vue'
 import { Line } from 'vue-chartjs'
 import type { LocalDate } from '@/domain/local-date'
 import { addDays } from '@/domain/local-date'
-import { Money } from '@/domain/money'
 import { systemClock } from '@/platform/clock'
 import { formatLocalDate, formatLocalDateDayMonth, formatRubles } from '@/platform/format'
 import { MudText } from '@/shared/mud'
 import { useNarrowViewport } from '@/shared/ui/useNarrowViewport'
 import type { DebtAccount } from '../model/debt-accounts'
 import type { OwnerTimelineMarkerKind } from '../model/debt-charts'
-import { buildOwnerTimeline, buildPortfolioTimeline, diffDays } from '../model/debt-charts'
+import { buildOwnerTimeline, buildPortfolioTimeline, diffDays, formatAxisRubles } from '../model/debt-charts'
 import { useDebtChartPalette } from '../model/useDebtChartPalette'
 
 Chart.register(
@@ -339,15 +338,6 @@ const options = computed<ChartOptions<'line'>>(() => {
 
 function formatTickDate(date: LocalDate, narrow: boolean): string {
   return narrow ? formatLocalDateDayMonth(date) : formatLocalDate(date)
-}
-
-function formatAxisRubles(value: string | number): string {
-  const numeric = typeof value === 'number' ? value : Number(value)
-  if (!Number.isFinite(numeric)) {
-    return String(value)
-  }
-
-  return formatRubles(Money.fromWire(String(numeric)), true)
 }
 
 function markerRadius(kind: OwnerTimelineMarkerKind): number {

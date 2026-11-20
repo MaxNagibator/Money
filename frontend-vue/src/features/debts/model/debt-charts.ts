@@ -1,7 +1,7 @@
 import type { LocalDate } from '@/domain/local-date'
 import { compareLocalDate, toParts } from '@/domain/local-date'
 import { Money } from '@/domain/money'
-import { compareNames, monthNominative } from '@/platform/format'
+import { compareNames, formatRubles, monthNominative } from '@/platform/format'
 import type { DebtAccount, DebtMovement } from './debt-accounts'
 
 export type DebtDirection = 'receivable' | 'payable'
@@ -67,6 +67,7 @@ export interface DebtCycle {
   peakAmount: Money
   eventsCount: number
   status: 'active' | 'closed'
+  isEndDateUnknown: boolean
 }
 
 export interface DebtCyclesResult {
@@ -93,10 +94,20 @@ interface PendingCycle {
   peakAmount: Money
   eventsCount: number
   status: 'active' | 'closed'
+  isEndDateUnknown: boolean
 }
 
 const MILLISECONDS_IN_DAY = 86_400_000
 const DEFAULT_OWNERS_LIMIT = 12
+
+export function formatAxisRubles(value: string | number): string {
+  const numeric = typeof value === 'number' ? value : Number(value)
+  if (!Number.isFinite(numeric)) {
+    return String(value)
+  }
+
+  return formatRubles(Money.fromWire(String(numeric)), true)
+}
 
 export function diffDays(from: LocalDate, to: LocalDate): number {
   return toUtcDays(to) - toUtcDays(from)
@@ -355,6 +366,7 @@ export function buildDebtCycles(
 
   for (const account of accounts) {
     const dated: DatedMovement[] = []
+    let ownerUndatedCount = 0
 
     for (const movement of account.movements) {
       if (movement.source.isDeleted) {
@@ -363,6 +375,7 @@ export function buildDebtCycles(
 
       if (movement.date === null) {
         undatedPaymentsCount += 1
+        ownerUndatedCount += 1
         continue
       }
 
@@ -375,7 +388,12 @@ export function buildDebtCycles(
 
     dated.sort(compareDatedMovements)
 
-    const ownerCycles = extractOwnerCycles(account.name, dated, today)
+    const ownerCycles = extractOwnerCycles(
+      account.name,
+      dated,
+      today,
+      account.balance.isZero && ownerUndatedCount > 0,
+    )
     if (ownerCycles.length === 0) {
       continue
     }
@@ -462,6 +480,7 @@ function extractOwnerCycles(
   ownerName: string,
   dated: readonly DatedMovement[],
   today: LocalDate,
+  isSettledWithoutDate: boolean,
 ): PendingCycle[] {
   const cycles: PendingCycle[] = []
   let balance = Money.zero
@@ -486,6 +505,7 @@ function extractOwnerCycles(
           peakAmount: active.peakAmount,
           eventsCount: active.eventsCount + 1,
           status: 'closed',
+          isEndDateUnknown: false,
         })
         active = null
       }
@@ -517,6 +537,7 @@ function extractOwnerCycles(
         peakAmount: active.peakAmount,
         eventsCount: active.eventsCount + 1,
         status: 'closed',
+        isEndDateUnknown: false,
       })
       active = {
         direction: nextDirection,
@@ -529,17 +550,32 @@ function extractOwnerCycles(
 
   if (active !== null) {
     const lastEventDate = dated.at(-1)!.date
-    const endDate = compareLocalDate(today, lastEventDate) >= 0 ? today : lastEventDate
-    cycles.push({
-      ownerName,
-      direction: active.direction,
-      startDate: active.startDate,
-      endDate,
-      durationDays: diffDays(active.startDate, endDate),
-      peakAmount: active.peakAmount,
-      eventsCount: active.eventsCount,
-      status: 'active',
-    })
+    if (isSettledWithoutDate) {
+      cycles.push({
+        ownerName,
+        direction: active.direction,
+        startDate: active.startDate,
+        endDate: lastEventDate,
+        durationDays: diffDays(active.startDate, lastEventDate),
+        peakAmount: active.peakAmount,
+        eventsCount: active.eventsCount,
+        status: 'closed',
+        isEndDateUnknown: true,
+      })
+    } else {
+      const endDate = compareLocalDate(today, lastEventDate) >= 0 ? today : lastEventDate
+      cycles.push({
+        ownerName,
+        direction: active.direction,
+        startDate: active.startDate,
+        endDate,
+        durationDays: diffDays(active.startDate, endDate),
+        peakAmount: active.peakAmount,
+        eventsCount: active.eventsCount,
+        status: 'active',
+        isEndDateUnknown: false,
+      })
+    }
   }
 
   return cycles

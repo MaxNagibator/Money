@@ -12,6 +12,7 @@ import {
   buildPortfolioTimeline,
   countUndatedPayments,
   diffDays,
+  formatAxisRubles,
 } from './debt-charts'
 import { resolveDebtChartPalette } from './useDebtChartPalette'
 
@@ -370,7 +371,42 @@ describe('модель графиков истории долгов', () => {
     expect(borisCycle.ownerName).toBe('Борис')
     expect(borisCycle.direction).toBe('payable')
     expect(borisCycle.status).toBe('closed')
+    expect(borisCycle.isEndDateUnknown).toBe(false)
     expect(borisCycle.durationDays).toBe(15)
+  })
+
+  it('не показывает закрытый долг с оплатой без даты как активный цикл до today', () => {
+    const accounts = debtAccounts([
+      debt(1, {
+        ownerName: 'Старый',
+        typeId: 1,
+        date: date('2023-04-10'),
+        sum: Money.fromWire('1000'),
+        paySum: Money.fromWire('1000'),
+        payComment: 'вернул наличными',
+      }),
+      debt(2, {
+        ownerName: 'Текущий',
+        typeId: 1,
+        date: date('2026-01-05'),
+        sum: Money.fromWire('500'),
+      }),
+    ])
+
+    const result = buildDebtCycles(accounts, date('2026-01-20'))
+    const legacy = result.cycles.find(cycle => cycle.ownerName === 'Старый')
+
+    expect(result.undatedPaymentsCount).toBe(1)
+    expect(result.owners).toEqual(['Текущий', 'Старый'])
+    expect(legacy?.status).toBe('closed')
+    expect(legacy?.isEndDateUnknown).toBe(true)
+    expect(legacy?.endDate).toBe('2023-04-10')
+  })
+
+  it('форматирует подписи осей в рублях и возвращает исходное значение для нечисел', () => {
+    expect(formatAxisRubles(1500)).toBe('1\u00A0500\u00A0₽')
+    expect(formatAxisRubles(-250.5)).toBe('-250,50\u00A0₽')
+    expect(formatAxisRubles('abc')).toBe('abc')
   })
 
   it('вычисляет разницу календарных дней точно', () => {

@@ -18,9 +18,10 @@ const props = withDefaults(
     mode?: DebtViewMode
     expanded?: boolean | undefined
     initiallyExpanded?: boolean
+    chartInitiallyOpen?: boolean | undefined
     today?: LocalDate | undefined
   }>(),
-  { mode: 'normal', expanded: undefined, initiallyExpanded: false, today: undefined },
+  { mode: 'normal', expanded: undefined, initiallyExpanded: false, chartInitiallyOpen: undefined, today: undefined },
 )
 const emit = defineEmits<{ 'update:expanded': [value: boolean] }>()
 const { isExpanded, toggle, setExpanded } = useAccountExpanded(() => props.expanded, props.initiallyExpanded, value => emit('update:expanded', value))
@@ -31,8 +32,9 @@ const statement = computed(() => debtStatement(props.account))
 const hasDatedMovements = computed(() =>
   props.account.movements.some(movement => !movement.source.isDeleted && movement.date !== null),
 )
-const isChartOpen = ref(props.initiallyExpanded)
-watch(() => props.initiallyExpanded, value => {
+const defaultChartOpen = computed(() => props.chartInitiallyOpen ?? props.initiallyExpanded)
+const isChartOpen = ref(defaultChartOpen.value)
+watch(defaultChartOpen, value => {
   if (value) {
     isChartOpen.value = true
   }
@@ -281,7 +283,7 @@ function movementLabel(movement: DebtMovement): string {
             <span
               aria-hidden="true"
               class="feed-indicator"
-              :class="row.movement.kind === 'entry' ? 'feed-indicator--out' : 'feed-indicator--in'"
+              :class="row.movement.kind === 'entry' ? 'feed-indicator--debt' : 'feed-indicator--payment'"
             />
             <div class="feed-details">
               <div class="movement-comment">
@@ -343,8 +345,8 @@ tfoot th small { font-weight: 400; white-space: nowrap; }
 .feed-row { display: grid; grid-template-columns: 3px minmax(76px, auto) minmax(0, 1fr) minmax(108px, auto) minmax(96px, auto); align-items: center; gap: 10px; min-height: 36px; padding: 7px 0; border-bottom: 1px solid var(--mud-palette-divider); }
 .feed-row:last-child { border-bottom: 0; }
 .feed-indicator { grid-column: 1; grid-row: 1; width: 3px; height: 18px; border-radius: 2px; }
-.feed-indicator--in { background: color-mix(in srgb, var(--mud-palette-success) 65%, transparent); }
-.feed-indicator--out { background: color-mix(in srgb, var(--mud-palette-warning) 60%, transparent); }
+.feed-indicator--payment { background: color-mix(in srgb, var(--mud-palette-success) 65%, transparent); }
+.feed-indicator--debt { background: color-mix(in srgb, var(--mud-palette-warning) 60%, transparent); }
 .feed-details { display: contents; }
 .feed-details > .movement-comment { grid-column: 3; grid-row: 1; font-size: var(--mud-typography-body2-size); line-height: 1.35; }
 .feed-meta { display: contents; }

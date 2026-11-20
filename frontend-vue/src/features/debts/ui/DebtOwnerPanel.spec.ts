@@ -229,4 +229,32 @@ describe('книжная карточка держателя на узком э�
 
     isNarrow.value = true
   })
+
+  it('повторный клик по Вернуть на широком экране закрывает открытый поповер вместо сброса формы', async () => {
+    isNarrow.value = false
+
+    try {
+      const group = owner([debt(1)])
+      const wrapper = mountPanel(group)
+      const payButton = wrapper.get(PAY)
+
+      expect(payButton.attributes('aria-expanded')).toBe('false')
+
+      await payButton.trigger('click')
+      expect(wrapper.emitted('pay-owner')).toHaveLength(1)
+
+      await wrapper.setProps({
+        paymentValue: payment(1, { scope: 'owner', maximum: Money.fromMinorUnits(100_000) }),
+      })
+      await nextTick()
+
+      expect(payButton.attributes('aria-expanded')).toBe('true')
+
+      await payButton.trigger('click')
+      expect(wrapper.emitted('pay-owner')).toHaveLength(1)
+      expect(wrapper.emitted('cancel-payment')?.[0]).toEqual([group.debts[0]])
+    } finally {
+      isNarrow.value = true
+    }
+  })
 })

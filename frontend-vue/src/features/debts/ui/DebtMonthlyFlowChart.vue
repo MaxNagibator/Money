@@ -3,12 +3,11 @@ import type { ChartData, ChartOptions, TooltipItem } from 'chart.js'
 import { BarController, BarElement, CategoryScale, Chart, Legend, LinearScale, Tooltip } from 'chart.js'
 import { computed } from 'vue'
 import { Bar } from 'vue-chartjs'
-import { Money } from '@/domain/money'
 import { formatRubles } from '@/platform/format'
 import { MudText } from '@/shared/mud'
 import { useNarrowViewport } from '@/shared/ui/useNarrowViewport'
 import type { DebtAccount } from '../model/debt-accounts'
-import { buildMonthlyFlows } from '../model/debt-charts'
+import { buildMonthlyFlows, formatAxisRubles } from '../model/debt-charts'
 import { useDebtChartPalette } from '../model/useDebtChartPalette'
 
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, Legend, Tooltip)
@@ -116,15 +115,6 @@ const options = computed<ChartOptions<'bar'>>(() => {
     },
   }
 })
-
-function formatAxisRubles(value: string | number): string {
-  const numeric = typeof value === 'number' ? value : Number(value)
-  if (!Number.isFinite(numeric)) {
-    return String(value)
-  }
-
-  return formatRubles(Money.fromWire(String(numeric)), true)
-}
 </script>
 
 <template>
