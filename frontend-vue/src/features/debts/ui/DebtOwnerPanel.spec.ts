@@ -1,6 +1,6 @@
-import { mount } from '@vue/test-utils'
-import { describe, expect, it, vi } from 'vitest'
-import { ref } from 'vue'
+import { enableAutoUnmount, mount } from '@vue/test-utils'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { nextTick, ref } from 'vue'
 import type { Debt } from '@/domain/debt'
 import { parseLocalDate } from '@/domain/local-date'
 import { Money } from '@/domain/money'
@@ -9,6 +9,7 @@ import type { PaymentFormValue } from '../model/payment-form'
 import DebtOwnerPanel from './DebtOwnerPanel.vue'
 
 const isNarrow = ref(true)
+enableAutoUnmount(afterEach)
 
 vi.mock('@/shared/ui/useNarrowViewport', () => ({
   NARROW_VIEWPORT: '(max-width: 599.98px)',
@@ -19,7 +20,9 @@ const TOGGLE = '[data-testid="debts-owner-toggle-Пётр"]'
 const META = '[data-testid="debts-owner-meta"]'
 const PAY = '[data-testid="debts-owner-pay"]'
 const FORM = '[data-testid="debts-payment"]'
-const HINT = '[data-testid="debts-owner-collapse-hint"]'
+const DIALOG = '[data-testid="debts-payment-dialog"]'
+const DIALOG_CLOSE = '[data-testid="debts-payment-dialog"] .mud-button-close'
+const POPOVER = '.debt-owner__payment-popover'
 
 function debt(id: number, extra: Partial<Debt> = {}): Debt {
   return {
@@ -46,6 +49,7 @@ function plain(value: string): string {
 
 function mountPanel(group: DebtOwnerGroup, extra: Partial<InstanceType<typeof DebtOwnerPanel>['$props']> = {}) {
   return mount(DebtOwnerPanel, {
+    attachTo: document.body,
     props: {
       owner: group,
       isSelectable: () => false,
@@ -57,8 +61,14 @@ function mountPanel(group: DebtOwnerGroup, extra: Partial<InstanceType<typeof De
   })
 }
 
-function payment(debtId: number): PaymentFormValue {
-  return { debtId, sum: Money.fromMinorUnits(10_000), date: parseLocalDate('2026-09-17')!, comment: '' }
+function payment(debtId: number, extra: Partial<PaymentFormValue> = {}): PaymentFormValue {
+  return {
+    debtId,
+    sum: Money.fromMinorUnits(10_000),
+    date: parseLocalDate('2026-09-17')!,
+    comment: '',
+    ...extra,
+  }
 }
 
 describe('книжная карточка держателя на узком экране', () => {
@@ -125,27 +135,39 @@ describe('книжная карточка держателя на узком э�
     expect(wrapper.get(META).text()).not.toContain('·')
   })
 
-  it('открытый платёж не даёт свернуть карточку и объясняет отказ', async () => {
-    const wrapper = mountPanel(owner([debt(1), debt(2)]))
+  it('на узком экране открывает возврат в MudDialog без закрытия по затемнению и сохраняет кнопку Вернуть', async () => {
+    const group = owner([debt(1), debt(2)])
+    const wrapper = mountPanel(group)
 
     await wrapper.get(TOGGLE).trigger('click')
-    await wrapper.setProps({ paymentValue: payment(2) })
+    await wrapper.setProps({
+      paymentValue: payment(2, { scope: 'owner', maximum: Money.fromMinorUnits(200_000) }),
+    })
+    await nextTick()
 
-    expect(wrapper.find(FORM).exists()).toBe(true)
+    const dialog = document.querySelector<HTMLElement>(DIALOG)
+    const form = document.querySelector<HTMLElement>(FORM)
 
-    await wrapper.get(TOGGLE).trigger('click')
+    expect(wrapper.get(PAY).isVisible()).toBe(true)
+    expect(dialog).not.toBeNull()
+    expect(dialog?.textContent).toContain('Возврат: Пётр')
+    expect(form?.classList.contains('mud-elevation-0')).toBe(true)
 
-    expect(wrapper.find(FORM).exists()).toBe(true)
-    expect(wrapper.get(TOGGLE).attributes('aria-expanded')).toBe('true')
-    expect(wrapper.get(HINT).text()).toBe('сначала завершите или отмените платёж')
+    document.querySelector<HTMLElement>('.mud-overlay-dialog')?.click()
+    await nextTick()
+    expect(wrapper.emitted('cancel-payment')).toBeUndefined()
 
-    await wrapper.setProps({ paymentValue: null })
+    document.querySelector<HTMLElement>('[data-testid="debts-payment-save"]')?.click()
+    await nextTick()
+    expect(wrapper.emitted('submit-payment')).toHaveLength(1)
 
-    expect(wrapper.get(HINT).text()).toBe('')
+    document.querySelector<HTMLElement>(DIALOG_CLOSE)?.click()
+    await nextTick()
+    expect(wrapper.emitted('cancel-payment')?.[0]).toEqual([group.debts[1]])
 
-    await wrapper.get(TOGGLE).trigger('click')
-
-    expect(wrapper.find('[data-testid="debts-card-edit-1"]').exists()).toBe(false)
+    document.querySelector<HTMLElement>('[data-testid="debts-payment-cancel"]')?.click()
+    await nextTick()
+    expect(wrapper.emitted('cancel-payment')?.[1]).toEqual([group.debts[1]])
   })
 
   it('режим прощения раскрывает держателя, не отбирая ручное управление', async () => {
@@ -172,14 +194,67 @@ describe('книжная карточка держателя на узком э�
     expect(wrapper.find('[data-testid="debts-card-edit-1"]').exists()).toBe(true)
   })
 
-  it('на широком экране остаётся прежняя раскладка с чипами', () => {
+  it('на широком экране остаётся прежняя раскладка с чипами и правым поповером возврата', async () => {
     isNarrow.value = false
 
-    const wrapper = mountPanel(owner([debt(1)]))
+    const group = owner([debt(1)])
+    const wrapper = mountPanel(group)
 
     expect(wrapper.find('[data-testid="debts-owner-count"]').exists()).toBe(true)
     expect(wrapper.find(TOGGLE).exists()).toBe(false)
+    expect(wrapper.find(`.debt-owner__pay-anchor ${PAY}`).exists()).toBe(true)
+    expect(document.querySelector(FORM)).toBeNull()
+
+    await wrapper.setProps({
+      paymentValue: payment(1, { scope: 'owner', maximum: Money.fromMinorUnits(100_000) }),
+    })
+    await nextTick()
+
+    const popover = document.querySelector<HTMLElement>(POPOVER)
+    const form = popover?.querySelector<HTMLElement>(FORM)
+
+    expect(popover).not.toBeNull()
+    expect(popover?.classList.contains('mud-popover-open')).toBe(true)
+    expect(popover?.classList.contains('mud-popover-top-right')).toBe(true)
+    expect(popover?.classList.contains('mud-popover-anchor-bottom-right')).toBe(true)
+    expect(form?.classList.contains('mud-elevation-0')).toBe(true)
+
+    popover?.querySelector<HTMLElement>('[data-testid="debts-payment-save"]')?.click()
+    await nextTick()
+    expect(wrapper.emitted('submit-payment')).toHaveLength(1)
+
+    popover?.querySelector<HTMLElement>('[data-testid="debts-payment-cancel"]')?.click()
+    await nextTick()
+    expect(wrapper.emitted('cancel-payment')?.[0]).toEqual([group.debts[0]])
 
     isNarrow.value = true
+  })
+
+  it('повторный клик по Вернуть на широком экране закрывает открытый поповер вместо сброса формы', async () => {
+    isNarrow.value = false
+
+    try {
+      const group = owner([debt(1)])
+      const wrapper = mountPanel(group)
+      const payButton = wrapper.get(PAY)
+
+      expect(payButton.attributes('aria-expanded')).toBe('false')
+
+      await payButton.trigger('click')
+      expect(wrapper.emitted('pay-owner')).toHaveLength(1)
+
+      await wrapper.setProps({
+        paymentValue: payment(1, { scope: 'owner', maximum: Money.fromMinorUnits(100_000) }),
+      })
+      await nextTick()
+
+      expect(payButton.attributes('aria-expanded')).toBe('true')
+
+      await payButton.trigger('click')
+      expect(wrapper.emitted('pay-owner')).toHaveLength(1)
+      expect(wrapper.emitted('cancel-payment')?.[0]).toEqual([group.debts[0]])
+    } finally {
+      isNarrow.value = true
+    }
   })
 })

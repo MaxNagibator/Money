@@ -167,6 +167,13 @@ describe('оболочка приложения', () => {
     expect(wrapper.find('[data-testid="bottom-nav"]').exists()).toBe(false)
     expect(wrapper.find('[data-testid="operation-dialog"]').exists()).toBe(true)
   })
+
+  it('на отчётах долгов активен только пункт Отчёты, а не Список', async () => {
+    const wrapper = await setup('/debts/accounts')
+
+    expect(wrapper.get('[data-testid="nav-debts"] .mud-nav-link').classes()).not.toContain('active')
+    expect(wrapper.get('[data-testid="nav-debt-accounts"] .mud-nav-link').classes()).toContain('active')
+  })
 })
 
 async function setup(path = '/debts'): Promise<VueWrapper> {
@@ -179,6 +186,7 @@ async function setup(path = '/debts'): Promise<VueWrapper> {
       { path: '/operations', meta: { title: 'Операции' }, component: page },
       { path: '/statistics', meta: { title: 'Статистика' }, component: page },
       { path: '/debts', meta: { ownHeading: true, title: 'Долги' }, component: page },
+      { path: '/debts/accounts', meta: { ownHeading: true, title: 'Отчёты по долгам' }, component: page },
     ],
   })
 

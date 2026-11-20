@@ -413,7 +413,9 @@ function submit(): void {
 .debt-directions [role="alert"] { grid-column: 1 / -1; color: var(--mud-palette-error); }
 .debt-sum-field { position: relative; }
 .debt-sum-field input { padding-right: 30px; }
+.debt-sum-field:has(.mud-input-clear-button) input { padding-right: 60px; }
 .debt-currency { position: absolute; right: 12px; top: 26px; color: var(--mud-palette-text-secondary); pointer-events: none; }
+.debt-sum-field:has(.mud-input-clear-button) .debt-currency { right: 40px; }
 .debt-balance-preview { margin-top: 12px; padding: 10px 12px; border-radius: 8px; background: color-mix(in srgb, var(--mud-palette-primary) 8%, transparent); font-size: 0.875rem; font-variant-numeric: tabular-nums; line-height: 1.5; }
 .debt-balance-preview > span { display: block; margin-bottom: 3px; color: var(--mud-palette-text-secondary); font-size: 0.75rem; }
 

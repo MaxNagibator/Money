@@ -1,4 +1,5 @@
 import {
+  mdAssessment,
   mdAttachMoney,
   mdCategory,
   mdElectricCar,
@@ -17,6 +18,7 @@ export interface NavItem {
   to: string
   icon: string
   testId: string
+  match?: 'prefix' | 'all'
 }
 
 export interface NavGroup {
@@ -44,7 +46,14 @@ const authorizedEntries: NavEntry[] = [
       { title: 'Регулярные', to: '/regular-operations', icon: mdRepeat, testId: 'nav-regular-operations' },
     ],
   },
-  { title: 'Долги', to: '/debts', icon: mdAttachMoney, testId: 'nav-debts' },
+  {
+    title: 'Долги',
+    icon: mdAttachMoney,
+    items: [
+      { title: 'Список', to: '/debts', icon: mdList, testId: 'nav-debts', match: 'all' },
+      { title: 'Отчёты', to: '/debts/accounts', icon: mdAssessment, testId: 'nav-debt-accounts' },
+    ],
+  },
   { title: 'Авто', to: '/cars', icon: mdElectricCar, testId: 'nav-cars' },
   { title: 'Настройки', to: '/settings', icon: mdSettingsApplications, testId: 'nav-settings' },
 ]
@@ -54,10 +63,10 @@ const anonymousEntries: NavEntry[] = [
   { title: 'Вход', to: '/login', icon: mdPassword, testId: 'nav-sign-in' },
 ]
 
-const bottomEntryTitles = new Map([
-  ['/operations', 'Операции'],
-  ['/statistics', 'Статистика'],
-  ['/debts', 'Долги'],
+const bottomEntries = new Map<string, { title: string, icon?: string }>([
+  ['/operations', { title: 'Операции' }],
+  ['/statistics', { title: 'Статистика' }],
+  ['/debts', { title: 'Долги', icon: mdAttachMoney }],
 ])
 
 export function buildBottomNavigation(): NavItem[] {
@@ -65,10 +74,12 @@ export function buildBottomNavigation(): NavItem[] {
     .flatMap(entry => (isNavGroup(entry) ? entry.items : [entry]))
     .map(item => [item.to, item]))
 
-  return [...bottomEntryTitles].flatMap(([path, title]) => {
+  return [...bottomEntries].flatMap(([path, entry]) => {
     const item = known.get(path)
 
-    return item === undefined ? [] : [{ ...item, title, testId: `bottom-${item.testId}` }]
+    return item === undefined
+      ? []
+      : [{ ...item, title: entry.title, icon: entry.icon ?? item.icon, testId: `bottom-${item.testId}` }]
   })
 }
 

@@ -295,4 +295,26 @@ test.describe('настройки', () => {
 
     await expect(page.locator(application)).toHaveAttribute('data-mud-theme', 'dark')
   })
+
+  test('кнопка возврата к текстовому вводу времени с подсказкой не съезжает и не перекрывает значок часов', async ({ page }) => {
+    await openSettings(page)
+    await enableSchedule(page)
+
+    await page.getByTestId('settings-schedule-start').locator('.mud-input-adornment-end button').click()
+
+    const clockWrap = page.locator('.smart-picker-wrap', { has: page.getByTestId('time-clock') })
+    const toggle = clockWrap.getByTestId('time-to-text')
+    const adornment = clockWrap.locator('.mud-input-adornment-end button')
+    await expect(toggle).toBeVisible()
+
+    const toggleBox = await toggle.boundingBox()
+    const adornmentBox = await adornment.boundingBox()
+    expect(toggleBox).not.toBeNull()
+    expect(adornmentBox).not.toBeNull()
+
+    const toggleCenterY = toggleBox!.y + toggleBox!.height / 2
+    const adornmentCenterY = adornmentBox!.y + adornmentBox!.height / 2
+    expect(Math.abs(toggleCenterY - adornmentCenterY)).toBeLessThanOrEqual(2)
+    expect(toggleBox!.x + toggleBox!.width).toBeLessThanOrEqual(adornmentBox!.x + 1)
+  })
 })

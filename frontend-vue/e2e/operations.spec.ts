@@ -178,9 +178,9 @@ async function selectFilterCategory(page: Page, name: string): Promise<void> {
   await closeFilterCategories(page)
 }
 
-async function goToSection(page: Page, title: string): Promise<void> {
+async function goToSection(page: Page, testId: string): Promise<void> {
   const menu = page.getByTestId('nav-menu')
-  const link = menu.getByRole('link', { name: title, exact: true })
+  const link = menu.getByTestId(testId)
 
   if (await link.isVisible() === false) {
     await menu.getByText('Операции', { exact: true }).click()
@@ -271,7 +271,7 @@ test.describe('операции', () => {
 
     const applied = stub.queries.length
 
-    await goToSection(page, 'Статистика')
+    await goToSection(page, 'nav-statistics')
 
     await expect(page.getByTestId('statistics-tree-1')).toBeVisible()
     await expect(page.locator(comment)).toHaveValue('обед')
@@ -280,7 +280,7 @@ test.describe('операции', () => {
     await closeFilterCategories(page)
     expect(stub.queries).toHaveLength(applied)
 
-    await goToSection(page, 'Список')
+    await goToSection(page, 'nav-operations')
 
     await expect(page.getByTestId('operations-day')).toHaveCount(2)
     await expect(page.locator(comment)).toHaveValue('обед')
@@ -620,7 +620,7 @@ test.describe('операции', () => {
 
     await openOperations(page)
 
-    await goToSection(page, 'Быстрые')
+    await goToSection(page, 'nav-fast-operations')
 
     await expect(page.getByTestId('fast-operations-card-20')).toBeVisible()
 
@@ -628,7 +628,7 @@ test.describe('операции', () => {
 
     await expect(page.getByTestId('fast-operations-restore-20')).toBeVisible()
 
-    await goToSection(page, 'Список')
+    await goToSection(page, 'nav-operations')
 
     await expect(page.getByTestId('operations-day')).toHaveCount(2)
 

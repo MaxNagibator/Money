@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
+import { mdAttachMoney } from '@/shared/icons'
 import type { NavEntry } from './navigation'
-import { buildNavigation, isNavGroup } from './navigation'
+import { buildBottomNavigation, buildNavigation, isNavGroup } from './navigation'
 
 function titles(entries: NavEntry[]): string[] {
   return entries.map(entry => entry.title)
@@ -46,5 +47,33 @@ describe('buildNavigation', () => {
     const entries = buildNavigation({ isAuthenticated: true, userName: null })
 
     expect(entries.at(-1)?.title).toBe('Профиль')
+  })
+
+  it('долги собраны в группу со списком и отчётами', () => {
+    const entries = buildNavigation({ isAuthenticated: true, userName: 'ivan' })
+    const debts = entries.find(entry => entry.title === 'Долги')
+
+    expect(debts).toBeDefined()
+    expect(debts !== undefined && isNavGroup(debts)).toBe(true)
+    if (debts === undefined || !isNavGroup(debts)) {
+      return
+    }
+
+    expect(debts.items.map(item => ({ title: item.title, to: item.to, testId: item.testId, match: item.match }))).toEqual([
+      { title: 'Список', to: '/debts', testId: 'nav-debts', match: 'all' },
+      { title: 'Отчёты', to: '/debts/accounts', testId: 'nav-debt-accounts', match: undefined },
+    ])
+  })
+
+  it('в нижней навигации у долгов остаётся денежная иконка', () => {
+    const items = buildBottomNavigation()
+    const debts = items.find(item => item.to === '/debts')
+
+    expect(debts).toMatchObject({
+      title: 'Долги',
+      to: '/debts',
+      icon: mdAttachMoney,
+      testId: 'bottom-nav-debts',
+    })
   })
 })

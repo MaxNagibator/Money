@@ -77,6 +77,7 @@ test.describe('отчёты по долгам', () => {
     await expect(page.getByTestId('debts-summary-net')).toHaveText('400 ₽')
     await page.getByTestId('debts-search').locator('input').fill('Иван')
     await expect(page.getByTestId('debts-summary-net')).toHaveText('600 ₽')
+    await expect(page.getByTestId('debts-charts-filter-label')).toHaveText('По фильтру: «Иван»')
     const account = page.getByTestId('debt-account-Иван')
     await account.getByTestId('debt-account-toggle').click()
     await expect(account.getByTestId('debt-movement-out-1')).toHaveText('−1 000 ₽')
@@ -93,6 +94,7 @@ test.describe('отчёты по долгам', () => {
     await expect(account.locator('tfoot')).toContainText('600,00 ₽')
     await page.getByTestId('debts-search').getByRole('button', { name: 'Очистить' }).click()
     await expect(page.getByTestId('debts-summary-net')).toHaveText('400,00 ₽')
+    await expect(page.getByTestId('debts-charts-filter-label')).toHaveCount(0)
     await page.reload()
     await expect(page.getByTestId('debts-mode-accounting')).toBeChecked()
     expect(stub.created).toEqual([])
@@ -144,6 +146,112 @@ test.describe('отчёты по долгам', () => {
         expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1)
       }
     }
+  })
+
+  test('навигация в меню открывает отчёты и раздельно подсвечивает пункты Долгов', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await stubApi(page)
+    await signInAsStub(page)
+    await openDebts(page)
+
+    const menu = page.getByTestId('nav-menu')
+    const debtsLink = menu.getByTestId('nav-debts')
+    const accountsLink = menu.getByTestId('nav-debt-accounts')
+
+    await expect(debtsLink).toBeVisible()
+    await expect(debtsLink).toContainText('Список')
+    await expect(accountsLink).toBeVisible()
+    await expect(accountsLink).toContainText('Отчёты')
+    await expect(debtsLink.locator('.mud-nav-link')).toHaveClass(/active/)
+    await expect(accountsLink.locator('.mud-nav-link')).not.toHaveClass(/active/)
+
+    await accountsLink.click()
+
+    await expect(page).toHaveURL(/\/debts\/accounts$/)
+    await expect(accountsLink.locator('.mud-nav-link')).toHaveClass(/active/)
+    await expect(debtsLink.locator('.mud-nav-link')).not.toHaveClass(/active/)
+  })
+
+  test('отчёт показывает чип чтения, компактные строки и все 4 графика без ошибок', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 })
+    const consoleErrors: string[] = []
+    const pageErrors: string[] = []
+    page.on('console', message => {
+      if (message.type() === 'error') {
+        consoleErrors.push(message.text())
+      }
+    })
+    page.on('pageerror', error => {
+      pageErrors.push(error.message)
+    })
+
+    await stubApi(page)
+    await signInAsStub(page)
+    await page.goto('/debts/accounts')
+
+    const readonlyChip = page.getByTestId('debts-report-readonly')
+    await expect(readonlyChip).toBeVisible({ timeout: FIRST_RENDER_TIMEOUT })
+    await expect(readonlyChip).toHaveClass(/mud-chip/)
+    expect(await readonlyChip.evaluate(el => el.tagName !== 'BUTTON' && el.tagName !== 'A' && el.getAttribute('role') !== 'button')).toBe(true)
+    await expect(page.getByTestId('debts-report-back')).toBeVisible()
+    await expect(page.getByTestId('debts-toggle-paid')).toBeVisible()
+
+    const account = page.getByTestId('debt-account-Пётр')
+    await account.getByTestId('debt-account-toggle').click()
+
+    const feedRow = account.locator('.feed-row').first()
+    await expect(feedRow).toBeVisible()
+    const rowBox = await feedRow.boundingBox()
+    expect(rowBox?.height ?? Number.POSITIVE_INFINITY).toBeLessThanOrEqual(56)
+
+    await expect(account.getByTestId('debt-account-chart-toggle')).toBeVisible()
+    await expect(account.getByTestId('debt-account-chart')).toHaveCount(0)
+    await account.getByTestId('debt-account-chart-toggle').click()
+    await expect(account.getByTestId('debt-account-chart').locator('canvas')).toBeVisible()
+
+    const charts = page.getByTestId('debts-charts-section')
+    await expect(charts).toBeVisible()
+    for (const tabId of ['debts-chart-tab-balance', 'debts-chart-tab-monthly', 'debts-chart-tab-owners', 'debts-chart-tab-cycles']) {
+      const tab = charts.getByTestId(tabId)
+      await expect(tab).toBeVisible()
+      await tab.click()
+      await expect(tab).toHaveAttribute('aria-pressed', 'true')
+      await expect(charts.locator('canvas')).toBeVisible()
+    }
+
+    const chartsToggle = charts.getByTestId('debts-charts-toggle')
+    await chartsToggle.click()
+    await expect(chartsToggle).toHaveAttribute('aria-expanded', 'false')
+    await expect(charts.locator('.charts-panel')).toHaveCount(0)
+    await chartsToggle.click()
+    await expect(chartsToggle).toHaveAttribute('aria-expanded', 'true')
+    await expect(charts.locator('canvas')).toBeVisible()
+
+    await page.goto('/debts/accounts?owner=%D0%9F%D1%91%D1%82%D1%80')
+    const focusedAccount = page.getByTestId('debt-account-Пётр')
+    await expect(focusedAccount.getByTestId('debt-account-chart-toggle')).toHaveAttribute('aria-expanded', 'true', { timeout: FIRST_RENDER_TIMEOUT })
+    await expect(focusedAccount.getByTestId('debt-account-chart').locator('canvas')).toBeVisible()
+
+    expect(consoleErrors).toEqual([])
+    expect(pageErrors).toEqual([])
+  })
+
+  test('при неразобранном старом комментарии временные графики предупреждают об оплатах без даты', async ({ page }) => {
+    await stubApi(page, [{ ...debts[0]!, ownerName: 'Иван', paySum: 300, payComment: '2026.01.25 300 перевод\nдополнение к платежу' }])
+    await signInAsStub(page)
+    await page.goto('/debts/accounts')
+
+    const charts = page.getByTestId('debts-charts-section')
+    await expect(charts.getByTestId('debts-charts-undated-note')).toBeVisible({ timeout: FIRST_RENDER_TIMEOUT })
+
+    await charts.getByTestId('debts-chart-tab-monthly').click()
+    await expect(charts.getByTestId('debts-charts-undated-note')).toBeVisible()
+
+    await charts.getByTestId('debts-chart-tab-cycles').click()
+    await expect(charts.getByTestId('debts-charts-undated-note')).toBeVisible()
+
+    await charts.getByTestId('debts-chart-tab-owners').click()
+    await expect(charts.getByTestId('debts-charts-undated-note')).toHaveCount(0)
   })
 })
 
@@ -253,6 +361,60 @@ test.describe('общий возврат и история человека', ()
     await page.getByTestId('debts-report-back').click()
     await expect(page).toHaveURL(/\/debts$/)
     await expect(page.getByTestId('debts-add')).toBeVisible()
+  })
+
+  test('на десктопе групповой возврат открывается в компактном поповере у кнопки и закрывается отменой', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await stubApi(page)
+    await signInAsStub(page)
+    await openDebts(page)
+
+    const owner = page.getByTestId('debts-owner-Пётр')
+    const payButton = owner.getByTestId('debts-owner-pay')
+    await payButton.click()
+
+    const popover = page.locator('.mud-popover.debt-owner__payment-popover.mud-popover-open')
+    await expect(popover.getByTestId('debts-payment')).toBeVisible()
+
+    await expect.poll(async () => {
+      const popoverBox = await popover.boundingBox()
+      const ownerBox = await owner.boundingBox()
+      const buttonBox = await payButton.boundingBox()
+      if (popoverBox === null || ownerBox === null || buttonBox === null) {
+        return false
+      }
+      const rightDiff = Math.abs((popoverBox.x + popoverBox.width) - (buttonBox.x + buttonBox.width))
+      return popoverBox.width <= 420 && popoverBox.width < ownerBox.width && rightDiff <= 16
+    }).toBe(true)
+
+    await popover.getByTestId('debts-payment-cancel').click()
+    await expect(page.getByTestId('debts-payment')).toHaveCount(0)
+  })
+
+  test('на телефоне групповой возврат открывается в нижнем листе, закрывается крестиком и отправляется после повторного открытия', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    const stub = await stubApi(page)
+    await signInAsStub(page)
+    await page.goto('/debts')
+
+    const owner = page.getByTestId('debts-owner-Пётр')
+    await expect(owner).toBeVisible({ timeout: FIRST_RENDER_TIMEOUT })
+    await owner.getByTestId('debts-owner-toggle-Пётр').click()
+    await owner.getByTestId('debts-owner-pay').click()
+
+    const dialog = page.getByTestId('debts-payment-dialog')
+    await expect(dialog).toBeVisible()
+    await dialog.locator('.mud-button-close').click()
+    await expect(dialog).toHaveCount(0)
+
+    await owner.getByTestId('debts-owner-pay').click()
+    await expect(dialog).toBeVisible()
+    await page.locator(paymentSum).fill('200')
+    await page.getByTestId('debts-payment-save').click()
+
+    await expect.poll(() => stub.ownerPayments.length).toBe(1)
+    await expect(dialog).toHaveCount(0)
+    await expect(owner.getByTestId('debts-owner-remainder')).toHaveText('550,00')
   })
 })
 async function stubApi(page: Page, initial: DebtDto[] = debts): Promise<DebtsStub> {
@@ -584,6 +746,48 @@ test.describe('долги', () => {
     await expect(page.getByTestId('debts-dialog-notice')).toHaveText("Нераспознано значение в поле 'сумма'.")
     await expect(page.getByTestId('debts-dialog')).toBeVisible()
     expect(stub.created).toHaveLength(0)
+  })
+
+  test('кнопка возврата к текстовой дате и знак рубля не съезжают и не перекрывают кнопки поля', async ({ page }) => {
+    await stubApi(page)
+    await page.clock.setFixedTime(new Date(TODAY))
+    await openDebts(page)
+
+    await page.getByTestId('debts-add').click()
+
+    const dateField = page.getByTestId('debts-dialog-date')
+    await dateField.locator('.mud-input-adornment-end button').click()
+
+    const toggle = dateField.getByTestId('date-to-text')
+    const adornment = dateField.locator('.mud-input-adornment-end button')
+    await expect(toggle).toBeVisible()
+
+    const toggleBox = await toggle.boundingBox()
+    const adornmentBox = await adornment.boundingBox()
+    expect(toggleBox).not.toBeNull()
+    expect(adornmentBox).not.toBeNull()
+
+    const toggleCenterY = toggleBox!.y + toggleBox!.height / 2
+    const adornmentCenterY = adornmentBox!.y + adornmentBox!.height / 2
+    expect(Math.abs(toggleCenterY - adornmentCenterY)).toBeLessThanOrEqual(2)
+    expect(toggleBox!.x + toggleBox!.width).toBeLessThanOrEqual(adornmentBox!.x + 1)
+
+    await toggle.click()
+    await expect(dateField.getByTestId('date-text')).toBeVisible()
+
+    const sumField = page.getByTestId('debts-dialog-sum')
+    await fillField(page, dialogSum, '500')
+    await sumField.locator('.mud-input-adornment-start button').click()
+
+    const clearButton = sumField.locator('.mud-input-clear-button')
+    const currency = sumField.locator('.debt-currency')
+    await expect(clearButton).toBeVisible()
+
+    const clearBox = await clearButton.boundingBox()
+    const currencyBox = await currency.boundingBox()
+    expect(clearBox).not.toBeNull()
+    expect(currencyBox).not.toBeNull()
+    expect(currencyBox!.x + currencyBox!.width).toBeLessThanOrEqual(clearBox!.x + 1)
   })
 
   test('удаление помечает карточку, восстановление возвращает действия', async ({ page }) => {

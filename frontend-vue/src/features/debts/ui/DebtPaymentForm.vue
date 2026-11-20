@@ -21,6 +21,7 @@ import { validatePaymentForm } from '../model/payment-form'
 const props = defineProps<{
   value: PaymentFormValue | null
   isSaving: boolean
+  flat?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -82,6 +83,7 @@ function submit(): void {
 
 <template>
   <MudPaper
+    :elevation="flat ? 0 : 1"
     class="debt-payment pa-3"
     data-testid="debts-payment"
   >
