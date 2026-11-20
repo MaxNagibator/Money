@@ -6,6 +6,7 @@ import { mdCalendarMonth, mdEdit } from '@/shared/icons'
 import type { MudAdornment, MudColor } from '@/shared/mud'
 import { MudDatePicker, MudIconButton, MudTextField } from '@/shared/mud'
 import { DATE_PARSE_ERROR, useSmartDatePicker } from '@/shared/ui/useSmartDatePicker'
+import './smart-picker.css'
 
 const props = withDefaults(defineProps<{
   label?: string
@@ -78,7 +79,7 @@ defineExpose({
   />
   <div
     v-else
-    style="position: relative;"
+    class="smart-picker-wrap"
   >
     <MudDatePicker
       ref="calendar"
@@ -89,7 +90,7 @@ defineExpose({
       :adornment="adornment"
       :adornment-color="color"
       :color="color"
-      :error="error"
+      :error="hasError"
       :error-text="errorText"
       date-format="dd.MM.yyyy"
       mask="dd.MM.yyyy"
@@ -97,12 +98,12 @@ defineExpose({
       @picker-closed="onCalendarClosed"
     />
     <MudIconButton
+      class="smart-picker-toggle"
       data-testid="date-to-text"
       :icon="mdEdit"
       :color="color"
       size="small"
       title="Текстовый ввод"
-      style="position: absolute; right: 24px; top: 65%; transform: translateY(-50%); z-index: 1000;"
       @click="state.switchToTextInput()"
     />
   </div>

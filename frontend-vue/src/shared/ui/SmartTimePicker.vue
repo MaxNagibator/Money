@@ -4,6 +4,7 @@ import { formatTimeOfDay, parseTimeInput } from '@/domain/time-input'
 import { mdEdit, mdSchedule } from '@/shared/icons'
 import { MudIconButton, MudTextField, MudTimePicker } from '@/shared/mud'
 import { TIME_PARSE_ERROR, useSmartTimePicker } from '@/shared/ui/useSmartTimePicker'
+import './smart-picker.css'
 
 const props = withDefaults(defineProps<{
   label?: string
@@ -79,7 +80,7 @@ defineExpose({
   />
   <div
     v-else
-    style="position: relative;"
+    class="smart-picker-wrap"
   >
     <MudTimePicker
       ref="clock"
@@ -88,17 +89,17 @@ defineExpose({
       :label="label"
       :helper-text="hint"
       :disabled="disabled"
-      :error="error"
+      :error="hasError"
       :error-text="errorText"
       @picker-closed="onClockClosed"
     />
     <MudIconButton
+      class="smart-picker-toggle"
       data-testid="time-to-text"
       :icon="mdEdit"
       color="tertiary"
       size="small"
       title="Текстовый ввод"
-      style="position: absolute; right: 24px; top: 65%; transform: translateY(-50%); z-index: 1000;"
       @click="state.switchToTextInput()"
     />
   </div>

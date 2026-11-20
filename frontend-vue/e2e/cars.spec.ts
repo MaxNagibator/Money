@@ -240,6 +240,33 @@ test.describe('машины и события', () => {
     expect(stub.created).toHaveLength(0)
   })
 
+  test('кнопка возврата к текстовой дате при левом украшении и подсказке выровнена по правому краю поля', async ({ page }) => {
+    await stubApi(page)
+
+    await openCars(page)
+    await page.getByTestId('cars-event-add').click()
+
+    const dateField = page.getByTestId('cars-dialog-date')
+    await dateField.locator('.mud-input-adornment-start button').click()
+
+    const toggle = dateField.getByTestId('date-to-text')
+    const adornment = dateField.locator('.mud-input-adornment-start button')
+    const inputRow = dateField.locator('.mud-input')
+    await expect(toggle).toBeVisible()
+
+    const toggleBox = await toggle.boundingBox()
+    const adornmentBox = await adornment.boundingBox()
+    const inputBox = await inputRow.boundingBox()
+    expect(toggleBox).not.toBeNull()
+    expect(adornmentBox).not.toBeNull()
+    expect(inputBox).not.toBeNull()
+
+    const toggleCenterY = toggleBox!.y + toggleBox!.height / 2
+    const adornmentCenterY = adornmentBox!.y + adornmentBox!.height / 2
+    expect(Math.abs(toggleCenterY - adornmentCenterY)).toBeLessThanOrEqual(2)
+    expect(Math.abs((toggleBox!.x + toggleBox!.width) - (inputBox!.x + inputBox!.width))).toBeLessThanOrEqual(2)
+  })
+
   test('удаление и восстановление уходят на сервер и меняют карточку', async ({ page }) => {
     const stub = await stubApi(page)
 

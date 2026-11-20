@@ -1,0 +1,23 @@
+.smart-picker-wrap {
+  position: relative;
+}
+
+.smart-picker-wrap .mud-input-root {
+  padding-right: 30px;
+}
+
+.smart-picker-toggle.mud-icon-button {
+  position: absolute;
+  right: 0;
+  top: calc((var(--mud-typography-subtitle1-size) * 1.1876 + 13px) / 2);
+  transform: translateY(-50%);
+  z-index: 1000;
+}
+
+.smart-picker-wrap:has(.mud-input-text-with-label) .smart-picker-toggle.mud-icon-button {
+  top: calc(16px + (var(--mud-typography-subtitle1-size) * 1.1876 + 13px) / 2);
+}
+
+.smart-picker-wrap:has(.mud-input-adornment-end) .smart-picker-toggle.mud-icon-button {
+  right: 36px;
+}

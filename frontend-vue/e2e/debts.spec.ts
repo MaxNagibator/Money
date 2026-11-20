@@ -748,6 +748,48 @@ test.describe('долги', () => {
     expect(stub.created).toHaveLength(0)
   })
 
+  test('кнопка возврата к текстовой дате и знак рубля не съезжают и не перекрывают кнопки поля', async ({ page }) => {
+    await stubApi(page)
+    await page.clock.setFixedTime(new Date(TODAY))
+    await openDebts(page)
+
+    await page.getByTestId('debts-add').click()
+
+    const dateField = page.getByTestId('debts-dialog-date')
+    await dateField.locator('.mud-input-adornment-end button').click()
+
+    const toggle = dateField.getByTestId('date-to-text')
+    const adornment = dateField.locator('.mud-input-adornment-end button')
+    await expect(toggle).toBeVisible()
+
+    const toggleBox = await toggle.boundingBox()
+    const adornmentBox = await adornment.boundingBox()
+    expect(toggleBox).not.toBeNull()
+    expect(adornmentBox).not.toBeNull()
+
+    const toggleCenterY = toggleBox!.y + toggleBox!.height / 2
+    const adornmentCenterY = adornmentBox!.y + adornmentBox!.height / 2
+    expect(Math.abs(toggleCenterY - adornmentCenterY)).toBeLessThanOrEqual(2)
+    expect(toggleBox!.x + toggleBox!.width).toBeLessThanOrEqual(adornmentBox!.x + 1)
+
+    await toggle.click()
+    await expect(dateField.getByTestId('date-text')).toBeVisible()
+
+    const sumField = page.getByTestId('debts-dialog-sum')
+    await fillField(page, dialogSum, '500')
+    await sumField.locator('.mud-input-adornment-start button').click()
+
+    const clearButton = sumField.locator('.mud-input-clear-button')
+    const currency = sumField.locator('.debt-currency')
+    await expect(clearButton).toBeVisible()
+
+    const clearBox = await clearButton.boundingBox()
+    const currencyBox = await currency.boundingBox()
+    expect(clearBox).not.toBeNull()
+    expect(currencyBox).not.toBeNull()
+    expect(currencyBox!.x + currencyBox!.width).toBeLessThanOrEqual(clearBox!.x + 1)
+  })
+
   test('удаление помечает карточку, восстановление возвращает действия', async ({ page }) => {
     const stub = await stubApi(page)
 
